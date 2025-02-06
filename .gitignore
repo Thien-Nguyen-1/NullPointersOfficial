@@ -245,6 +245,8 @@ Temporary Items
 # Sphinx documentation
 
 # PyBuilder
+*.pyc
+*.pyo
 
 # Jupyter Notebook
 
