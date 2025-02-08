@@ -6,7 +6,5 @@ class ProgressTracker(models.Model):
     Module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
 
-
-
 def __str__(self):
     return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
