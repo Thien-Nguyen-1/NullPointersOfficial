@@ -2,10 +2,13 @@
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
+import uuid
 
 
 class User(AbstractUser):
     """Model used for user authentication, and team member related information."""
+
+    user_id = models.UUIDField(default = uuid.uuid4, editable=False, unique=True)
 
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
@@ -30,20 +33,10 @@ class User(AbstractUser):
     )
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
-    email = models.EmailField(unique=True, blank=False)
-
-    # groups = models.ManyToManyField(
-    #     Group,
-    #     related_name='custom_user_groups',
-    #     blank=True,
-    # )
-
-    # user_permissions = models.ManyToManyField(
-    #     Permission,
-    #     related_name='custom_user_permissions',
-    #     blank=True,
-    # )
-
+   
+    
+    Module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    Tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
 
     class Meta:
         """Model options."""
@@ -55,6 +48,8 @@ class User(AbstractUser):
 
         return f'{self.first_name} {self.last_name}'
 
+    def __str__(self):
+        return f"{self.full_name} - {self.username} - {self.user_id}"
     
 
 

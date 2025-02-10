@@ -3,12 +3,12 @@ from .models import ProgressTracker
 from django.contrib.auth import authenticate, get_user_model
 
 
-User = get_user_model
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name','email','user_type']
+        fields = ['user_id', 'username', 'first_name', 'last_name','user_type']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -26,7 +26,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name','email','user_type']
+        fields = ['user_id', 'username', 'first_name', 'last_name','user_type']
 
     def validate(self,data):
         if data["password"] != data["confirm_password"]:
@@ -43,7 +43,7 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only = True)
     confirm_new_password= serializers.CharField(write_only = True)
 
-    def valudate(self,data):
+    def validate(self,data):
         if data["new_password"] != data["confirm_new_password"]:
             raise serializers.ValidationError("New passwords do not match")
         return data
