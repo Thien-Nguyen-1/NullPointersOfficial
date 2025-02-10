@@ -1,5 +1,60 @@
 from rest_framework import serializers
 from .models import ProgressTracker
+from django.contrib.auth import authenticate, get_user_model
+
+
+User = get_user_model
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name','email','user_type']
+
+class LogInSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self,data):
+        user = authenticate(username =data["username"], password = data["password"])
+        if not user:
+            raise serializers.ValidationError("Invalid username or password")
+        return {"user": user}
+
+class SignUpSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name','email','user_type']
+
+    def validate(self,data):
+        if data["password"] != data["confirm_password"]:
+            raise serializers.ValidationError("Password do not match")
+        return data
+    
+    def create(self,validated_data):
+        validated_data.pop("confirm_password")
+        user = User.objects.create_user(**validated_data)
+        return user
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only = True)
+    new_password = serializers.CharField(write_only = True)
+    confirm_new_password= serializers.CharField(write_only = True)
+
+    def valudate(self,data):
+        if data["new_password"] != data["confirm_new_password"]:
+            raise serializers.ValidationError("New passwords do not match")
+        return data
+    
+    def update(self,instance,validated_data):
+        if not instance.check_password(validated_data["old_password"]):
+            raise serializers.ValidationError("Old password is incorrect")
+        
+        instance.set_password(validated_data["new_password"])
+        instance.save()
+        return instance
 
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
