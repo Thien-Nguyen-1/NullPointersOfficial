@@ -28,42 +28,6 @@ class Module(models.Model):
     def __str__(self):
         return self.title
 
-# Model for Content
-# Parent class for ALL Content Types
-class Content(models.Model):
-    # Primary Key
-    # generate a unique identifier, cannot be manually changed, must be unique
-    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=255)
-    moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="contents")  # Link to Module (later)
-    author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="author_content")
-    description = models.TextField(blank=True, null=True)
-    created_at=models.DateTimeField(auto_now_add=True)
-    updated_at=models.DateTimeField(auto_now=True)
-    is_published= models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True  # No separate table for Content Model, only the subclasses will have database tables
-
-    def __str__(self):
-        return self.title
-
-# Extend Content class
-class InfoSheet(Content):
-    infosheet_file= models.FileField(upload_to="infosheets/")
-    infosheet_content = models.TextField(blank=True, null=True)
-
-class Video(Content):
-    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    video_file= models.FileField(upload_to="videos/")
-    duration= models.PositiveBigIntegerField()
-    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
-
-class Task(Content):
-    text_content= models.TextField()
-
-
-
 
 
 class Questionnaire(models.Model):
@@ -208,3 +172,41 @@ class ProgressTracker(models.Model):
 
 def __str__(self):
     return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
+
+
+# Model for Content
+# Parent class for ALL Content Types
+class Content(models.Model):
+    # Primary Key
+    # generate a unique identifier, cannot be manually changed, must be unique
+    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    title = models.CharField(max_length=255)
+    moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="contents")  # Link to Module (later)
+    author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="author_content")
+    description = models.TextField(blank=True, null=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    is_published= models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True  # No separate table for Content Model, only the subclasses will have database tables
+
+    def __str__(self):
+        return self.title
+
+# Extend Content class
+class InfoSheet(Content):
+    infosheet_file= models.FileField(upload_to="infosheets/")
+    infosheet_content = models.TextField(blank=True, null=True)
+
+class Video(Content):
+    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    video_file= models.FileField(upload_to="videos/")
+    duration= models.PositiveBigIntegerField()
+    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+
+class Task(Content):
+    text_content= models.TextField()
+
+
+
