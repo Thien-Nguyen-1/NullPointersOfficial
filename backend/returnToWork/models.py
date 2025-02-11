@@ -186,8 +186,8 @@ class Content(models.Model):
     # generate a unique identifier, cannot be manually changed, must be unique
     contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255)
-    moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="contents")  # Link to Module (later)
-    author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="author_content")
+    moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="%(class)s_contents")  # Link to Module (later)
+    author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="%(class)s_author_contents")
     description = models.TextField(blank=True, null=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
