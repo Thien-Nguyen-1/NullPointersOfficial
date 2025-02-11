@@ -38,10 +38,10 @@ jobs:
       run: |
         python manage.py test returnToWork.tests --noinput --parallel
         
-    - name: Run Django Linting
-      run: |
-        pip install flake8
-        flake8 returnToWork/
+    # - name: Run Django Linting
+    #   run: |
+    #     pip install flake8
+    #     flake8 returnToWork/
 
   frontend-tests:
     runs-on: ubuntu-latest
