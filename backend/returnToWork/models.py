@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 class Module(models.Model):
     title = models.CharField(max_length=255)
@@ -51,7 +52,6 @@ class Questionnaire(models.Model):
     )
 
 
-    
     def clean(self):
         def is_parent_question(other):
             """Helper function to test whether a given question is a parent to the current question (DFS)"""
@@ -146,8 +146,11 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=50, blank=False)
    
     
-    Module = models.ForeignKey(Module, on_delete=models.CASCADE)
-    Tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
+    # module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
+
+    module = models.ManyToManyField(Module)
+    tags = models.ManyToManyField(Tags)
 
     class Meta:
         """Model options."""
@@ -166,8 +169,8 @@ class User(AbstractUser):
 
 
 class ProgressTracker(models.Model):
-    User = models.ForeignKey(User, on_delete=models.CASCADE)
-    Module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
 
 def __str__(self):
