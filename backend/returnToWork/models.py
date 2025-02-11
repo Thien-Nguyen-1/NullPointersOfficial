@@ -52,15 +52,16 @@ class Questionnaire(models.Model):
     
             return False
 
-
-
         def has_circular_references():
             return is_parent_question(self.yes_next_q) or is_parent_question(self.no_next_q)
-            
+
+
+           
         if has_circular_references():
             raise ValidationError("You cannot reference an ancestor question in a descendant question")
 
-                
+    def __str__(self):
+        return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question}\n\t|NO|: {self.no_next_q.question}"
 
 
                 
