@@ -1,11 +1,11 @@
 from django.test import TestCase
-from returnToWork.models import Module #, Tag
+from returnToWork.models import Module , Tags
 
 class ModuleModelTest(TestCase):
 
     def setUp(self):
         # Create a tag
-        #self.tag = Tag.objects.create(name="Stress")
+        self.tag = Tags.objects.create(tag="Stress")
 
         # Create a module
         self.module = Module.objects.create(
@@ -16,7 +16,7 @@ class ModuleModelTest(TestCase):
         )
 
         # Add the tag to the module
-        #self.module.tags.add(self.tag)
+        self.module.tags.add(self.tag)
 
     def test_module_creation(self):
         """Test if the module is created successfully."""
@@ -39,8 +39,8 @@ class ModuleModelTest(TestCase):
         """Test the string representation of the module."""
         self.assertEqual(str(self.module), "Handling Work Stress")
 
-    # def test_module_tags(self):
-    #     """Test if the module is associated with the correct tags."""
-    #     tags = self.module.tags.all()
-    #     self.assertEqual(tags.count(), 1)
-    #     self.assertIn(self.tag, tags)
+    def test_module_tags(self):
+        """Test if the module is associated with the correct tags."""
+        tags = self.module.tags.all()
+        self.assertEqual(tags.count(), 1)
+        self.assertIn(self.tag, tags)

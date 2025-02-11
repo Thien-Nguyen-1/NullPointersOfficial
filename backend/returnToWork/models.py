@@ -4,72 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 from django.core.exceptions import ValidationError
-
-class Module(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    id = models.AutoField(primary_key=True)  
-    #tags = models.ManyToManyField('Tag', blank=True, related_name='modules')
-    pinned = models.BooleanField(default=False)  
-    upvotes = models.PositiveIntegerField(default=0) 
-
-    def upvote(self):
-        self.upvotes += 1
-        self.save()
-
-    def downvote(self):
-        self.upvotes -= 1
-        self.save()
-
-    def save(self, *args, **kwargs):
-        self.title = self.title.title()  
-        super(Module, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-# Model for Content
-# Parent class for ALL Content Types
-class Content(models.Model):
-    # Primary Key
-    # generate a unique identifier, cannot be manually changed, must be unique
-    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=255)
-    content_type= models.CharField(
-        max_length=50,
-        choices=[
-            ('infosheet', 'Infosheet'),
-            ('video', 'Video'),
-            ('task', 'Task'),
-        ]
-    )
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="contents")  # Link to Module
-    author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="author_content")
-    created_at=models.DateTimeField(auto_now_add=True)
-    updated_at=models.DateTimeField(auto_now=True)
-    is_published= models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.title
-
-# Extend Content class
-
-class InfoSheet(Content):
-    infosheet_file= models.FileField(upload_to="infosheets/")
-
-class Video(Content):
-    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    video_file= models.FileField(upload_to="videos/")
-    duration= models.PositiveBigIntegerField()
-    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
-
-class Task(Content):
-    text_content= models.TextField()
-
-
-
-
+from django.conf import settings
 
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
@@ -82,17 +17,18 @@ class Questionnaire(models.Model):
         "self",
         on_delete = models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="yes_previous_qs"
     )
     no_next_q = models.ForeignKey(
         "self",
         on_delete = models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="no_previous_qs"
     )
 
 
-    
     def clean(self):
         def is_parent_question(other):
             """Helper function to test whether a given question is a parent to the current question (DFS)"""
@@ -125,7 +61,7 @@ class Questionnaire(models.Model):
             return is_parent_question(self.yes_next_q) or is_parent_question(self.no_next_q)
 
 
-           
+
         if has_circular_references():
             raise ValidationError("You cannot reference an ancestor question in a descendant question")
 
@@ -155,6 +91,29 @@ class Tags(models.Model):
         """ Helper method to get list of valid tags"""
         return list(cls.objects.values_list('tag', flat=True))
 import uuid
+
+class Module(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    id = models.AutoField(primary_key=True)  
+    tags = models.ManyToManyField('Tags', blank=True, related_name='modules')
+    pinned = models.BooleanField(default=False)  
+    upvotes = models.PositiveIntegerField(default=0) 
+
+    def upvote(self):
+        self.upvotes += 1
+        self.save()
+
+    def downvote(self):
+        self.upvotes -= 1
+        self.save()
+
+    def save(self, *args, **kwargs):
+        self.title = self.title.title()  
+        super(Module, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
 
 
 class User(AbstractUser):
@@ -187,8 +146,11 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=50, blank=False)
    
     
-    Module = models.ForeignKey(Module, on_delete=models.CASCADE)
-    Tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
+    # module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
+
+    module = models.ManyToManyField(Module)
+    tags = models.ManyToManyField(Tags)
 
     class Meta:
         """Model options."""
@@ -207,9 +169,47 @@ class User(AbstractUser):
 
 
 class ProgressTracker(models.Model):
-    User = models.ForeignKey(User, on_delete=models.CASCADE)
-    Module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
 
 def __str__(self):
     return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
+
+
+# Model for Content
+# Parent class for ALL Content Types
+class Content(models.Model):
+    # Primary Key
+    # generate a unique identifier, cannot be manually changed, must be unique
+    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    title = models.CharField(max_length=255)
+    moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="%(class)s_contents")  # Link to Module (later)
+    author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="%(class)s_author_contents")
+    description = models.TextField(blank=True, null=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    is_published= models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True  # No separate table for Content Model, only the subclasses will have database tables
+
+    def __str__(self):
+        return self.title
+
+# Extend Content class
+class InfoSheet(Content):
+    infosheet_file= models.FileField(upload_to="infosheets/")
+    infosheet_content = models.TextField(blank=True, null=True)
+
+class Video(Content):
+    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    video_file= models.FileField(upload_to="videos/")
+    duration= models.PositiveBigIntegerField()
+    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+
+class Task(Content):
+    text_content= models.TextField()
+
+
+
