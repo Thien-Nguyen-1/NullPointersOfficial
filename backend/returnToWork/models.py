@@ -6,31 +6,6 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-class Module(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    id = models.AutoField(primary_key=True)  
-    #tags = models.ManyToManyField('Tag', blank=True, related_name='modules')
-    pinned = models.BooleanField(default=False)  
-    upvotes = models.PositiveIntegerField(default=0) 
-
-    def upvote(self):
-        self.upvotes += 1
-        self.save()
-
-    def downvote(self):
-        self.upvotes -= 1
-        self.save()
-
-    def save(self, *args, **kwargs):
-        self.title = self.title.title()  
-        super(Module, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
 
@@ -116,6 +91,29 @@ class Tags(models.Model):
         """ Helper method to get list of valid tags"""
         return list(cls.objects.values_list('tag', flat=True))
 import uuid
+
+class Module(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    id = models.AutoField(primary_key=True)  
+    tags = models.ManyToManyField('Tags', blank=True, related_name='modules')
+    pinned = models.BooleanField(default=False)  
+    upvotes = models.PositiveIntegerField(default=0) 
+
+    def upvote(self):
+        self.upvotes += 1
+        self.save()
+
+    def downvote(self):
+        self.upvotes -= 1
+        self.save()
+
+    def save(self, *args, **kwargs):
+        self.title = self.title.title()  
+        super(Module, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
 
 
 class User(AbstractUser):
