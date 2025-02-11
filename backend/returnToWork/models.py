@@ -1,4 +1,4 @@
-from returnToWork.models.User import User
+# from returnToWork.models.User import User
 
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
@@ -84,13 +84,15 @@ class Questionnaire(models.Model):
         "self",
         on_delete = models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="yes_previous_qs"
     )
     no_next_q = models.ForeignKey(
         "self",
         on_delete = models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="no_previous_qs"
     )
 
 
@@ -127,7 +129,7 @@ class Questionnaire(models.Model):
             return is_parent_question(self.yes_next_q) or is_parent_question(self.no_next_q)
 
 
-           
+
         if has_circular_references():
             raise ValidationError("You cannot reference an ancestor question in a descendant question")
 
