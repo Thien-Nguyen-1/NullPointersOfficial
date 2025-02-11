@@ -1,5 +1,3 @@
-from returnToWork.models.User import User
-
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
@@ -7,7 +5,28 @@ from django.contrib.auth.models import User
 import uuid
 from django.core.exceptions import ValidationError
 
-# Create your models here.
+class Module(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    id = models.AutoField(primary_key=True)  
+    #tags = models.ManyToManyField('Tag', blank=True, related_name='modules')
+    pinned = models.BooleanField(default=False)  
+    upvotes = models.PositiveIntegerField(default=0) 
+
+    def upvote(self):
+        self.upvotes += 1
+        self.save()
+
+    def downvote(self):
+        self.upvotes -= 1
+        self.save()
+
+    def save(self, *args, **kwargs):
+        self.title = self.title.title()  
+        super(Module, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
 
 # Model for Content
 # Parent class for ALL Content Types
@@ -16,27 +35,23 @@ class Content(models.Model):
     # generate a unique identifier, cannot be manually changed, must be unique
     contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255)
-    content_type= models.CharField(
-        max_length=50,
-        choices=[
-            ('infosheet', 'Infosheet'),
-            ('video', 'Video'),
-            ('task', 'Task'),
-        ]
-    )
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="contents")  # Link to Module
+    moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="contents")  # Link to Module (later)
     author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="author_content")
+    description = models.TextField(blank=True, null=True)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     is_published= models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True  # No separate table for Content Model, only the subclasses will have database tables
 
     def __str__(self):
         return self.title
 
 # Extend Content class
-
 class InfoSheet(Content):
     infosheet_file= models.FileField(upload_to="infosheets/")
+    infosheet_content = models.TextField(blank=True, null=True)
 
 class Video(Content):
     # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
