@@ -374,3 +374,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django,react,visualstudiocode,macos,windows,linux
+
+# vscode settings
+.vscode
