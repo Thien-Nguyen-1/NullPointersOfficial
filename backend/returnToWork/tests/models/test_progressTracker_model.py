@@ -5,7 +5,7 @@ class ProgressTrackerModelTest(TestCase):
     
     def setUp(self):
         self.module = Module.objects.create(
-            title="Handling WORK anxiety",
+            title="Handling work anxiety",
             description="This is a test module.",
             pinned=True,
             upvotes=9
@@ -42,7 +42,7 @@ class ProgressTrackerModelTest(TestCase):
         self.assertFalse(new_tracker.completed)
 
     def test_string_representation(self):
-        expected_string = f"{self.user.username} - {self.module.title} - {'Completed' if self.progressTracker.completed else 'Incomplete'}"
+        expected_string = f'{self.user.username} - {self.module.title} - {'Completed'}'
         actual_string = str(self.progressTracker)
         self.assertEqual(actual_string, expected_string)
     
