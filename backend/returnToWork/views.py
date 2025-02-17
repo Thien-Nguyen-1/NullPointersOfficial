@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-class ProgressTrackerViewSet(viewsets.ModelViewSet):
+class ProgressTrackerViewSet(APIView):
     queryset = ProgressTracker.objects.all()
     serializer_class = ProgressTrackerSerializer
 
