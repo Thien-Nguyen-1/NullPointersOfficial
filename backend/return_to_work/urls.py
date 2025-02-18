@@ -24,9 +24,9 @@ router.register(r'progress_tracker', ProgressTrackerViewSet)
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', LogInView.as_view(), name= 'login'),
-    path('logout/', LogOutView.as_view(), name= 'logout'),
-    path('signup/', SignUpView.as_view(), name= 'signup'),
-    path('profile/', UserProfileView.as_view(), name= 'profile'),
-    path('chnage-password/', ChangePasswordView.as_view(), name= 'change-password'),
+    path('api/login/', LogInView.as_view(), name= 'login'),
+    path('api/logout/', LogOutView.as_view(), name= 'logout'),
+    path('api/signup/', SignUpView.as_view(), name= 'signup'),
+    path('api/profile/', UserProfileView.as_view(), name= 'profile'),
+    path('api/change-password/', ChangePasswordView.as_view(), name= 'change-password'),
 ]

@@ -27,6 +27,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password']
+        read_only_fields = ["user_id"]
 
     def validate(self,data):
         if data["password"] != data["confirm_password"]:
