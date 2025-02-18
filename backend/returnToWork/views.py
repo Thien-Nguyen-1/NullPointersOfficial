@@ -90,12 +90,12 @@ class ChangePasswordView(APIView):
     
 class TagViewSet(viewsets.ModelViewSet):
     
-    TagObjects = Tags.objects.all()
+    queryset = Tags.objects.all()
     serializer_class = TagSerializer
 
 class ModuleViewSet(viewsets.ModelViewSet):
     
-    ModuleObjects = Module.objects.all()
+    queryset = Module.objects.all()
     serializer_class = ModuleSerializer
         
 
