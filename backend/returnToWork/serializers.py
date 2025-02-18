@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User
+from .models import ProgressTracker,Tags,User,Module
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -61,7 +61,16 @@ class ProgressTrackerSerializer(serializers.ModelSerializer):
         model = ProgressTracker
         fields = ['id', 'user', 'module', 'completed']
 
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id','title','description']
+
+
 class TagSerializer(serializers.ModelSerializer):
+
+    modules = ModuleSerializer(many=True, read_only=True)
+
     class Meta:
         model = Tags        
         fields = ['id','tag']
