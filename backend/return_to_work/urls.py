@@ -17,10 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet
 
 router = DefaultRouter()
-router.register(r'progress_tracker', ProgressTrackerViewSet)
+router.register(r'progress_tracker', ProgressTrackerView)
+router.register(r'modules', ModuleViewSet)
+router.register(r'tags', TagViewSet)
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,4 +31,5 @@ urlpatterns = [
     path('signup/', SignUpView.as_view(), name= 'signup'),
     path('profile/', UserProfileView.as_view(), name= 'profile'),
     path('chnage-password/', ChangePasswordView.as_view(), name= 'change-password'),
+    path('', include(router.urls)),
 ]
