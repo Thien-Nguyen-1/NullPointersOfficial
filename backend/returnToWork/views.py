@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordChangeSerializer
+from .models import ProgressTracker,Tags,Module
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordChangeSerializer,TagSerializer,ModuleSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -88,8 +88,14 @@ class ChangePasswordView(APIView):
             return Response({"message":"Password changed successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class TagViewSet(APIView):
+class TagViewSet(viewsets.ModelViewSet):
     
-    def get(self, request):
+    TagObjects = Tags.object.all()
+    serializer_class = TagSerializer
+
+class ModuleViewSet(viewsets.ModelViewSet):
+    
+    ModuleObjects = Module.object.all()
+    serializer_class = ModuleSerializer
         
 
