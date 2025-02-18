@@ -64,7 +64,7 @@ class ProgressTrackerSerializer(serializers.ModelSerializer):
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
-        fields = ['id','title','description']
+        fields = ['id','title','description','tags','pinned','upvotes']
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -73,4 +73,4 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tags        
-        fields = ['id','tag']
+        fields = ['id','tag','modules']
