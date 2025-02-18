@@ -20,9 +20,8 @@ from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet
 
 router = DefaultRouter()
-router.register(r'progress_tracker', ProgressTrackerView)
-router.register(r'modules', ModuleViewSet)
-router.register(r'tags', TagViewSet)
+router.register(r'modules', ModuleViewSet,basename='module')
+router.register(r'tags', TagViewSet,basename='tag')
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,5 +30,6 @@ urlpatterns = [
     path('signup/', SignUpView.as_view(), name= 'signup'),
     path('profile/', UserProfileView.as_view(), name= 'profile'),
     path('chnage-password/', ChangePasswordView.as_view(), name= 'change-password'),
+    path('progressTracker',ProgressTrackerView.as_view(), name= 'progressTracker'),
     path('', include(router.urls)),
 ]

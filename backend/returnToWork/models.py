@@ -74,7 +74,8 @@ class Module(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     id = models.AutoField(primary_key=True)  
-    tags = models.ManyToManyField('Tags', blank=True, related_name='modules')
+    tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
+
     pinned = models.BooleanField(default=False)  
     upvotes = models.PositiveIntegerField(default=0) 
 
@@ -99,7 +100,8 @@ class Module(models.Model):
 class Tags(models.Model):
     """A class to create the model for tags, which are used to categorise courses and medical professional according to each issue"""
     tag = models.CharField(max_length=50, unique=True, error_messages={ 'unique': "A tag with this name already exists." })
-    modules = models.ManyToManyField(Module, related_name='tags')
+    modules = models.ManyToManyField('Module', related_name='tags_for_module', blank=True)
+
 
 
     def save(self, *args, **kwargs):
