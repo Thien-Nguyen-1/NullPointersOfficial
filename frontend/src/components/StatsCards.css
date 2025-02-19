@@ -1,0 +1,29 @@
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+  
+  .stat-card {
+    background-color: #2f3d2e;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 24px;
+    color: #d2f5a6;
+  }
+  
+  .fire {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .fire-icon {
+    font-size: 40px;
+    color: #f5a623;
+  }
+  
