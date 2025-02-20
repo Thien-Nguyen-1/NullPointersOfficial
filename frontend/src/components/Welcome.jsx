@@ -6,7 +6,7 @@ const Welcome = () => {
 
   return (
     <div>
-      <h1 >Welcome to Our Platform</h1>
+      <h1 >Readiness to work</h1>
       <p >Please sign up or log in to continue.</p>
       
       <div>

@@ -123,8 +123,7 @@ class User(AbstractUser):
 
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
-        ('service user', 'Service User'),
-        ('mental health professional', 'Mental Health Professional')
+        ('employee', 'Employee')
     ]
 
     user_type = models.CharField(

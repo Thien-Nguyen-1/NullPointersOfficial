@@ -1,6 +1,6 @@
-import React from 'react';
-import { useState } from "react";
+import React, { useState } from "react";
 import {loginUser} from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 
 const Login = () => {
@@ -8,6 +8,7 @@ const Login = () => {
     const [username,setUsername] = useState("");
     const [password,setPassword] = useState("");
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleLogin = async(e) => {
         e.preventDefault();
@@ -25,7 +26,7 @@ const Login = () => {
 
 
   return (
-    <div className = 'conatiner'>
+    <div className = "container">
         <div className = "header">
             <div className ="text">Log in page</div>
             <div className ="underline"></div>
@@ -48,6 +49,9 @@ const Login = () => {
             <button type ="submit">Login</button>
         </form>
         {error && <p className="error">{error}</p>}
+        <button  onClick={() => navigate("/")}>
+          Back
+        </button>
     </div>
  
   );

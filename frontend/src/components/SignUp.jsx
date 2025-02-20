@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {SignUpUser} from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 
 const Signup = () => {
@@ -11,11 +12,11 @@ const Signup = () => {
     const [password,setPassword] = useState("");
     const [confirmPassword,setConfirmPassword] = useState("");
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleSignUp = async(e) => {
         e.preventDefault();
 
-        
         
         try{
             const data = await SignUpUser(username,firstName,lastName,userType, password, confirmPassword);
@@ -61,8 +62,8 @@ const Signup = () => {
                 required
             />
             <select value={userType} onChange = {(e) => setUserType(e.target.value)}>
-                <option value= "service user"> Service User</option>
                 <option value= "admin"> Admin</option>
+                <option value= "employee"> Employee</option>
             </select>
             <input 
                 type ="password"
@@ -81,6 +82,9 @@ const Signup = () => {
             <button type ="submit">Sign Up</button>
         </form>
         {error && <p className="error">{error}</p>}
+        <button  onClick={() => navigate("/login")}>
+          Login
+        </button>
     </div>
  
   );
