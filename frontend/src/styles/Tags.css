@@ -1,0 +1,21 @@
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px;
+    justify-content: space-around;
+}
+
+.tag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    width: 100px;  /* Control the size of the circles */
+    height: 100px; /* Control the size of the circles */
+    background-color: #007BFF; /* Example color */
+    color: white;
+    border-radius: 50%;  /* This makes the div circular */
+    font-size: 14px;
+    text-align: center;
+    line-height: 20px;
+}
