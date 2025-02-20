@@ -23,4 +23,4 @@ const predefinedTags = [
     ); 
 
  }; 
- export default Tag
+ export default Tags

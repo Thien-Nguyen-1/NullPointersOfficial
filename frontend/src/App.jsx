@@ -3,6 +3,7 @@ import{ BrowserRouter as Router, Routes, Route, useNavigate} from 'react-router-
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
+import Tag from './components/Tag';
 import './App.css';
 
 // 
@@ -14,6 +15,7 @@ function App() {
         <Route path = "/" element = {<Welcome />} />
         <Route path = "/login" element = {<Login />} />
         <Route path = "/signup" element = {<Signup />} />
+        <Route path = "/tag" element = {<Tag />}/>
       </Routes>
     </Router>
   );
