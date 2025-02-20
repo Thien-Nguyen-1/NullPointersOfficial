@@ -1,5 +1,5 @@
 import React from 'react'
-
+import './Tags.css'; 
 const predefinedTags = [
     { id: 1, name: 'Unmotivated', description: 'unsure of identity at work' },
     { id: 2, name: 'Stuck', description: 'not knowing values' },
