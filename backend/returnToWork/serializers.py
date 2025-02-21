@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker
+from .models import ProgressTracker,Tags,User,Module
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -27,6 +27,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password']
+        read_only_fields = ["user_id"]
 
     def validate(self,data):
         if data["password"] != data["confirm_password"]:
@@ -60,3 +61,17 @@ class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
         fields = ['id', 'user', 'module', 'completed']
+
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id','title','description','tags','pinned','upvotes']
+
+
+class TagSerializer(serializers.ModelSerializer):
+
+    modules = ModuleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Tags        
+        fields = ['id','tag','modules']

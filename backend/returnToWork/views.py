@@ -1,16 +1,47 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordChangeSerializer
+from .models import ProgressTracker,Tags,Module
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordChangeSerializer,TagSerializer,ModuleSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-class ProgressTrackerViewSet(viewsets.ModelViewSet):
-    queryset = ProgressTracker.objects.all()
-    serializer_class = ProgressTrackerSerializer
+class ProgressTrackerView(APIView):
+
+    def get(self, request):
+        progressTrackerObjects = ProgressTracker.objects.all()
+        serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = ProgressTrackerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            progress_tracker = ProgressTracker.objects.get(pk=pk)
+        except ProgressTracker.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            progress_tracker = ProgressTracker.objects.get(pk=pk)
+        except ProgressTracker.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        progress_tracker.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class LogInView(APIView):
     def post(self, request):
@@ -56,3 +87,15 @@ class ChangePasswordView(APIView):
             serializer.update(request.user, serializer.validated_data)
             return Response({"message":"Password changed successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class TagViewSet(viewsets.ModelViewSet):
+    
+    queryset = Tags.objects.all()
+    serializer_class = TagSerializer
+
+class ModuleViewSet(viewsets.ModelViewSet):
+    
+    queryset = Module.objects.all()
+    serializer_class = ModuleSerializer
+        
+
