@@ -8,7 +8,7 @@ function WorkerDashboard() {
   return (
     <div className="flex">
           <div className="flex-1 p-6">
-            <h1 className="text-2xl font-bold">Worker Dashboard</h1>
+            <h1 className="page-title">Worker Dashboard</h1>
     
             {/* Stats, Courses, and Chart Components */}
             <StatsCards />

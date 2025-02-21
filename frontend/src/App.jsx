@@ -7,6 +7,7 @@ import Settings from "./pages/Settings";
 import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
 import Profile from "./pages/Profile";
+import CreateModule from "./pages/CreateModule";
 
 // Import Dashboard Components
 import StatsCards from "./components/StatsCards";
@@ -48,6 +49,10 @@ function App() {
             {/* Courses Page Route */}
             <Route path="/admin/profile" element={<Profile />} />
             <Route path="/worker/profile" element={<Profile />} />
+
+
+            <Route path="/admin/create-module" element={<CreateModule />} /> 
+
           </Routes>
         </main>
       </div>

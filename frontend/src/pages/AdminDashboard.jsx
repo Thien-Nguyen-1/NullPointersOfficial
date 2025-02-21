@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 function AdminDashboard() {
   return (
     <div className="main-content">
-        <h1 className="dashboard-title">Admin Dashboard</h1>
+        <h1 className="page-title">Admin Dashboard</h1>
 
         {/* Admin-specific features */}
         <div className="admin-features-grid">
