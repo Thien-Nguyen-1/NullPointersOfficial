@@ -6,31 +6,6 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
-class Module(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    id = models.AutoField(primary_key=True)  
-    #tags = models.ManyToManyField('Tag', blank=True, related_name='modules')
-    pinned = models.BooleanField(default=False)  
-    upvotes = models.PositiveIntegerField(default=0) 
-
-    def upvote(self):
-        self.upvotes += 1
-        self.save()
-
-    def downvote(self):
-        self.upvotes -= 1
-        self.save()
-
-    def save(self, *args, **kwargs):
-        self.title = self.title.title()  
-        super(Module, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
 
@@ -94,13 +69,40 @@ class Questionnaire(models.Model):
         return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question}\n\t|NO|: {self.no_next_q.question}"
 
 
-                
+
+class Module(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    id = models.AutoField(primary_key=True)  
+    tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
+
+    pinned = models.BooleanField(default=False)  
+    upvotes = models.PositiveIntegerField(default=0) 
+
+    def upvote(self):
+        self.upvotes += 1
+        self.save()
+
+    def downvote(self):
+        self.upvotes -= 1
+        self.save()
+
+    def save(self, *args, **kwargs):
+        self.title = self.title.title()  
+        super(Module, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
 
 
 
 class Tags(models.Model):
     """A class to create the model for tags, which are used to categorise courses and medical professional according to each issue"""
     tag = models.CharField(max_length=50, unique=True, error_messages={ 'unique': "A tag with this name already exists." })
+    modules = models.ManyToManyField('Module', related_name='tags_for_module', blank=True)
+
+
 
     def save(self, *args, **kwargs):
         """tag are normalised to lower case and stored"""
@@ -115,7 +117,6 @@ class Tags(models.Model):
     def get_valid_tags(cls):
         """ Helper method to get list of valid tags"""
         return list(cls.objects.values_list('tag', flat=True))
-import uuid
 
 
 class User(AbstractUser):
@@ -174,9 +175,9 @@ class ProgressTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
-
-def __str__(self):
-    return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
 
 
 # Model for Content

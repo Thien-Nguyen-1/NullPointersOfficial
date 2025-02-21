@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import AdminDashboard from "./pages/AdminDashboard";
 // import MedicalProfessionalDashboard from "./pages/MedicalProfessionalDashboard";
@@ -11,10 +12,22 @@ import CreateModule from "./pages/CreateModule";
 
 
 import "./App.css";
+import Login from './components/Login';
+import Signup from './components/SignUp';
+import Welcome from './components/Welcome';
+import Tag from './components/Tag';
+
+
 
 function App() {
   return (
     <Router>
+      <Routes>
+        <Route path = "/" element = {<Welcome />} />
+        <Route path = "/login" element = {<Login />} />
+        <Route path = "/signup" element = {<Signup />} />
+        <Route path = "/tag" element = {<Tag />}/>
+      </Routes>
       <div className="app-container">
         {/* Sidebar Navigation */}
         <Sidebar /> {/* This Sidebar is applied to all pages */}
