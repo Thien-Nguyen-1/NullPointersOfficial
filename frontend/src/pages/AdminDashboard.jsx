@@ -1,30 +1,34 @@
 import { Link } from "react-router-dom";
-import Sidebar from "../components/Sidebar"; 
-
-import StatsCards from "../components/StatsCards";
-import CoursesList from "../components/CoursesList";
-import LearningChart from "../components/LearningChart";
 
 
 function AdminDashboard() {
   return (
-    <div className="flex">
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-
-        {/* Stats, Courses, and Chart Components */}
-        <StatsCards />
-        <CoursesList />
-        <LearningChart />
+    <div className="main-content">
+        <h1 className="dashboard-title">Admin Dashboard</h1>
 
         {/* Admin-specific features */}
-        <div className="mt-4 space-y-4">
-          <Link to="/admin/create-module" className="block py-2 px-4 bg-blue-500 text-white rounded">Create Module</Link>
-          <Link to="/admin/create-tag" className="block py-2 px-4 bg-blue-500 text-white rounded">Create Tag</Link>
-          <Link to="/admin/patient-profiles" className="block py-2 px-4 bg-blue-500 text-white rounded">Patient Profiles</Link>
-          <Link to="/admin/medical-professionals" className="block py-2 px-4 bg-blue-500 text-white rounded">Medical Professionals</Link>
-        </div> 
-      </div>
+        <div className="admin-features-grid">
+          <Link to="/admin/create-module" className="feature-card">
+            <h3>Create Module</h3>
+            <p>Design and manage learning modules.</p>
+          </Link>
+
+          <Link to="/admin/create-tag" className="feature-card">
+            <h3>Create Tag</h3>
+            <p>Organize content with tags.</p>
+          </Link>
+
+          <Link to="/admin/patient-profiles" className="feature-card">
+            <h3>Patient Profiles</h3>
+            <p>Manage patient data and records.</p>
+          </Link>
+
+          <Link to="/admin/medical-professionals" className="feature-card">
+            <h3>Medical Professionals</h3>
+            <p>Oversee healthcare professionals.</p>
+          </Link>
+        </div>
+
     </div>
   );
 }

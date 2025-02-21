@@ -7,6 +7,6 @@ export default defineConfig({
 
   server: {
     port: 5173,  // Can hange this if needed (only use during development)
-    open: true,   // Opens browser automatically
+    open: true,   // Help to open browser automatically
   },
 });

@@ -19,7 +19,7 @@ function App() {
         <Sidebar /> {/* This Sidebar is applied to all pages */}
 
         {/* Main Content */}
-        <main className="main-content"> {/* ✅ Content takes remaining space */}
+        <main className="main-content"> {/* Content takes remaining space */}
           <h1 style={{ color: "white" }}>🚀 React App is Working</h1>
           <Routes>
             {/* Redirect root to worker home by default */}

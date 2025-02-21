@@ -15,7 +15,6 @@ const Sidebar = () => {
         <Link to="/settings"><FaCog className="icon" /></Link>
       </div>
 
-
       <Link to="/logout" className="logout">
         <FaSignOutAlt className="logout-icon" />
       </Link>
