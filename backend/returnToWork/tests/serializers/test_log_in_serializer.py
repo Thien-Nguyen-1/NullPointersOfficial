@@ -24,7 +24,6 @@ class LogInSerializerTest(TestCase):
 
         with self.assertRaises(ValidationError):
             serializer.is_valid(raise_exception = True)
-        # self.assertIn("non_field_errors", serializer.errors)
 
     def test_invalid_username_raises_validation_error(self):
         serializer = LogInSerializer( data ={"username": "@johnsmith", "password":"password123"})
@@ -32,7 +31,6 @@ class LogInSerializerTest(TestCase):
 
         with self.assertRaises(ValidationError):
             serializer.is_valid(raise_exception = True)
-        # self.asserIn("non_field_errors", serializer.errors)
     
     def test_authentication(self):
         user = authenticate(username="@johndoe",password = "password123")
