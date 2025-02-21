@@ -64,7 +64,7 @@ const Signup = () => {
             <select value={userType} onChange = {(e) => setUserType(e.target.value)}>
                 <option value= ""diables> Select user type</option>
                 <option value= "admin"> Admin</option>
-                <option value= "employee"> Employee</option>
+                <option value= "service user"> Service user</option>
             </select>
             <input 
                 type ="password"
