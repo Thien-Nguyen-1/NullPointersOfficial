@@ -5,14 +5,14 @@
 
 
 .main-content {
-  flex-grow: 1; /* ✅ Ensures it takes up all remaining space */
+  flex-grow: 1; /* Ensures it takes up all remaining space */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 20px;
   overflow-y: auto; /* Allow scrolling inside if necessary */
-  width: 100%; /* ✅ Ensures full width */
-  height: 100vh; /* ✅ Ensures it fills the viewport */
+  width: 100%; /* Ensures full width */
+  height: 100vh; /* Ensures it fills the viewport */
 }
 
 .dashboard-container {
@@ -27,19 +27,15 @@
 .admin-dashboard {
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* Ensures it expands fully */
+  align-items: flex-start; /* Ensures it expands fully */
+  justify-content: flex-start; /* Ensures it starts at the top */
   padding: 20px;
   width: 100%;
   height: 100%; /* Ensures full height */
 
 }
 
-.dashboard-title {
-  margin-bottom: 10px; /* Reduce space below the title */
-  padding-bottom: 0; /* Prevent extra padding */
-  text-align: left;
-  width: 100%;
-}
+
 
 
 /* Layout-only grid positioning */
