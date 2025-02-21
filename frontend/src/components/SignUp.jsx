@@ -8,7 +8,7 @@ const Signup = () => {
     const [username,setUsername] = useState("");
     const [firstName,setFirstName] = useState("");
     const [lastName,setLastName] = useState("");
-    const [userType,setUserType] = useState("user");
+    const [userType,setUserType] = useState("");
     const [password,setPassword] = useState("");
     const [confirmPassword,setConfirmPassword] = useState("");
     const [error, setError] = useState(null);
@@ -62,6 +62,7 @@ const Signup = () => {
                 required
             />
             <select value={userType} onChange = {(e) => setUserType(e.target.value)}>
+                <option value= ""diables> Select user type</option>
                 <option value= "admin"> Admin</option>
                 <option value= "employee"> Employee</option>
             </select>
