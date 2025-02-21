@@ -9,10 +9,6 @@ import Courses from "./pages/Courses";
 import Profile from "./pages/Profile";
 import CreateModule from "./pages/CreateModule";
 
-// Import Dashboard Components
-import StatsCards from "./components/StatsCards";
-import CoursesList from "./components/CoursesList";
-import LearningChart from "./components/LearningChart"; 
 
 import "./App.css";
 
@@ -43,8 +39,8 @@ function App() {
             <Route path="/worker/messages" element={<Messaging />} />
 
             {/* Courses Page Route */}
-            <Route path="/admin/courses" element={<Courses />} />
-            <Route path="/worker/courses" element={<Courses />} />
+            <Route path="/admin/courses" element={<Courses role="admin" />} />
+            <Route path="/worker/courses" element={<Courses role="worker" />} />
 
             {/* Courses Page Route */}
             <Route path="/admin/profile" element={<Profile />} />

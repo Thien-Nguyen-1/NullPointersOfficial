@@ -1,7 +1,7 @@
 import React from "react";
 import { FaHome, FaUserGraduate, FaUser, FaEnvelope, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import "./Sidebar.css"; // Custom CSS file
+import "../styles/Sidebar.css"; // Custom CSS file
 
 const Sidebar = ({role}) => {
     

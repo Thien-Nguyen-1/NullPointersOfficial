@@ -42,8 +42,6 @@
 
 }
 
-
-
 /* Layout-only grid positioning */
 .stats-section {
   grid-column: span 2;

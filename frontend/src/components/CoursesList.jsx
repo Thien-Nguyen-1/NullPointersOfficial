@@ -1,5 +1,6 @@
 import React from "react";
-import "./CoursesList.css"; // Import styles
+import "../styles/CoursesList.css"; // Import styles
+
 
 const courses = [
   { title: "Coping with Anxiety", progress: 70, button: "Continue" },

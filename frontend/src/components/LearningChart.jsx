@@ -1,6 +1,6 @@
 import React from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import "./LearningChart.css"; // Import styles
+import "../styles/LearningChart.css"; // Import styles
 
 const data = [
   { day: "Mon", hours: 1 },

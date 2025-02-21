@@ -1,6 +1,6 @@
 import React from "react";
 import { FaFire } from "react-icons/fa"; // Import fire icon
-import "./StatsCards.css"; // Import styles
+import "../styles/StatsCards.css";
 
 const StatsCards = () => {
   return (
