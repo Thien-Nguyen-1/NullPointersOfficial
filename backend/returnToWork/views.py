@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
 from .models import ProgressTracker
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordChangeSerializer
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -48,11 +48,11 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class ChangePasswordView(APIView):
-    permission_classes = [IsAuthenticated]
+class PasswordResetView(APIView):
+    permission_classes = []
     def post(self,request):
-        serializer = PasswordChangeSerializer(data=request.data)
+        serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.update(request.user, serializer.validated_data)
-            return Response({"message":"Password changed successfully"})
+            user = serializer.save()
+            return Response({"message":"Password reset successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

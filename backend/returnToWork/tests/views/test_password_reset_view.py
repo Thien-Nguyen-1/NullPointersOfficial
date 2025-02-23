@@ -5,44 +5,31 @@ from rest_framework import status
 
 User = get_user_model()
 
-class PasswordChangeTest(APITestCase):
+class PasswordResetTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username ="@johndoe",
             password ="password123"
         )
         self.change_password_url = reverse("change-password")
-        self.client.force_authenticate(user=self.user)
 
     def test_succsesful_login(self):
         data = {
-            "old_password":"password123",
+            "username":"@johndoe",
             "new_password":"password12345",
             "confirm_new_password":"password12345",
         }
         response = self.client.post(self.change_password_url,data,format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["message"], "Password changed successfully")
+        self.assertEqual(response.data["message"], "Password reset successfully")
 
         self.client.logout()
         login_successful = self.client.login(username = "@johndoe", password = "password12345")
         self.assertTrue(login_successful)
 
-    def test_wrong_old_password(self):
-        data ={
-            "old_password":"password1234",
-            "new_password":"password12345",
-            "confirm_new_password":"password12345",
-
-        }
-        response = self.client.post(self.change_password_url,data,format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("Old password is incorrect", str(response.data))
-        
-
     def test_different_passwords(self):
         data ={
-            "old_password":"password123",
+            "username":"@janedoe",
             "new_password":"password12345",
             "confirm_new_password":"password123456",
 
