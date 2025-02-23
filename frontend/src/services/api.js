@@ -41,6 +41,22 @@ export async function SignUpUser(username, firstName, lastName, userType, passwo
    }
 }
 
+export async function ResetPassword(username, new_password , confirm_new_password){
+  try {
+    const response = await api.post(`/change-password/`, {
+      username,
+      new_password,
+      confirm_new_password
+    });
+
+    return response.data;
+  }
+  catch(error) {
+    throw new Error("Reset of password failed:" + error.response?.data?.detail || "Unkown error");
+
+  }
+}
+
 export default api 
 
 

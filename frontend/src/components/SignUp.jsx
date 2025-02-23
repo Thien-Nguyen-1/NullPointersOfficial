@@ -86,6 +86,9 @@ const Signup = () => {
         <button  onClick={() => navigate("/login")}>
           Login
         </button>
+        <button  onClick={() => navigate("/")}>
+          Back
+        </button>
     </div>
  
   );
