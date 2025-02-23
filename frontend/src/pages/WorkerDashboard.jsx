@@ -6,15 +6,13 @@ import LearningChart from "../components/LearningChart";
 
 function WorkerDashboard() {
   return (
-    <div className="flex">
-          <div className="flex-1 p-6">
+    <div className="dashboard-container">
             <h1 className="page-title">Worker Dashboard</h1>
     
             {/* Stats, Courses, and Chart Components */}
             <StatsCards />
             <CoursesList />
             <LearningChart />
-          </div>
     </div>
   );
 };

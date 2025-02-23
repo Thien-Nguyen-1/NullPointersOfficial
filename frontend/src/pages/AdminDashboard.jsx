@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 function AdminDashboard() {
   return (
-    <div className="main-content">
+    <div className="dashboard-container">
         <h1 className="page-title">Admin Dashboard</h1>
 
         {/* Admin-specific features */}
