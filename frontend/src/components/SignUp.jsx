@@ -11,12 +11,25 @@ const Signup = () => {
     const [userType,setUserType] = useState("");
     const [password,setPassword] = useState("");
     const [confirmPassword,setConfirmPassword] = useState("");
-    const [error, setError] = useState(null);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
     const handleSignUp = async(e) => {
         e.preventDefault();
+        setError("");
 
+        if(!username.startsWith("@")){
+            setError("Username must start with '@'.")
+            return;
+        }
+        if(username.length <= 3){
+            setError("Username must be longer than 3 characters.");
+            return;
+        }
+        if(password !== confirmPassword){
+            setError("Passwords do not match.");
+            return;
+        }
         
         try{
             const data = await SignUpUser(username,firstName,lastName,userType, password, confirmPassword);
