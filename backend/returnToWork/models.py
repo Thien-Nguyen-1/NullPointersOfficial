@@ -69,34 +69,13 @@ class Questionnaire(models.Model):
         return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question}\n\t|NO|: {self.no_next_q.question}"
 
 
-                
-
-
-
-class Tags(models.Model):
-    """A class to create the model for tags, which are used to categorise courses and medical professional according to each issue"""
-    tag = models.CharField(max_length=50, unique=True, error_messages={ 'unique': "A tag with this name already exists." })
-
-    def save(self, *args, **kwargs):
-        """tag are normalised to lower case and stored"""
-        self.tag = self.tag.lower()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        """ Capitalize the first letter for display purposes"""
-        return self.tag.capitalize()
-
-    @classmethod
-    def get_valid_tags(cls):
-        """ Helper method to get list of valid tags"""
-        return list(cls.objects.values_list('tag', flat=True))
-import uuid
 
 class Module(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     id = models.AutoField(primary_key=True)  
-    tags = models.ManyToManyField('Tags', blank=True, related_name='modules')
+    tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
+
     pinned = models.BooleanField(default=False)  
     upvotes = models.PositiveIntegerField(default=0) 
 
@@ -114,6 +93,30 @@ class Module(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+
+class Tags(models.Model):
+    """A class to create the model for tags, which are used to categorise courses and medical professional according to each issue"""
+    tag = models.CharField(max_length=50, unique=True, error_messages={ 'unique': "A tag with this name already exists." })
+    modules = models.ManyToManyField('Module', related_name='tags_for_module', blank=True)
+
+
+
+    def save(self, *args, **kwargs):
+        """tag are normalised to lower case and stored"""
+        self.tag = self.tag.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        """ Capitalize the first letter for display purposes"""
+        return self.tag.capitalize()
+
+    @classmethod
+    def get_valid_tags(cls):
+        """ Helper method to get list of valid tags"""
+        return list(cls.objects.values_list('tag', flat=True))
 
 
 class User(AbstractUser):
