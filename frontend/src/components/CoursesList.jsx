@@ -1,11 +1,13 @@
 import React from "react";
 import "../styles/CoursesList.css"; // Import styles
+import { Link } from 'react-router-dom';
 
 
 const courses = [
   { title: "Coping with Anxiety", progress: 70, button: "Continue" },
   { title: "Dealing with Stress", progress: 70, button: "View Course" },
   { title: "Handling Depression", progress: 70, button: "View Course" },
+  {title: "Know Your Values", progress: 70, button: "View Course",}
 ];
 
 const CoursesList = () => {
