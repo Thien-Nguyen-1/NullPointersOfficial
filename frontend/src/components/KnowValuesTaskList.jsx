@@ -6,7 +6,7 @@ const tasks =[
     {title: "Be,Do, and Have", progress: 3, button: "View Task"},
 ]
 
-const TaskList = () => {
+const KnowValuesTaskList = () => {
     return (
       <div className="courses-container">
         <h2>Your Tasks</h2>
