@@ -22,6 +22,7 @@ from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
+
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +31,6 @@ urlpatterns = [
     path('api/signup/', SignUpView.as_view(), name= 'signup'),
     path('api/profile/', UserProfileView.as_view(), name= 'profile'),
     path('api/change-password/', ChangePasswordView.as_view(), name= 'change-password'),
-    path('progressTracker',ProgressTrackerView.as_view(), name= 'progressTracker'),
+    path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
     path('', include(router.urls)),
 ]
