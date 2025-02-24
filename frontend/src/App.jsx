@@ -42,6 +42,7 @@ function App() {
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses role="worker" />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="KnowValuesModule" element={<KnowValuesModule />}></Route>
               </Routes>
             </DashboardLayout>
           }
