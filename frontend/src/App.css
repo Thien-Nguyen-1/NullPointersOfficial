@@ -1,41 +1,40 @@
 /* For the use of Current dashboard (dark mode) */
 
 html, body {
-  overflow-x: hidden;  /* Prevents entire page from scrolling left */
+  overflow-x: hidden;  /* Prevents horizontal scrolling */
   margin: 0;
   padding: 0;
-  width: 100vw
+  width: 100%; /* Use 100% instead of 100vw to avoid scrollbar issues */
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto; /* Center align the main container */
+  padding: 2rem;
+  text-align: center;
+  width: 100%; /* Ensures it spans the available space */
 }
 
 .app-container {
-  display: flex; /* Enables sidebar & content to be side by side */
-  height: 100vh; /* Full screen height */
-  width: 100vw; /* Ensures full width */
+  display: flex; /* Sidebar & content side by side */
+  height: 100vh;
+  width: 100%;
   overflow: hidden;
-  margin: 0; /* Ensure no margin */
-  padding: 0; /* Ensure no padding */
+  margin: 0;
+  padding: 0;
 }
-
 
 .main-content {
-  flex-grow: 1; /* Ensures it takes up all remaining space */
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  justify-content: start;
-  align-items: flex-start; /* Align items to the left */
+  justify-content: flex-start;
+  align-items: flex-start;
   padding: 20px;
-  overflow-y: hidden; /* disable scrolling inside */
-  width: calc(100vw - 80px);
+  overflow-y: auto; /* Allow vertical scrolling if needed */
+  width: calc(100% - 80px); /* Adapt width considering sidebar */
   height: 100vh;
   box-sizing: border-box;
-}
-
-.page-title {
-  font-size: 3.0rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: left;
-  width: 100%;
 }
 
 .dashboard-container {
@@ -43,59 +42,48 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  max-width: 100%; /* Ensures it doesn't exceed the main content */
-  overflow-x: hidden;
+  overflow-x: hidden; /* Prevents horizontal overflow */
 }
-
 
 .admin-dashboard {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Ensures it expands fully */
-  justify-content: flex-start; /* Ensures it starts at the top */
+  align-items: flex-start;
+  justify-content: flex-start;
   padding: 20px;
   width: 100%;
-  height: 100%; /* Ensures full height */
-
+  height: 100%;
 }
 
-/* Layout-only grid positioning */
-.stats-section {
-  grid-column: span 2;
+.page-title {
+  font-size: 2.5rem; /* Adjusted for better fit */
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: left;
+  width: 100%;
 }
 
-.courses-section {
-  grid-column: 1;
-}
-
-.chart-section {
-  grid-column: 2;
-}
-
-/* Making sure the sidebar size is consistent */
 .sidebar {
-  width: 80px;
-  min-width: 80px; /* Prevents shrinking */
-  max-width: 80px; /* Prevents expansion */
+  width: 80px; /* Consistent sidebar width */
+  min-width: 80px;
+  max-width: 80px;
 }
 
-/* Grid layout for feature cards */
 .admin-features-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Forces 4 columns */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid setup */
   gap: 20px;
   width: 100%;
   margin-top: 10px;
 }
 
-/* Card styling */
 .feature-card {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #3b5b39; 
-  color: white;
+  background-color: #3b5b39;
+  color: rgb(197, 72, 72);
   padding: 20px;
   border-radius: 10px;
   text-align: center;
@@ -104,8 +92,8 @@ html, body {
 }
 
 .feature-card:hover {
-  transform: translateY(-5px); /* Lift effect */
-  background-color: #9ae195; /* Brighter green */
+  transform: translateY(-5px);
+  background-color: #9ae195;
 }
 
 .feature-card h3 {
@@ -118,25 +106,17 @@ html, body {
   opacity: 0.8;
 }
 
-/* End of the use of Current dashboard (dark mode) */
-
-
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
