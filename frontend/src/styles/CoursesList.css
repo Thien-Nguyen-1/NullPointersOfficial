@@ -36,6 +36,20 @@
 
   .courses-container  :hover {
     transform: scale(1.05);
-    background-color: #3b99af;
+    background-color: #3baf94;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   }
+
+  /* Customizing react-circular-progressbar in CoursesList.css */
+.progress-circle .CircularProgressbar .CircularProgressbar-path {
+  stroke: #20d06c; /* Change the color of the progress path */
+}
+
+.progress-circle .CircularProgressbar .CircularProgressbar-trail {
+  stroke: #df18bd; /* Change the color of the remaining path */
+}
+
+.progress-circle .CircularProgressbar .CircularProgressbar-text {
+  fill: #f1eaea; /* Change the color of the text */
+  font-size: 30px; /* Increase the size of the text */
+}
