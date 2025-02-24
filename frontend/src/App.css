@@ -5,6 +5,7 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%; /* Use 100% instead of 100vw to avoid scrollbar issues */
+  height: 100%;
 }
 
 #root {
