@@ -11,13 +11,21 @@ const courses = [
 ];
 
 const CoursesList = () => {
+  const navigate = useNavigate(); 
+
+  const handleNavigation = (path) => {
+    navigate(path); 
+  };
+
   return (
     <div className="courses-container">
       <h2>Your Courses</h2>
       {courses.map((course, index) => (
         <div key={index} className="course-card">
           <p>{course.title}</p>
-          <button>{course.button}</button>
+          <button onClick={() => handleNavigation(course.title === "Know Your Values" ? "/know-your-values" : "#")}>
+            {course.button}
+          </button>
         </div>
       ))}
     </div>
