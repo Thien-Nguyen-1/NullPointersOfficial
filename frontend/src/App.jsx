@@ -15,7 +15,7 @@ import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
 import Tag from './components/Tag';
-import KnowValuesModule from './pages/KnowValuesModule';
+import Module2 from './pages/KnowValuesModule';
 
 import "./App.css";
 

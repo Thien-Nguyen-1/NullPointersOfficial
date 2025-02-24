@@ -1,6 +1,8 @@
 import React from "react";
 import "../styles/CoursesList.css";
 import KnowValuesTaskList from "../components/KnowValuesTaskList";
+import StatsCards from "../components/StatsCards";
+import LearningChart from "../components/LearningChart";
 
 function Module2(){
   return(
@@ -19,4 +21,4 @@ function Module2(){
 }
 
 
-export default KnowValuesModule
+export default Module2

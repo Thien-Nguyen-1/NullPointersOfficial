@@ -11,10 +11,13 @@ const courses = [
 ];
 
 const CoursesList = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-  const handleNavigation = (path) => {
-    navigate(path); 
+  const navigateToCourse = (courseTitle) => {
+    if (courseTitle === "Know Your Values") {
+      navigate("/worker/KnowValuesModule");
+    }
+    
   };
 
   return (
@@ -23,9 +26,7 @@ const CoursesList = () => {
       {courses.map((course, index) => (
         <div key={index} className="course-card">
           <p>{course.title}</p>
-          <button onClick={() => handleNavigation(course.title === "Know Your Values" ? "/know-your-values" : "#")}>
-            {course.button}
-          </button>
+          <button onClick={() => navigateToCourse(course.title)}>{course.button}</button>
         </div>
       ))}
     </div>
