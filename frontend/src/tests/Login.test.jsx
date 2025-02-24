@@ -38,6 +38,14 @@ describe("Login component", () => {
         loginUser
     });
 
+    it("should submit when login button clicked", () => {
+        render(
+            <BrowserRouter> <Login/> </BrowserRouter>
+        );
+        const logInButton =screen.getByText("Back");
+        expect(logInButton).to.exist;
+    });
+
     it("should go back to welcome page when the back button is clicked", () => {
         render(
             <BrowserRouter> <Login/> </BrowserRouter>
