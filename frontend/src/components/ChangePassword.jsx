@@ -26,7 +26,7 @@ const ChangePassword = () => {
     return (
         <div className = "container">
         <div className = "header">
-            <div className ="text">Change password page</div>
+            <h4>Change password page</h4>
             <div className ="underline"></div>
         </div>
         <form onSubmit={handleChangePassword}>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {loginUser} from "../services/api";
 import { useNavigate } from "react-router-dom";
+import '../App.css';
 
 
 const Login = () => {
@@ -28,8 +29,7 @@ const Login = () => {
   return (
     <div className = "container">
         <div className = "header">
-            <div className ="text">Log in page</div>
-            <div className ="underline"></div>
+            <h2>Log in page</h2>
         </div>
         <form onSubmit={handleLogin}>
             <input
@@ -54,6 +54,9 @@ const Login = () => {
         </button>
         <button  onClick={() => navigate("/change-password")}>
           Forgot password
+        </button>
+        <button  onClick={() => navigate("/signup")}>
+          Don't have an account
         </button>
     </div>
  

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {SignUpUser} from "../services/api";
 import { useNavigate } from "react-router-dom";
+import '../App.css';
 
 
 const Signup = () => {
@@ -49,7 +50,7 @@ const Signup = () => {
   return (
     <div className = 'conatiner'>
         <div className = "header">
-            <div className ="text">Sign Up page</div>
+            <h3>Sign Up page</h3>
             <div className ="underline"></div>
         </div>
         <form onSubmit={handleSignUp}>
