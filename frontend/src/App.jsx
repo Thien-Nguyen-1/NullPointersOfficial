@@ -15,7 +15,7 @@ import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
 import Tag from './components/Tag';
-import KnowValuesModule from './KnowValuesModule';
+import KnowValuesModule from './pages/KnowValuesModule';
 
 import "./App.css";
 
@@ -42,7 +42,7 @@ function App() {
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses role="worker" />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="KnowValuesModule" element={<KnowValuesModule />}></Route>
+                <Route path="KnowValuesModule" element={<Module2 role="worker" />} />
               </Routes>
             </DashboardLayout>
           }
