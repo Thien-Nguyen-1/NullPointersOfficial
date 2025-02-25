@@ -10,6 +10,11 @@ export default defineConfig({
     },
   },
   test : {
+    coverage: {
+      provider: "v8",  
+      reporter: ["text", "html"],  // Use "text" and "html" reports
+      reportsDirectory: "./tests/coverage",  // coverage folder location
+    },
     globals: true, 
     setupFiles: "./tests/setupTests.js", 
     environment: "jsdom",
