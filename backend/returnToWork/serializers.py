@@ -92,3 +92,9 @@ class InfoSheetSerializer(ContentSerializer):
         model = InfoSheet
         fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
 
+class VideoSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = Video
+        fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
+
