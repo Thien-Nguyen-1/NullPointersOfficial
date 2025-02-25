@@ -86,3 +86,9 @@ class ContentSerializer(serializers.ModelSerializer):
         fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
         read_only_fields = ['contentID', 'created_at', 'updated_at']
 
+class InfoSheetSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = InfoSheet
+        fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
+
