@@ -1,55 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap');
 
 .courses-container {
-    margin-top: 20px;
-  }
-  
-  .course-card {
-    background-color: #67b590;
-    padding: 15px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    color: #0c4741;
-    font-family: 'Baloo 2', cursive; 
-    font-size: 1.2rem; 
-    font-weight: 500;
-  }
-  
-  .course-card button {
-    background-color: #eac4ed;
-    color: #f183f7;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .course-card button:hover {
-    transform: scale(1.05);
-    background-color: #3b99af;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
-  }
-
-
-  .courses-container  :hover {
-    transform: scale(1.05);
-    background-color: #3baf94;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
-  }
-
-  /* Customizing react-circular-progressbar in CoursesList.css */
-.progress-circle .CircularProgressbar .CircularProgressbar-path {
-  stroke: #20d06c; /* Change the color of the progress path */
+  margin-top: 20px;
 }
 
-.progress-circle .CircularProgressbar .CircularProgressbar-trail {
-  stroke: #df18bd; /* Change the color of the remaining path */
+.course-card {
+  background-color: #2f3d2e;
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
 }
 
-.progress-circle .CircularProgressbar .CircularProgressbar-text {
-  fill: #f1eaea; /* Change the color of the text */
-  font-size: 30px; /* Increase the size of the text */
+.course-card button {
+  background-color: #1b5e20;
+  color: #d2f5a6;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
+
