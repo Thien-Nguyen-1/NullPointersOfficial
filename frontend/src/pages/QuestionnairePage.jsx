@@ -36,8 +36,10 @@ const QuestionnairePage = () => {
 
       const response = await axios.post("/api/questionnaire/", {
         question_id: question?.id,
-        answer: answer?.toLowerCase(),
+        answer: answer,
       });
+
+      // console.log(response);
 
       if (response.data.message) {
         alert(response.data.message); // "End of questionnaire" message
@@ -46,7 +48,7 @@ const QuestionnairePage = () => {
         setQuestion(response.data);
       }
     } catch (err) {
-      setError("Failed to submit answer", err.response?.data || err);
+      setError("Failed to submit answer", err);
     }
   };
 
