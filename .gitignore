@@ -379,4 +379,4 @@ $RECYCLE.BIN/
 .vscode
 
 # coverage files
-./frontend/tests/coverage
+./frontend/tests/coverage/
