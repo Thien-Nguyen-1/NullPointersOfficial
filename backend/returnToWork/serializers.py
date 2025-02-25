@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker, Questionnaire
+from .models import ProgressTracker,Tags,User,Module, Questionnaire
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -27,6 +27,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password']
+        read_only_fields = ["user_id"]
 
     def validate(self,data):
         if data["password"] != data["confirm_password"]:
@@ -38,8 +39,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class PasswordChangeSerializer(serializers.Serializer):
-    old_password = serializers.CharField(write_only = True)
+class PasswordResetSerializer(serializers.Serializer):
+    username = serializers.CharField(write_only = True)
     new_password = serializers.CharField(write_only = True)
     confirm_new_password= serializers.CharField(write_only = True)
 
@@ -48,13 +49,17 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError("New passwords do not match")
         return data
     
-    def update(self,instance,validated_data):
-        if not instance.check_password(validated_data["old_password"]):
-            raise serializers.ValidationError("Old password is incorrect")
+    def save(self):
+        username = self.validated_data["username"]
+        try:
+            user = User.objects.get(username = username)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User does not exist")
         
-        instance.set_password(validated_data["new_password"])
-        instance.save()
-        return instance
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+    
 
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,3 +72,16 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
         model = Questionnaire
         fields = ["id", "question", "yes_next_q", "no_next_q"]
   
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id','title','description','tags','pinned','upvotes']
+
+
+class TagSerializer(serializers.ModelSerializer):
+
+    modules = ModuleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Tags        
+        fields = ['id','tag','modules']
