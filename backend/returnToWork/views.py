@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker,Tags,Module
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordChangeSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
@@ -99,3 +99,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
     serializer_class = ModuleSerializer
         
 
+
+class InfoSheetViewSet(viewsets.ModelViewSet):
+    queryset = InfoSheet.objects.all()
+    serializer_class = InfoSheetSerializer
