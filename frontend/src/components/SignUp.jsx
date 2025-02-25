@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {SignUpUser} from "../services/api";
 import { useNavigate } from "react-router-dom";
-import '../App.css';
+import '../styles/Signup.css';
 
 
 const Signup = () => {
@@ -48,11 +48,9 @@ const Signup = () => {
 
 
   return (
-    <div className = 'conatiner'>
-        <div className = "header">
+    <div className = 'signup-conatiner'>
+        <div className = "signup-box">
             <h3>Sign Up page</h3>
-            <div className ="underline"></div>
-        </div>
         <form onSubmit={handleSignUp}>
             <input
                 type ="text"
@@ -97,12 +95,15 @@ const Signup = () => {
             <button type ="submit">Sign Up</button>
         </form>
         {error && <p className="error">{error}</p>}
+        <div className="signup-links">
         <button  onClick={() => navigate("/login")}>
           Login
         </button>
         <button  onClick={() => navigate("/")}>
           Back
         </button>
+    </div>
+    </div>
     </div>
  
   );

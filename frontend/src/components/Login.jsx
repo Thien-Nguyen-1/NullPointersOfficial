@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {loginUser} from "../services/api";
 import { useNavigate } from "react-router-dom";
-import '../App.css';
+import '../styles/Login.css';
 
 
 const Login = () => {
@@ -27,10 +27,9 @@ const Login = () => {
 
 
   return (
-    <div className = "container">
-        <div className = "header">
+    <div className = "login-container">
+        <div className = "login-box">
             <h2>Log in page</h2>
-        </div>
         <form onSubmit={handleLogin}>
             <input
                 type ="text"
@@ -49,6 +48,7 @@ const Login = () => {
             <button type ="submit">Login</button>
         </form>
         {error && <p className="error">{error}</p>}
+        <div className="login-links">
         <button  onClick={() => navigate("/")}>
           Back
         </button>
@@ -59,6 +59,9 @@ const Login = () => {
           Don't have an account
         </button>
     </div>
+    </div>
+    </div>
+    
  
   );
 };
