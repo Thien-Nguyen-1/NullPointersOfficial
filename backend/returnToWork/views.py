@@ -103,3 +103,8 @@ class ModuleViewSet(viewsets.ModelViewSet):
 class InfoSheetViewSet(viewsets.ModelViewSet):
     queryset = InfoSheet.objects.all()
     serializer_class = InfoSheetSerializer
+
+
+class VideoViewSet(viewsets.ModelViewSet):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer   
