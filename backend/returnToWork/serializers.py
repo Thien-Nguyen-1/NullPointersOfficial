@@ -39,8 +39,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class PasswordChangeSerializer(serializers.Serializer):
-    old_password = serializers.CharField(write_only = True)
+class PasswordResetSerializer(serializers.Serializer):
+    username = serializers.CharField(write_only = True)
     new_password = serializers.CharField(write_only = True)
     confirm_new_password= serializers.CharField(write_only = True)
 
@@ -49,13 +49,17 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError("New passwords do not match")
         return data
     
-    def update(self,instance,validated_data):
-        if not instance.check_password(validated_data["old_password"]):
-            raise serializers.ValidationError("Old password is incorrect")
+    def save(self):
+        username = self.validated_data["username"]
+        try:
+            user = User.objects.get(username = username)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User does not exist")
         
-        instance.set_password(validated_data["new_password"])
-        instance.save()
-        return instance
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+    
 
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:

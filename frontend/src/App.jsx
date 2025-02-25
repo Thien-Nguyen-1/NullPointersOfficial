@@ -14,6 +14,7 @@ import CreateModule from "./pages/CreateModule";
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
+import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 
@@ -29,6 +30,7 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path = "/change-password" element = {<ChangePassword />} />
         <Route path="/tag" element={<Tag />} />
 
         {/* Protected Routes (With Sidebar) */}

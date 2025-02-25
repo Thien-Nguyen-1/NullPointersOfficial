@@ -138,6 +138,7 @@ AUTH_USER_MODEL = 'returnToWork.User'
 # CORS Settings (Allow React to access Django API)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React Frontend
+    "http://localhost:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
