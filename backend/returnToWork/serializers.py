@@ -98,3 +98,9 @@ class VideoSerializer(ContentSerializer):
         model = Video
         fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
 
+class TaskSerializer(ContentSerializer):
+
+    class Meta:
+        model = Task
+        fields  = ContentSerializer.Meta.fields + ['text_content']        
+
