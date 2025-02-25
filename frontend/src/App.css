@@ -126,7 +126,13 @@ html, body {
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  /* --primary-color: #008000; */
 }
+
+/* h2, h3, h4 {
+  color: var(--primary-color);
+  font-weight: 700;
+} */
 
 .logo {
   height: 6em;
@@ -163,3 +169,4 @@ html, body {
 .read-the-docs {
   color: #888;
 }
+

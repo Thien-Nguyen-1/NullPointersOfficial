@@ -1,6 +1,7 @@
-import React from 'react';
-import { useState } from "react";
+import React, { useState } from "react";
 import {loginUser} from "../services/api";
+import { useNavigate } from "react-router-dom";
+import '../styles/Login.css';
 
 
 const Login = () => {
@@ -8,6 +9,7 @@ const Login = () => {
     const [username,setUsername] = useState("");
     const [password,setPassword] = useState("");
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleLogin = async(e) => {
         e.preventDefault();
@@ -25,11 +27,9 @@ const Login = () => {
 
 
   return (
-    <div className = 'conatiner'>
-        <div className = "header">
-            <div className ="text">Log in page</div>
-            <div className ="underline"></div>
-        </div>
+    <div className = "login-container">
+        <div className = "login-box">
+            <h2>Log in page</h2>
         <form onSubmit={handleLogin}>
             <input
                 type ="text"
@@ -48,7 +48,20 @@ const Login = () => {
             <button type ="submit">Login</button>
         </form>
         {error && <p className="error">{error}</p>}
+        <div className="login-links">
+        <button  onClick={() => navigate("/")}>
+          Back
+        </button>
+        <button  onClick={() => navigate("/change-password")}>
+          Forgot password
+        </button>
+        <button  onClick={() => navigate("/signup")}>
+          Don't have an account
+        </button>
     </div>
+    </div>
+    </div>
+    
  
   );
 };

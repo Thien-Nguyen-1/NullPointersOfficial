@@ -23,14 +23,16 @@ router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
 
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
+# from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
+# router.register(r'progress_tracker', ProgressTrackerViewSet)
+from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
     path('api/logout/', LogOutView.as_view(), name= 'logout'),
     path('api/signup/', SignUpView.as_view(), name= 'signup'),
     path('api/profile/', UserProfileView.as_view(), name= 'profile'),
-    path('api/change-password/', ChangePasswordView.as_view(), name= 'change-password'),
     path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
     path('', include(router.urls)),
+    path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
 ]
