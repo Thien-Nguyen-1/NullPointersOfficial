@@ -108,3 +108,8 @@ class InfoSheetViewSet(viewsets.ModelViewSet):
 class VideoViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all()
     serializer_class = VideoSerializer   
+
+ 
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer  
