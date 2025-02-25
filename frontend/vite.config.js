@@ -21,7 +21,8 @@ export default defineConfig({
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*'
     ],
     coverage: {
-      reporter: ['html', 'text-summary'], 
+      provider: 'v8',
+      reporter: ['html','text','lcov'], 
       reportsDirectory: './coverage', 
     }
 
