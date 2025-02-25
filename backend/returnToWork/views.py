@@ -62,7 +62,7 @@ class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
     
     
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         """Fetch the first question or a specific question"""
         question_id = request.query_params.get("id")

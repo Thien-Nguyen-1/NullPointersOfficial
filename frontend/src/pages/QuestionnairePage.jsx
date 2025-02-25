@@ -16,6 +16,8 @@ const QuestionnairePage = () => {
     try {
       setLoading(true);
       const response = await axios.get("/api/questionnaire/", { params: { id } });
+      // console.log("API response:", response.data);
+
       setQuestion(response.data);
       setLoading(false);
     } catch (err) {
@@ -47,6 +49,8 @@ const QuestionnairePage = () => {
       setError("Failed to submit answer", err.response?.data || err);
     }
   };
+
+  // console.log("Current question state:", question);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
