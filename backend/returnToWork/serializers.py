@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -75,3 +75,14 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags        
         fields = ['id','tag','modules']
+
+class ContentSerializer(serializers.ModelSerializer):
+    
+    author = serializers.StringRelatedField() 
+    moduleID = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
+
+    class Meta:
+        model = Content
+        fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
+        read_only_fields = ['contentID', 'created_at', 'updated_at']
+
