@@ -98,7 +98,9 @@ class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
         
-
+class ContentViewSet(viewsets.ModelViewSet):
+    queryset = Content.objects.all()
+    serializer_class = ContentSerializer
 
 class InfoSheetViewSet(viewsets.ModelViewSet):
     queryset = InfoSheet.objects.all()
