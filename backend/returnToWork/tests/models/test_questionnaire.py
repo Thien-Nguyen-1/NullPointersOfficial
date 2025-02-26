@@ -24,7 +24,7 @@ class QuestionnaireTestCase(TestCase):
             self.fail("Valid input threw a validation error")
 
     def test_too_long_question_invalid(self):
-        self.initial_q = "x"*51
+        self.initial_q.question = "x"*51
         with self.assertRaises(ValidationError):
             self.initial_q.full_clean()
 
