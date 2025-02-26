@@ -5,12 +5,12 @@ from django.core.exceptions import ValidationError
 class QuestionnaireTestCase(TestCase):
 
 
-    def setup(self):
-        self.yes_question = Questionnaire(question="Do you still want more support?")
-        self.no_question = Questionnaire(question="Do you have anxiety?")
+    def setUp(self):
+        self.yes_question = Questionnaire.objects.create(question="Do you still want more support?")
+        self.no_question = Questionnaire.objects.create(question="Do you have anxiety?")
         
         
-        self.initial_q = Questionnaire(
+        self.initial_q = Questionnaire.objects.create(
             question="Are you ready to return to work?", 
             yes_next_q=self.yes_question, 
             no_next_q=self.no_question
