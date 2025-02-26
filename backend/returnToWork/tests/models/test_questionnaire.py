@@ -10,7 +10,7 @@ class QuestionnaireTestCase(TestCase):
         self.no_question = Questionnaire.objects.create(question="Do you have anxiety?")
         
         
-        self.initial_q = Questionnaire.objects.create(
+        self.initial_q = Questionnaire(
             question="Are you ready to return to work?", 
             yes_next_q=self.yes_question, 
             no_next_q=self.no_question
