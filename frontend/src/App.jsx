@@ -10,7 +10,7 @@ import Settings from "./pages/Settings";
 import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
 import Profile from "./pages/Profile";
-import QuestionnairePage from "./pages/QuestionnairePage";
+import Questionnaire from "./components/Questionnaire";
 import CreateModule from "./pages/CreateModule";
 import Login from './components/Login';
 import Signup from './components/SignUp';
@@ -32,7 +32,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path = "/change-password" element = {<ChangePassword />} />
         <Route path="/tag" element={<Tag />} />
-        <Route path="/questionnaire" element={<QuestionnairePage />} />
+        <Route path="/questionnaire" element={<Questionnaire />} />
 
         {/* Protected Routes (With Sidebar) */}
         <Route

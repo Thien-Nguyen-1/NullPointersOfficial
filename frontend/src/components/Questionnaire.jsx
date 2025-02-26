@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import { GetQuestion, SubmitQuestionAnswer } from "../services/api";
 // const API_BASE_URL = "/api/questionnaire/";
 
-const QuestionnairePage = () => {
+const Questionnaire = () => {
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,44 +15,31 @@ const QuestionnairePage = () => {
   const fetchQuestion = async (id = null) => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/questionnaire/", { params: { id } });
-      // console.log("API response:", response.data);
-
-      setQuestion(response.data);
+      const fetchedQuestion = await GetQuestion(id);
+      
+      setQuestion(fetchedQuestion);
       setLoading(false);
     } catch (err) {
-      setError("Failed to load question");
+      setError(err.message);
       setLoading(false);
     }
   };
 
   const handleAnswer = async (answer) => {
-    // console.log("Current Question State:", question);
     try {
-      // if (!question?.id) {
-      //   console.error("No question ID found.");
-      //   return;
-      // }
 
-      const response = await axios.post("/api/questionnaire/", {
-        question_id: question?.id,
-        answer: answer,
-      });
+      const nextQuestion = await SubmitQuestionAnswer(question?.id, answer)
 
-      // console.log(response);
-
-      if (response.data.message) {
-        alert(response.data.message); // "End of questionnaire" message
+      if (nextQuestion.message) {
+        alert(nextQuestion.message); // "End of questionnaire" message
         setQuestion(null);
       } else {
-        setQuestion(response.data);
+        setQuestion(nextQuestion);
       }
     } catch (err) {
-      setError("Failed to submit answer", err);
+      setError(err.message);
     }
-  };
-
-  // console.log("Current question state:", question);
+  }
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -67,4 +54,4 @@ const QuestionnairePage = () => {
   );
 };
 
-export default QuestionnairePage;
+export default Questionnaire;

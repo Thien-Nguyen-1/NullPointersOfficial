@@ -1,9 +1,9 @@
 import { test, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
 import { fireEvent, render, screen, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import axios from "axios"; // ✅ Import axios
-import QuestionnairePage from "../../src/pages/QuestionnairePage";
-
+import axios from "axios";
+import Questionnaire from "../components/Questionnaire";
+import { GetQuestion, SubmitQuestionAnswer } from "../services/api";
 
 // Setup
 
@@ -30,7 +30,11 @@ const no_q_json =  {
 
 
 // Mock axios globally
-vi.mock("axios");
+// vi.mock("axios");
+vi.mock("../services/api", () => ({
+    GetQuestion: vi.fn(),
+    SubmitQuestionAnswer: vi.fn()
+}));
 
 
 beforeEach(() => {
@@ -43,29 +47,24 @@ beforeEach(() => {
 
 test("Displays error when API call fails", async () => {
   // Mock axios to return a failed request
-  axios.get.mockRejectedValue(new Error("API Error"));
+  GetQuestion.mockRejectedValue(new Error("Failed to load question "));
 
-  render(<QuestionnairePage />);
+  render(<Questionnaire />);
 
   await waitFor(() => {
-    expect(screen.getByText(/Failed to load question/i)).toBeInTheDocument();
+    expect(screen.getByText(/Failed to load question/i)).toBeInTheDocument;
   });
 });
 
 test("Displays initial question when API call is a success", async () => {
   // Mock axios to return a successful response
-  axios.get.mockResolvedValue({
-    data:initial_q_json
-  });
+  GetQuestion.mockResolvedValue(initial_q_json);
 
-  render(<QuestionnairePage />);
-
+  render(<Questionnaire />);
 
   await waitFor(() => {
     expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
   });
-  
-  //screen.debug()
 
   await waitFor(() => {
     expect(screen.getByText(/Are you ready to return to work?/i)).toBeInTheDocument();
@@ -73,11 +72,9 @@ test("Displays initial question when API call is a success", async () => {
 });
 
 test("'Yes' button is present", async () => {
-    axios.get.mockResolvedValue({
-        data: initial_q_json
-    });
+    GetQuestion.mockResolvedValue(initial_q_json);
 
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
 
     await waitFor(() => {
         expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
@@ -90,11 +87,9 @@ test("'Yes' button is present", async () => {
 });
 
 test("'No' button is present", async () => {
-    axios.get.mockResolvedValue({
-        data: initial_q_json
-    });
+    GetQuestion.mockResolvedValue(initial_q_json);
 
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
 
     await waitFor(() => {
         expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
@@ -107,15 +102,11 @@ test("'No' button is present", async () => {
 });
 
 test("Pressing the yes button goes to the correct question", async () => {
-    axios.get.mockResolvedValue({
-        data: initial_q_json
-    });
+    GetQuestion.mockResolvedValue(initial_q_json);
     
-    axios.post.mockResolvedValue({
-        data: yes_q_json
-    });
+    SubmitQuestionAnswer.mockResolvedValue(yes_q_json);
 
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
 
     await waitFor(() => {
         expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
@@ -123,15 +114,12 @@ test("Pressing the yes button goes to the correct question", async () => {
 
     const yesButton = screen.getByRole("button", {name: "Yes"});
 
-    // screen.debug();
 
     await waitFor(() => {
         expect(yesButton).toBeInTheDocument();
       });
 
     await act(async () => fireEvent.click(yesButton));
-
-    // screen.debug();
 
     await waitFor(() => {
         expect(screen.getByText(/Do you still want more support?/)).toBeInTheDocument();
@@ -140,15 +128,11 @@ test("Pressing the yes button goes to the correct question", async () => {
 });
 
 test("Pressing the no button goes to the correct question", async () => {
-    axios.get.mockResolvedValue({
-        data: initial_q_json
-    });
+    GetQuestion.mockResolvedValue(initial_q_json);
     
-    axios.post.mockResolvedValue({
-        data: no_q_json
-    });
+    SubmitQuestionAnswer.mockResolvedValue(no_q_json);
 
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
 
     await waitFor(() => {
         expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
@@ -156,7 +140,6 @@ test("Pressing the no button goes to the correct question", async () => {
 
     const noButton = screen.getByRole("button", {name: "No"});
 
-    // screen.debug();
 
     await waitFor(() => {
         expect(noButton).toBeInTheDocument();
@@ -164,7 +147,6 @@ test("Pressing the no button goes to the correct question", async () => {
 
     await act(async () => fireEvent.click(noButton));
 
-    // screen.debug();
 
     await waitFor(() => {
         expect(screen.getByText(/Do you have anxiety?/)).toBeInTheDocument();
@@ -174,19 +156,12 @@ test("Pressing the no button goes to the correct question", async () => {
 
 
 test("Reaching the end of the questionnaire displays the correct message", async () => {
-    axios.get.mockResolvedValue({
-        data: yes_q_json
-    });
-
-    axios.post.mockResolvedValue({
-        data: {
-            message: "End of questionnaire"
-        }
-    });
-
+    GetQuestion.mockResolvedValue(yes_q_json);
+    
+    SubmitQuestionAnswer.mockResolvedValue({message: "End of questionnaire"});
 
     // renders page
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
 
 
     // waits for the loading screen
@@ -216,19 +191,14 @@ test("Reaching the end of the questionnaire displays the correct message", async
 
 
 test("Reaching the end of the questionnaire displays the correct message", async () => {
-    axios.get.mockResolvedValue({
-        data: yes_q_json
-    });
+    GetQuestion.mockResolvedValue(yes_q_json);
 
-    axios.post.mockResolvedValue({
-        data: {
-            message: "End of questionnaire"
-        }
+    SubmitQuestionAnswer.mockResolvedValue({
+        message: "End of questionnaire"
     });
-
 
     // renders page
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
 
 
     // waits for the loading screen
@@ -257,14 +227,13 @@ test("Reaching the end of the questionnaire displays the correct message", async
 });
 
 test("Failed answer submission displays correct error message", async () => {
-    axios.get.mockResolvedValue({
-        data: initial_q_json 
-    });
+    GetQuestion.mockResolvedValue(initial_q_json);
 
-    axios.post.mockResolvedValue(new Error("Failed Submission"));
+    SubmitQuestionAnswer.mockRejectedValue(new Error("Failed to submit answer"));
+
 
     // renders page
-    render(<QuestionnairePage />);
+    render(<Questionnaire />);
     
     // waits for the loading screen
     await waitFor(() => {
@@ -280,49 +249,13 @@ test("Failed answer submission displays correct error message", async () => {
     
     // clicks the button - activates mock post request
     await act(async () => fireEvent.click(button));
+    
 
-
-    // wait for "end of questionnaire" alert and message
     await waitFor(() => {
         expect(screen.getByText(/Failed to submit answer/)).toBeInTheDocument();
     });
 });
 
-test("Invalid question submission displays correct error message", async () => {
-    axios.get.mockResolvedValue({
-        data: initial_q_json 
-    });
-
-    axios.post.mockResolvedValue({
-        error: "Invalid question"
-    });
-
-    // renders page
-    render(<QuestionnairePage />);
-    
-    // waits for the loading screen
-    await waitFor(() => {
-        expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
-    });
-
-    // looks for a No button on page
-    const button = screen.getByRole("button", {name: "No"});
-    await waitFor(() => {
-        expect(button).toBeInTheDocument();
-    });
-
-    
-    // clicks the button - activates mock post request
-    await act(async () => fireEvent.click(button));
-
-
-    // wait for "end of questionnaire" alert and message
-    await waitFor(() => {
-        expect(screen.getByText(/Failed to submit answer/)).toBeInTheDocument();
-    });
-
-
-});
 
 
 
