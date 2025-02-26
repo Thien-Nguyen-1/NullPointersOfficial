@@ -1,25 +1,31 @@
-
 from django.test import TestCase
-from django.contrib.auth.models import User
-from rest_framework import serializers
-
+from django.contrib.auth import get_user_model
+from returnToWork.models import ProgressTracker, Module, Tags
 from returnToWork.serializers import ProgressTrackerSerializer
-from returnToWork.models import ProgressTracker, Module
+
+
+User = get_user_model()  
 
 class ProgressTrackerSerializerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # user and module object for testing
-        cls.user = User.objects.create_user(username='testuser', password='12345')
+        # user instance 
+        cls.user = User.objects.create_user(username='testuser', password='password123')
+        
+        # C module without the tags 
         cls.module = Module.objects.create(
-            title='Improve confidence',
-            description='Learn to build confidence.',
-            tags='self-worth, low-self-seteem, anxiety',
+            title="Confidence",
+            description="Find out how to imrpove your confidence",
             pinned=False,
             upvotes=0
         )
+        
+        
+        tag_names = ['self-worth', 'self-esteem', 'Confidence']  
+        tags = [Tags.objects.get_or_create(tag=tag)[0] for tag in tag_names] 
+        cls.module.tags.set(tags)  # Associate tags with the module 
 
-        # Progress tracker object for testing
+        # Creating the ProgressTracker instance
         cls.progress_tracker = ProgressTracker.objects.create(
             user=cls.user,
             module=cls.module,
