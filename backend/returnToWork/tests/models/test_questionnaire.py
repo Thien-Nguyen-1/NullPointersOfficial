@@ -12,25 +12,25 @@ class QuestionnaireTestCase(TestCase):
         
         self.initial_q = Questionnaire(
             question="Are you ready to return to work?", 
-            yes_next_question=self.yes_question, 
-            no_next_question=self.no_question
+            yes_next_q=self.yes_question, 
+            no_next_q=self.no_question
         )
 
 
     def test_valid_question_is_valid(self):
         try:
-            self.inital_q.full_clean()
+            self.initial_q.full_clean()
         except ValidationError:
             self.fail("Valid input threw a validation error")
 
     def test_too_long_question_invalid(self):
-        self.inital_q = "x"*51
+        self.initial_q = "x"*51
         with self.assertRaises(ValidationError):
             self.initial_q.full_clean()
 
 
     def test_circular_question_invalid(self):
-        self.no_question.yes_next_question = self.inital_q
+        self.no_question.yes_next_q = self.initial_q
         with self.assertRaises(ValidationError):
             self.no_question.full_clean()
 
