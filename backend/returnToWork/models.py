@@ -42,11 +42,11 @@ class Questionnaire(models.Model):
             
             while stack:
                 head = stack[-1]
-
-                if head == other:
-                    return True
                 stack = stack[:-1]
-                
+
+                if head == self:
+                    return True      
+                      
                 left_child = head.yes_next_q
                 right_child = head.no_next_q
 
