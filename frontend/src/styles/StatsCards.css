@@ -1,29 +1,33 @@
-.stats-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-  }
-  
-  .stat-card {
-    background-color: #2f3d2e;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-  }
-  
-  .stat-number {
-    font-size: 24px;
-    color: #d2f5a6;
-  }
-  
-  .fire {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .fire-icon {
-    font-size: 40px;
-    color: #f5a623;
-  }
-  
+.stats-cards-wrapper {
+  display: flex;
+  gap: 20px; /* Space between cards */
+  flex: 1;
+}
+
+.greeting-card, .stat-card {
+  background-color: #e7efea;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  flex: 1; /* Allows the card to take some space */
+}
+
+.greeting-card h1 {
+  color: #333;
+  font-size: 28px;
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.greeting-card p, .stat-card p {
+  color: #666;
+  margin-top: 10px;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.stat-card div {
+  color: #333;
+  font-size: 36px;
+  font-weight: bold;
+}
