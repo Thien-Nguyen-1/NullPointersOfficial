@@ -151,7 +151,9 @@ class QuestionnaireView(APIView):
                 return Response({"message": "End of questionnaire"}, status=status.HTTP_200_OK)
         except Questionnaire.DoesNotExist:
             # returns error if not (realistically should never run)
-            return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)class InfoSheetViewSet(viewsets.ModelViewSet):
+            return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
+
+class InfoSheetViewSet(viewsets.ModelViewSet):
     queryset = InfoSheet.objects.all()
     serializer_class = InfoSheetSerializer
 
