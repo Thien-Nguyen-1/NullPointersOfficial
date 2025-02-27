@@ -2,7 +2,7 @@ import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import '../styles/LearningChart.css'; // Import the CSS file
 
-function LearningChart({ data }) {
+export default function LearningChart({ data }) {
   return (
     <div className="chart-card">
       <h2 className="chart-title">Your Learning Hours</h2>
@@ -44,4 +44,3 @@ function LearningChart({ data }) {
   );
 }
 
-export default LearningChart;

@@ -1,14 +1,59 @@
-import React from "react";
-import StatsCards from "../components/StatsCards"; // Adjust the path as necessary
-import LearningChart from "../components/LearningChart"; // Adjust the path as necessary
-import CoursesList from "../components/CoursesList"; // Adjust the path as necessary
+// WorkerDashboard.jsx
+import React, { useEffect, useState } from "react";
+import StatsCards from "../components/StatsCards";
+import LearningChart from "../components/LearningChart";
+import CoursesList from "../components/CoursesList";
+import axios from "axios";
 
-function WorkerDashboard() {
-  const courses = [
-    { title: "Coping with Anxiety", progress: 70, action: "View Course" },
-    { title: "Dealing with Stress", progress: 50, action: "View Course" },
-    { title: "Handling Depression", progress: 10, action: "View Course" }
-  ];
+export default function WorkerDashboard() {
+  const [userName, setUserName] = useState("User");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [moduleStats, setModuleStats] = useState({
+    completed_modules: 0,
+    in_progress_modules: 0,
+    total_modules: 0
+  });
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const token = '7d3108801f335bba23294aefb62b7b577436e406';
+        const response = await axios.get('/api/user/', {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        });
+        
+        setUserName(response.data.first_name || "User");
+        
+        // Set module statistics
+        setModuleStats({
+          completed_modules: response.data.completed_modules || 0,
+          in_progress_modules: response.data.in_progress_modules || 0,
+          total_modules: response.data.total_modules || 0
+        });
+
+        // Transform modules into course-like format
+        const transformedCourses = response.data.modules.map(module => ({
+          id: module.id,
+          title: module.title,
+          progress: module.progress_percentage,
+          action: "View Course"
+        }));
+
+        setCourses(transformedCourses);
+      } catch (error) {
+        setError('Failed to fetch user details');
+        setUserName("User");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
 
   const learningHours = [
     { day: "Mon", hours: 2.0 },
@@ -20,14 +65,18 @@ function WorkerDashboard() {
     { day: "Sun", hours: 3.2 }
   ];
 
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
   return (
     <div className="dashboard-container">
-      {/* Top Row */}
       <div className="top-row">
-        <StatsCards />
+        <StatsCards 
+          userName={userName} 
+          completedModules={moduleStats.completed_modules}
+          inProgressModules={moduleStats.in_progress_modules}
+        />
       </div>
-
-      {/* Bottom Row */}
       <div className="bottom-row">
         <CoursesList courses={courses} />
         <LearningChart data={learningHours} />
@@ -35,5 +84,3 @@ function WorkerDashboard() {
     </div>
   );
 }
-
-export default WorkerDashboard;
