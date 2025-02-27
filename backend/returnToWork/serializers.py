@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module, Questionnaire
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -85,3 +85,32 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags        
         fields = ['id','tag','modules']
+
+class ContentSerializer(serializers.ModelSerializer):
+    
+    author = serializers.StringRelatedField() 
+    moduleID = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
+
+    class Meta:
+        model = Content
+        fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
+        read_only_fields = ['contentID', 'created_at', 'updated_at']
+
+class InfoSheetSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = InfoSheet
+        fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
+
+class VideoSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = Video
+        fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
+
+class TaskSerializer(ContentSerializer):
+
+    class Meta:
+        model = Task
+        fields  = ContentSerializer.Meta.fields + ['text_content']        
+

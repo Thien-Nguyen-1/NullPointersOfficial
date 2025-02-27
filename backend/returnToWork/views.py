@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker,Tags,Module, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -97,7 +97,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
     
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
-        
+
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
     
@@ -152,3 +152,17 @@ class QuestionnaireView(APIView):
         except Questionnaire.DoesNotExist:
             # returns error if not (realistically should never run)
             return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
+
+class InfoSheetViewSet(viewsets.ModelViewSet):
+    queryset = InfoSheet.objects.all()
+    serializer_class = InfoSheetSerializer
+
+
+class VideoViewSet(viewsets.ModelViewSet):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer   
+
+ 
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer  
