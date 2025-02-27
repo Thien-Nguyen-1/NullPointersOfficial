@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet, AdminSettingsView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -36,4 +36,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
+    path("api/admin/settings", AdminSettingsView.as_view(), name= "admin-settings"),
 ]
