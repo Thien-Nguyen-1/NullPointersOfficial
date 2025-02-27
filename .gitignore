@@ -379,6 +379,8 @@ $RECYCLE.BIN/
 # vscode settings
 .vscode
 
+# coverage files
+frontend/tests/coverage/
 # Dependencies
 /node_modules/
 

@@ -25,7 +25,7 @@ router.register(r'tags', TagViewSet,basename='tag')
 
 # from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,ChangePasswordView
 # router.register(r'progress_tracker', ProgressTrackerViewSet)
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView
+from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
@@ -35,4 +35,5 @@ urlpatterns = [
     path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
+    path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
 ]

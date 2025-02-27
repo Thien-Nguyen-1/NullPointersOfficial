@@ -6,10 +6,14 @@ export default defineConfig({
   plugins: [react()],
 
   server: {
+    proxy: {
+      "/api": "http://127.0.0.1:8000",
+    },
     port: 5173,  // Can hange this if needed (only use during development)
     open: true,   // Help to open browser automatically
   },
   test: {
+    globals: true, 
     environment : 'jsdom',
     setupFiles : ['src/tests/setup.js'],
     include: ['src/tests/**/*.{test,spec}.{js,jsx}'],
@@ -24,7 +28,6 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['html','text','lcov'], 
       reportsDirectory: './coverage', 
-    }
-
+    },
   }
 });

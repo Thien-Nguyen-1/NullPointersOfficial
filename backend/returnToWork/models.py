@@ -42,11 +42,11 @@ class Questionnaire(models.Model):
             
             while stack:
                 head = stack[-1]
-
-                if head == other:
-                    return True
                 stack = stack[:-1]
-                
+
+                if head == self:
+                    return True      
+                      
                 left_child = head.yes_next_q
                 right_child = head.no_next_q
 
@@ -66,7 +66,7 @@ class Questionnaire(models.Model):
             raise ValidationError("You cannot reference an ancestor question in a descendant question")
 
     def __str__(self):
-        return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question}\n\t|NO|: {self.no_next_q.question}"
+        return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question if self.yes_next_q else None}\n\t|NO|: {self.no_next_q.question if self.yes_next_q else None}"
 
 
 
