@@ -63,6 +63,34 @@ export async function ResetPassword(username, new_password , confirm_new_passwor
   }
 }
 
+export async function GetQuestion(id = null) {
+  try {
+    const response = await api.get("/questionnaire/", { params: { id }});
+
+    return response.data;
+
+  } catch (err) {
+    throw new Error("Failed to load question");
+  }
+};
+
+export async function SubmitQuestionAnswer(question_id, answer) {
+  try {
+    const response = await api.post("/questionnaire/", {
+      question_id: question_id,
+      answer: answer,
+    });
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  } catch (err) {
+    throw new Error("Failed to submit answer");
+  } 
+};
+
 export default api 
 
 

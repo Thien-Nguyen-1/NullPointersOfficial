@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -66,6 +66,12 @@ class ProgressTrackerSerializer(serializers.ModelSerializer):
         model = ProgressTracker
         fields = ['id', 'user', 'module', 'completed']
 
+
+class QuestionnaireSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Questionnaire
+        fields = ["id", "question", "yes_next_q", "no_next_q"]
+  
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
