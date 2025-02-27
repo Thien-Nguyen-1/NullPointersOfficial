@@ -109,6 +109,6 @@
 
 /* Optional: Style dropdown options */
 .signup-box option {
-    background-color: #f0f9f4; /* Light background */
+    background-color: #f0f9f4; 
     color: #333;
 }

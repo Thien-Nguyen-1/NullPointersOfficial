@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module, Questionnaire
+from .models import ProgressTracker,Tags,User,Module, Questionnaire, AdminSettings
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -85,3 +85,8 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags        
         fields = ['id','tag','modules']
+
+class AdminSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminSettings
+        fields = ['first_name','last_name','username']

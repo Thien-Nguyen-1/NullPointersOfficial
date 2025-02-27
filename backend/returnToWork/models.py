@@ -213,5 +213,20 @@ class Video(Content):
 class Task(Content):
     text_content= models.TextField()
 
+class AdminSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length = 50, blank = True, null= True)
+    last_name = models.CharField(max_length = 50, blank = True, null= True)
+    username = models.CharField(max_length = 50, null= True)
+
+    def delete_account(self):
+        self.user.delete()
+        self.delete()
+
+    def __str__(self):
+        return f"Settings for {self.user.username}"
+
+
+
 
 

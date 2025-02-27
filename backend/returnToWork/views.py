@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker,Tags,Module, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer
+from .models import ProgressTracker,Tags,Module, Questionnaire,AdminSettings
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, AdminSettingSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -152,3 +152,34 @@ class QuestionnaireView(APIView):
         except Questionnaire.DoesNotExist:
             # returns error if not (realistically should never run)
             return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminSettingsView(APIView):
+
+    def get(self,request):
+        try:
+            settings = AdminSettings.objects.get (user = request.user)
+            serializer = AdminSettingSerializer (settings)
+            return Response(serializer.data)
+        except AdminSettings.DoesNotExist:
+            return Response({"error":"Settings not foun"},status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self,request):
+        try:
+            settings = AdminSettings.objects.get (user = request.user)
+            serializer = AdminSettingSerializer (settings, data = request.data, partial =True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        except AdminSettings.DoesNotExist:
+            return Response({"error":"Settings not found"},status=status.HTTP_404_NOT_FOUND)
+        
+    def delete(self,request):
+        try:
+            settings = AdminSettings.objects.get (user = request.user)
+            settings.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except AdminSettings.DoesNotExist:
+            return Response({"error":"Settings not found"},status=status.HTTP_404_NOT_FOUND)
+        
+    
