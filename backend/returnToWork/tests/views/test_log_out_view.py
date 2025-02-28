@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 
@@ -14,18 +15,17 @@ class LogOutViewTest(APITestCase):
             password ="password123"
         )
         self.logout_url = reverse("logout")
-        self.client.login(username="@johndoe", password="password123")
 
+        self.token = Token.objects.create(user=self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        
     def test_succsesful_logout(self):
-        data = {
-            "username": "@johndoe",
-            "password":"password123",
-        }
-        response = self.client.post(self.logout_url,data,format="json")
+        response = self.client.post(self.logout_url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "Successfully logged out")
         
     def test_unauthnticated_user_cant_logout(self):
-        response = self.client.post(self.logout_url,format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.credentials()
+        response = self.client.post(self.logout_url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         

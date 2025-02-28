@@ -18,13 +18,32 @@ export async function loginUser(username, password){
       username,
       password,
     });
-
+        
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    localStorage.setItem('token', response.data.token);
+  
     return response.data;
   }
   catch(error) {
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
 
   }
+}
+
+export function redirectBasedOnUserType(userData) {
+  const userType = userData.user.user_type;
+    switch(userType) {
+        case 'admin':
+            window.location.href = '/admin/home';
+            break;
+        case 'service user':
+            window.location.href = '/worker/home';
+            break;
+        default:
+            window.location.href = '/worker/home';
+    }
+
 }
 
 

@@ -1,24 +1,135 @@
-
-.courses-container {
-  margin-top: 20px;
+.courses-card {
+  background-color: var(--secondary-green);
+  border-radius: 12px;
+  padding: 20px;
 }
 
-.course-card {
-  background-color: #2f3d2e;
-  padding: 15px;
-  border-radius: 10px;
+.courses-card h2 {
+  color: var(--primary-green);
+  font-size: 24px;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  justify-content: center;
+}
+
+.tabs button {
+  background-color: transparent;
+  color: var(--text-subtle);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  min-width: 100px;
+}
+
+.tabs button:hover {
+  background-color: var(--primary-green-light);
+  transform: translateY(-2px);
+}
+
+.tabs button.active {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.tabs button.active:hover {
+  background-color: var(--primary-green-dark);
+}
+
+.tabs button:last-child {
+  min-width: 160px;
+  padding: 10px 30px;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.course-item {
+  background-color: white;
+  border-radius: 12px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
 }
 
-.course-card button {
-  background-color: #1b5e20;
-  color: #d2f5a6;
-  padding: 8px 12px;
+.course-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.course-item .icon {
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-green);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-item .course-title {
+  color: #333;
+  font-weight: 500;
+  margin-right: 100px;
+}
+
+.course-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.circular-progress {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.circular-svg {
+  transform: rotate(-90deg);
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-green);
+}
+
+.course-item button {
+  background-color: var(--primary-green);
+  color: white;
   border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 16px;
 }
 
+.course-item button:hover {
+  background-color: var(--primary-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.course-item button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
