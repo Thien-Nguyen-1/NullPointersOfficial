@@ -12,8 +12,10 @@
     margin: 0; /* ✅ Remove margin */
     position: fixed; /* ✅ Stick it to the left */
     left: 0; /* ✅ Ensure it is at the very left */
-    top: 0
-  }
+    top: 0;
+    align-items: center; /* center all UI VERTICALLY*/
+    transition: left 0.3s ease;
+}
 
   /* Logo Spacing */
 .logo {
@@ -77,4 +79,66 @@
   justify-content: center;
   align-items: center;
 }
+
+.logout:hover {
+  background-color: var(--primary-green-light);
+  transform: scale(1.1);
+}
+
+
+
+.menu-button svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  top: 1rem;
+}
+
+.side-open {
+  left: 0
+}
+
+
+
+/* ===== KEY-FRAMES ===== */
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+
+    .menu-button {
+      display: block;
+    }
+
+    .sidebar {
+      left: -80px !important; 
+      
+    }
+
+    .side-open {
+      left: 0px !important;
+    }
+
+
+    .menu-button {
+      color: black;
+
+    }
+
+}
+
+
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+  
+
+
+}
+
+
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+  
+}
+
+
 

@@ -4,7 +4,8 @@ import axios from 'axios';
 const baseURL =
   typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL
-    : process.env.VITE_API_URL || 'http://localhost:3000';
+    : 'http://localhost:5173'; // Fallback to localhost if no environment variable is found
+
     
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -91,8 +92,40 @@ export async function SubmitQuestionAnswer(question_id, answer) {
   } 
 };
 
+
+
+export async function logoutUser() {
+  try {
+    // Get the token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // Call backend logout endpoint
+      await api.post('/logout/', {}, {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+    }
+    
+    // Clear all user-related data from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Redirect to login page
+    window.location.href = '/';
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Logout error:", error);
+    
+    // Even if the API call fails, still clear localStorage and redirect
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.href = '/';
+    
+    throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
+  }
+}
+
 export default api 
-
-
-
-

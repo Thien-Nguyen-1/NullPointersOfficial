@@ -22,6 +22,11 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: start;
+  align-items: flex-start;
+  padding: 0;
+  margin-left: 1.5rem; /* why was the margin so large?*/
+  overflow-y: auto;
+  width: 100%;
   align-items: flex-start; /* Align items to the left */
   padding: 20px;
   overflow-y: hidden; /* disable scrolling inside */
@@ -169,4 +174,3 @@ html, body {
 .read-the-docs {
   color: #888;
 }
-
