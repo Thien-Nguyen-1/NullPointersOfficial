@@ -12,12 +12,14 @@ import Courses from "./pages/Courses";
 import Profile from "./pages/Profile";
 import Questionnaire from "./components/Questionnaire";
 import CreateModule from "./pages/CreateModule";
+import QuizEditor from './pages/QuizEditor';
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
 import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
+import QuizContainer from './components/QuizContainer';
 
 import "./App.css";
 
@@ -34,6 +36,10 @@ function App() {
         <Route path = "/change-password" element = {<ChangePassword />} />
         <Route path="/tag" element={<Tag />} />
         <Route path="/questionnaire" element={<Questionnaire />} />
+
+        {/* Temporary Quiz Route */}
+        <Route path="/quiz" element={<Navigate to="/admin/courses" />} />
+        <Route path="/quiz/:taskId" element={<QuizContainer />} />  
 
         {/* Protected Routes (With Sidebar) */}
         <Route
@@ -62,7 +68,8 @@ function App() {
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses role="admin" />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="create-module" element={<CreateModule />} />
+                <Route path="courses/create-module" element={<CreateModule />} />
+                <Route path="courses/create-module/:moduleId/:quizType" element={<QuizEditor />} /> 
               </Routes>
             </DashboardLayout>
           }
