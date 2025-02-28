@@ -39,9 +39,6 @@ export function redirectBasedOnUserType(userData) {
         case 'service user':
             window.location.href = '/worker/home';
             break;
-        case 'mental health professional':
-            window.location.href = '/worker/home'; 
-            break;
         default:
             window.location.href = '/worker/home';
     }
@@ -137,7 +134,7 @@ export async function logoutUser() {
     localStorage.removeItem('token');
     
     // Redirect to login page
-    window.location.href = '/login';
+    window.location.href = '/';
     
     return { success: true };
   } catch (error) {
@@ -146,7 +143,7 @@ export async function logoutUser() {
     // Even if the API call fails, still clear localStorage and redirect
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    window.location.href = '/';
     
     throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
   }

@@ -1,6 +1,6 @@
 .chart-card {
   flex: 1;
-  background-color: #e7efea;
+  background-color: var(--secondary-green);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -8,7 +8,7 @@
 }
 
 .chart-title {
-  color: #426751;
+  color: var(--primary-green);
   font-size: 24px;
   margin-top: 0;
   margin-bottom: 20px;

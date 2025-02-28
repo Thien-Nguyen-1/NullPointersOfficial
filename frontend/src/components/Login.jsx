@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {loginUser} from "../services/api";
+import {loginUser, redirectBasedOnUserType} from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Login.css';
 

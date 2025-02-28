@@ -1,7 +1,7 @@
 .sidebar {
   display: flex;
   flex-direction: column;
-  background-color: #e9f0ea; /* Light green background */
+  background-color: var(--secondary-green); 
   color: white;
   height: 100vh;
   width: 80px;
@@ -18,22 +18,22 @@
   justify-content: center;
   padding: 20px 0;
   margin-bottom: 20px;
-  color: #386a50; /* Dark green for the logo */
+  color: var(--primary-green);
 }
 
 .logo-circle {
-  background-color: #386a50;
+  background-color: var(--primary-green);
   border-radius: 50%;
   width: 50px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease; /* Smooth transition for the hover effect */
+  transition: transform 0.3s ease; 
 }
 
 .logo-circle:hover {
-  transform: rotate(15deg); /* Rotate the logo slightly on hover */
+  transform: rotate(15deg); 
 }
 
 
@@ -51,7 +51,7 @@
   justify-content: center;
   width: 100%;
   padding: 15px 0;
-  color: #386a50; /* Dark green for icons */
+  color: var(--primary-green); 
   text-decoration: none;
   margin-bottom: 5px;
   position: relative;
@@ -60,7 +60,7 @@
 }
 
 .menu-item:hover {
-  background-color: rgba(56, 106, 80, 0.1);
+  background-color: var(--primary-green-light);
   transform: scale(1.1);
 }
 
@@ -70,7 +70,7 @@
   left: 0;
   height: 100%;
   width: 4px;
-  background-color: #386a50; /* Dark green for the active indicator */
+  background-color: var(--primary-green); 
 }
 
 .logout {
@@ -79,11 +79,11 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  color: #386a50; /* Dark green for the logout icon */
+  color: var(--primary-green); 
   text-decoration: none;
 }
 
 .logout:hover {
-  background-color: rgba(56, 106, 80, 0.1);
+  background-color: var(--primary-green-light);
   transform: scale(1.1);
 }
