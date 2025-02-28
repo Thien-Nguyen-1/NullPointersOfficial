@@ -123,7 +123,8 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-                'progress_percentage': random.randint(0, 100) if not tracker.completed else 100
+                'pinned': tracker.module.pinned,
+                'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 
         # Combine user data with progress information
