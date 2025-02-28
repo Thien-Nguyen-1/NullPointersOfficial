@@ -1,7 +1,8 @@
 import React from "react";
 import { FaHome, FaUser, FaEnvelope, FaCog, FaSignOutAlt, FaBrain, FaBook } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
-import '../styles/Sidebar.css'; // Import the CSS file
+import '../styles/Sidebar.css'; 
+import {logoutUser} from "../services/api";
 
 const Sidebar = ({ role }) => {
   const location = useLocation();
@@ -17,6 +18,19 @@ const Sidebar = ({ role }) => {
 
   const isActive = (path) => {
     return location.pathname === `${basePath}/${path}`;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      // The redirection should happen in the logoutUser function
+      // But as a fallback:
+      navigate('/login');
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // Still try to navigate even if there's an error
+      navigate('/login');
+    }
   };
 
   return (
@@ -44,9 +58,9 @@ const Sidebar = ({ role }) => {
         })}
       </div>
 
-      <Link to="/logout" className="logout">
+      <div className="logout" onClick={handleLogout} title="Logout">
         <FaSignOutAlt size={24} />
-      </Link>
+      </div>
     </div>
   );
 };

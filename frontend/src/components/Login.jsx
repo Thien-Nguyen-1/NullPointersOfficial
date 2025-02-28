@@ -1,55 +1,53 @@
-import React from 'react';
-import { useState } from "react";
-import {loginUser} from "../services/api";
-
+import React, { useState } from 'react';
+import { loginUser, redirectBasedOnUserType } from "../services/api";
+import '../styles/Login.css';
 
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
 
-    const [username,setUsername] = useState("");
-    const [password,setPassword] = useState("");
-    const [error, setError] = useState(null);
-
-    const handleLogin = async(e) => {
-        e.preventDefault();
-        try{
-            const data = await loginUser(username, password);
-            console.log("Login succesful:" , data)
-            alert("Log in worked " + username)
-            
-        }
-        catch(err){
-            setError("Invalid username or password");
-        }
+  const handleLogin = async(e) => {
+    e.preventDefault();
+    try {
+      const data = await loginUser(username, password);
+      redirectBasedOnUserType(data);
+    } catch(err) {
+      setError("Invalid username or password");
     }
-
-
+  }
 
   return (
-    <div className = 'conatiner'>
-        <div className = "header">
-            <div className ="text">Log in page</div>
-            <div className ="underline"></div>
+    <div className="login-container">
+      <div className="login-form-container">
+        <div className="login-header">
+          <div className="login-text">Log in</div>
+          <div className="login-underline"></div>
         </div>
-        <form onSubmit={handleLogin}>
-            <input
-                type ="text"
-                value ={ username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                required
-            />
-            <input 
-                type ="password"
-                value = {password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-            />
-            <button type ="submit">Login</button>
+        
+        <form onSubmit={handleLogin} className="login-form">
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username"
+            required
+            className="login-input"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+            className="login-input"
+          />
+          <button type="submit" className="login-button">Login</button>
         </form>
-        {error && <p className="error">{error}</p>}
+        
+        {error && <p className="login-error">{error}</p>}
+      </div>
     </div>
- 
   );
 };
 

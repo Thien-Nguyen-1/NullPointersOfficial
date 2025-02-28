@@ -1,7 +1,6 @@
 import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
-import '../styles/LearningChart.css'; // Import the CSS file
-
+import '../styles/LearningChart.css'; 
 export default function LearningChart({ data }) {
   return (
     <div className="chart-card">

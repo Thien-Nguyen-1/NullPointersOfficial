@@ -1,12 +1,11 @@
 .courses-card {
-  flex: 2;
   background-color: #e7efea;
   border-radius: 12px;
   padding: 20px;
 }
 
 .courses-card h2 {
-  color: #333;
+  color: #426751;
   font-size: 24px;
   margin-top: 0;
   margin-bottom: 20px;
@@ -16,6 +15,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
+  justify-content: center;
 }
 
 .tabs button {
@@ -23,7 +23,9 @@
   color: #666;
   border: none;
   border-radius: 8px;
+  cursor: pointer;
   padding: 8px 16px;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .tabs button.active {
@@ -46,6 +48,12 @@
   align-items: center;
 }
 
+.course-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .course-item .icon {
   width: 40px;
   height: 40px;
@@ -59,6 +67,33 @@
 .course-item .course-title {
   color: #333;
   font-weight: 500;
+  margin-right: 100px; 
+}
+
+.course-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.circular-progress {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.circular-svg {
+  transform: rotate(-90deg);
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #426751;
 }
 
 .course-item button {
@@ -67,35 +102,4 @@
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
-}
-.circular-progress {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #e2e8f0;
-}
-
-.circular-progress::before {
-  content: attr(data-progress);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #38a169;
-  font-size: 12px;
-  font-weight: 600;
-  z-index: 2;
-}
-
-.circular-progress-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(#38a169 0%, #38a169 var(--progress, 0%), #e2e8f0 var(--progress, 0%), #e2e8f0 100%);
-  transform: rotate(-90deg);
-  transition: background 0.3s ease;
 }

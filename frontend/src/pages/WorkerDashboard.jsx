@@ -19,7 +19,14 @@ export default function WorkerDashboard() {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const token = '7d3108801f335bba23294aefb62b7b577436e406';
+        // Get token from localStorage instead of hardcoding it
+        const token = localStorage.getItem('token');
+        
+        // Check if token exists
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+  
         const response = await axios.get('/api/user/', {
           headers: {
             'Authorization': `Token ${token}`
@@ -27,31 +34,32 @@ export default function WorkerDashboard() {
         });
         
         setUserName(response.data.first_name || "User");
-        
         // Set module statistics
         setModuleStats({
           completed_modules: response.data.completed_modules || 0,
           in_progress_modules: response.data.in_progress_modules || 0,
           total_modules: response.data.total_modules || 0
         });
-
+        
         // Transform modules into course-like format
         const transformedCourses = response.data.modules.map(module => ({
           id: module.id,
           title: module.title,
           progress: module.progress_percentage,
+          pinned: module.pinned,
           action: "View Course"
         }));
-
+        
         setCourses(transformedCourses);
       } catch (error) {
-        setError('Failed to fetch user details');
+        console.error('Error fetching user details:', error);
+        setError('Failed to fetch user details. Please log in again.');
         setUserName("User");
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchUserDetails();
   }, []);
 

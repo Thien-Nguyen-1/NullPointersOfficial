@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/StatsCards.css"; // Import the CSS file
+import "../styles/StatsCards.css"; 
 
 export default function StatsCards({ userName, completedModules, inProgressModules }) {
   return (
