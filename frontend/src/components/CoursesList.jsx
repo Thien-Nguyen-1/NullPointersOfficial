@@ -75,7 +75,7 @@ export default function CoursesList({ courses }) {
                   </svg>
                   <span className="progress-text">{course.progress}%</span>
                 </div>
-                <button onClick={() => window.location.href = `/course/${course.id}`}>
+                <button onClick={() => window.location.href = `/worker/${course.title}`}>
                   View Course
                 </button>
               </div>

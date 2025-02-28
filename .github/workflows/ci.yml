@@ -65,9 +65,9 @@ jobs:
       run: |
         npm run lint || true
         
-    # - name: Run Tests
-    #   run: |
-    #     npm test -- --passWithNoTests
+    - name: Run Tests
+      run: |
+        npm run test
         
     - name: Build
       run: |

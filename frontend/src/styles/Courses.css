@@ -1,16 +1,15 @@
 .create-module-btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 10px 15px;
-    background-color: #9fca85; /* Green button */
-    color: white;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s;
-  }
-  
-  .create-module-btn:hover {
-    background-color: #76b947; /* Slightly darker green */
-  }
-  
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 15px;
+  background-color: #9fca85; /* Green button */
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.create-module-btn:hover {
+  background-color: #76b947; /* Slightly darker green */
+}

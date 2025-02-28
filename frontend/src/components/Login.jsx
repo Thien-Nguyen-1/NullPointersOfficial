@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { loginUser, redirectBasedOnUserType } from "../services/api";
+import React, { useState } from "react";
+import {loginUser} from "../services/api";
+import { useNavigate } from "react-router-dom";
 import '../styles/Login.css';
 
+
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+
+    const [username,setUsername] = useState("");
+    const [password,setPassword] = useState("");
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
   const handleLogin = async(e) => {
     e.preventDefault();
@@ -18,36 +22,42 @@ const Login = () => {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-form-container">
-        <div className="login-header">
-          <div className="login-text">Log in</div>
-          <div className="login-underline"></div>
-        </div>
-        
-        <form onSubmit={handleLogin} className="login-form">
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            required
-            className="login-input"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-            className="login-input"
-          />
-          <button type="submit" className="login-button">Login</button>
+    <div className = "login-container">
+        <div className = "login-box">
+            <h2>Log in page</h2>
+        <form onSubmit={handleLogin}>
+            <input
+                type ="text"
+                value ={ username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+                required
+            />
+            <input 
+                type ="password"
+                value = {password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+            />
+            <button type ="submit">Login</button>
         </form>
-        
-        {error && <p className="login-error">{error}</p>}
-      </div>
+        {error && <p className="error">{error}</p>}
+        <div className="login-links">
+        <button  onClick={() => navigate("/")}>
+          Back
+        </button>
+        <button  onClick={() => navigate("/change-password")}>
+          Forgot password
+        </button>
+        <button  onClick={() => navigate("/signup")}>
+          Don't have an account
+        </button>
     </div>
+    </div>
+    </div>
+    
+ 
   );
 };
 

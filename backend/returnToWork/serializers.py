@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -39,8 +39,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class PasswordChangeSerializer(serializers.Serializer):
-    old_password = serializers.CharField(write_only = True)
+class PasswordResetSerializer(serializers.Serializer):
+    username = serializers.CharField(write_only = True)
     new_password = serializers.CharField(write_only = True)
     confirm_new_password= serializers.CharField(write_only = True)
 
@@ -49,19 +49,29 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError("New passwords do not match")
         return data
     
-    def update(self,instance,validated_data):
-        if not instance.check_password(validated_data["old_password"]):
-            raise serializers.ValidationError("Old password is incorrect")
+    def save(self):
+        username = self.validated_data["username"]
+        try:
+            user = User.objects.get(username = username)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User does not exist")
         
-        instance.set_password(validated_data["new_password"])
-        instance.save()
-        return instance
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+    
 
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
         fields = ['id', 'user', 'module', 'completed']
 
+
+class QuestionnaireSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Questionnaire
+        fields = ["id", "question", "yes_next_q", "no_next_q"]
+  
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
@@ -75,3 +85,32 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags        
         fields = ['id','tag','modules']
+
+class ContentSerializer(serializers.ModelSerializer):
+    
+    author = serializers.StringRelatedField() 
+    moduleID = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
+
+    class Meta:
+        model = Content
+        fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
+        read_only_fields = ['contentID', 'created_at', 'updated_at']
+
+class InfoSheetSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = InfoSheet
+        fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
+
+class VideoSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = Video
+        fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
+
+class TaskSerializer(ContentSerializer):
+
+    class Meta:
+        model = Task
+        fields  = ContentSerializer.Meta.fields + ['text_content']        
+

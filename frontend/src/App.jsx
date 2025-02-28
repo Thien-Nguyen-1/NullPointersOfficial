@@ -10,11 +10,14 @@ import Settings from "./pages/Settings";
 import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
 import Profile from "./pages/Profile";
+import Questionnaire from "./components/Questionnaire";
 import CreateModule from "./pages/CreateModule";
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
+import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
+import Module2 from './pages/KnowValuesModule';
 
 import "./App.css";
 
@@ -28,7 +31,9 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path = "/change-password" element = {<ChangePassword />} />
         <Route path="/tag" element={<Tag />} />
+        <Route path="/questionnaire" element={<Questionnaire />} />
 
         {/* Protected Routes (With Sidebar) */}
         <Route
@@ -41,6 +46,7 @@ function App() {
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses role="worker" />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="KnowValuesModule" element={<Module2 role="worker" />} />
               </Routes>
             </DashboardLayout>
           }
