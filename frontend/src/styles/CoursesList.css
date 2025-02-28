@@ -13,8 +13,8 @@
 
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
   justify-content: center;
 }
 
@@ -24,12 +24,16 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  padding: 8px 16px;
-  transition: background-color 0.2s, color 0.2s;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  min-width: 100px;
 }
 
 .tabs button:hover {
-  background-color: var(--primary-green-light); 
+  background-color: var(--primary-green-light);
+  transform: translateY(-2px);
 }
 
 .tabs button.active {
@@ -38,7 +42,14 @@
 }
 
 .tabs button.active:hover {
-  background-color: var(--primary-green-dark); 
+  background-color: var(--primary-green-dark);
+}
+
+.tabs button:last-child {
+  min-width: 160px;
+  padding: 10px 30px;
+  font-weight: 600;
+  font-size: 1.05rem;
 }
 
 .course-list {
@@ -111,11 +122,13 @@
   border-radius: 8px;
   padding: 8px 16px;
 }
+
 .course-item button:hover {
-  background-color: var(--primary-green-dark); 
+  background-color: var(--primary-green-dark);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .course-item button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
