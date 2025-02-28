@@ -7,9 +7,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 // import MedicalProfessionalDashboard from "./pages/MedicalProfessionalDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
-import Messaging from "./pages/Messaging";
+import Support from "./pages/Support";
 import Courses from "./pages/Courses";
-import Profile from "./pages/Profile";
+import Users from "./pages/Users";
 import Questionnaire from "./components/Questionnaire";
 import CreateModule from "./pages/CreateModule";
 import Login from './components/Login';
@@ -43,9 +43,8 @@ function App() {
               <Routes>
                 <Route path="home" element={<WorkerDashboard />} />
                 <Route path="settings" element={<Settings />} />
-                <Route path="messages" element={<Messaging />} />
+                <Route path="support" element={<Support />} />
                 <Route path="courses" element={<Courses role="worker" />} />
-                <Route path="profile" element={<Profile />} />
                 <Route path="KnowValuesModule" element={<Module2 role="worker" />} />
               </Routes>
             </DashboardLayout>
@@ -59,9 +58,9 @@ function App() {
               <Routes>
                 <Route path="home" element={<AdminDashboard />} />
                 <Route path="settings" element={<Settings />} />
-                <Route path="messages" element={<Messaging />} />
+                <Route path="support" element={<Support />} />
                 <Route path="courses" element={<Courses role="admin" />} />
-                <Route path="profile" element={<Profile />} />
+                <Route path="users" element={<Users />} />
                 <Route path="create-module" element={<CreateModule />} />
               </Routes>
             </DashboardLayout>
