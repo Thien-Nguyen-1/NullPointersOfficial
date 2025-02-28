@@ -109,8 +109,10 @@ class VideoSerializer(ContentSerializer):
         fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
 
 class TaskSerializer(ContentSerializer):
-
+    
+    # Override the author field to allow writing to it
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    
     class Meta:
         model = Task
-        fields  = ContentSerializer.Meta.fields + ['text_content']        
-
+        fields = ContentSerializer.Meta.fields + ['text_content', 'quiz_type']

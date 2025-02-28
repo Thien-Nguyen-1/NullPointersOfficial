@@ -7,10 +7,7 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-
-from rest_framework.decorators import api_view, permission_classes
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 import json
 
@@ -174,9 +171,10 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer  
 
 
+        
 # API View to fetch quiz details and handle quiz responses
 class QuizDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get(self, request, task_id):
         """Fetch quiz details"""
@@ -204,7 +202,7 @@ class QuizDetailView(APIView):
 
 
 class QuizResponseView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def post(self, request):
         """Save user's response to a quiz question"""
@@ -251,7 +249,7 @@ class QuizResponseView(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
 class QuizDataView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get(self, request, task_id):
         """Get quiz data with user's previous responses"""
@@ -289,7 +287,7 @@ class QuizDataView(APIView):
         return Response(quiz_data, status=status.HTTP_200_OK)
 
 class AdminQuizResponsesView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get(self, request, task_id):
         """Admin view to see all responses for a task"""
@@ -329,3 +327,76 @@ class AdminQuizResponsesView(APIView):
             'task_title': task.title,
             'responses': responses_data
         }, status=status.HTTP_200_OK)
+    
+class QuizQuestionView(APIView):
+    """API endpoint for creating and managing quiz questions"""
+    
+    def post(self, request):
+        """Create a new quiz question"""
+        task_id = request.data.get('task_id')
+        question_text = request.data.get('question_text')
+        hint_text = request.data.get('hint_text', '')
+        order = request.data.get('order', 0)
+        
+        if not task_id or not question_text:
+            return Response(
+                {'error': 'Task ID and question text are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            task = Task.objects.get(contentID=task_id)
+            
+            # Create the new question
+            question = QuizQuestion.objects.create(
+                task=task,
+                question_text=question_text,
+                hint_text=hint_text,
+                order=order
+            )
+            
+            return Response({
+                'id': question.id,
+                'text': question.question_text,
+                'hint': question.hint_text,
+                'order': question.order
+            }, status=status.HTTP_201_CREATED)
+            
+        except Task.DoesNotExist:
+            return Response(
+                {'error': 'Task not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def get(self, request, question_id=None):
+        """Get a specific question or list all questions for a task"""
+        if question_id:
+            # Get specific question
+            question = get_object_or_404(QuizQuestion, id=question_id)
+            return Response({
+                'id': question.id,
+                'text': question.question_text,
+                'hint': question.hint_text,
+                'order': question.order,
+                'task_id': str(question.task.contentID)
+            })
+        else:
+            # List questions for a task
+            task_id = request.query_params.get('task_id')
+            if not task_id:
+                return Response(
+                    {'error': 'task_id parameter is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            task = get_object_or_404(Task, contentID=task_id)
+            questions = QuizQuestion.objects.filter(task=task).order_by('order')
+            
+            return Response([
+                {
+                    'id': q.id,
+                    'text': q.question_text,
+                    'hint': q.hint_text,
+                    'order': q.order
+                } for q in questions
+            ])
