@@ -1,28 +1,32 @@
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.stat-card {
-  background-color: #2f3d2e;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.stat-number {
-  font-size: 24px;
-  color: #d2f5a6;
-}
-
-.fire {
+.stats-cards-wrapper {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 20px; 
+  flex: 1;
 }
 
-.fire-icon {
-  font-size: 40px;
-  color: #f5a623;
+.greeting-card, .stat-card {
+  background-color: var(--secondary-green);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  flex: 1; 
+}
+.greeting-card h1 {
+  color: var(--primary-green);
+  font-size: 28px;
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.greeting-card p, .stat-card p {
+  color: var(--text-subtle);
+  margin-top: 10px;
+  margin-bottom: 0;
+  line-height: 2;
+}
+
+.stat-card div {
+  color: var(--primary-green);
+  font-size: 36px;
+  font-weight: bold;
 }
