@@ -1,28 +1,23 @@
 import React from "react";
-import { FaFire } from "react-icons/fa"; // Import fire icon
-import "../styles/StatsCards.css";
+import "../styles/StatsCards.css"; 
 
-const StatsCards = () => {
+export default function StatsCards({ userName, completedModules, inProgressModules }) {
   return (
-    <div className="stats-container">
-      <div className="stat-card greeting">
-        <p>Hello <strong>Max!</strong></p>
+    <div className="stats-cards-wrapper">
+      <div className="greeting-card">
+        <h1>Welcome, {userName}!</h1>
         <p>It's good to see you again.</p>
       </div>
+
       <div className="stat-card">
-        <p className="stat-number">11</p>
-        <p>Courses Completed</p>
+        <div>{completedModules}</div>
+        <p>Courses completed</p>
       </div>
+
       <div className="stat-card">
-        <p className="stat-number">4</p>
-        <p>Courses in Progress</p>
-      </div>
-      <div className="stat-card fire">
-        <FaFire className="fire-icon" />
-        <p className="stat-number">7</p>
+        <div>{inProgressModules}</div>
+        <p>Courses in progress</p>
       </div>
     </div>
   );
-};
-
-export default StatsCards;
+}
