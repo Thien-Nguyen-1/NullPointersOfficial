@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -40,4 +40,10 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
+    
+    # Quiz related URLs
+    path('api/quiz/<uuid:task_id>/', QuizDetailView.as_view(), name='quiz_detail_api'),
+    path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
+    path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
+    path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
 ]

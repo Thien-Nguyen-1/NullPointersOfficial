@@ -1,12 +1,18 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, QuizQuestion, UserResponse
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+
+from rest_framework.decorators import api_view, permission_classes
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+import json
 
 class ProgressTrackerView(APIView):
 
@@ -166,3 +172,160 @@ class VideoViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer  
+
+
+# API View to fetch quiz details and handle quiz responses
+class QuizDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, task_id):
+        """Fetch quiz details"""
+        task = get_object_or_404(Task, contentID=task_id)
+        questions = task.questions.all().order_by('order')
+        
+        response_data = {
+            'task': {
+                'id': str(task.contentID),
+                'title': task.title,
+                'description': task.description,
+                'quiz_type': task.quiz_type,
+            },
+            'questions': [
+                {
+                    'id': q.id,
+                    'text': q.question_text,
+                    'order': q.order,
+                    'hint': q.hint_text,
+                } for q in questions
+            ]
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class QuizResponseView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Save user's response to a quiz question"""
+        data = request.data
+        question_id = data.get('question_id')
+        response_text = data.get('response_text')
+        
+        if not question_id or response_text is None:
+            return Response({'status': 'error', 'message': 'Missing required data'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            question = QuizQuestion.objects.get(id=question_id)
+            
+            # Check if a response already exists
+            existing_response = UserResponse.objects.filter(
+                user=request.user,
+                question=question
+            ).first()
+            
+            if existing_response:
+                # Update existing response
+                existing_response.response_text = response_text
+                existing_response.save()
+                response_id = existing_response.id
+            else:
+                # Create new response
+                new_response = UserResponse.objects.create(
+                    user=request.user,
+                    question=question,
+                    response_text=response_text
+                )
+                response_id = new_response.id
+                
+            return Response({
+                'status': 'success',
+                'response_id': response_id
+            }, status=status.HTTP_200_OK)
+            
+        except QuizQuestion.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Question not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class QuizDataView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, task_id):
+        """Get quiz data with user's previous responses"""
+        task = get_object_or_404(Task, contentID=task_id)
+        questions = task.questions.all().order_by('order')
+        
+        # Get user's previous responses if any
+        user_responses = {}
+        for question in questions:
+            response = UserResponse.objects.filter(
+                user=request.user,
+                question=question
+            ).first()
+            
+            if response:
+                user_responses[question.id] = response.response_text
+        
+        # Prepare data for JSON response
+        quiz_data = {
+            'task_id': str(task.contentID),
+            'title': task.title,
+            'description': task.description,
+            'quiz_type': task.quiz_type,
+            'questions': [
+                {
+                    'id': q.id,
+                    'text': q.question_text,
+                    'order': q.order,
+                    'hint': q.hint_text,
+                    'user_response': user_responses.get(q.id, '')
+                } for q in questions
+            ]
+        }
+        
+        return Response(quiz_data, status=status.HTTP_200_OK)
+
+class AdminQuizResponsesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, task_id):
+        """Admin view to see all responses for a task"""
+        # Check if user is admin
+        if request.user.user_type != 'admin':
+            return Response({"error": "You do not have permission to access this resource"},
+                          status=status.HTTP_403_FORBIDDEN)
+            
+        task = get_object_or_404(Task, contentID=task_id)
+        questions = task.questions.all().order_by('order')
+        
+        # Collect all responses for this task
+        responses_data = []
+        
+        for question in questions:
+            responses = UserResponse.objects.filter(
+                question=question
+            ).select_related('user')
+            
+            question_data = {
+                'question_id': question.id,
+                'question_text': question.question_text,
+                'responses': [
+                    {
+                        'user_id': response.user.user_id,
+                        'username': response.user.username,
+                        'user_full_name': response.user.full_name(),
+                        'response_text': response.response_text,
+                        'submitted_at': response.submitted_at
+                    } for response in responses
+                ]
+            }
+            responses_data.append(question_data)
+        
+        return Response({
+            'task_id': str(task.contentID),
+            'task_title': task.title,
+            'responses': responses_data
+        }, status=status.HTTP_200_OK)
