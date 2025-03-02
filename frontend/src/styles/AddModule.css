@@ -52,11 +52,14 @@
   }
 
   /* Plus Button for add templates */
-  .templates-button-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 5px; /* Adjust spacing between button and text */
-  }
+.templates-button-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Align like module tags */
+  gap: 8px; /* Reduce spacing */
+  width: fit-content; /* Prevents unnecessary stretching */
+}
+
   
   .templates-label {
     color: #73967b;

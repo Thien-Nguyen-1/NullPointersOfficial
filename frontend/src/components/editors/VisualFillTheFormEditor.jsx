@@ -128,17 +128,11 @@ const VisualFillTheFormEditor = () => {
 
   return (
     <div className="editor-container">
-      <h1 className="editor-title">Exploring Your Work Identity</h1>
       <AdminQuestionForm onSubmit={addQuestion} />
       <div className="questions-list two-column-grid">
         {questions.map((question, index) => (
           <UserFillInTheBlanks key={index} index={index} question={question} onDelete={deleteQuestion} onEdit={editQuestion} />
         ))}
-      </div>
-      <div className="editor-actions">
-        <button className="btn-preview">Preview</button>
-        <button className="btn-publish">Publish</button>
-        <button className="btn-edit">Edit</button>
       </div>
     </div>
   );

@@ -77,11 +77,9 @@ const AddModule = () => {
         ))}
       </div>
 
-      <div className="add-module">
-        <div className="templates-button-wrapper">
-          <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className="plus-button">+</button>
-          <span className="templates-label">Add Templates</span>
-        </div>
+      <div className="add-module templates-button-wrapper">
+        <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className="plus-button">+</button>
+        <span className="templates-label">Add Templates</span>
       </div>
 
       {showDropdown && (
