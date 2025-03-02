@@ -413,17 +413,9 @@
   }
   
   .question-number {
-    width: 40px;
-    height: 40px;
-    background-color: #3498db;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 18px;
     font-weight: bold;
-    margin-right: 15px;
-    flex-shrink: 0;
+    color: #333;
   }
   
   .question-content {
@@ -1204,57 +1196,56 @@ to ensure the flashcards render correctly
   text-align: center;
 }
 
-/* Add Statement Button */
-.add-statement-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 10px;
-}
-
-.add-statement-button button {
-  background: none;
-  border: none;
-  color: #007bff;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  font-weight: bold;
-  transition: color 0.2s ease-in-out;
-}
-
-.add-statement-button button:hover {
-  color: #0056b3;
-}
-
-.plus-icon {
-  width: 28px;
-  height: 28px;
-  background-color: #007bff;
-  color: white;
+.add-statement-button .plus-icon {
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  color: #3b6ea5;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 8px;
-  font-size: 18px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Client Instructions */
+.client-instructions {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+  border-left: 4px solid #dc3545;
+}
+
+.client-instructions h3 {
+  color: #dc3545;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.client-instructions p {
+  margin: 0;
+  color: #495057;
 }
 
 /* Statement Editor Form */
 .statement-editor-form {
-  background-color: #fff3cd;
-  border-radius: 10px;
+  background-color: #fff9e1;
+  border-radius: 8px;
   padding: 25px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f6e9a4;
 }
 
 .statement-editor-form h3 {
-  font-size: 20px;
-  font-weight: bold;
-  color: #495057;
+  margin-top: 0;
   margin-bottom: 20px;
+  color: #495057;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .form-group {
@@ -1263,36 +1254,62 @@ to ensure the flashcards render correctly
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
+  margin-bottom: 10px;
+  font-weight: 500;
   color: #495057;
 }
 
 .form-group textarea {
   width: 100%;
-  min-height: 120px;
+  min-height: 100px;
   padding: 12px;
   border: 1px solid #ced4da;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 16px;
-  resize: vertical;
+  font-family: inherit;
+  background-color: white;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.submit-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 /* Page Actions */
 .page-actions {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-top: 30px;
+  align-items: center;
 }
 
 .preview-btn {
   background: none;
   border: none;
-  color: #007bff;
+  color: #3b6ea5;
   cursor: pointer;
-  font-size: 16px;
   text-decoration: underline;
+  font-size: 16px;
 }
 
 .main-actions {
@@ -1301,49 +1318,40 @@ to ensure the flashcards render correctly
 }
 
 .publish-btn {
-  background-color: #4a90e2;
+  background-color: #6b97c3;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
+  padding: 10px 30px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.2s ease-in-out;
-}
-
-.publish-btn:hover {
-  background-color: #357ab7;
 }
 
 .edit-btn {
-  background-color: #6c757d;
+  background-color: #adb5bd;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
+  padding: 10px 30px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.2s ease-in-out;
-}
-
-.edit-btn:hover {
-  background-color: #5a6268;
 }
 
 /* Error Message */
 .error-message {
   background-color: #f8d7da;
   color: #721c24;
-  padding: 15px;
-  border-radius: 6px;
+  padding: 12px 15px;
+  border-radius: 4px;
   margin-bottom: 20px;
-  border-left: 5px solid #dc3545;
+  position: relative;
+  border-left: 4px solid #dc3545;
 }
 
 .close-error {
   position: absolute;
   top: 10px;
-  right: 15px;
+  right: 10px;
   background: none;
   border: none;
   color: #721c24;
@@ -1351,15 +1359,345 @@ to ensure the flashcards render correctly
   cursor: pointer;
 }
 
+/* Debug Panel */
+.debug-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.debug-panel {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  width: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  z-index: 1000;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.debug-panel h3, .debug-panel h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-family: 'Arial', sans-serif;
+}
+
+.api-logs {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.api-log-entry {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.api-response {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 200px;
+}
+
+/* Empty state */
+.empty-sequence {
+  text-align: center;
+  padding: 30px;
+  color: #6c757d;
+  font-style: italic;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .sequence-flow {
-      flex-direction: column;
-      align-items: center;
+    flex-direction: column;
+    align-items: center;
   }
-
-  .sequence-item {
-      width: 100%;
-      max-width: 250px;
+  
+  .sequence-item-container {
+    margin-bottom: 20px;
+  }
+  
+  .sequence-arrow {
+    transform: rotate(90deg);
+    margin: 10px 0;
   }
 }
+
+/* Green Question Box */
+.green-card {
+  background-color: #dff0d8; /* Light green */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 10px 0;
+  border-left: 5px solid #4caf50; /* Darker green border */
+}
+
+/* Editor Buttons */
+.editor-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn-preview, .btn-publish, .btn-edit, .btn-delete {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-preview {
+  background-color: transparent;
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.btn-publish {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.btn-edit {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-preview:hover, .btn-publish:hover, .btn-edit:hover, .btn-delete:hover {
+  opacity: 0.8;
+}
+
+/* White Question Container */
+.question-container {
+  background-color: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 10px 0;
+}
+
+/* Green Question Box */
+.green-card {
+  background-color: #b3e79f;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for cleaner UI */
+}
+
+/* Green card background - slightly darker for contrast */
+.question-box {
+  background-color: #c8e6c9 !important; /* Softer green for better visibility */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  margin-bottom: 15px;
+}
+
+
+/* Question Header */
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Question Number */
+.question-number {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.icon-container {
+  display: flex;
+  gap: 10px;
+}
+
+/* Delete Icon */
+.delete-icon {
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.delete-icon:hover {
+  opacity: 0.7;
+}
+
+.edit-icon {
+  cursor: pointer;
+  font-size: 16px;
+  color: #6c757d; /* Neutral color */
+  transition: color 0.2s ease-in-out;
+}
+
+.edit-icon:hover {
+  color: #007bff; /* Blue on hover */
+}
+
+/* Question Subtitle */
+.question-subtitle {
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+/* Make the input and button inline */
+/* Container for input and button */
+.input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Space between input and button */
+  max-width: 1000px; /* Matches question box width */
+  margin-bottom: 20px;
+}
+
+/* Input box styling */
+.wide-input {
+  flex-grow: 1; /* Allows input box to take up available space */
+  padding: 12px;
+  font-size: 16px;
+  max-width: 600px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  max-width: 1000px; /* Matches question box width */
+}
+
+/* Add Question button */
+.green-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.green-button:hover {
+  background-color: #45a049;
+}
+
+/* Flashcards container with two columns */
+.two-column-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+  gap: 20px; /* Space between cards */
+  justify-content: center;
+  max-width: 1000px; /* Align with input width */
+}
+
+/* Question Box Styling */
+.question-box {
+  background-color: #c8e6c9; /* Soft green */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Light shadow */
+  min-height: 150px; /* Ensuring uniform height */
+}
+
+/* Flexbox for question header */
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .two-column-grid {
+      grid-template-columns: 1fr; /* Stack on smaller screens */
+  }
+}
+
+/* Ensure the input and button container is centered */
+.input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers them */
+  width: 100%; /* Full width */
+  max-width: 800px; /* Match question box */
+  margin: 0 auto 20px; /* Centered with spacing */
+}
+
+/* Make the input wider */
+.wide-input {
+  flex-grow: 1;
+  padding: 12px;
+  font-size: 16px;
+  width: 100%; /* Take full width */
+  max-width: 600px; /* Control max size */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* Style Add Question button */
+.green-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  white-space: nowrap; /* Prevents button from shrinking */
+}
+
+.green-button:hover {
+  background-color: #45a049;
+}
+
+/* Ensures flashcards align properly */
+.two-column-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* Auto-fit for responsiveness */
+  gap: 20px; /* Space between flashcards */
+  justify-content: center;
+  width: 100%;
+  max-width: 1000px; /* Keeps it aligned */
+  margin: 0 auto; /* Center */
+}
+
+/* Question Box Styling */
+.question-box {
+  background-color: #c8e6c9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 150px; /* Ensuring uniform height */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .two-column-grid {
+      grid-template-columns: 1fr; /* Stack on smaller screens */
+  }
+}
+
+

@@ -1,7 +1,7 @@
 
 // FlashcardQuiz.jsx
 import React, { useState, useEffect } from 'react';
-import "../styles/MainQuizContainer.css";
+import "../../styles/MainQuizContainer.css";
 
 const FlashcardQuiz = ({ quizData, saveResponse }) => {
   console.log("FlashcardQuiz rendering with data:", quizData);

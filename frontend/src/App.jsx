@@ -21,9 +21,10 @@ import Welcome from './components/Welcome';
 import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
-import QuizContainer from './components/QuizContainer';
-import VisualFlashcardEditor from './components/VisualFlashcardEditor';
-import VisualStatementSequenceEditor from './components/VisualStatementSequenceEditor';
+import QuizContainer from './components/quizzes/QuizContainer';
+import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
+import VisualStatementSequenceEditor from './components/editors/VisualStatementSequenceEditor';
+import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
 
 import "./App.css";
 
@@ -81,6 +82,8 @@ function App() {
                 <Route path="courses/create-module" element={<CreateModule />} />
                 {/* Conditional Routing for Editors Based on quizType */}
                 <Route path="courses/create-module/:moduleId/:quizType" element={<QuizEditorSelector />} />
+                {/* Add Fill-in-the-Blank Quiz Editor */}
+                <Route path="courses/create-module/fill-in-the-blanks" element={<VisualFillTheFormEditor />} />
               </Routes>
             </DashboardLayout>
           }

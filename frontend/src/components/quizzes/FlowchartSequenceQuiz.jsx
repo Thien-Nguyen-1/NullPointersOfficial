@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import "../styles/MainQuizContainer.css";
+import "../../styles/MainQuizContainer.css";
 
 const FlowchartSeqeuenceQuiz = ({ quizData, saveResponse }) => {
   const [currentStep, setCurrentStep] = useState(0);

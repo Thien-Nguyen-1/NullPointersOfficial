@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import "../styles/MainQuizContainer.css";
+import "../../styles/MainQuizContainer.css";
 
 const FillBlankQuiz = ({ quizData, saveResponse }) => {
   const [responses, setResponses] = useState(
