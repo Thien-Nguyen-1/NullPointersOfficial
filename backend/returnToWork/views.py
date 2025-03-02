@@ -379,43 +379,90 @@ class AdminQuizResponsesView(APIView):
 class QuizQuestionView(APIView):
     """API endpoint for creating and managing quiz questions"""
     
-    def post(self, request):
-        """Create a new quiz question"""
-        task_id = request.data.get('task_id')
-        question_text = request.data.get('question_text')
-        hint_text = request.data.get('hint_text', '')
-        order = request.data.get('order', 0)
-        
-        if not task_id or not question_text:
-            return Response(
-                {'error': 'Task ID and question text are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            task = Task.objects.get(contentID=task_id)
+    def post(self, request, question_id=None):
+        """Create a new quiz question or update an existing one if question_id is provided"""
+        # If question_id is provided, update existing question
+        if question_id:
+            try:
+                question = QuizQuestion.objects.get(id=question_id)
+                
+                # Update fields
+                task_id = request.data.get('task_id')
+                question_text = request.data.get('question_text')
+                hint_text = request.data.get('hint_text', '')
+                order = request.data.get('order', 0)
+                
+                if not task_id or not question_text:
+                    return Response(
+                        {'error': 'Task ID and question text are required'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Update the task reference if it changed
+                try:
+                    task = Task.objects.get(contentID=task_id)
+                    question.task = task
+                except Task.DoesNotExist:
+                    return Response(
+                        {'error': 'Task not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Update other fields
+                question.question_text = question_text
+                question.hint_text = hint_text
+                question.order = order
+                question.save()
+                
+                return Response({
+                    'id': question.id,
+                    'text': question.question_text,
+                    'hint': question.hint_text,
+                    'order': question.order
+                }, status=status.HTTP_200_OK)
+                
+            except QuizQuestion.DoesNotExist:
+                return Response(
+                    {'error': 'Question not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            # Handle creating a new question (existing code)
+            task_id = request.data.get('task_id')
+            question_text = request.data.get('question_text')
+            hint_text = request.data.get('hint_text', '')
+            order = request.data.get('order', 0)
             
-            # Create the new question
-            question = QuizQuestion.objects.create(
-                task=task,
-                question_text=question_text,
-                hint_text=hint_text,
-                order=order
-            )
+            if not task_id or not question_text:
+                return Response(
+                    {'error': 'Task ID and question text are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
-            return Response({
-                'id': question.id,
-                'text': question.question_text,
-                'hint': question.hint_text,
-                'order': question.order
-            }, status=status.HTTP_201_CREATED)
+            try:
+                task = Task.objects.get(contentID=task_id)
+                
+                # Create the new question
+                question = QuizQuestion.objects.create(
+                    task=task,
+                    question_text=question_text,
+                    hint_text=hint_text,
+                    order=order
+                )
+                
+                return Response({
+                    'id': question.id,
+                    'text': question.question_text,
+                    'hint': question.hint_text,
+                    'order': question.order
+                }, status=status.HTTP_201_CREATED)
+                
+            except Task.DoesNotExist:
+                return Response(
+                    {'error': 'Task not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
             
-        except Task.DoesNotExist:
-            return Response(
-                {'error': 'Task not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-    
     def get(self, request, question_id=None):
         """Get a specific question or list all questions for a task"""
         if question_id:
