@@ -286,7 +286,7 @@
     background-color: #218838;
   }
 
-  /* Add these styles to your MainQuizContainer.css file */
+  /* VISUAL FLASHCARD EDITOR */
 
 /* Module Creation Styles */
 .create-module-container {
@@ -515,3 +515,851 @@
     margin-top: 10px;
     padding-left: 20px;
   }
+
+/* 
+Add these styles to your MainQuizContainer.css file 
+to ensure the flashcards render correctly
+*/
+
+.flashcard-quiz {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.progress-bar {
+  width: 100%;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.progress-indicator {
+  font-size: 16px;
+  color: #555;
+}
+
+.flashcard {
+  position: relative;
+  width: 500px;
+  height: 300px;
+  perspective: 1000px;
+  cursor: pointer;
+  margin-bottom: 30px;
+}
+
+.card-front, 
+.card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  transition: transform 0.6s;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-front {
+  background-color: #f8f4d5;
+  z-index: 2;
+}
+
+.card-back {
+  background-color: #e3f2fd;
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .card-front {
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .card-back {
+  transform: rotateY(0deg);
+  z-index: 3;
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  text-align: center;
+  padding: 20px;
+}
+
+.flip-instruction {
+  text-align: center;
+  font-size: 14px;
+  color: #777;
+  padding: 10px;
+}
+
+.card-back textarea {
+  width: 100%;
+  height: 150px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: none;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.hint {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff3cd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.hint h4 {
+  margin: 0 0 5px 0;
+}
+
+.hint p {
+  margin: 0;
+}
+
+.card-nav {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 500px;
+}
+
+.nav-button {
+  padding: 10px 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+  background-color: #3a7bc8;
+}
+
+.nav-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.nav-button.flip {
+  background-color: #f0ad4e;
+}
+
+.nav-button.flip:hover {
+  background-color: #ec971f;
+}
+
+.save-status {
+  font-size: 14px;
+  text-align: center;
+  height: 20px;
+  margin-top: 5px;
+}
+
+.save-status.saving {
+  color: #6c757d;
+}
+
+.save-status.saved {
+  color: #28a745;
+}
+
+.save-status.error {
+  color: #dc3545;
+}
+
+.loading-container,
+.error-container,
+.no-data {
+  text-align: center;
+  padding: 40px;
+  margin: 20px;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.error-container {
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+  background-color: #f8d7da;
+}
+
+.debug-info {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+
+/* FOR EDITOR/ADMIN USE ONLY */
+
+/* Visual Flashcard Editor Styles */
+.visual-flashcard-editor {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+}
+
+/* Header Styles */
+.editor-header {
+  margin-bottom: 30px;
+}
+
+.breadcrumb {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.breadcrumb .current {
+  color: #495057;
+}
+
+.editor-header h1 {
+  color: #2c5777;
+  font-size: 36px;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.tags-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background-color: #f8e8b0;
+  color: #7a6c29;
+  padding: 6px 12px;
+  border-radius: 16px;
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+.add-tag-btn {
+  width: 28px;
+  height: 28px;
+  background-color: #e9ecef;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.tag-placeholder {
+  color: #adb5bd;
+  font-size: 14px;
+}
+
+/* Flashcards Container */
+.flashcards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+/* Flashcard Styles */
+.flashcard {
+  width: 300px;
+  height: 200px;
+  perspective: 1000px;
+  position: relative;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.flashcard.flipped .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back, .add-placeholder {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.flashcard-front, .add-placeholder {
+  background-color: #f8f4d5;
+}
+
+.flashcard-back {
+  background-color: #e3f2fd;
+  transform: rotateY(180deg);
+}
+
+.flashcard h3 {
+  font-size: 16px;
+  color: #495057;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.flashcard-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  text-align: center;
+  color: #212529;
+}
+
+.flip-instruction {
+  font-size: 12px;
+  color: #6c757d;
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.flashcard .actions {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.flashcard .actions button {
+  background: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 5px;
+}
+
+.flashcard .actions button:hover {
+  text-decoration: underline;
+}
+
+/* Add New Card Styles */
+.add-card {
+  border: 2px dashed #ccc;
+  cursor: pointer;
+  background-color: #f8f4d5;
+}
+
+.add-card.editing {
+  cursor: default;
+}
+
+.add-card form {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.add-card .form-group {
+  margin-bottom: 10px;
+  flex: 1;
+}
+
+.add-card textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.add-card .form-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.add-card .submit-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-card .cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Add Another Button */
+.add-another-btn {
+  width: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-another-btn button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+}
+
+.add-another-btn .plus-icon {
+  width: 24px;
+  height: 24px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+/* Page Actions */
+.page-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.preview-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 16px;
+}
+
+.main-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.publish-btn {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.edit-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  position: relative;
+  border-left: 4px solid #dc3545;
+}
+
+.close-error {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #721c24;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Debug Panel */
+.debug-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.debug-panel {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  width: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  z-index: 1000;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.debug-panel h3, .debug-panel h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-family: 'Arial', sans-serif;
+}
+
+.api-logs {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.api-log-entry {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.api-response {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 200px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .flashcards-container {
+    justify-content: center;
+  }
+  
+  .flashcard, .add-another-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+
+/* --- Enhanced Statement Sequence Editor Styles --- */
+.visual-sequence-editor {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  background-color: #f9fafb;
+  border-radius: 10px;
+}
+
+/* Sequence Flow Container */
+.sequence-flow-container {
+  margin-bottom: 40px;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sequence-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Individual Statement Box */
+.sequence-item {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.sequence-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Alternating Colors for Statements */
+.sequence-item.even {
+  background-color: #fff7d6;
+  border: 2px solid #f5c518;
+}
+
+.sequence-item.odd {
+  background-color: #d9ebff;
+  border: 2px solid #2a8bf2;
+}
+
+/* Statement Header */
+.statement-header {
+  font-size: 16px;
+  font-weight: bold;
+  color: #37474f;
+  text-align: center;
+}
+
+/* Statement Content */
+.statement-content {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 14px;
+  color: #495057;
+  padding: 10px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Statement Actions */
+.statement-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.statement-actions button {
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s ease-in-out;
+}
+
+.statement-actions button:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Arrows Between Statements */
+.sequence-arrow {
+  width: 50px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #6c757d;
+  text-align: center;
+}
+
+/* Add Statement Button */
+.add-statement-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+}
+
+.add-statement-button button {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  transition: color 0.2s ease-in-out;
+}
+
+.add-statement-button button:hover {
+  color: #0056b3;
+}
+
+.plus-icon {
+  width: 28px;
+  height: 28px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* Statement Editor Form */
+.statement-editor-form {
+  background-color: #fff3cd;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.statement-editor-form h3 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.form-group textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 16px;
+  resize: vertical;
+}
+
+/* Page Actions */
+.page-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.preview-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 16px;
+  text-decoration: underline;
+}
+
+.main-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.publish-btn {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s ease-in-out;
+}
+
+.publish-btn:hover {
+  background-color: #357ab7;
+}
+
+.edit-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s ease-in-out;
+}
+
+.edit-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 5px solid #dc3545;
+}
+
+.close-error {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #721c24;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .sequence-flow {
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .sequence-item {
+      width: 100%;
+      max-width: 250px;
+  }
+}

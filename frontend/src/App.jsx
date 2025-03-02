@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
 import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
+import { useParams } from "react-router-dom";
+
 
 import AdminDashboard from "./pages/AdminDashboard";
 // import MedicalProfessionalDashboard from "./pages/MedicalProfessionalDashboard";
@@ -20,12 +22,20 @@ import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 import QuizContainer from './components/QuizContainer';
+import VisualFlashcardEditor from './components/VisualFlashcardEditor';
+import VisualStatementSequenceEditor from './components/VisualStatementSequenceEditor';
 
 import "./App.css";
 
 
 
 function App() {
+  const QuizEditorSelector = () => {
+    const { quizType } = useParams();
+    
+    return quizType === "flashcard" ? <VisualFlashcardEditor /> : <VisualStatementSequenceEditor />;
+  };
+  
   return (
     <Router>
       <Routes>
@@ -69,7 +79,8 @@ function App() {
                 <Route path="courses" element={<Courses role="admin" />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="courses/create-module" element={<CreateModule />} />
-                <Route path="courses/create-module/:moduleId/:quizType" element={<QuizEditor />} /> 
+                {/* Conditional Routing for Editors Based on quizType */}
+                <Route path="courses/create-module/:moduleId/:quizType" element={<QuizEditorSelector />} />
               </Routes>
             </DashboardLayout>
           }
