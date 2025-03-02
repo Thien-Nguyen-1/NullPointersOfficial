@@ -448,3 +448,15 @@ class QuizQuestionView(APIView):
                     'order': q.order
                 } for q in questions
             ])
+        
+    def delete(self, request, question_id):
+        """Delete a specific quiz question"""
+        try:
+            question = QuizQuestion.objects.get(id=question_id)
+            question.delete()
+            return Response({"status": "success", "message": "Question deleted"}, status=status.HTTP_204_NO_CONTENT)
+        except QuizQuestion.DoesNotExist:
+            return Response(
+                {'error': 'Question not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
