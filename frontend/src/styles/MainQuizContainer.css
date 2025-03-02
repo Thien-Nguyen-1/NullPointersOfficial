@@ -1700,4 +1700,69 @@ to ensure the flashcards render correctly
   }
 }
 
+/* Editor Background Matches Statement */
+.even-editor {
+  background-color: #799c87; /* Light yellow */
+  border: none;
+}
+
+.odd-editor {
+  background-color: var(--primary-green);
+  border: none;
+}
+
+/* Style for fancy arrows */
+
+/* Style for arrows */
+.odd-arrow {
+  font-size: 30px;
+  color: #799c87; 
+  margin: 0 -20px; /* Reduce spacing between statements */
+}
+
+.even-arrow {
+  font-size: 30px;
+  color: var(--primary-green); 
+  margin: 0 -20px; /* Reduce spacing between statements */
+}
+
+.add-statement-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.add-statement-button {
+  background-color: #2A5172; /* Dark blue */
+  border: none;
+  border-radius: 50px;
+  width: 70px; /* Adjust width to match the oval shape */
+  height: 40px; /* Keep it slightly shorter to maintain oval look */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.add-statement-button .plus-icon {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  background: none; /* Remove any background */
+  border: none; /* Ensure no border */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-statement-text {
+  font-style: italic;
+  font-size: 14px;
+  color: #333;
+  margin-top: 5px;
+  text-align: center;
+}
+
 
