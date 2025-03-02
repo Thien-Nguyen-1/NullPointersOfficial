@@ -11,7 +11,7 @@ function Courses({ role }) {
 
             {/* Show the "Create Module" button only if the user is an Admin */}
             {role === "admin" && (
-                <Link to="/admin/courses/create-module" className="create-module-btn">
+                <Link to="/admin/courses/create-and-manage-module" className="create-module-btn">
                     Create Module
                 </Link>
             )}

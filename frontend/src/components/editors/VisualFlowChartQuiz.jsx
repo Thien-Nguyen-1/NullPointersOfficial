@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FaTrash } from "react-icons/fa";
 import "../../styles/MainQuizContainer.css";
 
 function VisualFlowChartQuiz() {
@@ -6,7 +7,7 @@ function VisualFlowChartQuiz() {
   const [selectedStatement, setSelectedStatement] = useState(null);
 
   const addStatement = () => {
-    setStatements([...statements, { id: Date.now(), text: "New Statement", question: "", answer: "Sample Answer" }]);
+    setStatements([...statements, { id: Date.now(), text: "", question: "", answer: "Sample Answer" }]);
   };
 
   const updateStatement = (id, field, value) => {
@@ -74,9 +75,9 @@ function VisualFlowChartQuiz() {
           />
           <h3>Answer (View Only)</h3>
           <input className="form-group" value={selectedStatement.answer} readOnly />
-          <div className="button-group">
-            <button onClick={saveChanges} className="save-btn">Save</button>
-            <button onClick={() => deleteStatement(selectedStatement.id)} className="cancel-btn">Delete Statement</button>
+          <div className="button-group" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>            <button onClick={saveChanges} className="large-grey-btn">Save</button>
+            <button onClick={() => deleteStatement(selectedStatement.id)} className="trash-button">
+  <FaTrash size={20}  /></button>
           </div>
         </div>
       )}

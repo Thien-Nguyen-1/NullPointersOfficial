@@ -186,10 +186,18 @@
   
   .statement-content {
     font-size: 18px;
+    width: 70%; /* Ensures all inner white boxes are the same */
+    height: 90%;
     margin-bottom: 20px;
     padding: 15px;
     background-color: #f9f9f9;
-    border-radius: 5px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center; /* Centers text */
+    font-size: 14px;
+    font-weight: bold;
   }
   
   .response-input {
@@ -1702,12 +1710,12 @@ to ensure the flashcards render correctly
 
 /* Editor Background Matches Statement */
 .even-editor {
-  background-color: #799c87; /* Light yellow */
+  background-color: #799c87; 
   border: none;
 }
 
 .odd-editor {
-  background-color: var(--primary-green);
+  background-color: #5d898f;
   border: none;
 }
 
@@ -1722,7 +1730,7 @@ to ensure the flashcards render correctly
 
 .even-arrow {
   font-size: 30px;
-  color: var(--primary-green); 
+  color: #5d898f; 
   margin: 0 -20px; /* Reduce spacing between statements */
 }
 
@@ -1764,5 +1772,42 @@ to ensure the flashcards render correctly
   margin-top: 5px;
   text-align: center;
 }
+
+.trash-button {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.trash-button:hover {
+  opacity: 0.8;
+  color: #f70000;
+}
+
+.large-grey-btn {
+  background-color: rgb(31, 109, 108);
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.large-grey-btn:hover {
+  opacity: 0.8;
+}
+
+.right-aligned {
+  position: absolute;
+  right: 20px;
+  top: 10px;
+}
+
 
 
