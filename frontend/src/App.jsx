@@ -20,11 +20,12 @@ import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 
 import "./App.css";
-
+import {AuthContextProvider} from './services/AuthContext.jsx'
 
 
 function App() {
   return (
+    <AuthContextProvider>
     <Router>
       <Routes>
         {/* Auth Routes (No Sidebar) */}
@@ -69,6 +70,7 @@ function App() {
         />
       </Routes>
     </Router>
+    </AuthContextProvider>
   );
 }
 

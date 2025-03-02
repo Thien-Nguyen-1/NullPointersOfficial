@@ -46,7 +46,7 @@ export default function WorkerDashboard() {
           id: module.id,
           title: module.title,
           progress: module.progress_percentage,
-          pinned: module.pinned,
+          pinned: module.pinned, 
           action: "View Course"
         }));
         

@@ -44,6 +44,7 @@ const Signup = () => {
     <div className="signup-container">
       <div className="signup-box">
         <h3>Sign Up page</h3>
+        
         <form onSubmit={handleSignUp}>
           <input
             type="text"
@@ -91,6 +92,7 @@ const Signup = () => {
           />
           <button type="submit">Sign Up</button>
         </form>
+
         {error && <p className="error">{error}</p>}
         <div className="signup-links">
           <button onClick={() => navigate("/login")}>Login</button>

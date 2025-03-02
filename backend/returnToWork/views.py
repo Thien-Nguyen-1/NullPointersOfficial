@@ -87,6 +87,7 @@ class UserProfileView(APIView):
 class PasswordResetView(APIView):
     permission_classes = []
     def post(self,request):
+        print("RECEIVED DATUM!!!!")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()

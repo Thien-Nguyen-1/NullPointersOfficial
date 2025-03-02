@@ -4,24 +4,28 @@ import axios from 'axios';
 const baseURL =
   typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL
-    : 'http://localhost:5173'; // Fallback to localhost if no environment variable is found
+    : 'http://localhost:8000'; // Fallback to localhost if no environment variable is found
 
     
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
-export async function loginUser(username, password){
+
+
+/* export async function loginUser(username, password){
   try {
-    const response = await api.post(`/login/`, {
+    const response = await api.post(`/api/login/`, {
       username,
       password,
     });
         
     // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
-    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('token', response.data.token); 
+
+    console.log(` is the token ${response.data.token}`)
   
     return response.data;
   }
@@ -29,7 +33,7 @@ export async function loginUser(username, password){
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
 
   }
-}
+} */
 
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
@@ -47,9 +51,9 @@ export function redirectBasedOnUserType(userData) {
 }
 
 
-export async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
+/*export async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
   try {
-    const response = await api.post(`/signup/`, {
+    const response = await api.post(`/api/signup/`, {
       username,
       first_name: firstName,
       last_name: lastName,
@@ -65,11 +69,11 @@ export async function SignUpUser(username, firstName, lastName, userType, passwo
     console.error("Sign Up error:", error.response?.data || error.message);
     throw new Error("Sign Up failed:" + error.response?.data?.detail || "Unkown error");
    }
-}
+} */
 
 export async function ResetPassword(username, new_password , confirm_new_password){
   try {
-    const response = await api.post(`/change-password/`, {
+    const response = await api.post(`/api/change-password`, {
       username,
       new_password,
       confirm_new_password
@@ -82,6 +86,7 @@ export async function ResetPassword(username, new_password , confirm_new_passwor
 
   }
 }
+// `/change-password/`
 
 export async function GetQuestion(id = null) {
   try {
