@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { ApiContextProvider } from './api_context';
+import { useSearchParams } from 'react-router-dom';
 
 /* const baseURL =
   typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
@@ -17,13 +18,14 @@ const AuthContext = createContext("")
 
 const AuthContextProvider = ({children}) => {
 
-    const [user , setUser] = useState("") // user data accessible across every component regardless of hierarchy
+    const [user , setUser] = useState(null) // user data accessible across every component regardless of hierarchy
     const [token, setToken] = useState("")
 
 
-    // Initially load user details if it exists
+    // Initially load user details if it exists or when re-render triggered
     useEffect( () => {
-
+        const userData = JSON.parse(localStorage.getItem("user")) || null
+        setUser(userData)
 
     }, [])
 
@@ -41,6 +43,7 @@ const AuthContextProvider = ({children}) => {
           // Store user data in localStorage
           localStorage.setItem('user', JSON.stringify(response.data.user));
           localStorage.setItem('token', response.data.token);
+          
           
           setUser(response.data.user)
 
@@ -121,6 +124,11 @@ const AuthContextProvider = ({children}) => {
           // Clear all user-related data from localStorage
           localStorage.removeItem('user');
           localStorage.removeItem('token');
+
+
+          //clear state
+          setUser("")
+
           
           // Redirect to login page
           window.location.href = '/';

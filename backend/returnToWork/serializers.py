@@ -6,6 +6,9 @@ from django.contrib.auth import authenticate, get_user_model
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+
+    tags = serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
+
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']

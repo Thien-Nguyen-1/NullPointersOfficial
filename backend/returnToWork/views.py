@@ -50,8 +50,13 @@ class LogInView(APIView):
         serializer = LogInSerializer(data = request.data)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
+
+            
+
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
+
+            print(UserSerializer(user).data)
             return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     

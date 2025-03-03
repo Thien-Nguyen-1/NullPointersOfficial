@@ -118,12 +118,17 @@
   top: 1rem;
 }
 
+.menu-button {
+  position: absolute;
+  left: 0;
+}
+
 .side-open {
   left: 0
 }
 
 
-/* ===== KEY-FRAMES ===== */
+
 
 /* Phone Resolution */
 @media screen and (min-width: 375px ){
@@ -151,16 +156,7 @@
 
 /* Tablet Resolution */
 @media screen and (min-width: 768px ){
-  .menu-button {
-    display: none;
-    
-  }
-
-  .sidebar {
-    left: 0;
-    
-  
-  }
+ 
 
 }
 
