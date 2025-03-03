@@ -25,7 +25,7 @@ import QuizContainer from './components/quizzes/QuizContainer';
 import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
 import VisualStatementSequenceEditor from './components/editors/VisualStatementSequenceEditor';
 import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
-import VisualFlowChartQuiz from './components/editors/VisualFlowchartQuiz';
+import VisualFlowChartQuiz from './components/editors/VisualFlowChartQuiz';
 import AddModule from './pages/AddModule';
 
 import "./App.css";

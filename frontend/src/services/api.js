@@ -2,18 +2,33 @@ import axios from 'axios';
 
 
 const baseURL =
-  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+  import.meta.env && import.meta.env.VITE_API_URL 
     ? import.meta.env.VITE_API_URL
-    : 'http://localhost:3000';
+    : 'http://localhost:8000'; // this should points to Django backend
     
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL, 
   withCredentials: true,
 });
 
+// Add request interceptor to include auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Authentication functions
 export async function loginUser(username, password){
   try {
-    const response = await api.post(`/login/`, {
+    const response = await api.post(`/api/login/`, {
       username,
       password,
     });
@@ -48,7 +63,7 @@ export function redirectBasedOnUserType(userData) {
 
 export async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
   try {
-    const response = await api.post(`/signup/`, {
+    const response = await api.post(`/api/signup/`, {
       username,
       first_name: firstName,
       last_name: lastName,
@@ -62,13 +77,13 @@ export async function SignUpUser(username, firstName, lastName, userType, passwo
   }
   catch(error) {
     console.error("Sign Up error:", error.response?.data || error.message);
-    throw new Error("Sign Up failed:" + error.response?.data?.detail || "Unkown error");
+    throw new Error("Sign Up failed:" + (error.response?.data?.detail || "Unknown error"));
    }
 }
 
 export async function ResetPassword(username, new_password , confirm_new_password){
   try {
-    const response = await api.post(`/change-password/`, {
+    const response = await api.post(`/api/change-password/`, {
       username,
       new_password,
       confirm_new_password
@@ -77,7 +92,7 @@ export async function ResetPassword(username, new_password , confirm_new_passwor
     return response.data;
   }
   catch(error) {
-    throw new Error("Reset of password failed:" + error.response?.data?.detail || "Unkown error");
+    throw new Error("Reset of password failed:" + (error.response?.data?.detail || "Unknown error"));
 
   }
 }
@@ -110,6 +125,42 @@ export async function SubmitQuestionAnswer(question_id, answer) {
   } 
 };
 
+// Module related functions
+export const moduleApi = {
+  getAll: () => api.get('/api/modules/'),
+  getById: (id) => api.get(`/api/modules/${id}/`),
+  create: (data) => api.post('/api/modules/', data),
+  update: (id, data) => api.put(`/api/modules/${id}/`, data),
+  delete: (id) => api.delete(`/api/modules/${id}/`)
+};
+
+// Tag related functions
+export const tagApi = {
+  getAll: () => api.get('/api/tags/'),
+  getById: (id) => api.get(`/api/tags/${id}/`),
+  create: (data) => api.post('/api/tags/', data)
+};
+
+// Task related functions
+export const taskApi = {
+  getAll: (moduleId) => api.get('/api/tasks/', { params: { moduleID: moduleId } }),
+  getById: (id) => api.get(`/api/tasks/${id}/`),
+  create: (data) => api.post('/api/tasks/', data),
+  update: (id, data) => api.put(`/api/tasks/${id}/`, data),
+  delete: (id) => api.delete(`/api/tasks/${id}/`)
+};
+
+// Quiz question related functions
+export const quizApi = {
+  getQuestions: (taskId) => api.get('/api/quiz/questions/', { params: { task_id: taskId } }),
+  getQuestion: (id) => api.get(`/api/quiz/questions/${id}/`),
+  createQuestion: (data) => api.post('/api/quiz/questions/', data),
+  updateQuestion: (id, data) => api.put(`/api/quiz/questions/${id}/`, data),
+  deleteQuestion: (id) => api.delete(`/api/quiz/questions/${id}/`),
+  getQuizDetails: (taskId) => api.get(`/api/quiz/${taskId}/`),
+  submitResponse: (data) => api.post('/api/quiz/response/', data)
+};
+
 export default api 
 
 
@@ -122,7 +173,7 @@ export async function logoutUser() {
     
     if (token) {
       // Call backend logout endpoint
-      await api.post('/logout/', {}, {
+      await api.post('api/logout/', {}, {
         headers: {
           'Authorization': `Token ${token}`
         }

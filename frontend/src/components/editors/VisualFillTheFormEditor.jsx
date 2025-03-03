@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/MainQuizContainer.css";
-import { FaTrash, FaPencilAlt } from "react-icons/fa"; // Importing trash and edit icons
+import { FaTrash, FaPencilAlt } from "react-icons/fa";
 
 const AdminQuestionForm = ({ onSubmit }) => {
   const [question, setQuestion] = useState("");
@@ -109,8 +109,23 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
   );
 };
 
-const VisualFillTheFormEditor = () => {
+const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions }) => {
   const [questions, setQuestions] = useState([]);
+
+  // Update parent component when questions change
+  useEffect(() => {
+    if (onUpdateQuestions) {
+      // Format questions for API compatibility
+      const formattedQuestions = questions.map((question, index) => ({
+        id: Date.now() + index, // Temporary ID for UI
+        question_text: question,
+        hint_text: "", // Fill-in-the-blanks doesn't use hints
+        order: index
+      }));
+      
+      onUpdateQuestions(formattedQuestions);
+    }
+  }, [questions, onUpdateQuestions]);
 
   const addQuestion = (newQuestion) => {
     setQuestions([...questions, newQuestion]);
@@ -131,7 +146,13 @@ const VisualFillTheFormEditor = () => {
       <AdminQuestionForm onSubmit={addQuestion} />
       <div className="questions-list two-column-grid">
         {questions.map((question, index) => (
-          <UserFillInTheBlanks key={index} index={index} question={question} onDelete={deleteQuestion} onEdit={editQuestion} />
+          <UserFillInTheBlanks 
+            key={index} 
+            index={index} 
+            question={question} 
+            onDelete={deleteQuestion} 
+            onEdit={editQuestion} 
+          />
         ))}
       </div>
     </div>
