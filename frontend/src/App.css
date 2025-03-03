@@ -93,6 +93,14 @@ html, body {
 .ml-5 {margin-left: 5rem;}
 
 
+.flex {
+  display: flex;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
 
 /* Phone Resolution */
 @media screen and (min-width: 375px ){

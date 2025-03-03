@@ -89,8 +89,6 @@
   transition: all 0.3s ease;  
   cursor: pointer;  
 
-  
-
 
 }
 
@@ -98,4 +96,43 @@
 .edit-button {
   background-color: grey;
 
+}
+
+
+
+.tabs-filter {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-start;
+
+}
+
+.tabs-filter button {
+  background-color: transparent;
+  color: var(--text-subtle);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  min-width: 100px;
+
+  font-size: clamp(0.6rem, 1vw, 1rem);
+  
+}
+
+.tabs-filter button:hover {
+  background-color: var(--primary-green-light);
+  transform: translateY(-2px);
+}
+
+.tabs-filter button.active {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.tabs-filter button.active:hover {
+  background-color: var(--primary-green-dark);
 }

@@ -5,9 +5,15 @@ from django.contrib.auth import authenticate, get_user_model
 
 User = get_user_model()
 
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id','title','description','tags','pinned','upvotes']
+
 class UserSerializer(serializers.ModelSerializer):
 
     tags = serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
+    module = ModuleSerializer(many=True)
 
     class Meta:
         model = User
@@ -75,10 +81,6 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
         model = Questionnaire
         fields = ["id", "question", "yes_next_q", "no_next_q"]
   
-class ModuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Module
-        fields = ['id','title','description','tags','pinned','upvotes']
 
 
 class TagSerializer(serializers.ModelSerializer):
