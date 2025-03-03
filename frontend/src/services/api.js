@@ -17,6 +17,12 @@ export async function loginUser(username, password){
       username,
       password,
     });
+        
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    localStorage.setItem('token', response.data.token);
+  
+    return response.data;
 
     if(response.data){
       localStorage.setItem("user_type",response.data.user_type);
@@ -29,6 +35,21 @@ export async function loginUser(username, password){
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
 
   }
+}
+
+export function redirectBasedOnUserType(userData) {
+  const userType = userData.user.user_type;
+    switch(userType) {
+        case 'admin':
+            window.location.href = '/admin/home';
+            break;
+        case 'service user':
+            window.location.href = '/worker/home';
+            break;
+        default:
+            window.location.href = '/worker/home';
+    }
+
 }
 
 
@@ -149,3 +170,36 @@ export default api
 
 
 
+export async function logoutUser() {
+  try {
+    // Get the token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // Call backend logout endpoint
+      await api.post('/logout/', {}, {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+    }
+    
+    // Clear all user-related data from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    
+    // Redirect to login page
+    window.location.href = '/';
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Logout error:", error);
+    
+    // Even if the API call fails, still clear localStorage and redirect
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.href = '/';
+    
+    throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
+  }
+}

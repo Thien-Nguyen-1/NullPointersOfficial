@@ -1,5 +1,8 @@
+import random
 from django.shortcuts import render
 from rest_framework import viewsets, status
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire,AdminSettings
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, AdminSettingSerializer, AdminPasswordChangeSerializer
 from django.contrib.auth import login, logout
@@ -7,6 +10,7 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
 from rest_framework.authentication import SessionAuthentication
 
 class ProgressTrackerView(APIView):
@@ -50,13 +54,16 @@ class LogInView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             login(request,user)
-            return Response({"message": "Login Successful", "user": UserSerializer(user).data})
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LogOutView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
         logout(request)
+        if hasattr(request.user, 'auth_token'):
+            request.user.auth_token.delete()
         return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
     
 class SignUpView(APIView):
@@ -98,7 +105,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
     
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
-        
+
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
     
@@ -153,6 +160,63 @@ class QuestionnaireView(APIView):
         except Questionnaire.DoesNotExist:
             # returns error if not (realistically should never run)
             return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
+
+class InfoSheetViewSet(viewsets.ModelViewSet):
+    queryset = InfoSheet.objects.all()
+    serializer_class = InfoSheetSerializer
+
+
+class VideoViewSet(viewsets.ModelViewSet):
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer   
+
+ 
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer  
+
+class UserDetail(APIView):
+    permission_classes = [IsAuthenticated]  
+
+    def get(self, request):
+        # Get user details
+        user_serializer = UserSerializer(request.user)
+        
+        # Fetch progress tracker information
+        progress_trackers = ProgressTracker.objects.filter(user=request.user)
+        
+        # Count completed and in-progress modules
+        completed_modules = progress_trackers.filter(completed=True).count()
+        total_modules = progress_trackers.count()
+        in_progress_modules = total_modules - completed_modules
+
+        # Prepare module details with random progress
+        module_details = []
+        for tracker in progress_trackers:
+            module_details.append({
+                'id': tracker.module.id,
+                'title': tracker.module.title,
+                'completed': tracker.completed,
+                'pinned': tracker.module.pinned,
+                'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
+            })
+
+        # Combine user data with progress information
+        response_data = user_serializer.data
+        response_data.update({
+            'completed_modules': completed_modules,
+            'in_progress_modules': in_progress_modules,
+            'total_modules': total_modules,
+            'modules': module_details
+        })
+
+        return Response(response_data)
+
+
+
+
+
+
 
 # class AdminSettingsView(APIView):
 #     # authentication_classes = [SessionAuthentication]
