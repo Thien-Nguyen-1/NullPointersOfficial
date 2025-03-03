@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SignUpUser } from "../services/api";
+//import { SignUpUser } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Signup.css';
 
@@ -44,7 +44,7 @@ const Signup = () => {
     <div className="signup-container">
       <div className="signup-box">
         <h3>Sign Up page</h3>
-        
+
         <form onSubmit={handleSignUp}>
           <input
             type="text"

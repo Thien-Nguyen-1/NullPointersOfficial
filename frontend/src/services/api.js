@@ -13,28 +13,6 @@ const api = axios.create({
 });
 
 
-
-/* export async function loginUser(username, password){
-  try {
-    const response = await api.post(`/api/login/`, {
-      username,
-      password,
-    });
-        
-    // Store user data in localStorage
-    localStorage.setItem('user', JSON.stringify(response.data.user));
-    localStorage.setItem('token', response.data.token); 
-
-    console.log(` is the token ${response.data.token}`)
-  
-    return response.data;
-  }
-  catch(error) {
-    throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
-
-  }
-} */
-
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
     switch(userType) {
@@ -49,44 +27,6 @@ export function redirectBasedOnUserType(userData) {
     }
 
 }
-
-
-/*export async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
-  try {
-    const response = await api.post(`/api/signup/`, {
-      username,
-      first_name: firstName,
-      last_name: lastName,
-      user_type: userType,
-      password,
-      confirm_password: confirmPassword,
-    });
-
-    return response.data;
-
-  }
-  catch(error) {
-    console.error("Sign Up error:", error.response?.data || error.message);
-    throw new Error("Sign Up failed:" + error.response?.data?.detail || "Unkown error");
-   }
-} */
-
-export async function ResetPassword(username, new_password , confirm_new_password){
-  try {
-    const response = await api.post(`/api/change-password`, {
-      username,
-      new_password,
-      confirm_new_password
-    });
-
-    return response.data;
-  }
-  catch(error) {
-    throw new Error("Reset of password failed:" + error.response?.data?.detail || "Unkown error");
-
-  }
-}
-// `/change-password/`
 
 export async function GetQuestion(id = null) {
   try {
@@ -117,39 +57,5 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 };
 
 
-
-export async function logoutUser() {
-  try {
-    // Get the token from localStorage
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-      // Call backend logout endpoint
-      await api.post('/logout/', {}, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      });
-    }
-    
-    // Clear all user-related data from localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    
-    // Redirect to login page
-    window.location.href = '/';
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Logout error:", error);
-    
-    // Even if the API call fails, still clear localStorage and redirect
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    window.location.href = '/';
-    
-    throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
-  }
-}
 
 export default api 

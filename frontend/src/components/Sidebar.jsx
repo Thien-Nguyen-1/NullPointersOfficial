@@ -1,16 +1,18 @@
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { FaHome, FaUser, FaEnvelope, FaCog, FaSignOutAlt, FaBrain, FaBook } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import '../styles/Sidebar.css'; 
-import {logoutUser} from "../services/api";
+//import {logoutUser} from "../services/api";
 import { IoMdMenu } from "react-icons/io"
 import {useOutsiderClicker} from "../hooks-custom/outside-clicker.js"
 
+import { AuthContext } from "../services/AuthContext.jsx";
 
 const Sidebar = ({ role }) => {
   const location = useLocation();
   const basePath = role === "admin" ? "/admin" : "/worker";
 
+  const {logoutUser} = useContext(AuthContext)
 
   const [menuStatus, setMenuStatus] = useState(false)
   const wrapperSidebar = useRef(null)

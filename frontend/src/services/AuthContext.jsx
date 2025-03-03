@@ -20,7 +20,7 @@ const AuthContextProvider = ({children}) => {
     const [user , setUser] = useState("") // user data accessible across every component regardless of hierarchy
     const [token, setToken] = useState("")
 
-    
+
     // Initially load user details if it exists
     useEffect( () => {
 
@@ -37,7 +37,7 @@ const AuthContextProvider = ({children}) => {
             username, 
             password,
           });
-              
+            
           // Store user data in localStorage
           localStorage.setItem('user', JSON.stringify(response.data.user));
           localStorage.setItem('token', response.data.token);
@@ -48,6 +48,8 @@ const AuthContextProvider = ({children}) => {
         }
         
         catch(error) {
+
+
           throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
       
         }
@@ -88,7 +90,9 @@ const AuthContextProvider = ({children}) => {
             new_password,
             confirm_new_password
           });
-      
+          
+
+
           return response.data;
         }
         catch(error) {
@@ -96,11 +100,47 @@ const AuthContextProvider = ({children}) => {
       
         }
       }
+    
 
+    // ===== LOGOUT USER ======
+
+    async function logoutUser() {
+        try {
+          // Get the token from localStorage
+          const token = localStorage.getItem('token');
+          
+          if (token) {
+            // Call backend logout endpoint
+            await api.post('/logout/', {}, {
+              headers: {
+                'Authorization': `Token ${token}`
+              }
+            });
+          }
+          
+          // Clear all user-related data from localStorage
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          
+          // Redirect to login page
+          window.location.href = '/';
+          
+          return { success: true };
+        } catch (error) {
+          console.error("Logout error:", error);
+          
+          // Even if the API call fails, still clear localStorage and redirect
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          window.location.href = '/';
+          
+          throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
+        }
+    }
 
 
     return (
-        <AuthContext.Provider value={{user, loginUser}}>
+        <AuthContext.Provider value={{user, loginUser, logoutUser}}>
             {children}
         </AuthContext.Provider>
     )
