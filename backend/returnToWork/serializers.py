@@ -87,6 +87,39 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id','tag','modules']
 
 class AdminSettingSerializer(serializers.ModelSerializer):
+    user_id = serializers.UUIDField(source = "user.user_id",read_only = True)
     class Meta:
         model = AdminSettings
-        fields = ['first_name','last_name','username']
+        fields = ['user_id','first_name','last_name','username']
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get("first_name", instance.first_name)
+        instance.last_name = validated_data.get("last_name", instance.last_name)
+        instance.username = validated_data.get("username", instance.username)
+
+        instance.save()
+        return instance
+    
+class AdminPasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only = True, required = True)
+    new_password = serializers.CharField(write_only = True, required = True)
+    confirm_new_password= serializers.CharField(write_only = True, required = True)
+
+    def validate(self,data):
+        user = self.instance
+
+        if not user.check_password(data["old_password"]):
+            raise serializers.ValidationError({"old_password": "Incorrect old password"})
+        
+        if data["new_password"] != data["confirm_new_password"]:
+            raise serializers.ValidationError({"new_password" : "New passwords do not match"})
+        
+        return data
+    
+    def save(self, user):
+
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+    
+

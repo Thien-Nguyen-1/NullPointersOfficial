@@ -16,7 +16,15 @@ const Login = () => {
         try{
             const data = await loginUser(username, password);
             console.log("Login succesful:" , data)
-            alert("Log in worked " + username)
+            // alert("Log in worked " + username)
+
+            localStorage.setItem("user_type", data.user_type);
+            if(data.user_type === "Admin"){
+                navigate("/admin/home");
+            }
+            else {
+                navigate("/worker/home");
+            }
             
         }
         catch(err){

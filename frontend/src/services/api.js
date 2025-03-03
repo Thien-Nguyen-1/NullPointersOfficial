@@ -18,7 +18,12 @@ export async function loginUser(username, password){
       password,
     });
 
-    return response.data;
+    if(response.data){
+      localStorage.setItem("user_type",response.data.user_type);
+      return response.data;
+    }
+
+    
   }
   catch(error) {
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
@@ -90,6 +95,54 @@ export async function SubmitQuestionAnswer(question_id, answer) {
     throw new Error("Failed to submit answer");
   } 
 };
+
+  
+export async function getAdminSettings(){
+  try{
+    
+    const response = await api.get(`/admin/settings/`);
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to get admin settings");
+  }
+}
+
+export async function updateAdminSettings(updatedData){
+  try{
+    const response = await api.put(`/admin/settings/`, updatedData);
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to update admin settings");
+  }
+}
+
+export async function deleteAdminSettings(){
+  try{
+    const response = await api.delete(`/admin/settings/`);
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to delete admin account");
+  }
+}
+
+export async function changeAdminPassword(oldPassword, newPassword, confirmNewPassword){
+  try{
+    const token = localStorage.getItem("token");
+    const response = await api.put(`admin/password-change/`, {
+    old_password:  oldPassword,
+    new_password: newPassword,
+    confirm_new_password: confirmNewPassword,
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to change password");
+  }
+}
+
 
 export default api 
 
