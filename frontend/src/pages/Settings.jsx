@@ -77,7 +77,7 @@ return (
     <h1 className="page-title">Settings</h1>
    <div className = "settings-card">
         <h1>Welcome, {user.first_name} {user.last_name}</h1>
-        <p className="mt-2 text-gray-600">User ID: {user.user_id}</p>
+        {/* <p className="mt-2 text-gray-600">User ID: {user.user_id}</p> */}
     </div>
     {user.user_type === "service user" && (
       <div className="settings-card">
@@ -88,27 +88,30 @@ return (
       <h1>Change Password</h1>
 
       <div>
-        <label>Old Password</label>
+        <label>Old Password   </label>
         <input
           type="password"
+          // placeholder="Old Password"
           value={passwordData.old_password}
           onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
         />
       </div>
 
       <div>
-        <label>New Password</label>
+        <label>New Password   </label>
         <input
           type="password"
+          // placeholder="New Password"
           value={passwordData.new_password}
           onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
         />
       </div>
 
-      <div>
-        <label>Confirm New Password</label>
+      <div className="extra-space">
+        <label>Confirm New Password   </label>
         <input
           type="password"
+          // placeholder="Confirm New Password"
           value={passwordData.confirm_new_password}
           onChange={(e) => setPasswordData({ ...passwordData, confirm_new_password: e.target.value })}
         />
@@ -119,16 +122,18 @@ return (
       </button>
     </div>
 
+    <div className="delete-container">
     <button onClick={() => setShowModal(true)} >
       Delete Account
     </button>
+    </div>
 
     {showModal && (
       <div>
         <div>
           <h2>Confirm Deletion</h2>
           <p>Are you sure you want to delete your account? This action cannot be undone.</p>
-          <div >
+          <div className="modal-buttons">
             <button onClick={() => setShowModal(false)}>
               Cancel
             </button>
