@@ -18,6 +18,7 @@ test("get and display user settings", async() => {
         last_name: "Doe",
         user_id: "1",
         user_type: "service user",
+        username: "@johndoe"
     });
 
     render(
@@ -28,7 +29,8 @@ test("get and display user settings", async() => {
 
     await waitFor(() => {
         expect(screen.getByText(/Welcome, John Doe/i)).toBeInTheDocument();
-        expect(screen.getByText(/User Id: 1/i)).toBeInTheDocument();
+        expect(screen.getByText(/Username:/i)).toBeInTheDocument();
+        expect(screen.getByText(/@johndoe/i)).toBeInTheDocument();
     });
 });
 

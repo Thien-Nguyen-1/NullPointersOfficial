@@ -88,7 +88,7 @@ return (
       <h1>Change Password</h1>
 
       <div>
-        <label>Old Password   </label>
+        <label>Old Password:   </label>
         <input
           type="password"
           // placeholder="Old Password"
@@ -98,7 +98,7 @@ return (
       </div>
 
       <div>
-        <label>New Password   </label>
+        <label>New Password:   </label>
         <input
           type="password"
           // placeholder="New Password"
@@ -108,7 +108,7 @@ return (
       </div>
 
       <div className="extra-space">
-        <label>Confirm New Password   </label>
+        <label>Confirm New Password:   </label>
         <input
           type="password"
           // placeholder="Confirm New Password"
