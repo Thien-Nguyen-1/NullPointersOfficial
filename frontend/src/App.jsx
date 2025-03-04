@@ -25,6 +25,7 @@ import QuizContainer from './components/quizzes/QuizContainer';
 import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
 import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
 import VisualFlowChartQuiz from './components/editors/VisualFlowChartQuiz';
+import VisualQuestionAndAnswerFormEditor from './components/editors/VisualQuestionAndAnswerFormEditor';
 import AddModule from './pages/AddModule';
 
 import "./App.css";
@@ -86,6 +87,7 @@ function App() {
                 {/* Add Fill-in-the-Blank Quiz Editor */}
                 <Route path="courses/create-module/fill-in-the-blanks" element={<VisualFillTheFormEditor />} />
                 <Route path="courses/create-module/flow-chart-quiz" element={<VisualFlowChartQuiz />} />
+                <Route path="courses/create-module/question-and-answer-form" element={<VisualQuestionAndAnswerFormEditor/>} />
                 <Route path="courses/create-and-manage-module" element={<AddModule />} />
               </Routes>
             </DashboardLayout>

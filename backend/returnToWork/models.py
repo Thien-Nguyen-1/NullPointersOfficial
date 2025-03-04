@@ -219,6 +219,7 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
+        
     ]
     
     quiz_type = models.CharField(
@@ -268,3 +269,9 @@ class UserResponse(models.Model):
         return f"Response by {self.user.username} for {self.question}"
 
 
+class QuestionAnswerForm(Content):
+    question = models.TextField()
+    answer = models.TextField()
+
+    def __str__(self):
+        return self.question[:50]
