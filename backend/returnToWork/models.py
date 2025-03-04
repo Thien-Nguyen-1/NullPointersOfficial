@@ -277,3 +277,11 @@ class QuestionAnswerForm(Content):
 
     def __str__(self):
         return self.question[:50]
+    
+class MatchingQuestionQuiz(Content):
+
+    question = models.TextField()
+    answer = models.TextField()
+
+    def __str__(self):
+        return self.question[:50]
