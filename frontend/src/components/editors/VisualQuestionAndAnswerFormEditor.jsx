@@ -47,38 +47,53 @@ const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
     };
 
     return (
-        <div className="visual-qa-form">
+        <div className="quiz-container">
             {entries.map((entry, index) => (
-                <div key={entry.id || index} className="qa-entry">
-                    <div className="question">{entry.question}</div>
-                    <div className="answer">{entry.answer}</div>
-                    <button onClick={() => handleDeleteEntry(entry.id, index)}>Delete</button>
+                <div key={entry.id || index} className="flashcard">
+                    <div className="card-front">
+                        <div className="card-content">
+                            <strong>Question:</strong> {entry.question}
+                        </div>
+                    </div>
+                    <div className="card-back">
+                        <div className="card-content">
+                            <strong>Answer:</strong> {entry.answer}
+                        </div>
+                        <button onClick={() => handleDeleteEntry(entry.id, index)} className="nav-button">Delete</button>
+                    </div>
                 </div>
             ))}
             <div className="new-entry">
-                <h1>Question</h1>
-                <input
-                    type="text"
-                    name="question"
-                    value={newEntry.question}
-                    onChange={handleInputChange}
-                    placeholder="Enter question"
-                    required
-                />
-                <h1>Answer</h1>
-                <input
-                    type="text"
-                    name="answer"
-                    value={newEntry.answer}
-                    onChange={handleInputChange}
-                    placeholder="Enter answer"
-                    required
-                />
-                <button onClick={handleAddEntry}>Add</button>
+                <div className="form-group">
+                    <label>Question</label>
+                    <input
+                        type="text"
+                        name="question"
+                        value={newEntry.question}
+                        onChange={handleInputChange}
+                        placeholder="Enter question"
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Answer</label>
+                    <input
+                        type="text"
+                        name="answer"
+                        value={newEntry.answer}
+                        onChange={handleInputChange}
+                        placeholder="Enter answer"
+                        required
+                    />
+                </div>
+                <div className="form-actions">
+                    <button onClick={handleAddEntry} className="btn-primary">Add</button>
+                </div>
             </div>
-            {error && <div className="error">{error}</div>}
+            {error && <div className="error-message">{error}</div>}
         </div>
     );
+
 };
 
 export default VisualQuestionAndAnswerFormEditor;

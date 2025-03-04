@@ -127,6 +127,7 @@ class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
         ('service user', 'Service user')
+        
     ]
 
     user_type = models.CharField(
@@ -219,6 +220,7 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
+        ('question_answer_form', 'Question Answer Form')
         
     ]
     

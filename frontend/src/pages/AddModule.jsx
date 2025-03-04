@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
+import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 
@@ -36,6 +37,7 @@ const AddModule = () => {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
+    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'}
   };
 
   // For development, use a prototype author
