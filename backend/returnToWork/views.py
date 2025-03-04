@@ -1,10 +1,10 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
 from django.contrib.auth import login, logout
-from django.contrib.auth.models import User
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -214,8 +214,65 @@ class UserDetail(APIView):
         })
 
         return Response(response_data)
+    
 
 
 
+    def put(self,request):
+
+        #If this interferes with your view let me know
+       
+        try:
+            user = request.user
+            user_serializer = UserSerializer(user)
+
+            data = request.data
+        
+            user_in = User.objects.filter(user_id = data['user_id']).first()
+            user_in.username = user.username
+            user_in.first_name = user.first_name
+            user_in.last_name = user.last_name
+            user_in.user_type = user.user_type
+            
+            tag_data = data['tags']
+            
+            mod_data = data['module']
+
+            tags = []
+            modules = []
 
 
+            for tag_obj in tag_data:
+                    
+                    if tag_obj['id']:
+                        tag_instance = Tags.objects.filter(tag=tag_obj['tag']).first()
+                        if tag_instance:
+                            tags.append(tag_instance)
+                        else:
+                            return Response({"detail": f"Tag ID not found."}, status=status.HTTP_404_NOT_FOUND)
+                    else:
+                        return Response({"detail": "Tag ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            for module in mod_data:
+                if module['id']:
+                    mod_instance = Module.objects.filter(id=module['id']).first()
+                    if mod_instance:
+                        modules.append(mod_instance)
+                    else:
+                        return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND) 
+                else:
+                    return Response({"detail": "Module ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            user_in.tags.set(tags)
+            user_in.module.set(modules)
+            user_in.save()
+
+        except:
+            
+            return Response({"detail": "Unable to locate user"}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+
+        return Response({"message": "Login Successful", "user": UserSerializer(user).data})

@@ -5,7 +5,8 @@ import "../App.css";
 import { AuthContext } from "../services/AuthContext";
 import { useContext, useState } from "react";
 import { GrAdd } from "react-icons/gr";
-import CoursesList from "../components/CoursesList";
+import CourseItem from "../components/CourseItem";
+
 
 
 
@@ -19,9 +20,9 @@ function Courses({ role }) {
     const FILTER_MAP = {
         //"All Courses": user ? user.module.map( (module, index) => <div key={index}>hi</div>  ) : (<div> No </div>),
         
-        "Your Courses": (<div>bye</div>),
+        "Your Courses": user ? (<CourseItem module={user.module[0]}/>) : (<> Unavailable Mate</>),
 
-        "All Courses": user ? (<CoursesList courses={user.module}/>) : (<div>NOHING</div>),
+        "All Courses": user ? (<></>) : (<div>NOHING</div>),
 
         "Popular" : (<div></div>),
 
@@ -38,7 +39,7 @@ function Courses({ role }) {
     }
 
     function handle_module_select(){
-        
+
     }
 
     return (
@@ -51,9 +52,9 @@ function Courses({ role }) {
         
                 {user && (
                    user.tags.map(
-                    (tag, index)=> (
+                    (obj, index)=> (
                         <div className="tag-course" key={index}>
-                            <p> {tag} </p>
+                            <p> {obj.tag} </p>
                         </div>
                     )
                    )

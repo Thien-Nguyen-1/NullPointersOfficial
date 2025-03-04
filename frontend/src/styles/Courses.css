@@ -19,7 +19,7 @@
 }
 
 .create-module-btn:hover {
-  background-color: #76b947; /* Slightly darker green */
+  background-color: var( --primary-green-dark) /* Slightly darker green */
 }
 
 
@@ -39,6 +39,12 @@
   justify-items: center;
   align-items: center;
 
+}
+
+.course-selection-container {
+  display: inherit;
+  flex-direction: inherit;
+  align-items: flex-start;
 }
 
 
@@ -80,9 +86,14 @@
   width: 100%;
   height: auto;
   
-  background-color: #76b947;
+  background-color: var(--primary-green-dark);
   color: white;
+
+  border-color: var(--primary-green-dark);
+  border-style: ridge;
+
   border-radius: 1rem;
+
   font-size: 16px;
   text-align: center;
   line-height: 2.2rem;     

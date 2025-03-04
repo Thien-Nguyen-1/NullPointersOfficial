@@ -6,7 +6,7 @@ export function useOutsiderClicker(refElement, optionalArg ){
         
         function handleOutsideClick(e) {
 
-            if (refElement) {
+            if (refElement && refElement.current) {
                 if(!refElement.current.contains(e.target)){
 
                     if (typeof optionalArg == "function"){

@@ -25,12 +25,48 @@ const AuthContextProvider = ({children}) => {
     // Initially load user details if it exists or when re-render triggered
     useEffect( () => {
         const userData = JSON.parse(localStorage.getItem("user")) || null
+        const userToken = localStorage.getItem("token")
+
         setUser(userData)
+        setToken(userToken)
 
     }, [])
 
+    useEffect( () => {
+        
+      if(user){
+        localStorage.setItem('user', JSON.stringify(user))
+      }
+        
+    }, [user])
 
-    // ===== LOGGING IN ===== //
+    // ===== UPADING USER ===== //
+    async function updateUser(newUserObj){ //parameter must be a copy of the user 
+     
+      try {
+        
+        const response = await api.put('/api/user/', newUserObj, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        })
+        
+        if(response && response.data.user){
+          console.log(response.data.user)
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          setUser(response.data.user)
+
+        }
+
+        
+
+      }catch (error){
+        console.log(error)
+      }
+    }
+
+
+    // ===== LOGGING IN ====== //
 
     async function loginUser(username, password){
        
@@ -148,7 +184,8 @@ const AuthContextProvider = ({children}) => {
 
 
     return (
-        <AuthContext.Provider value={{user, loginUser, logoutUser}}>
+        // DONNOT let setUser be globally accessible, it should be done via updateUser
+        <AuthContext.Provider value={{user, loginUser, logoutUser, updateUser}}>
             {children}
         </AuthContext.Provider>
     )

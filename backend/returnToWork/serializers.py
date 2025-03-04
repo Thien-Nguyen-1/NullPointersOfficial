@@ -10,10 +10,20 @@ class ModuleSerializer(serializers.ModelSerializer):
         model = Module
         fields = ['id','title','description','tags','pinned','upvotes']
 
+class TagSerializer(serializers.ModelSerializer):
+
+    modules = ModuleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Tags        
+        fields = ['id','tag','modules']
+
+
 class UserSerializer(serializers.ModelSerializer):
 
-    tags = serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
+   # tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(), many=True) #serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
     module = ModuleSerializer(many=True)
+    tags = TagSerializer(many=True)
 
     class Meta:
         model = User
@@ -81,15 +91,6 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
         model = Questionnaire
         fields = ["id", "question", "yes_next_q", "no_next_q"]
   
-
-
-class TagSerializer(serializers.ModelSerializer):
-
-    modules = ModuleSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Tags        
-        fields = ['id','tag','modules']
 
 class ContentSerializer(serializers.ModelSerializer):
     
