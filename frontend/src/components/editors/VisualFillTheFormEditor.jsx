@@ -116,21 +116,24 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
           className="edit-textarea"
         />
       ) : (
-        <p className="question-content">
-          {parts.map((part, idx) => (
-            <span key={idx}>
-              {part}
-              {idx < parts.length - 1 && (
-                <input
-                  type="text"
-                  value={answers[idx]}
-                  onChange={(e) => handleChange(idx, e.target.value)}
-                  className="input-field"
-                />
-              )}
-            </span>
-          ))}
-        </p>
+        <div className="question-content">
+          {/* Display the question text directly */}
+          <p className="question-preview">
+            {parts.map((part, idx) => (
+              <span key={idx}>
+                {part}
+                {idx < parts.length - 1 && (
+                  <input
+                    type="text"
+                    value={answers[idx]}
+                    onChange={(e) => handleChange(idx, e.target.value)}
+                    className="input-field"
+                  />
+                )}
+              </span>
+            ))}
+          </p>
+        </div>
       )}
     </div>
   );
@@ -140,7 +143,7 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
   
-  // Log props and state for debugging
+  // Log props and state for debugging purposes
   console.log(`[DEBUG] VisualFillTheFormEditor initialQuestions:`, initialQuestions);
   console.log(`[DEBUG] VisualFillTheFormEditor moduleId:`, moduleId);
 
@@ -162,40 +165,33 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   useEffect(() => {
     if (initialQuestions && initialQuestions.length > 0) {
       // Format questions for consistency - convert from API format to component format
-      const formattedQuestions = initialQuestions.map(q => 
-        q.question_text || '' // Just use the question text since that's all we need for fill-in-the-blanks
-      );
+      const formattedQuestions = initialQuestions.map(q => {
+        const questionText = q.question_text || q.text || '';
+        console.log(`[DEBUG] Formatting question:`, questionText);
+        return questionText;
+      });
       
       console.log(`[DEBUG] Setting questions from initialQuestions:`, formattedQuestions);
       setQuestions(formattedQuestions);
     } else {
       console.log(`[DEBUG] No initialQuestions provided or empty array`);
+      setQuestions([]);
     }
   }, [initialQuestions]);
 
-  // Update parent component when questions change - only if onUpdateQuestions is provided
+  // For debugging - log when questions state changes
   useEffect(() => {
-    if (onUpdateQuestions) {
-      // Format questions for API compatibility
-      const formattedQuestions = questions.map((question, index) => ({
-        id: Date.now() + index, // Temporary ID for UI
-        question_text: question || '',
-        hint_text: "", // Fill-in-the-blanks doesn't use hints
-        order: index
-      }));
-      
-      onUpdateQuestions(formattedQuestions);
-    }
-  }, [questions, onUpdateQuestions]);
+    console.log(`[DEBUG] Questions state updated:`, questions);
+  }, [questions]);
 
   const addQuestion = (newQuestion) => {
     console.log(`[DEBUG] Adding new question:`, newQuestion);
-    setQuestions([...questions, newQuestion]);
+    setQuestions(prevQuestions => [...prevQuestions, newQuestion]);
   };
 
   const deleteQuestion = (index) => {
     console.log(`[DEBUG] Deleting question at index:`, index);
-    setQuestions(questions.filter((_, i) => i !== index));
+    setQuestions(prevQuestions => prevQuestions.filter((_, i) => i !== index));
   };
 
   const editQuestion = (index, newQuestion) => {
@@ -208,7 +204,7 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   return (
     <div className="editor-container">
       <AdminQuestionForm onSubmit={addQuestion} />
-      <div className="questions-list two-column-grid">
+      <div className="questions-list">
         {questions.length > 0 ? (
           questions.map((question, index) => (
             <UserFillInTheBlanks 
