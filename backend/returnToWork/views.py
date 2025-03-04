@@ -3,6 +3,8 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
+from .models import ProgressTracker,Tags,Module, Questionnaire
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -11,6 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from returnToWork.models import User
+from rest_framework.authentication import TokenAuthentication
+
 
 class ProgressTrackerView(APIView):
 
@@ -234,5 +238,38 @@ class DeleteServiceUserView(generics.DestroyAPIView):
             return Response({"message": f"User with username \"{username}\" has been deleted."}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class UserSettingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        user = request.user
+        serializer = UserSettingSerializer(user)
+        return Response(serializer.data)
+        
+    def put(self,request):
+        user = request.user
+        serializer = UserSettingSerializer(user,data = request.data, partial =True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self,request):
+        user = request.user
+        user.delete()
+        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+    
+class UserPasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        serializer = UserPasswordChangeSerializer(data=request.data, context={"request": request})
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password uUpdated successfully"})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
