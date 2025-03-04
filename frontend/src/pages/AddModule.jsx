@@ -20,6 +20,7 @@ const AddModule = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   
   // Create a ref to store references to editor components
   const editorRefs = useRef({});
@@ -36,6 +37,26 @@ const AddModule = () => {
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
   };
+
+  // For development, use a prototype author
+  useEffect(() => {
+    // Set a prototype author for development
+    const prototypeAuthor = { id: 1, user_id: 1 };
+    setCurrentUser(prototypeAuthor);
+    console.log("Using prototype author for development:", prototypeAuthor);
+    
+    // Optional: Still try to load from localStorage if available
+    try {
+      const userString = localStorage.getItem('user');
+      if (userString) {
+        const userData = JSON.parse(userString);
+        setCurrentUser(userData);
+        console.log("Loaded user from localStorage:", userData);
+      }
+    } catch (err) {
+      console.warn("Could not parse user data from localStorage:", err);
+    }
+  }, []);
 
   // Fetch available tags
   const fetchTags = useCallback(async () => {
@@ -58,35 +79,50 @@ const AddModule = () => {
       setDescription(moduleData.description || "");
       setTags(moduleData.tags || []);
       
-      const tasks = await QuizApiUtils.getModuleTasks(moduleId);
+      // Use the new module-specific task function
+      const tasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
+      console.log(`[DEBUG] Fetched ${tasks.length} tasks for module ${moduleId}:`, tasks);
+
+      // Reset the initialQuestionsRef to avoid any stale data
+      initialQuestionsRef.current = {};
 
       const moduleTemplates = await Promise.all(tasks.map(async (task) => {
-        let type = "";
-
-        // Map API quiz_type to frontend type
-        switch (task.quiz_type) {
-          case "flashcard": type = "Flashcard Quiz"; break;
-          case "text_input": type = "Fill in the Blanks"; break;
-          case "statement_sequence": type = "Flowchart Quiz"; break;
-          default: type = "Flashcard Quiz";
-        }
+        let type = QuizApiUtils.getUITypeFromAPIType(task.quiz_type);
+        console.log(`[DEBUG] Processing task ${task.contentID} of type ${type} for module ${moduleId}`);
+        console.log(`[DEBUG] API quiz_type: ${task.quiz_type}, Mapped UI type: ${type}`);
+        console.log(`[DEBUG] Task moduleID: ${task.moduleID}, Current moduleId: ${moduleId}`); // Verify moduleID match
 
         try {
           const questions = await QuizApiUtils.getQuestions(task.contentID);
-          // Store initial questions in the ref
+          console.log(`[DEBUG] Fetched ${questions.length} questions for task ${task.contentID}:`, questions);
+          
+          // Store initial questions in the ref using task.contentID as the key
           initialQuestionsRef.current[task.contentID] = questions;
+          
+          return {
+            id: task.contentID,
+            type,
+            quizType: task.quiz_type,
+            taskId: task.contentID, // Store the actual task ID for referencing
+            moduleId: moduleId // Store the module ID to maintain relationship
+          };
         } catch (error) {
           console.error(`Error fetching questions for task ${task.contentID}:`, error);
           initialQuestionsRef.current[task.contentID] = [];
+          
+          return {
+            id: task.contentID,
+            type,
+            quizType: task.quiz_type,
+            taskId: task.contentID,
+            moduleId: moduleId
+          };
         }
-
-        return {
-          id: task.contentID,
-          type,
-          quizType: task.quiz_type,
-        };
       }));
 
+      console.log(`[DEBUG] Created ${moduleTemplates.length} module templates:`, moduleTemplates);
+      console.log(`[DEBUG] Initial questions reference:`, initialQuestionsRef.current);
+      
       setModules(moduleTemplates);
       setIsLoading(false);
     } catch (err) {
@@ -112,16 +148,22 @@ const AddModule = () => {
 
   // Add a module to the list
   const addModule = (moduleType) => {
-    const newModuleId = Date.now();
+    const newModuleId = `new-${Date.now()}`;
     
-    setModules([...modules, { 
+    const newModule = { 
       id: newModuleId,
       type: moduleType, 
       quizType: QuizApiUtils.getQuizTypeValue(moduleType),
-    }]);
+    };
+    
+    console.log(`[DEBUG] Adding new module template: ${moduleType} with ID: ${newModuleId}`);
+    console.log(`[DEBUG] New module data:`, newModule);
+    
+    setModules([...modules, newModule]);
 
     // Initialize empty questions for this module
     initialQuestionsRef.current[newModuleId] = [];
+    console.log(`[DEBUG] Updated initialQuestionsRef:`, initialQuestionsRef.current);
 
     setShowDropdown(false);
   };
@@ -195,11 +237,26 @@ const AddModule = () => {
       return;
     }
 
+    // Make sure we have a valid author ID
+    let authorId = 1; // Default fallback
+    if (currentUser && currentUser.id) {
+      authorId = currentUser.id;
+    } else if (currentUser && currentUser.user_id) {
+      authorId = currentUser.user_id;
+    }
+    
+    console.log(`[DEBUG] Starting ${isEditing ? 'update' : 'creation'} of module with author ID:`, authorId);
+    console.log(`[DEBUG] Current modules to process:`, modules);
+    console.log(`[DEBUG] Current questions in editorRefs:`, editorRefs.current);
+    console.log(`[DEBUG] Initial questions reference:`, initialQuestionsRef.current);
+
     setIsLoading(true);
     setError(null);
 
     try {
       let moduleId;
+      // Array to track updated task IDs
+      const updatedTaskIds = [];
       
       if (isEditing) {
         // Update existing module
@@ -225,83 +282,113 @@ const AddModule = () => {
           let currentQuestions = [];
           const editorComponent = editorRefs.current[module.id];
           
+          console.log(`[DEBUG] Getting questions for module: ${module.id} (${module.type})`);
+          console.log(`[DEBUG] Editor component reference:`, editorComponent);
+          
           if (editorComponent && typeof editorComponent.getQuestions === 'function') {
             // If the editor component exposes a getQuestions method, use it
             currentQuestions = editorComponent.getQuestions();
+            console.log(`[DEBUG] Questions from editor component:`, currentQuestions);
           } else {
             // Fallback to the initial questions if we can't get them from the component
             currentQuestions = initialQuestionsRef.current[module.id] || [];
+            console.log(`[DEBUG] Using fallback questions from initialQuestionsRef:`, currentQuestions);
           }
           
-          // If the module has an ID that matches an existing task, update it
-          const existingTask = existingTasks.find(task => task.contentID === module.id);
+          // Determine if this is an existing task or a new one
+          // We check if this module's ID starts with "new-" to determine if it's new
+          const isExistingTask = !module.id.toString().startsWith("new-");
+          const existingTask = isExistingTask 
+            ? existingTasks.find(task => task.contentID === module.id)
+            : null;
+          
+          console.log(`[DEBUG] Processing module: ${module.id} (type: ${module.type})`);
+          console.log(`[DEBUG] Is existing task: ${isExistingTask}`);
+          if (existingTask) {
+            console.log(`[DEBUG] Found existing task: ${existingTask.contentID}`);
+          }
           
           if (existingTask) {
             // Update existing task
             const taskData = {
               title: `${module.type} for ${title}`,
-              moduleID: moduleId,
+              moduleID: moduleId, // Explicitly set module ID to maintain relationship
               description: `${module.type} content for ${title}`,
               quiz_type: module.quizType,
               text_content: "Updated by admin interface",
+              author: authorId, // Use the retrieved user ID
               is_published: true
             };
             
+            console.log(`[DEBUG] Updating task ${existingTask.contentID} with data for module ${moduleId}:`, taskData);
             await QuizApiUtils.updateTask(existingTask.contentID, taskData);
             updatedTaskIds.push(existingTask.contentID);
             
             // Get existing questions
             const existingQuestions = await QuizApiUtils.getQuestions(existingTask.contentID);
+            console.log(`[DEBUG] Found ${existingQuestions.length} existing questions for task ${existingTask.contentID}`);
             
             // Delete all existing questions (simpler than trying to update)
             for (const question of existingQuestions) {
+              console.log(`[DEBUG] Deleting question ${question.id} from task ${existingTask.contentID}`);
               await QuizApiUtils.deleteQuestion(question.id);
             }
             
             // Create new questions
+            console.log(`[DEBUG] Creating ${currentQuestions.length} new questions for task ${existingTask.contentID}`);
             for (let i = 0; i < currentQuestions.length; i++) {
               const question = currentQuestions[i];
-              await QuizApiUtils.createQuestion({
+              const questionData = {
                 task_id: existingTask.contentID,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
                 order: i
-              });
+              };
+              console.log(`[DEBUG] Creating question ${i+1} with data:`, questionData);
+              await QuizApiUtils.createQuestion(questionData);
             }
           } else {
             // Create new task
             const taskData = {
               title: `${module.type} for ${title}`,
-              moduleID: moduleId,
+              moduleID: moduleId, // Explicitly set the module ID
               description: `${module.type} content for ${title}`,
               quiz_type: module.quizType,
               text_content: "Generated by admin interface",
-              author: 1, // Use the current user ID or a default admin ID
+              author: authorId, // Use the retrieved user ID
               is_published: true
             };
             
-            const taskResponse = await QuizApiUtils.createTask(taskData);
+            console.log(`[DEBUG] Creating new task with data for module ${moduleId}:`, taskData);
+            // Use the new function that ensures module-task relationship
+            const taskResponse = await QuizApiUtils.createModuleTask(moduleId, taskData);
             const taskId = taskResponse.contentID;
+            console.log(`[DEBUG] Created new task with ID: ${taskId} linked to module: ${moduleId}`);
             updatedTaskIds.push(taskId);
             
             // Create questions for this new task
+            console.log(`[DEBUG] Creating ${currentQuestions.length} questions for new task ${taskId}`);
             for (let i = 0; i < currentQuestions.length; i++) {
               const question = currentQuestions[i];
-              await QuizApiUtils.createQuestion({
+              const questionData = {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
                 order: i
-              });
+              };
+              console.log(`[DEBUG] Creating question ${i+1} with data:`, questionData);
+              await QuizApiUtils.createQuestion(questionData);
             }
           }
         }
         
         // Delete tasks that weren't updated
-        for (const task of existingTasks) {
-          if (!updatedTaskIds.includes(task.contentID)) {
-            await QuizApiUtils.deleteTask(task.contentID);
-          }
+        console.log(`[DEBUG] Cleaning up tasks not in the updated list for module ${moduleId}`);
+        try {
+          const deletedCount = await QuizApiUtils.cleanupOrphanedTasks(moduleId, updatedTaskIds);
+          console.log(`[DEBUG] Successfully deleted ${deletedCount} orphaned tasks from module ${moduleId}`);
+        } catch (cleanupError) {
+          console.error(`[ERROR] Error cleaning up orphaned tasks: ${cleanupError}`);
         }
         
       } else {
@@ -337,7 +424,7 @@ const AddModule = () => {
             description: `${module.type} content for ${title}`,
             quiz_type: module.quizType,
             text_content: "Generated by admin interface",
-            author: 1, // Use the current user ID or a default admin ID
+            author: authorId, // Use the retrieved user ID
             is_published: true
           };
           
@@ -361,6 +448,23 @@ const AddModule = () => {
       }
       
       // Success message
+      console.log(`[DEBUG] ${isEditing ? 'Module updated' : 'Module published'} successfully!`);
+      console.log(`[DEBUG] Module ID: ${moduleId}`);
+      console.log(`[DEBUG] Final updated task IDs:`, updatedTaskIds);
+      
+      // Verify the data by fetching it again
+      try {
+        const verifyTasks = await QuizApiUtils.getModuleTasks(moduleId);
+        console.log(`[DEBUG] Verification - Tasks for module ${moduleId}:`, verifyTasks);
+        
+        for (const task of verifyTasks) {
+          const questions = await QuizApiUtils.getQuestions(task.contentID);
+          console.log(`[DEBUG] Verification - Questions for task ${task.contentID} (${task.quiz_type}):`, questions);
+        }
+      } catch (verifyErr) {
+        console.warn("[DEBUG] Verification failed:", verifyErr);
+      }
+      
       alert(isEditing ? "Module updated successfully!" : "Module published successfully!");
       navigate("/admin/courses");
     } catch (err) {
@@ -421,16 +525,33 @@ const AddModule = () => {
       {/* Modules List */}
       <div className="modules-list">
         {modules.map((module) => {
-          const EditorComponent = moduleOptions[module.type].component;
+          const EditorComponent = moduleOptions[module.type]?.component;
+          
+          // Skip if no component is found for this type
+          if (!EditorComponent) {
+            console.error(`[ERROR] No editor component found for type: ${module.type}`);
+            return (
+              <div key={module.id} className="module-item error">
+                <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
+              </div>
+            );
+          }
+          
+          console.log(`[DEBUG] Rendering module in UI: id=${module.id}, type=${module.type}`);
+          console.log(`[DEBUG] Initial questions for this module:`, initialQuestionsRef.current[module.id] || []);
+          
           return (
             <div key={module.id} className="module-item">
-              <h3>{module.type}</h3>
+              <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
               <EditorComponent
-                ref={(el) => { editorRefs.current[module.id] = el; }}
+                ref={(el) => { 
+                  editorRefs.current[module.id] = el;
+                  console.log(`[DEBUG] Editor ref set for module ${module.id} (${module.type})`);
+                }}
                 moduleId={module.id}
                 quizType={module.quizType}
                 initialQuestions={initialQuestionsRef.current[module.id] || []}
-                // No onUpdateQuestions prop to avoid the infinite loop
+                key={`editor-${module.id}`} // Add a key to force re-render when questions change
               />
               <button onClick={() => removeModule(module.id)} className="remove-module-btn">Remove</button>
             </div>

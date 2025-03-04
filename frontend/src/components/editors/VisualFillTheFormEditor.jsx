@@ -54,6 +54,12 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
   const [answers, setAnswers] = useState(Array(parts.length - 1).fill(""));
   const [isEditing, setIsEditing] = useState(false);
   const [editedQuestion, setEditedQuestion] = useState(questionText);
+  const [editError, setEditError] = useState("");
+
+  useEffect(() => {
+    // Update when question prop changes
+    setEditedQuestion(typeof question === 'string' ? question : '');
+  }, [question]);
 
   const handleChange = (index, value) => {
     const newAnswers = [...answers];
@@ -63,9 +69,27 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
 
   const handleEdit = () => {
     setIsEditing(true);
+    setEditError("");
   };
 
   const handleSave = () => {
+    // Validate blanks before saving
+    const blankMatches = editedQuestion.match(/\b____\b/g) || [];
+    const blankCount = blankMatches.length;
+
+    if (blankCount === 0) {
+      setEditError("Each question must contain at least one blank space (____). Please adjust your input.");
+      return;
+    }
+
+    // Check if any blank is not exactly '____'
+    const invalidBlanks = editedQuestion.match(/\b_+\b/g) || [];
+    if (invalidBlanks.some(blank => blank !== "____")) {
+      setEditError("Blanks must be exactly 4 underscores (____) with no more or less.");
+      return;
+    }
+
+    setEditError("");
     onEdit(index, editedQuestion);
     setIsEditing(false);
   };
@@ -84,6 +108,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
         </div>
       </div>
       <h3 className="question-subtitle">Fill in the Blanks</h3>
+      {editError && <p className="error-message">{editError}</p>}
       {isEditing ? (
         <textarea
           value={editedQuestion}
@@ -95,7 +120,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
           {parts.map((part, idx) => (
             <span key={idx}>
               {part}
-              {idx < answers.length && (
+              {idx < parts.length - 1 && (
                 <input
                   type="text"
                   value={answers[idx]}
@@ -114,11 +139,16 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
 const VisualFillTheFormEditor = forwardRef((props, ref) => {
   const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
+  
+  // Log props and state for debugging
+  console.log(`[DEBUG] VisualFillTheFormEditor initialQuestions:`, initialQuestions);
+  console.log(`[DEBUG] VisualFillTheFormEditor moduleId:`, moduleId);
 
   // Expose getQuestions method to parent component
   useImperativeHandle(ref, () => ({
     getQuestions: () => {
       // Format questions for API compatibility
+      console.log(`[DEBUG] getQuestions called, returning:`, questions);
       return questions.map((question, index) => ({
         id: Date.now() + index, // Temporary ID for UI
         question_text: question || '',
@@ -136,7 +166,10 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
         q.question_text || '' // Just use the question text since that's all we need for fill-in-the-blanks
       );
       
+      console.log(`[DEBUG] Setting questions from initialQuestions:`, formattedQuestions);
       setQuestions(formattedQuestions);
+    } else {
+      console.log(`[DEBUG] No initialQuestions provided or empty array`);
     }
   }, [initialQuestions]);
 
@@ -156,14 +189,17 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   }, [questions, onUpdateQuestions]);
 
   const addQuestion = (newQuestion) => {
+    console.log(`[DEBUG] Adding new question:`, newQuestion);
     setQuestions([...questions, newQuestion]);
   };
 
   const deleteQuestion = (index) => {
+    console.log(`[DEBUG] Deleting question at index:`, index);
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
   const editQuestion = (index, newQuestion) => {
+    console.log(`[DEBUG] Editing question at index ${index}:`, newQuestion);
     const updatedQuestions = [...questions];
     updatedQuestions[index] = newQuestion;
     setQuestions(updatedQuestions);
@@ -173,15 +209,21 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
     <div className="editor-container">
       <AdminQuestionForm onSubmit={addQuestion} />
       <div className="questions-list two-column-grid">
-        {questions.map((question, index) => (
-          <UserFillInTheBlanks 
-            key={index} 
-            index={index} 
-            question={question} 
-            onDelete={deleteQuestion} 
-            onEdit={editQuestion} 
-          />
-        ))}
+        {questions.length > 0 ? (
+          questions.map((question, index) => (
+            <UserFillInTheBlanks 
+              key={`${moduleId}-question-${index}`}
+              index={index} 
+              question={question} 
+              onDelete={deleteQuestion} 
+              onEdit={editQuestion} 
+            />
+          ))
+        ) : (
+          <div className="no-questions-message">
+            <p>No questions added yet. Add a question using the form above.</p>
+          </div>
+        )}
       </div>
     </div>
   );
