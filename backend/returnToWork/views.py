@@ -1,8 +1,8 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, QuizQuestion, UserResponse
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, QuizQuestion, UserResponse,MatchingQuestionQuiz
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -505,3 +505,7 @@ class QuizQuestionView(APIView):
 class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
     queryset = QuestionAnswerForm.objects.all()
     serializer_class = QuestionAnswerFormSerializer    
+
+class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
+    queryset = MatchingQuestionQuiz.objects.all()
+    serializer_class = MatchingQuestionQuizSerializer
