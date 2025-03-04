@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAdminSettings, updateAdminSettings, deleteAdminSettings, changeAdminPassword } from "../services/api";
+import { getUserSettings, deleteUserSettings, changeUserPassword } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 
@@ -7,12 +7,8 @@ function Settings() {
 
   const [showModal, setShowModal] = useState (false);
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [formData, setFormData] =  useState ({
-    first_name: "",
-    last_name: "",
-    username: "",
-  });
+  const [user, setUser] = useState({});
+
   const [passwordData,setPasswordData] = useState ({
     old_password: "",
     new_password: "",
@@ -22,13 +18,11 @@ function Settings() {
   useEffect(() => {
     async function fetchSettings () {
       try {
-        const userData = await getAdminSettings();
+        const userData = await getUserSettings();
+        console.log("Fetched user data in settings:", userData)
         setUser(userData);
-        setFormData({
-          first_name: userData.first_name || "",
-          last_name: userData.last_name|| "",
-          username: userData.username || "",
-        });
+        console.log("User Data:", user);
+
       }
       catch(error) {
         console.error ("Error fetching user settings", error);
@@ -39,19 +33,19 @@ function Settings() {
   []
 );
 
-const handleUpdate = async() => {
-  try {
-    await updateAdminSettings(formData);
-    alert("Account updated successfully.");
-  }
-  catch (erorr){
-    alert("Failed to update account");
-  }
-};
-
 const handlePasswordChange = async() => {
+  if(passwordData.new_password !== passwordData.confirm_new_password){
+    alert("New passwords do not match. Please re-enter them.")
+    return;
+  }
+
+  if(!passwordData.old_password || !passwordData.new_password || !passwordData.confirm_new_password){
+    alert("All fields are required.")
+    return;
+  }
+
   try {
-    await changeAdminPassword(
+    await changeUserPassword(
       passwordData.old_password,
       passwordData.new_password,
       passwordData.confirm_new_password
@@ -61,13 +55,14 @@ const handlePasswordChange = async() => {
 
   }
   catch (erorr){
-    alert("Failed to chnage password");
+      alert("Failed to change password, please try again.");
+  
   }
 };
 
 const handleDelete = async() => {
   try {
-    await deleteAdminSettings();
+    await deleteUserSettings();
     alert("Account deleted successfully.");
     navigate("/signup");
   }
@@ -79,53 +74,16 @@ const handleDelete = async() => {
 return (
   <div>
     <h1 className="page-title">Settings</h1>
-
-    {/* ✅ Profile Update Section */}
-    {user ? (
-      <div>
+   <div>
         <p className="mt-2 text-gray-600">Welcome, {user.first_name} {user.last_name}</p>
         <p className="mt-2 text-gray-600">User ID: {user.user_id}</p>
-
-        <div className="mt-4">
-          <label>First Name</label>
-          <input
-            type="text"
-            value={formData.first_name}
-            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-            className="border p-2 w-full"
-          />
-        </div>
-
-        <div className="mt-4">
-          <label>Last Name</label>
-          <input
-            type="text"
-            value={formData.last_name}
-            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-            className="border p-2 w-full"
-          />
-        </div>
-
-        <div className="mt-4">
-          <label>Username</label>
-          <input
-            type="text"
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            className="border p-2 w-full"
-          />
-        </div>
-
-        <button onClick={handleUpdate} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
-          Save Changes
-        </button>
+    </div>
+    {user.user_type === "service user" && (
+      <div className="download-container">
+        <h2>Download section for service users</h2>
       </div>
-    ) : (
-      <p>Loading...</p>
     )}
-
-    {/* ✅ Change Password Section */}
-    <div className="mt-6">
+    <div className="change-password">
       <h2 className="text-lg font-bold">Change Password</h2>
 
       <div className="mt-2">
@@ -163,12 +121,10 @@ return (
       </button>
     </div>
 
-    {/* ✅ Delete Account Button */}
     <button onClick={() => setShowModal(true)} className="mt-6 px-4 py-2 bg-red-600 text-white rounded">
       Delete Account
     </button>
 
-    {/* ✅ Confirmation Modal for Deletion */}
     {showModal && (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
         <div className="bg-white p-6 rounded-lg shadow-lg">

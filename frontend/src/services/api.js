@@ -118,44 +118,54 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 };
 
   
-export async function getAdminSettings(){
+export async function getUserSettings(){
+  
   try{
+    const token = localStorage.getItem('token');
     
-    const response = await api.get(`/admin/settings/`);
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    const response = await api.get(`/worker/settings/` , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
     return response.data;
   }
   catch(error){
-    throw new Error ("Failed to get admin settings");
+    throw new Error ("Failed to get user settings", error.response?.data || error.message);
   }
 }
 
-export async function updateAdminSettings(updatedData){
+export async function deleteUserSettings(){
   try{
-    const response = await api.put(`/admin/settings/`, updatedData);
+    const token = localStorage.getItem('token');
+    const response = await api.delete(`/worker/settings/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
     return response.data;
   }
   catch(error){
-    throw new Error ("Failed to update admin settings");
+    throw new Error ("Failed to delete user account");
   }
 }
 
-export async function deleteAdminSettings(){
-  try{
-    const response = await api.delete(`/admin/settings/`);
-    return response.data;
-  }
-  catch(error){
-    throw new Error ("Failed to delete admin account");
-  }
-}
-
-export async function changeAdminPassword(oldPassword, newPassword, confirmNewPassword){
+export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`admin/password-change/`, {
+    const response = await api.put(`worker/password-change/`, {
     old_password:  oldPassword,
     new_password: newPassword,
     confirm_new_password: confirmNewPassword,
+    
+    } , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
     });
     return response.data;
   }

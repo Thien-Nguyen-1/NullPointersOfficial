@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
-from .models import ProgressTracker,Tags,User,Module, Questionnaire, AdminSettings
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -116,27 +115,18 @@ class TaskSerializer(ContentSerializer):
         fields  = ContentSerializer.Meta.fields + ['text_content']        
 
 
-class AdminSettingSerializer(serializers.ModelSerializer):
-    user_id = serializers.UUIDField(source = "user.user_id",read_only = True)
+class UserSettingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AdminSettings
-        fields = ['user_id','first_name','last_name','username']
-
-    def update(self, instance, validated_data):
-        instance.first_name = validated_data.get("first_name", instance.first_name)
-        instance.last_name = validated_data.get("last_name", instance.last_name)
-        instance.username = validated_data.get("username", instance.username)
-
-        instance.save()
-        return instance
+        model = User
+        fields = ['user_id','first_name','last_name','username','user_type']
     
-class AdminPasswordChangeSerializer(serializers.Serializer):
+class UserPasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only = True, required = True)
     new_password = serializers.CharField(write_only = True, required = True)
     confirm_new_password= serializers.CharField(write_only = True, required = True)
 
     def validate(self,data):
-        user = self.instance
+        user = self.context.get("request").user
 
         if not user.check_password(data["old_password"]):
             raise serializers.ValidationError({"old_password": "Incorrect old password"})
@@ -146,8 +136,8 @@ class AdminPasswordChangeSerializer(serializers.Serializer):
         
         return data
     
-    def save(self, user):
-
+    def save(self, **kwargs):
+        user = self.context["request"].user
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
