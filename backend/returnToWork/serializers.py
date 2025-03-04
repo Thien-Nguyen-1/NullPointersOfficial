@@ -114,3 +114,32 @@ class TaskSerializer(ContentSerializer):
         model = Task
         fields  = ContentSerializer.Meta.fields + ['text_content']        
 
+
+class UserSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['user_id','first_name','last_name','username','user_type']
+    
+class UserPasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only = True, required = True)
+    new_password = serializers.CharField(write_only = True, required = True)
+    confirm_new_password= serializers.CharField(write_only = True, required = True)
+
+    def validate(self,data):
+        user = self.context.get("request").user
+
+        if not user.check_password(data["old_password"]):
+            raise serializers.ValidationError({"old_password": "Incorrect old password"})
+        
+        if data["new_password"] != data["confirm_new_password"]:
+            raise serializers.ValidationError({"new_password" : "New passwords do not match"})
+        
+        return data
+    
+    def save(self, **kwargs):
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
+    
+

@@ -27,6 +27,11 @@ function AdminDashboard() {
             <h3>Medical Professionals</h3>
             <p>Oversee healthcare professionals.</p>
           </Link>
+
+          <Link to="/admin/settings" className="feature-card">
+            <h3>Settings</h3>
+            <p>Go to settings.</p>
+          </Link>
         </div>
 
     </div>

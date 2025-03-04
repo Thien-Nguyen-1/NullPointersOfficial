@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -27,7 +28,7 @@ router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 
 
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail
+from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail,UserSettingsView, UserPasswordChangeView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
@@ -39,4 +40,9 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
+    path("api/worker/settings/", UserSettingsView.as_view(), name= "user-settings"),
+    path("api/worker/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
+    path("api/admin/settings/", UserSettingsView.as_view(), name= "user-settings"),
+    path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
+   
 ]

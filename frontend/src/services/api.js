@@ -23,6 +23,13 @@ export async function loginUser(username, password){
     localStorage.setItem('token', response.data.token);
   
     return response.data;
+
+    if(response.data){
+      localStorage.setItem("user_type",response.data.user_type);
+      return response.data;
+    }
+
+    
   }
   catch(error) {
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
@@ -109,6 +116,64 @@ export async function SubmitQuestionAnswer(question_id, answer) {
     throw new Error("Failed to submit answer");
   } 
 };
+
+  
+export async function getUserSettings(){
+  
+  try{
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    const response = await api.get(`/worker/settings/` , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to get user settings", error.response?.data || error.message);
+  }
+}
+
+export async function deleteUserSettings(){
+  try{
+    const token = localStorage.getItem('token');
+    const response = await api.delete(`/worker/settings/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to delete user account");
+  }
+}
+
+export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
+  try{
+    const token = localStorage.getItem("token");
+    const response = await api.put(`worker/password-change/`, {
+    old_password:  oldPassword,
+    new_password: newPassword,
+    confirm_new_password: confirmNewPassword,
+    
+    } , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to change password");
+  }
+}
+
 
 export default api 
 
