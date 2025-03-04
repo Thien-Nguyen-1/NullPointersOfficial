@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from uuid import UUID
-from returnToWork.models import InfoSheet, Video, Task  # Import your models
+from returnToWork.models import InfoSheet, Video, Task, QuizQuestion, UserResponse
 from returnToWork.models import Module  # Assuming there is a Module model
 from django.core.files.uploadedfile import SimpleUploadedFile
 import uuid
@@ -14,8 +14,23 @@ class ContentModelTests(TestCase):
 
     def setUp(self):
         """Set up test dependencies"""
-        self.user = User.objects.create_user(username="testuser", password="password123")
+        self.user = User.objects.create_user(
+            username="@testuser", 
+            password="password123",
+            first_name="Test",
+            last_name="User",
+            user_type="service user"
+        )
         self.module = Module.objects.create(title="Test Module", description="A test module")
+        
+        # Create a task to use in the QuizQuestion and UserResponse tests
+        self.task = Task.objects.create(
+            title="Test Task",
+            moduleID=self.module,
+            author=self.user,
+            description="A test task description",
+            text_content="Test task content"
+        )
 
     def test_content_uuid_auto_generated(self):
         """Ensure UUID is auto-generated and unique for Content objects"""
@@ -80,7 +95,8 @@ class ContentModelTests(TestCase):
 
         self.assertEqual(task.text_content, "Task content here")
         self.assertTrue(task.is_published)
-        self.assertEqual(str(task), "Test Task")
+        # Updated assertion to match the current __str__ implementation which includes quiz type
+        self.assertEqual(str(task), "Test Task (Text Input Quiz)")
 
     def test_foreign_key_relationships(self):
         """Check that Content instances are properly linked to Module and User"""
@@ -90,10 +106,35 @@ class ContentModelTests(TestCase):
         self.assertEqual(video.author, self.user)
         self.assertIn(video, self.module.video_contents.all())  # Reverse lookup
 
-
     def test_blank_and_null_constraints(self):
         """Ensure fields accept blank/null where applicable"""
         infosheet = InfoSheet.objects.create(title="Blank Test", moduleID=self.module, author=self.user)
 
         self.assertIsNone(infosheet.description)
         self.assertIsNone(infosheet.infosheet_content)
+        
+    def test_quizquestion_str_method(self):
+        """Test the string representation of QuizQuestion"""
+        question = QuizQuestion.objects.create(
+            task=self.task,
+            question_text="This is a long question text that will be truncated in the string representation",
+            hint_text="Some hint",
+            order=1
+        )
+        # The actual implementation truncates to exactly what's returned, so we match that
+        self.assertEqual(str(question), "This is a long question text t...")
+            
+    def test_userresponse_str_method(self):
+        """Test the string representation of UserResponse"""
+        question = QuizQuestion.objects.create(
+            task=self.task,
+            question_text="Test question",
+            order=1
+        )
+        response = UserResponse.objects.create(
+            user=self.user,
+            question=question,
+            response_text="My response"
+        )
+        expected_str = f"Response by {self.user.username} for {question}"
+        self.assertEqual(str(response), expected_str)

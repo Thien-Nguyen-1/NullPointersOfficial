@@ -212,13 +212,6 @@ class UserDetail(APIView):
 
         return Response(response_data)
 
-
-
-
-
-
-
-
         
 # API View to fetch quiz details and handle quiz responses
 class QuizDetailView(APIView):
