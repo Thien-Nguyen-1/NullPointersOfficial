@@ -186,6 +186,8 @@ const CreateModule = () => {
             <option value="flashcard">Flashcard Quiz</option>
             <option value="statement_sequence">Statement Sequence Quiz</option>
             <option value="text_input">Fill in the Blank Quiz</option>
+            <option value="question_answer_form">Question and Answer Form</option>
+            <option value="matching_questions">Matching Questions</option>
           </select>
         </div>
         
