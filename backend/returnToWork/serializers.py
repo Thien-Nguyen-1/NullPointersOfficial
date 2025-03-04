@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, QuizQuestion
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, QuizQuestion,QuestionAnswerForm
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -120,4 +120,9 @@ class TaskSerializer(ContentSerializer):
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestion
+        fields = '__all__'
+
+class QuestionAnswerFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionAnswerForm
         fields = '__all__'
