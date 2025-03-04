@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import "../../styles/MainQuizContainer.css";
 import { FaTrash, FaPencilAlt } from "react-icons/fa";
 
@@ -111,8 +111,22 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
   );
 };
 
-const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions, initialQuestions = [] }) => {
+const VisualFillTheFormEditor = forwardRef((props, ref) => {
+  const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
+
+  // Expose getQuestions method to parent component
+  useImperativeHandle(ref, () => ({
+    getQuestions: () => {
+      // Format questions for API compatibility
+      return questions.map((question, index) => ({
+        id: Date.now() + index, // Temporary ID for UI
+        question_text: question || '',
+        hint_text: "", // Fill-in-the-blanks doesn't use hints
+        order: index
+      }));
+    }
+  }));
 
   // Load initial questions if provided
   useEffect(() => {
@@ -126,7 +140,7 @@ const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions, initia
     }
   }, [initialQuestions]);
 
-  // Update parent component when questions change
+  // Update parent component when questions change - only if onUpdateQuestions is provided
   useEffect(() => {
     if (onUpdateQuestions) {
       // Format questions for API compatibility
@@ -171,6 +185,6 @@ const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions, initia
       </div>
     </div>
   );
-};
+});
 
 export default VisualFillTheFormEditor;

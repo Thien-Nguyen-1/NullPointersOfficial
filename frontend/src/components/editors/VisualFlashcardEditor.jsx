@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import '../../styles/MainQuizContainer.css';
 
-const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions, initialQuestions = [] }) => {
+const VisualFlashcardEditor = forwardRef((props, ref) => {
+  const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
   const [flippedCardId, setFlippedCardId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -15,6 +16,13 @@ const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions, initialQ
   });
 
   const questionInputRef = useRef(null);
+
+  // Expose the getQuestions method to the parent component
+  useImperativeHandle(ref, () => ({
+    getQuestions: () => {
+      return questions;
+    }
+  }));
 
   // Load initial questions if provided
   useEffect(() => {
@@ -38,8 +46,9 @@ const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions, initialQ
     }
   }, [isEditing]);
 
-  // Update parent component when questions change
+  // Update parent component when questions change - only if onUpdateQuestions is provided
   useEffect(() => {
+    // Check if onUpdateQuestions exists before calling it
     if (onUpdateQuestions) {
       onUpdateQuestions(questions);
     }
@@ -53,8 +62,6 @@ const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions, initialQ
       [name]: value
     });
   };
-  
-
 
   // Handle flipping a card
   const handleFlip = (id) => {
@@ -210,6 +217,6 @@ const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions, initialQ
       )}
     </div>
   );
-};
+});
 
 export default VisualFlashcardEditor;

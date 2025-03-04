@@ -1,10 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { FaTrash } from "react-icons/fa";
 import "../../styles/MainQuizContainer.css";
 
-function VisualFlowChartQuiz({ moduleId, quizType, onUpdateQuestions, initialQuestions = [] }) {
+const VisualFlowChartQuiz = forwardRef((props, ref) => {
+  const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [statements, setStatements] = useState([]);
   const [selectedStatement, setSelectedStatement] = useState(null);
+
+  // Expose getQuestions method for parent component to access
+  useImperativeHandle(ref, () => ({
+    getQuestions: () => {
+      // Format statements as questions for API compatibility
+      return statements.map((statement, index) => ({
+        id: statement.id, // Temporary ID for UI
+        question_text: statement.text || "",
+        hint_text: statement.question || "", // We use hint_text to store the question
+        order: index
+      }));
+    }
+  }));
 
   // Load initial questions if provided
   useEffect(() => {
@@ -22,7 +36,7 @@ function VisualFlowChartQuiz({ moduleId, quizType, onUpdateQuestions, initialQue
     }
   }, [initialQuestions]);
 
-  // Update parent component when statements change
+  // Update parent component when statements change - only if onUpdateQuestions is provided
   useEffect(() => {
     if (onUpdateQuestions) {
       // Format statements as questions for API compatibility
@@ -136,6 +150,6 @@ function VisualFlowChartQuiz({ moduleId, quizType, onUpdateQuestions, initialQue
       )}
     </div>
   );
-}
+});
 
 export default VisualFlowChartQuiz;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
@@ -21,98 +21,24 @@ const AddModule = () => {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState(null);
   
+  // Create a ref to store references to editor components
+  const editorRefs = useRef({});
+  // Store initial questions for each module
+  const initialQuestionsRef = useRef({});
+  
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
 
   // Module types and their corresponding components
   const moduleOptions = {
-    "Flashcard Quiz": { component: <VisualFlashcardEditor />, type: "flashcard" },
-    "Fill in the Blanks": { component: <VisualFillTheFormEditor />, type: "text_input" },
-    "Flowchart Quiz": { component: <VisualFlowChartQuiz />, type: "statement_sequence" },
-  };
-
-  // Check for edit mode on component mount
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const editModuleId = params.get('edit');
-    
-    if (editModuleId) {
-      setEditId(editModuleId);
-      setIsEditing(true);
-      fetchModuleData(editModuleId);
-    }
-    
-    fetchTags();
-  }, [location]);
-
-  // Fetch module data for editing
-  const fetchModuleData = async (moduleId) => {
-    try {
-      setIsLoading(true);
-      
-      // Fetch module details
-      const moduleData = await QuizApiUtils.getModule(moduleId);
-      
-      // Set basic module info
-      setTitle(moduleData.title);
-      setDescription(moduleData.description || "");
-      setTags(moduleData.tags || []);
-      
-      // Fetch tasks associated with this module
-      const tasks = await QuizApiUtils.getModuleTasks(moduleId);
-      
-      // Fetch questions for each task
-      const moduleTemplates = await Promise.all(tasks.map(async (task) => {
-        let type = "";
-        
-        // Map API quiz_type to frontend type
-        switch(task.quiz_type) {
-          case "flashcard":
-            type = "Flashcard Quiz";
-            break;
-          case "text_input":
-            type = "Fill in the Blanks";
-            break;
-          case "statement_sequence":
-            type = "Flowchart Quiz";
-            break;
-          default:
-            type = "Flashcard Quiz";
-        }
-        
-        // Fetch questions for this task
-        try {
-          const questions = await QuizApiUtils.getQuestions(task.contentID);
-          
-          return {
-            id: task.contentID,
-            type: type,
-            quizType: task.quiz_type,
-            questions: questions
-          };
-        } catch (error) {
-          console.error(`Error fetching questions for task ${task.contentID}:`, error);
-          return {
-            id: task.contentID,
-            type: type,
-            quizType: task.quiz_type,
-            questions: []
-          };
-        }
-      }));
-      
-      setModules(moduleTemplates);
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching module data:", err);
-      setError(`Failed to load module data: ${err.response?.data?.detail || err.message}`);
-      setIsLoading(false);
-    }
+    "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
+    "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
+    "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
   };
 
   // Fetch available tags
-  const fetchTags = async () => {
+  const fetchTags = useCallback(async () => {
     try {
       const response = await api.get('/api/tags/');
       setAvailableTags(response.data);
@@ -120,22 +46,93 @@ const AddModule = () => {
       console.error("Error fetching tags:", err);
       setError("Failed to load tags. Please try again.");
     }
-  };
+  }, []);
+
+  // Fetch module data for editing
+  const fetchModuleData = useCallback(async (moduleId) => {
+    try {
+      setIsLoading(true);
+      
+      const moduleData = await QuizApiUtils.getModule(moduleId);
+      setTitle(moduleData.title);
+      setDescription(moduleData.description || "");
+      setTags(moduleData.tags || []);
+      
+      const tasks = await QuizApiUtils.getModuleTasks(moduleId);
+
+      const moduleTemplates = await Promise.all(tasks.map(async (task) => {
+        let type = "";
+
+        // Map API quiz_type to frontend type
+        switch (task.quiz_type) {
+          case "flashcard": type = "Flashcard Quiz"; break;
+          case "text_input": type = "Fill in the Blanks"; break;
+          case "statement_sequence": type = "Flowchart Quiz"; break;
+          default: type = "Flashcard Quiz";
+        }
+
+        try {
+          const questions = await QuizApiUtils.getQuestions(task.contentID);
+          // Store initial questions in the ref
+          initialQuestionsRef.current[task.contentID] = questions;
+        } catch (error) {
+          console.error(`Error fetching questions for task ${task.contentID}:`, error);
+          initialQuestionsRef.current[task.contentID] = [];
+        }
+
+        return {
+          id: task.contentID,
+          type,
+          quizType: task.quiz_type,
+        };
+      }));
+
+      setModules(moduleTemplates);
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error fetching module data:", err);
+      setError(`Failed to load module data: ${err.response?.data?.detail || err.message}`);
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load data when the component mounts
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const editModuleId = params.get('edit');
+
+    if (editModuleId) {
+      setEditId(editModuleId);
+      setIsEditing(true);
+      fetchModuleData(editModuleId);
+    }
+
+    fetchTags();
+  }, [location, fetchModuleData, fetchTags]);
 
   // Add a module to the list
   const addModule = (moduleType) => {
+    const newModuleId = Date.now();
+    
     setModules([...modules, { 
-      id: Date.now(), // This will be replaced with the API-generated ID when saved
+      id: newModuleId,
       type: moduleType, 
       quizType: QuizApiUtils.getQuizTypeValue(moduleType),
-      questions: []
     }]);
+
+    // Initialize empty questions for this module
+    initialQuestionsRef.current[newModuleId] = [];
+
     setShowDropdown(false);
   };
 
-  // Remove a module from the list
+  // Remove a module
   const removeModule = (id) => {
-    setModules(modules.filter((module) => module.id !== id));
+    setModules(modules.filter(module => module.id !== id));
+
+    // Clean up refs
+    delete editorRefs.current[id];
+    delete initialQuestionsRef.current[id];
   };
 
   // Add a new tag
@@ -185,13 +182,6 @@ const AddModule = () => {
     setTags(tags.filter(t => t !== tagId));
   };
 
-  // Update module questions from child components
-  const updateModuleQuestions = (moduleId, questions) => {
-    // setModules(modules.map(module => 
-    //   module.id === moduleId ? { ...module, questions } : module
-    // ));
-  };
-
   // Publish/Update the module
   const publishModule = async () => {
     // Validate inputs
@@ -231,6 +221,18 @@ const AddModule = () => {
         
         // Update or create tasks
         for (const module of modules) {
+          // Get the current questions from the editor component using the ref
+          let currentQuestions = [];
+          const editorComponent = editorRefs.current[module.id];
+          
+          if (editorComponent && typeof editorComponent.getQuestions === 'function') {
+            // If the editor component exposes a getQuestions method, use it
+            currentQuestions = editorComponent.getQuestions();
+          } else {
+            // Fallback to the initial questions if we can't get them from the component
+            currentQuestions = initialQuestionsRef.current[module.id] || [];
+          }
+          
           // If the module has an ID that matches an existing task, update it
           const existingTask = existingTasks.find(task => task.contentID === module.id);
           
@@ -257,8 +259,8 @@ const AddModule = () => {
             }
             
             // Create new questions
-            for (let i = 0; i < module.questions.length; i++) {
-              const question = module.questions[i];
+            for (let i = 0; i < currentQuestions.length; i++) {
+              const question = currentQuestions[i];
               await QuizApiUtils.createQuestion({
                 task_id: existingTask.contentID,
                 question_text: question.question_text || question.text || "",
@@ -283,8 +285,8 @@ const AddModule = () => {
             updatedTaskIds.push(taskId);
             
             // Create questions for this new task
-            for (let i = 0; i < module.questions.length; i++) {
-              const question = module.questions[i];
+            for (let i = 0; i < currentQuestions.length; i++) {
+              const question = currentQuestions[i];
               await QuizApiUtils.createQuestion({
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
@@ -317,6 +319,18 @@ const AddModule = () => {
         
         // Create tasks for each module
         for (const module of modules) {
+          // Get the current questions from the editor component using the ref
+          let currentQuestions = [];
+          const editorComponent = editorRefs.current[module.id];
+          
+          if (editorComponent && typeof editorComponent.getQuestions === 'function') {
+            // If the editor component exposes a getQuestions method, use it
+            currentQuestions = editorComponent.getQuestions();
+          } else {
+            // Fallback to the initial questions if we can't get them from the component
+            currentQuestions = initialQuestionsRef.current[module.id] || [];
+          }
+          
           const taskData = {
             title: `${module.type} for ${title}`,
             moduleID: moduleId,
@@ -332,9 +346,9 @@ const AddModule = () => {
           const taskId = taskResponse.contentID;
           
           // Create questions for this task
-          if (module.questions && module.questions.length > 0) {
-            for (let i = 0; i < module.questions.length; i++) {
-              const question = module.questions[i];
+          if (currentQuestions && currentQuestions.length > 0) {
+            for (let i = 0; i < currentQuestions.length; i++) {
+              const question = currentQuestions[i];
               await QuizApiUtils.createQuestion({
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
@@ -406,18 +420,22 @@ const AddModule = () => {
 
       {/* Modules List */}
       <div className="modules-list">
-        {modules.map((module) => (
-          <div key={module.id} className="module-item">
-            <h3>{module.type}</h3>
-            {React.cloneElement(moduleOptions[module.type].component, {
-              moduleId: module.id,
-              quizType: module.quizType,
-              initialQuestions: module.questions,
-              onUpdateQuestions: (questions) => updateModuleQuestions(module.id, questions)
-            })}
-            <button onClick={() => removeModule(module.id)} className="remove-module-btn">Remove</button>
-          </div>
-        ))}
+        {modules.map((module) => {
+          const EditorComponent = moduleOptions[module.type].component;
+          return (
+            <div key={module.id} className="module-item">
+              <h3>{module.type}</h3>
+              <EditorComponent
+                ref={(el) => { editorRefs.current[module.id] = el; }}
+                moduleId={module.id}
+                quizType={module.quizType}
+                initialQuestions={initialQuestionsRef.current[module.id] || []}
+                // No onUpdateQuestions prop to avoid the infinite loop
+              />
+              <button onClick={() => removeModule(module.id)} className="remove-module-btn">Remove</button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Add Module Templates Button */}
@@ -474,12 +492,24 @@ const AddModule = () => {
             })}
           </div>
           <div className="preview-modules">
-            {modules.map((module, index) => (
-              <div key={module.id} className="preview-module">
-                <h3>{module.type} {index + 1}</h3>
-                <p>Questions: {module.questions?.length || 0}</p>
-              </div>
-            ))}
+            {modules.map((module, index) => {
+              // For preview, try to get current question count if possible
+              let questionCount = 0;
+              const editorComponent = editorRefs.current[module.id];
+              
+              if (editorComponent && typeof editorComponent.getQuestions === 'function') {
+                questionCount = editorComponent.getQuestions().length;
+              } else {
+                questionCount = initialQuestionsRef.current[module.id]?.length || 0;
+              }
+              
+              return (
+                <div key={module.id} className="preview-module">
+                  <h3>{module.type} {index + 1}</h3>
+                  <p>Questions: {questionCount}</p>
+                </div>
+              );
+            })}
           </div>
           <button className="exit-preview-btn" onClick={() => setIsPreview(false)}>
             Exit Preview
