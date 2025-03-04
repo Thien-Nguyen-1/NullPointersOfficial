@@ -77,11 +77,11 @@ return (
     <h1 className="page-title">Settings</h1>
    <div className = "settings-card">
         <h1>Welcome, {user.first_name} {user.last_name}</h1>
-        {/* <p className="mt-2 text-gray-600">User ID: {user.user_id}</p> */}
+        <p className="mt-2 text-gray-600">Username: {user.username}</p>
     </div>
     {user.user_type === "service user" && (
       <div className="settings-card">
-        <h2>Download section for service users</h2>
+        <h1>Download content</h1>
       </div>
     )}
     <div className="settings-card">
