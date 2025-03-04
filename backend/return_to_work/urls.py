@@ -27,7 +27,7 @@ router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 
 
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail
+from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
@@ -39,4 +39,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
+    path("service-users/", ServiceUserListView.as_view(), name="service-users-list"),
+    path("service-users/<str:username>/", DeleteServiceUserView.as_view(), name="delete-service-user"),
 ]

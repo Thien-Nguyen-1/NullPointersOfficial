@@ -1,6 +1,6 @@
 import random
 from django.shortcuts import render
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
 from django.contrib.auth import login, logout
@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
+from returnToWork.models import User
 
 class ProgressTrackerView(APIView):
 
@@ -209,7 +211,29 @@ class UserDetail(APIView):
 
         return Response(response_data)
 
+class ServiceUserListView(generics.ListAPIView):
+    """API view to get all service users"""
+    serializer_class = UserSerializer
 
+    def get_queryset(self):
+        queryset = User.objects.filter(user_type="service user")
 
+        # Get 'username' from query parameters
+        username = self.request.query_params.get("username", None)
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+        return queryset.prefetch_related("tags")  # Prefetch tags for efficiency
+
+class DeleteServiceUserView(generics.DestroyAPIView):
+    """API view to delete a user by username"""
+    permission_classes = [AllowAny]
+
+    def delete(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            user.delete()
+            return Response({"message": f"User {username} deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
