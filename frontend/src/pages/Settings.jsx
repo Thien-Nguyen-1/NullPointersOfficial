@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getUserSettings, deleteUserSettings, changeUserPassword } from "../services/api";
 import { useNavigate } from "react-router-dom";
-
+import '../styles/Settings.css';
 
 function Settings() {
 
@@ -72,75 +72,74 @@ const handleDelete = async() => {
 };
 
 return (
+  <div className="settings-container">
   <div>
     <h1 className="page-title">Settings</h1>
-   <div>
-        <p className="mt-2 text-gray-600">Welcome, {user.first_name} {user.last_name}</p>
+   <div className = "settings-card">
+        <h1>Welcome, {user.first_name} {user.last_name}</h1>
         <p className="mt-2 text-gray-600">User ID: {user.user_id}</p>
     </div>
     {user.user_type === "service user" && (
-      <div className="download-container">
+      <div className="settings-card">
         <h2>Download section for service users</h2>
       </div>
     )}
-    <div className="change-password">
-      <h2 className="text-lg font-bold">Change Password</h2>
+    <div className="settings-card">
+      <h1>Change Password</h1>
 
-      <div className="mt-2">
+      <div>
         <label>Old Password</label>
         <input
           type="password"
           value={passwordData.old_password}
           onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
-          className="border p-2 w-full"
         />
       </div>
 
-      <div className="mt-2">
+      <div>
         <label>New Password</label>
         <input
           type="password"
           value={passwordData.new_password}
           onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-          className="border p-2 w-full"
         />
       </div>
 
-      <div className="mt-2">
+      <div>
         <label>Confirm New Password</label>
         <input
           type="password"
           value={passwordData.confirm_new_password}
           onChange={(e) => setPasswordData({ ...passwordData, confirm_new_password: e.target.value })}
-          className="border p-2 w-full"
         />
       </div>
 
-      <button onClick={handlePasswordChange} className="mt-4 px-4 py-2 bg-green-600 text-white rounded">
+      <button onClick={handlePasswordChange}>
         Change Password
       </button>
     </div>
 
-    <button onClick={() => setShowModal(true)} className="mt-6 px-4 py-2 bg-red-600 text-white rounded">
+    <button onClick={() => setShowModal(true)} >
       Delete Account
     </button>
 
     {showModal && (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-lg font-bold">Confirm Deletion</h2>
+      <div>
+        <div>
+          <h2>Confirm Deletion</h2>
           <p>Are you sure you want to delete your account? This action cannot be undone.</p>
-          <div className="mt-4 flex justify-end">
-            <button className="mr-2 px-4 py-2 bg-gray-300 rounded" onClick={() => setShowModal(false)}>
+          <div >
+            <button onClick={() => setShowModal(false)}>
               Cancel
             </button>
-            <button className="px-4 py-2 bg-red-600 text-white rounded" onClick={handleDelete}>
+            <button  onClick={handleDelete}>
               Confirm Delete
             </button>
           </div>
         </div>
       </div>
     )}
+  </div>
   </div>
 );
 }

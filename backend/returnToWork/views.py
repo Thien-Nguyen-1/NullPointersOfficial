@@ -233,7 +233,7 @@ class UserSettingsView(APIView):
     def delete(self,request):
         user = request.user
         user.delete()
-        return Response({"message":"User account deleted successfully"},status=status.HTTP_200_OK)
+        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
     
 class UserPasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -245,3 +245,5 @@ class UserPasswordChangeView(APIView):
             serializer.save()
             return Response({"message": "Password uUpdated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
