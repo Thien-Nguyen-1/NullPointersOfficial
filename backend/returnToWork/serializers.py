@@ -6,6 +6,11 @@ from django.contrib.auth import authenticate, get_user_model
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    tags = serializers.SlugRelatedField( #Ensures tags are serialized as a list of tag names rather than ID
+        many=True,
+        read_only=True,
+        slug_field="tag"
+    )
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
