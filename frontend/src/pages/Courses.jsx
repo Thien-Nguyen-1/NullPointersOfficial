@@ -214,7 +214,7 @@ function Courses({ role }) {
                                 </Link>
                                 {role === "admin" && (
                                     <Link 
-                                        to="/admin/courses/create-and-manage-module"
+                                        to={`/admin/courses/create-and-manage-module?edit=${course.id}`}
                                         className="edit-course-btn"
                                     >
                                         Edit

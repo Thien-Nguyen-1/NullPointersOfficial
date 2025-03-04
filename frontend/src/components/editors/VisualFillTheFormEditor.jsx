@@ -48,10 +48,12 @@ const AdminQuestionForm = ({ onSubmit }) => {
 };
 
 const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
-  const parts = question.split("____");
+  // Add a check to make sure question is a string and not undefined
+  const questionText = typeof question === 'string' ? question : '';
+  const parts = questionText.split("____");
   const [answers, setAnswers] = useState(Array(parts.length - 1).fill(""));
   const [isEditing, setIsEditing] = useState(false);
-  const [editedQuestion, setEditedQuestion] = useState(question);
+  const [editedQuestion, setEditedQuestion] = useState(questionText);
 
   const handleChange = (index, value) => {
     const newAnswers = [...answers];
@@ -109,8 +111,20 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
   );
 };
 
-const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions }) => {
+const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions, initialQuestions = [] }) => {
   const [questions, setQuestions] = useState([]);
+
+  // Load initial questions if provided
+  useEffect(() => {
+    if (initialQuestions && initialQuestions.length > 0) {
+      // Format questions for consistency - convert from API format to component format
+      const formattedQuestions = initialQuestions.map(q => 
+        q.question_text || '' // Just use the question text since that's all we need for fill-in-the-blanks
+      );
+      
+      setQuestions(formattedQuestions);
+    }
+  }, [initialQuestions]);
 
   // Update parent component when questions change
   useEffect(() => {
@@ -118,7 +132,7 @@ const VisualFillTheFormEditor = ({ moduleId, quizType, onUpdateQuestions }) => {
       // Format questions for API compatibility
       const formattedQuestions = questions.map((question, index) => ({
         id: Date.now() + index, // Temporary ID for UI
-        question_text: question,
+        question_text: question || '',
         hint_text: "", // Fill-in-the-blanks doesn't use hints
         order: index
       }));

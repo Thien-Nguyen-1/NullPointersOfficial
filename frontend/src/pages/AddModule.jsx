@@ -1,38 +1,117 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
-
 import api from "../services/api";
-import { QuizApiUtils} from "../services/QuizApiUtils";
+import { QuizApiUtils } from "../services/QuizApiUtils";
+
 import "../styles/AddModule.css";
 
 const AddModule = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]); // avoid duplication of tags
+  const [availableTags, setAvailableTags] = useState([]);
   const [modules, setModules] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [error, setError] = useState(null);
+  
   const navigate = useNavigate();
+  const location = useLocation();
   const dropdownRef = useRef(null);
 
+  // Module types and their corresponding components
   const moduleOptions = {
     "Flashcard Quiz": { component: <VisualFlashcardEditor />, type: "flashcard" },
     "Fill in the Blanks": { component: <VisualFillTheFormEditor />, type: "text_input" },
     "Flowchart Quiz": { component: <VisualFlowChartQuiz />, type: "statement_sequence" },
-  };  
+  };
 
-  // fetch available tags when component mounts
+  // Check for edit mode on component mount
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const editModuleId = params.get('edit');
+    
+    if (editModuleId) {
+      setEditId(editModuleId);
+      setIsEditing(true);
+      fetchModuleData(editModuleId);
+    }
+    
     fetchTags();
-  }, []);
+  }, [location]);
 
-  // fetch tags from the API
+  // Fetch module data for editing
+  const fetchModuleData = async (moduleId) => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch module details
+      const moduleData = await QuizApiUtils.getModule(moduleId);
+      
+      // Set basic module info
+      setTitle(moduleData.title);
+      setDescription(moduleData.description || "");
+      setTags(moduleData.tags || []);
+      
+      // Fetch tasks associated with this module
+      const tasks = await QuizApiUtils.getModuleTasks(moduleId);
+      
+      // Fetch questions for each task
+      const moduleTemplates = await Promise.all(tasks.map(async (task) => {
+        let type = "";
+        
+        // Map API quiz_type to frontend type
+        switch(task.quiz_type) {
+          case "flashcard":
+            type = "Flashcard Quiz";
+            break;
+          case "text_input":
+            type = "Fill in the Blanks";
+            break;
+          case "statement_sequence":
+            type = "Flowchart Quiz";
+            break;
+          default:
+            type = "Flashcard Quiz";
+        }
+        
+        // Fetch questions for this task
+        try {
+          const questions = await QuizApiUtils.getQuestions(task.contentID);
+          
+          return {
+            id: task.contentID,
+            type: type,
+            quizType: task.quiz_type,
+            questions: questions
+          };
+        } catch (error) {
+          console.error(`Error fetching questions for task ${task.contentID}:`, error);
+          return {
+            id: task.contentID,
+            type: type,
+            quizType: task.quiz_type,
+            questions: []
+          };
+        }
+      }));
+      
+      setModules(moduleTemplates);
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error fetching module data:", err);
+      setError(`Failed to load module data: ${err.response?.data?.detail || err.message}`);
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch available tags
   const fetchTags = async () => {
     try {
       const response = await api.get('/api/tags/');
@@ -43,20 +122,23 @@ const AddModule = () => {
     }
   };
 
-  
+  // Add a module to the list
   const addModule = (moduleType) => {
-    setModules([...modules, {
-      id: Date.now(), 
-      type: moduleType,
-      quizType: moduleOptions[moduleType].type,
-      questions: [] }]);
+    setModules([...modules, { 
+      id: Date.now(), // This will be replaced with the API-generated ID when saved
+      type: moduleType, 
+      quizType: QuizApiUtils.getQuizTypeValue(moduleType),
+      questions: []
+    }]);
     setShowDropdown(false);
   };
 
+  // Remove a module from the list
   const removeModule = (id) => {
     setModules(modules.filter((module) => module.id !== id));
   };
 
+  // Add a new tag
   const addTag = async () => {
     const newTag = prompt('Enter a new tag:');
     if (!newTag || newTag.trim() === '') return;
@@ -97,89 +179,189 @@ const AddModule = () => {
       }
     }
   };
-  
-  // remove a tag from selection
+
+  // Remove a tag
   const removeTag = (tagId) => {
     setTags(tags.filter(t => t !== tagId));
   };
 
-  // update module questions from child components
+  // Update module questions from child components
   const updateModuleQuestions = (moduleId, questions) => {
-    setModules(modules.map(module => 
-      module.id === moduleId ? { ...module, questions } : module
-    ));
+    // setModules(modules.map(module => 
+    //   module.id === moduleId ? { ...module, questions } : module
+    // ));
   };
 
+  // Publish/Update the module
   const publishModule = async () => {
-    if (!title.trim() || modules.length === 0) {
-      setError("Module title is required")
+    // Validate inputs
+    if (!title.trim()) {
+      setError("Module title is required");
       return;
     }
-    
+
+    if (modules.length === 0) {
+      setError("At least one template is required");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
-    try{
-      // 1. create a module
-      const moduleData = {
-        title: title,
-        description: description || title,
-        tags: tags,
-        pinned: false,
-        upvotes: 0
-      };
-
-      const moduleResponse = await QuizApiUtils.createModule(moduleData);
-      const createModuleId = moduleResponse.id;
-
-      // 2. (optional) create content for each module
-
-      // option : choose task/quiz
-      for (const module of modules) {
-        const taskData = {
-          title: '${module.type} for ${title}',
-          moduleID: createModuleId,
-          description: `${module.type} content for ${title}`,
-          quiz_type: module.quizType,
-          text_content: "Generated by admin", 
-          author: 1, // use the current user ID (temporarily) 
-          is_published: true
+    try {
+      let moduleId;
+      
+      if (isEditing) {
+        // Update existing module
+        const moduleData = {
+          title: title,
+          description: description || title,
+          tags: tags
         };
-
-        // create the task/quiz
-        const taskResponse = await QuizApiUtils.createTask(taskData);
-        const taskId = taskResponse.contentID;
-
-        // create questions for this task
-        if (module.questions && module.questions.length > 0) {
-          for (let i = 0; i < module.questions.length; i++) {
-            const question = module.questions[i];
-            await QuizApiUtils.createQuestion({
-              task_id: taskId,
-              question_text: question.question_text,
-              hint_text: question.hint_text || "",
-              order: i
-            });
+        
+        await QuizApiUtils.updateModule(editId, moduleData);
+        moduleId = editId;
+        
+        // Handle existing tasks/modules
+        // First, get current tasks
+        const existingTasks = await QuizApiUtils.getModuleTasks(editId);
+        
+        // Keep track of tasks we're updating
+        const updatedTaskIds = [];
+        
+        // Update or create tasks
+        for (const module of modules) {
+          // If the module has an ID that matches an existing task, update it
+          const existingTask = existingTasks.find(task => task.contentID === module.id);
+          
+          if (existingTask) {
+            // Update existing task
+            const taskData = {
+              title: `${module.type} for ${title}`,
+              moduleID: moduleId,
+              description: `${module.type} content for ${title}`,
+              quiz_type: module.quizType,
+              text_content: "Updated by admin interface",
+              is_published: true
+            };
+            
+            await QuizApiUtils.updateTask(existingTask.contentID, taskData);
+            updatedTaskIds.push(existingTask.contentID);
+            
+            // Get existing questions
+            const existingQuestions = await QuizApiUtils.getQuestions(existingTask.contentID);
+            
+            // Delete all existing questions (simpler than trying to update)
+            for (const question of existingQuestions) {
+              await QuizApiUtils.deleteQuestion(question.id);
+            }
+            
+            // Create new questions
+            for (let i = 0; i < module.questions.length; i++) {
+              const question = module.questions[i];
+              await QuizApiUtils.createQuestion({
+                task_id: existingTask.contentID,
+                question_text: question.question_text || question.text || "",
+                hint_text: question.hint_text || question.hint || "",
+                order: i
+              });
+            }
+          } else {
+            // Create new task
+            const taskData = {
+              title: `${module.type} for ${title}`,
+              moduleID: moduleId,
+              description: `${module.type} content for ${title}`,
+              quiz_type: module.quizType,
+              text_content: "Generated by admin interface",
+              author: 1, // Use the current user ID or a default admin ID
+              is_published: true
+            };
+            
+            const taskResponse = await QuizApiUtils.createTask(taskData);
+            const taskId = taskResponse.contentID;
+            updatedTaskIds.push(taskId);
+            
+            // Create questions for this new task
+            for (let i = 0; i < module.questions.length; i++) {
+              const question = module.questions[i];
+              await QuizApiUtils.createQuestion({
+                task_id: taskId,
+                question_text: question.question_text || question.text || "",
+                hint_text: question.hint_text || question.hint || "",
+                order: i
+              });
+            }
+          }
+        }
+        
+        // Delete tasks that weren't updated
+        for (const task of existingTasks) {
+          if (!updatedTaskIds.includes(task.contentID)) {
+            await QuizApiUtils.deleteTask(task.contentID);
+          }
+        }
+        
+      } else {
+        // Create a new module
+        const moduleData = {
+          title: title,
+          description: description || title,
+          tags: tags,
+          pinned: false,
+          upvotes: 0
+        };
+        
+        const moduleResponse = await QuizApiUtils.createModule(moduleData);
+        moduleId = moduleResponse.id;
+        
+        // Create tasks for each module
+        for (const module of modules) {
+          const taskData = {
+            title: `${module.type} for ${title}`,
+            moduleID: moduleId,
+            description: `${module.type} content for ${title}`,
+            quiz_type: module.quizType,
+            text_content: "Generated by admin interface",
+            author: 1, // Use the current user ID or a default admin ID
+            is_published: true
+          };
+          
+          // Create the task
+          const taskResponse = await QuizApiUtils.createTask(taskData);
+          const taskId = taskResponse.contentID;
+          
+          // Create questions for this task
+          if (module.questions && module.questions.length > 0) {
+            for (let i = 0; i < module.questions.length; i++) {
+              const question = module.questions[i];
+              await QuizApiUtils.createQuestion({
+                task_id: taskId,
+                question_text: question.question_text || question.text || "",
+                hint_text: question.hint_text || question.hint || "",
+                order: i
+              });
+            }
           }
         }
       }
-
-      // successesfully published
-      alert("Module published successfully!");
+      
+      // Success message
+      alert(isEditing ? "Module updated successfully!" : "Module published successfully!");
       navigate("/admin/courses");
-
     } catch (err) {
-      console.error("Error publishing module:", err);
-      setError(`Failed to publish module: ${err.response?.data?.detail || err.message}`);
+      console.error(isEditing ? "Error updating module:" : "Error publishing module:", err);
+      setError(`Failed to ${isEditing ? 'update' : 'publish'} module: ${err.response?.data?.detail || err.message}`);
     } finally {
       setIsLoading(false);
     }
-
   };
 
   return (
     <div className="module-editor-container">
-      <h1 className="module-title">Add Module</h1>
+      <h1 className="page-title">{isEditing ? "Edit Module" : "Add Module"}</h1>
+      
+      {isLoading && <div className="loading-overlay">Loading...</div>}
       
       {/* Module Title */}
       <input
@@ -189,7 +371,7 @@ const AddModule = () => {
         onChange={(e) => setTitle(e.target.value)}
         className="module-input heading-input"
       />
-
+      
       {/* Module Description */}
       <textarea
         placeholder="Module Description"
@@ -208,7 +390,7 @@ const AddModule = () => {
             </span>
           ) : null;
         })}
-          <div className="tag-button-wrapper">
+        <div className="tag-button-wrapper">
           <button className="plus-button tag-button" onClick={addTag}>+</button>
           <span className="tag-label">Add module tags</span>
         </div>
@@ -230,6 +412,7 @@ const AddModule = () => {
             {React.cloneElement(moduleOptions[module.type].component, {
               moduleId: module.id,
               quizType: module.quizType,
+              initialQuestions: module.questions,
               onUpdateQuestions: (questions) => updateModuleQuestions(module.id, questions)
             })}
             <button onClick={() => removeModule(module.id)} className="remove-module-btn">Remove</button>
@@ -243,6 +426,7 @@ const AddModule = () => {
         <span className="templates-label">Add Templates</span>
       </div>
 
+      {/* Templates Dropdown */}
       {showDropdown && (
         <div className="dropdown-menu" style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
           <h4 className="dropdown-title">Add Templates</h4>
@@ -260,15 +444,19 @@ const AddModule = () => {
         </div>
       )}
 
+      {/* Action Buttons */}
       {!isPreview && (
         <div className="button-container">
           <button className="preview-btn" onClick={() => setIsPreview(true)} disabled={isLoading}>
             Preview
           </button>
           <button className="publish-btn" onClick={publishModule} disabled={isLoading}>
-            {isLoading ? "Publishing..." : "Publish"}
+            {isLoading ? 
+              (isEditing ? "Updating..." : "Publishing...") : 
+              (isEditing ? "Update" : "Publish")
+            }
           </button>
-          <button className="edit-btn">Edit</button>
+          {!isEditing && <button className="edit-btn">Edit</button>}
         </div>
       )}
 

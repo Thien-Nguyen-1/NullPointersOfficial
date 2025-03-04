@@ -2,9 +2,25 @@ import React, { useState, useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
 import "../../styles/MainQuizContainer.css";
 
-function VisualFlowChartQuiz({ moduleId, quizType, onUpdateQuestions }) {
+function VisualFlowChartQuiz({ moduleId, quizType, onUpdateQuestions, initialQuestions = [] }) {
   const [statements, setStatements] = useState([]);
   const [selectedStatement, setSelectedStatement] = useState(null);
+
+  // Load initial questions if provided
+  useEffect(() => {
+    if (initialQuestions && initialQuestions.length > 0) {
+      // Format questions for this component's state structure
+      const formattedStatements = initialQuestions.map(q => ({
+        id: q.id || Date.now() + Math.random(),
+        text: q.question_text || "", // Main statement text
+        question: q.hint_text || "", // We store the question in hint_text for flowchart
+        answer: "Sample Answer", // Default answer
+        order: q.order || 0
+      }));
+      
+      setStatements(formattedStatements);
+    }
+  }, [initialQuestions]);
 
   // Update parent component when statements change
   useEffect(() => {
@@ -13,7 +29,7 @@ function VisualFlowChartQuiz({ moduleId, quizType, onUpdateQuestions }) {
       const formattedQuestions = statements.map((statement, index) => ({
         id: statement.id, // Temporary ID for UI
         question_text: statement.text || "",
-        hint_text: statement.question || "", // We'll use hint_text to store the question
+        hint_text: statement.question || "", // We use hint_text to store the question
         order: index
       }));
       

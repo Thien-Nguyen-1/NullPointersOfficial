@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/MainQuizContainer.css';
 
-const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions }) => {
+const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions, initialQuestions = [] }) => {
   const [questions, setQuestions] = useState([]);
   const [flippedCardId, setFlippedCardId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -15,6 +15,21 @@ const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions }) => {
   });
 
   const questionInputRef = useRef(null);
+
+  // Load initial questions if provided
+  useEffect(() => {
+    if (initialQuestions && initialQuestions.length > 0) {
+      // Format questions for consistency
+      const formattedQuestions = initialQuestions.map(q => ({
+        id: q.id || Date.now() + Math.random(),
+        question_text: q.question_text || q.text || "",
+        hint_text: q.hint_text || q.hint || "",
+        order: q.order || 0
+      }));
+      
+      setQuestions(formattedQuestions);
+    }
+  }, [initialQuestions]);
 
   // Focus on the input field when editing
   useEffect(() => {
@@ -38,6 +53,8 @@ const VisualFlashcardEditor = ({ moduleId, quizType, onUpdateQuestions }) => {
       [name]: value
     });
   };
+  
+
 
   // Handle flipping a card
   const handleFlip = (id) => {
