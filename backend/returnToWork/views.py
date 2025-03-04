@@ -217,7 +217,6 @@ class ServiceUserListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = User.objects.filter(user_type="service user")
-
         # Get 'username' from query parameters
         username = self.request.query_params.get("username", None)
         if username:
@@ -232,7 +231,7 @@ class DeleteServiceUserView(generics.DestroyAPIView):
         try:
             user = User.objects.get(username=username)
             user.delete()
-            return Response({"message": f"User {username} deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": f"User with username \"{username}\" has been deleted."}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 

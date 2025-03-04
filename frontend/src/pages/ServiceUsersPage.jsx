@@ -40,7 +40,7 @@ const ServiceUsersPage = () => {
             await deleteServiceUser(username);
             setUsers(users.filter(user => user.username !== username));
             setFilteredUsers(filteredUsers.filter(user => user.username !== username));
-            setSuccessMessage(`User with username "${username}" has successfully been deleted.`);
+            setSuccessMessage(`User with username "${username}" has been deleted.`);
         } catch (err) {
             console.error("Error deleting user:", err);
             setError("Failed to delete user.");
