@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import '../../styles/VisualQuestionAndAnswerFormEditor.css'
+import axios from 'axios';
+import '../../styles/VisualQuestionAndAnswerFormEditor.css';
+
 const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
+    const apiUrl = 'http://localhost:8000/api/question_answer_forms/';
     const [entries, setEntries] = useState([]);
     const [newEntry, setNewEntry] = useState({ question: '', answer: '' });
     const [error, setError] = useState('');
@@ -10,30 +13,46 @@ const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
         setNewEntry({ ...newEntry, [name]: value });
     };
 
-    const handleAddEntry = () => {
+    const handleAddEntry = async () => {
         if (!newEntry.question || !newEntry.answer) {
             setError('Both question and answer fields are required.');
             return;
         }
-        setEntries([...entries, newEntry]);
-        setNewEntry({ question: '', answer: '' });
-        setError('');
-        if (onSave) onSave(entries);
+        try {
+            const response = await axios.post(apiUrl, newEntry);
+            if (response.data) {
+                setEntries([...entries, response.data]);
+                setNewEntry({ question: '', answer: '' });
+                setError('');
+                if (onSave) onSave([...entries, response.data]);
+            }
+        } catch (err) {
+            setError('Failed to save the entry. Please try again.');
+            console.error('Error adding entry:', err);
+        }
     };
 
-    const handleDeleteEntry = (index) => {
-        const updatedEntries = entries.filter((_, idx) => idx !== index);
-        setEntries(updatedEntries);
-        if (onSave) onSave(updatedEntries);
+    const handleDeleteEntry = async (id, index) => {
+        if (window.confirm("Are you sure you want to delete this entry?")) {
+            try {
+                await axios.delete(`${apiUrl}${id}`);
+                const updatedEntries = entries.filter((_, idx) => idx !== index);
+                setEntries(updatedEntries);
+                if (onSave) onSave(updatedEntries);
+            } catch (err) {
+                setError('Failed to delete the entry. Please try again.');
+                console.error('Error deleting entry:', err);
+            }
+        }
     };
 
     return (
         <div className="visual-qa-form">
             {entries.map((entry, index) => (
-                <div key={index} className="qa-entry">
+                <div key={entry.id || index} className="qa-entry">
                     <div className="question">{entry.question}</div>
                     <div className="answer">{entry.answer}</div>
-                    <button onClick={() => handleDeleteEntry(index)}>Delete</button>
+                    <button onClick={() => handleDeleteEntry(entry.id, index)}>Delete</button>
                 </div>
             ))}
             <div className="new-entry">
