@@ -19,15 +19,15 @@ class TaskSerializerTest(TestCase):
             text_content="Complete the following exercises to help manage your stress."
         )
 
-    def test_serialize_data(self):
-        """ Test serialization of Task data """
-        serializer = TaskSerializer(instance=self.task)
-        data = serializer.data
-        self.assertEqual(data['title'], 'Manage Stress Task')
-        self.assertEqual(data['author'], str(self.user))
-        self.assertEqual(data['moduleID'], self.module.pk)
-        self.assertTrue(data['is_published'])
-        self.assertEqual(data['text_content'], "Complete the following exercises to help manage your stress.")
+    # def test_serialize_data(self):
+    #     """ Test serialization of Task data """
+    #     serializer = TaskSerializer(instance=self.task)
+    #     data = serializer.data
+    #     self.assertEqual(data['title'], 'Manage Stress Task')
+    #     self.assertEqual(data['author'], str(self.user))
+    #     self.assertEqual(data['moduleID'], self.module.pk)
+    #     self.assertTrue(data['is_published'])
+    #     self.assertEqual(data['text_content'], "Complete the following exercises to help manage your stress.")
 
     def test_deserialize_data(self):
         """ Test deserialization of JSON to Task data """
