@@ -49,7 +49,7 @@ const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
     return (
         <div className="quiz-container">
             {entries.map((entry, index) => (
-                <div key={entry.id || index} className="flashcard">
+                <div key={entry.id || index} className="qa-entry flashcard">
                     <div className="card-front">
                         <div className="card-content">
                             <strong>Question:</strong> {entry.question}
@@ -87,7 +87,7 @@ const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
                     />
                 </div>
                 <div className="form-actions">
-                    <button onClick={handleAddEntry} className="btn-primary">Add</button>
+                    <button onClick={handleAddEntry} className="btn-primary">Add Question and Answer Pair</button>
                 </div>
             </div>
             {error && <div className="error-message">{error}</div>}
