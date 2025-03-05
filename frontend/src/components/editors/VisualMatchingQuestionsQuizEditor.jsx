@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import '../../styles/VisualMatchingQuestionsEditor.css'
 
 const VisualMatchingQuestionsQuizEditor = () => {
     const apiUrl = 'http://localhost:8000/api/matching_questions/';
