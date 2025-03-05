@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -26,6 +26,8 @@ router.register(r'infosheets', InfoSheetViewSet, basename='infosheet')
 router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'question_answer_forms', QuestionAnswerFormViewSet)
+router.register(r'matching_questions', MatchingQuestionQuizViewSet)
+
 
 
 
