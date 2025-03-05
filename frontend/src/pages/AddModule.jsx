@@ -8,6 +8,7 @@ import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 
 import "../styles/AddModule.css";
+import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
 
 const AddModule = () => {
   const [title, setTitle] = useState("");
@@ -37,7 +38,8 @@ const AddModule = () => {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
-    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'}
+    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'},
+    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'text_input'}
   };
 
   // For development, use a prototype author

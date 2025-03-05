@@ -5,7 +5,15 @@ import '../../styles/VisualQuestionAndAnswerFormEditor.css';
 const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
     const apiUrl = 'http://localhost:8000/api/question_answer_forms/';
     const [entries, setEntries] = useState([]);
-    const [newEntry, setNewEntry] = useState({ question: '', answer: '' });
+    const [newEntry, setNewEntry] = useState({
+        title: 'Question and Answer Form', 
+        description: 'Allows a Question and its corresponding answer to be filled in',
+        isPublished: false, // Tracks publication status
+        question: '',
+        answer: '',
+        moduleId: '',
+        author:'' 
+    });
     const [error, setError] = useState('');
 
     const handleInputChange = (event) => {
@@ -19,10 +27,23 @@ const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
             return;
         }
         try {
-            const response = await axios.post(apiUrl, newEntry);
+            const { title, description, isPublished, question, answer, moduleId } = newEntry;
+            const response = await axios.post(apiUrl, {
+                title,
+                description,
+                isPublished,
+                question,
+                answer,
+                moduleId,
+                author
+            });
             if (response.data) {
                 setEntries([...entries, response.data]);
-                setNewEntry({ question: '', answer: '' });
+                setNewEntry({
+                    ...newEntry,
+                    question: '',
+                    answer: ''
+                }); 
                 setError('');
                 if (onSave) onSave([...entries, response.data]);
             }
@@ -93,7 +114,7 @@ const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
             {error && <div className="error-message">{error}</div>}
         </div>
     );
-
 };
 
 export default VisualQuestionAndAnswerFormEditor;
+
