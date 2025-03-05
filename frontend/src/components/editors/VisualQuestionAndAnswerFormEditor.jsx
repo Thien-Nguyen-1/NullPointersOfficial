@@ -1,120 +1,95 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import '../../styles/VisualQuestionAndAnswerFormEditor.css';
 
-const VisualQuestionAndAnswerFormEditor = ({ onSave }) => {
-    const apiUrl = 'http://localhost:8000/api/question_answer_forms/';
-    const [entries, setEntries] = useState([]);
-    const [newEntry, setNewEntry] = useState({
-        title: 'Question and Answer Form', 
-        description: 'Allows a Question and its corresponding answer to be filled in',
-        isPublished: false, // Tracks publication status
+const ModuleAndQAForm = () => {
+    const [moduleData, setModuleData] = useState({
+        title: '',
+        description: ''
+    });
+    const [questionData, setQuestionData] = useState({
         question: '',
         answer: '',
-        moduleId: '',
-        author:'' 
+        moduleId: '',  // This will be set after the module is created
     });
     const [error, setError] = useState('');
 
-    const handleInputChange = (event) => {
+    const handleModuleChange = (event) => {
         const { name, value } = event.target;
-        setNewEntry({ ...newEntry, [name]: value });
+        setModuleData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleAddEntry = async () => {
-        if (!newEntry.question || !newEntry.answer) {
-            setError('Both question and answer fields are required.');
+    const handleQuestionChange = (event) => {
+        const { name, value } = event.target;
+        setQuestionData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const createModule = async () => {
+        try {
+            const response = await axios.post('http://localhost:8000/api/modules/', moduleData);
+            setQuestionData(prev => ({ ...prev, moduleId: response.data.id })); // Store the module ID
+            return response.data.id;
+        } catch (error) {
+            setError('Failed to create module');
+            console.error('Error creating module:', error);
+        }
+    };
+
+    const createQuestionAnswer = async () => {
+        if (!questionData.moduleId) {
+            setError('Module ID is required');
             return;
         }
+
         try {
-            const { title, description, isPublished, question, answer, moduleId } = newEntry;
-            const response = await axios.post(apiUrl, {
-                title,
-                description,
-                isPublished,
-                question,
-                answer,
-                moduleId,
-                author
-            });
-            if (response.data) {
-                setEntries([...entries, response.data]);
-                setNewEntry({
-                    ...newEntry,
-                    question: '',
-                    answer: ''
-                }); 
-                setError('');
-                if (onSave) onSave([...entries, response.data]);
-            }
-        } catch (err) {
-            setError('Failed to save the entry. Please try again.');
-            console.error('Error adding entry:', err);
+            await axios.post('http://localhost:8000/api/question_answer_forms/', questionData);
+        } catch (error) {
+            setError('Failed to create question and answer');
+            console.error('Error creating question and answer:', error);
         }
     };
 
-    const handleDeleteEntry = async (id, index) => {
-        if (window.confirm("Are you sure you want to delete this entry?")) {
-            try {
-                await axios.delete(`${apiUrl}${id}`);
-                const updatedEntries = entries.filter((_, idx) => idx !== index);
-                setEntries(updatedEntries);
-                if (onSave) onSave(updatedEntries);
-            } catch (err) {
-                setError('Failed to delete the entry. Please try again.');
-                console.error('Error deleting entry:', err);
-            }
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const moduleId = await createModule();
+        if (moduleId) {
+            createQuestionAnswer();
         }
     };
 
     return (
-        <div className="visual-qa-form ">
-            {entries.map((entry, index) => (
-                <div key={entry.id || index} className="qa-entry flashcard">
-                    <div className="card-front">
-                        <div className="card-content">
-                            <strong>Question:</strong> {entry.question}
-                        </div>
-                    </div>
-                    <div className="card-back">
-                        <div className="card-content">
-                            <strong>Answer:</strong> {entry.answer}
-                        </div>
-                        <button onClick={() => handleDeleteEntry(entry.id, index)} className="nav-button">Delete</button>
-                    </div>
-                </div>
-            ))}
-            <div className="new-entry">
-                <div className="form-group">
-                    <label>Question</label>
-                    <input
-                        type="text"
-                        name="question"
-                        value={newEntry.question}
-                        onChange={handleInputChange}
-                        placeholder="Enter question"
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Answer</label>
-                    <input
-                        type="text"
-                        name="answer"
-                        value={newEntry.answer}
-                        onChange={handleInputChange}
-                        placeholder="Enter answer"
-                        required
-                    />
-                </div>
-                <div className="form-actions">
-                    <button onClick={handleAddEntry} className="button">+</button>
-                </div>
-            </div>
-            {error && <div className="error-message">{error}</div>}
-        </div>
+        <form onSubmit={handleSubmit}>
+            <h2>Create Module</h2>
+            <input
+                name="title"
+                value={moduleData.title}
+                onChange={handleModuleChange}
+                placeholder="Module Title"
+            />
+            <textarea
+                name="description"
+                value={moduleData.description}
+                onChange={handleModuleChange}
+                placeholder="Module Description"
+            />
+            <h2>Create Question and Answer</h2>
+            <input
+                name="question"
+                value={questionData.question}
+                onChange={handleQuestionChange}
+                placeholder="Question"
+            />
+            <input
+                name="answer"
+                value={questionData.answer}
+                onChange={handleQuestionChange}
+                placeholder="Answer"
+            />
+            <button type="submit">Submit</button>
+            {error && <p>{error}</p>}
+        </form>
     );
 };
 
-export default VisualQuestionAndAnswerFormEditor;
+export default ModuleAndQAForm;
+
 
