@@ -309,6 +309,9 @@ const CreateModule = () => {
             setSelectedElements([]);
             setFinalModuleTitle(''); // Reset module title
             setFinalModuleDesc('');
+            // Additional resets to clear input fields
+            setModuleTitle('');
+            setModuleDesc('');
         } catch (error) {
             console.error("Publish error:", error.response ? error.response.data : error.message);
             setPublishMessage("Failed to publish module. Please try again.");
