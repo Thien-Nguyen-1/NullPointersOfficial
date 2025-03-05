@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const ModuleAndQAForm = () => {
+const VisualQuestionAndAnswerFormEditor = ({ authorId }) => {  // Assuming `authorId` is passed as a prop or otherwise available
     const [moduleData, setModuleData] = useState({
         title: '',
-        description: ''
+        description: '',
+        author: authorId  // Set the author for the module
     });
     const [questionData, setQuestionData] = useState({
         question: '',
         answer: '',
-        moduleId: '',  // This will be set after the module is created
+        moduleId: '',
+        author: authorId  // Set the author for the question and answer form
     });
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        // If authorId is not hardcoded, fetch it or ensure it's available here
+        setModuleData(m => ({ ...m, author: authorId }));
+        setQuestionData(q => ({ ...q, author: authorId }));
+    }, [authorId]);
 
     const handleModuleChange = (event) => {
         const { name, value } = event.target;
@@ -90,6 +98,7 @@ const ModuleAndQAForm = () => {
     );
 };
 
-export default ModuleAndQAForm;
+export default VisualQuestionAndAnswerFormEditor;
+
 
 
