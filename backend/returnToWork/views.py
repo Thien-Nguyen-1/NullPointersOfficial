@@ -1,8 +1,8 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
+from .models import ProgressTracker,Tags,Module,Content, Questionnaire, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer, QuestionnaireSerializer, ContentPublishSerializer, RankingQuestionSerializer, InlinePictureSerializer, AudioClipSerializer, DocumentSerializer, EmbeddedVideoSerializer
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -11,6 +11,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from returnToWork.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class ProgressTrackerView(APIView):
 
@@ -96,19 +98,15 @@ class PasswordResetView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class TagViewSet(viewsets.ModelViewSet):
-    
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
 
 class ModuleViewSet(viewsets.ModelViewSet):
-    
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
 
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
-    
-    
     # permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         """Fetch the first question or a specific question"""
@@ -160,19 +158,25 @@ class QuestionnaireView(APIView):
             # returns error if not (realistically should never run)
             return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
 
-class InfoSheetViewSet(viewsets.ModelViewSet):
-    queryset = InfoSheet.objects.all()
-    serializer_class = InfoSheetSerializer
+class RankingQuestionViewSet(viewsets.ModelViewSet):
+    queryset = RankingQuestion.objects.all()
+    serializer_class = RankingQuestionSerializer
 
+class InlinePictureViewSet(viewsets.ModelViewSet):
+    queryset = InlinePicture.objects.all()
+    serializer_class = InlinePictureSerializer
 
-class VideoViewSet(viewsets.ModelViewSet):
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer   
+class AudioClipViewSet(viewsets.ModelViewSet):
+    queryset = AudioClip.objects.all()
+    serializer_class = AudioClipSerializer
 
- 
-class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
-    serializer_class = TaskSerializer  
+class DocumentViewSet(viewsets.ModelViewSet):
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
+
+class EmbeddedVideoViewSet(viewsets.ModelViewSet):
+    queryset = EmbeddedVideo.objects.all()
+    serializer_class = EmbeddedVideoSerializer
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]  
@@ -235,4 +239,21 @@ class DeleteServiceUserView(generics.DestroyAPIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+class ContentPublishView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        # If the user is not authenticated, assign the default user
+        user = request.user if request.user.is_authenticated else User.objects.get(username="default_user")
+        serializer = ContentPublishSerializer(
+            data=request.data,
+            context={'request': request}
+        )
 
+        if serializer.is_valid():
+            module = serializer.save()
+            return Response({
+                'message': 'Module published successfully',
+                'module_id': module.id
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

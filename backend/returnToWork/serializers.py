@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
+from .models import ProgressTracker,Tags,User,Module,Content, Questionnaire, RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip
 from django.contrib.auth import authenticate, get_user_model
-
+from django.core.files.base import ContentFile
+import uuid
+import base64
 
 User = get_user_model()
 
@@ -92,30 +94,120 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id','tag','modules']
 
 class ContentSerializer(serializers.ModelSerializer):
-    
     author = serializers.StringRelatedField() 
     moduleID = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
-
     class Meta:
         model = Content
         fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
         read_only_fields = ['contentID', 'created_at', 'updated_at']
 
-class InfoSheetSerializer(ContentSerializer):
-
-    class Meta(ContentSerializer.Meta):
-        model = InfoSheet
-        fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
-
-class VideoSerializer(ContentSerializer):
-
-    class Meta(ContentSerializer.Meta):
-        model = Video
-        fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
-
-class TaskSerializer(ContentSerializer):
-
+class RankingQuestionSerializer(ContentSerializer):
     class Meta:
-        model = Task
-        fields  = ContentSerializer.Meta.fields + ['text_content']        
+        model = RankingQuestion
+        fields  = ContentSerializer.Meta.fields + ['tiers']
 
+class InlinePictureSerializer(ContentSerializer):
+    class Meta:
+        model = InlinePicture
+        fields  = ContentSerializer.Meta.fields + ['image_file']
+
+class AudioClipSerializer(ContentSerializer):
+    class Meta:
+        model = AudioClip
+        fields  = ContentSerializer.Meta.fields + ['audio_file']
+
+class DocumentSerializer(ContentSerializer):
+    class Meta:
+        model = Document
+        fields  = ContentSerializer.Meta.fields + ['documents']
+
+class EmbeddedVideoSerializer(ContentSerializer):
+    class Meta:
+        model = EmbeddedVideo
+        fields  = ContentSerializer.Meta.fields + ['video_url']
+
+class ContentPublishSerializer(serializers.Serializer):
+    """Serializer to handle module and content creation"""
+    title = serializers.CharField(max_length=255)
+    description = serializers.CharField(required=False, allow_blank=True)
+    elements = serializers.ListField()
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        # Use the authenticated user if available; otherwise, assign default user
+        if request.user.is_authenticated:
+            user = request.user
+        else:
+            User = get_user_model()
+            try:
+                user = User.objects.get(username="default_user")
+            except User.DoesNotExist:
+                raise serializers.ValidationError("Default user is not set up.")
+
+        # Create Module
+        module = Module.objects.create(
+            title=validated_data['title'],
+            description=validated_data.get('description', ''),
+            pinned=False,
+            upvotes=0,
+        )
+
+        # Process each element in the payload
+        for element in validated_data['elements']:
+            content_type = element.get('type')
+
+            if content_type == 'Ranking Question':
+                RankingQuestion.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    tiers=element.get('data', []),
+                    is_published=True
+                )
+
+            elif content_type == 'Inline Picture':
+                # Data expected in format "data:<mime>;base64,<encoded_data>"
+                format, imgstr = element['data'].split(';base64,')
+                ext = format.split('/')[-1]
+                data = ContentFile(base64.b64decode(imgstr), name=f'{uuid.uuid4()}.{ext}')
+
+                InlinePicture.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    image_file=data,
+                    is_published=True
+                )
+
+            elif content_type == 'Audio Clip':
+                format, audiostr = element['data'].split(';base64,')
+                ext = format.split('/')[-1]
+                data = ContentFile(base64.b64decode(audiostr), name=f'{uuid.uuid4()}.{ext}')
+
+                AudioClip.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', 'Audio Clip'),
+                    audio_file=data,
+                    is_published=True
+                )
+
+            elif content_type == 'Attach PDF':
+                Document.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    documents=element.get('data', []),
+                    is_published=True
+                )
+
+            elif content_type == 'Embedded Video':
+                EmbeddedVideo.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    video_url=element.get('data'),
+                    is_published=True
+                )
+
+        return module

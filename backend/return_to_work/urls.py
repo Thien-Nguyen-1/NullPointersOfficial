@@ -17,15 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
-router.register(r'infosheets', InfoSheetViewSet, basename='infosheet')
-router.register(r'videos', VideoViewSet, basename='video')
-router.register(r'tasks', TaskViewSet, basename='task')
-
+router.register(r'ranking-question', RankingQuestionViewSet, basename='ranking-question')
+router.register(r'inline-picture', InlinePictureViewSet, basename='inline-picture')
+router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
+router.register(r'document',DocumentViewSet , basename='document')
+router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
 
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView
 urlpatterns = [
@@ -41,4 +42,5 @@ urlpatterns = [
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
     path("service-users/", ServiceUserListView.as_view(), name="service-users-list"),
     path("service-users/<str:username>/", DeleteServiceUserView.as_view(), name="delete-service-user"),
+    path('api/publish-module/', ContentPublishView.as_view(), name='publish-module'),
 ]

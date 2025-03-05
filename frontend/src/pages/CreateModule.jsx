@@ -1,6 +1,11 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const CreateModule = () => {
+    const [ModuleTitle, setModuleTitle] = useState("");
+    const [finalModuleTitle, setFinalModuleTitle] = useState("");
+    const [ModuleDesc, setModuleDesc] = useState("");
+    const [finalModuleDesc, setFinalModuleDesc] = useState("");
     const [selectedElements, setSelectedElements] = useState([]); // List of added elements
     const [selectedOption, setSelectedOption] = useState(""); // Current selection
     const [rankingTiers, setRankingTiers] = useState(0); // Number of tiers for Ranking Question
@@ -41,7 +46,7 @@ const CreateModule = () => {
             setDocumentTitles({});
             setUploadedDocumentsTitle("");
         } else if (value === "Embedded Video") {
-            setUploadedVideoURL(null); // Reset previous uploads
+            setUploadedVideoURL(""); // Reset previous uploads
             setUploadedVideoTitle("");
         }
     };
@@ -163,6 +168,22 @@ const CreateModule = () => {
         document.body.removeChild(link);
     };
 
+    const handleModuleTitle = () => {
+        if (ModuleTitle.trim() === "") {
+            alert("Please enter a module title.");
+            return;
+        }
+        setFinalModuleTitle(ModuleTitle);
+    };
+
+    const handleModuleDesc = () => {
+        if (ModuleDesc.trim() === "") {
+            alert("Please enter a module description.");
+            return;
+        }
+        setFinalModuleDesc(ModuleDesc);
+    };
+
 
     // Function to add selected element
     const handleAddElement = () => {
@@ -253,6 +274,12 @@ const CreateModule = () => {
     };
 
     const handlePublishModule = async () => {
+        // Validate module title
+        if (!finalModuleTitle) {
+            alert("Please enter a module title before publishing.");
+            return;
+        }
+        // Validate at least one element exists
         if (selectedElements.length === 0) {
             alert("Module must have at least one element before publishing.");
             return;
@@ -260,13 +287,31 @@ const CreateModule = () => {
 
         try {
             const response = await axios.post("http://127.0.0.1:8000/api/publish-module/", {
-                elements: selectedElements
+                title: finalModuleTitle,
+                description: finalModuleDesc || '',
+                elements: selectedElements.map(element => ({
+                    type: element.type,
+                    title: element.title || '',
+                    data: element.type === 'Ranking Question' ? element.data :
+                           element.type === 'Inline Picture' ? element.data :
+                           element.type === 'Audio Clip' ? element.data :
+                           element.type === 'Attach PDF' ? element.data :
+                           element.type === 'Embedded Video' ? element.data :
+                           element.data
+                }))
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}` // Assuming you're using token-based auth
+                }
             });
 
-            setPublishMessage("Module published successfully!"); // Success Message
-            setSelectedElements([]); // Clear elements after publishing
+            setPublishMessage("Module published successfully!");
+            setSelectedElements([]);
+            setFinalModuleTitle(''); // Reset module title
+            setFinalModuleDesc('');
         } catch (error) {
-            setPublishMessage("Failed to publish module. Please try again."); // Error Message
+            console.error("Publish error:", error.response ? error.response.data : error.message);
+            setPublishMessage("Failed to publish module. Please try again.");
         }
     };
 
@@ -274,21 +319,58 @@ const CreateModule = () => {
         <div>
             <h1>Module Builder</h1>
 
+            {/* Display module title & description if set */}
+            {finalModuleTitle && <h2>Module Title: {finalModuleTitle}</h2>}
+            {finalModuleDesc && <p>Module Description : {finalModuleDesc}</p>}
+
+            <div style={{ display: "flex", width: "100%" }}>
+                <input
+                    type="text"
+                    placeholder="Enter Title Module"
+                    value={ModuleTitle}
+                    onChange={(e) => setModuleTitle(e.target.value)}
+                    style={{ padding: "5px", flexGrow: 1 }}
+                />
+                <button
+                    onClick={handleModuleTitle}
+                    style={{ marginLeft: "10px", padding: "5px", cursor: "pointer" }}
+                >
+                    Set Module Title
+                </button>
+            </div>
+            <div style={{ marginTop: "10px", display: "flex", width: "100%" }} >
+                <input
+                        type="text"
+                        placeholder="Enter Title Description"
+                        value={ModuleDesc}
+                        onChange={(e) => setModuleDesc(e.target.value)}
+                        style={{ padding: "5px", flexGrow: 1 }}
+                    />
+                    <button
+                        onClick={handleModuleDesc}
+                        style={{ marginLeft: "10px", padding: "5px", cursor: "pointer" }}
+                    >
+                        Set Module Description
+                    </button>
+            </div>
+
             {/* Dropdown Menu */}
-            <label htmlFor="moduleOptions">Select an element to add next: </label>
-            <select
-                id="moduleOptions"
-                value={selectedOption}
-                onChange={handleSelectOption}
-                style={{ marginLeft: "10px", padding: "5px" }}
-            >
-                <option value="">-- Select --</option>
-                <option value="Ranking Question">Ranking Question</option>
-                <option value="Inline Picture">Inline Picture</option>
-                <option value="Audio Clip">Audio Clip</option>
-                <option value="Attach PDF">Attach PDF / Documents / Infosheet</option>
-                <option value="Embedded Video">Embedded Video</option>
-            </select>
+            <div style={{ marginTop: "20px"}}>
+                <label htmlFor="moduleOptions">Select an element to add next: </label>
+                <select
+                    id="moduleOptions"
+                    value={selectedOption}
+                    onChange={handleSelectOption}
+                    style={{ marginLeft: "10px", padding: "5px" }}
+                >
+                    <option value="">-- Select --</option>
+                    <option value="Ranking Question">Ranking Question</option>
+                    <option value="Inline Picture">Inline Picture</option>
+                    <option value="Audio Clip">Audio Clip</option>
+                    <option value="Attach PDF">Attach PDF / Documents / Infosheet</option>
+                    <option value="Embedded Video">Embedded Video</option>
+                </select>
+            </div>
 
             {/* Upload Button for Inline Picture */}
             {selectedOption === "Inline Picture" && (

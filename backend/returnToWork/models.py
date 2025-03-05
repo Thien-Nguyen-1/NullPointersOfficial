@@ -75,7 +75,6 @@ class Module(models.Model):
     description = models.TextField()
     id = models.AutoField(primary_key=True)  
     tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
-
     pinned = models.BooleanField(default=False)  
     upvotes = models.PositiveIntegerField(default=0) 
 
@@ -172,9 +171,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.full_name()} - {self.username} - {self.user_id}"
-    
-
-
 
 class ProgressTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -188,10 +184,8 @@ class ProgressTracker(models.Model):
 # Model for Content
 # Parent class for ALL Content Types
 class Content(models.Model):
-    # Primary Key
-    # generate a unique identifier, cannot be manually changed, must be unique
-    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=255)
+    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, auto_created=True)
+    title = models.CharField(max_length=255, null=True)
     moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="%(class)s_contents")  # Link to Module (later)
     author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="%(class)s_author_contents")
     description = models.TextField(blank=True, null=True)
@@ -205,19 +199,24 @@ class Content(models.Model):
     def __str__(self):
         return self.title
 
-# Extend Content class
-class InfoSheet(Content):
-    infosheet_file= models.FileField(upload_to="infosheets/")
-    infosheet_content = models.TextField(blank=True, null=True)
 
-class Video(Content):
-    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    video_file= models.FileField(upload_to="videos/")
-    duration= models.PositiveBigIntegerField()
-    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+class RankingQuestion(Content):
+    """Model for Ranking Question content type"""
+    tiers = models.JSONField()
 
-class Task(Content):
-    text_content= models.TextField()
+class InlinePicture(Content):
+    """Model for Inline Picture content type"""
+    image_file = models.ImageField(upload_to="inline_pictures/")
 
+class AudioClip(Content):
+    """Model for Audio Clip content type"""
+    audio_file = models.FileField(upload_to="audio_clips/")
 
+class Document(Content):
+    """Model for Attach PDF/Documents/Infosheet content type"""
+    documents = models.JSONField()  # Stores document metadata as JSON
+    # Each document will have: name, title, url, fileType
 
+class EmbeddedVideo(Content):
+    """Model for Embedded Video content type"""
+    video_url = models.URLField()
