@@ -88,8 +88,9 @@ return (
       <h1>Change Password</h1>
 
       <div>
-        <label>Old Password:   </label>
+        <label htmlFor="old_password">Old Password:   </label>
         <input
+          id = "old_password"
           type="password"
           // placeholder="Old Password"
           value={passwordData.old_password}
@@ -98,8 +99,9 @@ return (
       </div>
 
       <div>
-        <label>New Password:   </label>
+        <label htmlFor="new_password">New Password:   </label>
         <input
+          id = "new_password"
           type="password"
           // placeholder="New Password"
           value={passwordData.new_password}
@@ -108,8 +110,9 @@ return (
       </div>
 
       <div className="extra-space">
-        <label>Confirm New Password:   </label>
+        <label htmlFor="confirm_new_password">Confirm New Password:   </label>
         <input
+          id = "confirm_new_password"
           type="password"
           // placeholder="Confirm New Password"
           value={passwordData.confirm_new_password}
@@ -118,7 +121,7 @@ return (
       </div>
 
       <button onClick={handlePasswordChange}>
-        Change Password
+        Confirm change
       </button>
     </div>
 
