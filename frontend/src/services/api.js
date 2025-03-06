@@ -4,12 +4,35 @@ import axios from 'axios';
 const baseURL =
   typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL
-    : process.env.VITE_API_URL || 'http://localhost:3000';
+    : 'http://localhost:8000';
     
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
   withCredentials: true,
 });
+
+// Generic fetch function for users
+const fetchData = async (endpoint) => {
+  try {
+    const response = await api.get(`${endpoint}/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    throw new Error(`Failed to fetch ${endpoint}`);
+  }
+};
+
+export const fetchServiceUsers = () => fetchData("service-users");
+
+export const deleteServiceUser = async (username) => {
+    try {
+        const response = await api.delete(`/service-users/${username}/`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error deleting user ${username}:`, error);
+        throw error;
+    }
+};
 
 export async function loginUser(username, password){
   try {

@@ -102,11 +102,17 @@ class Tags(models.Model):
     tag = models.CharField(max_length=50, unique=True, error_messages={ 'unique': "A tag with this name already exists." })
     modules = models.ManyToManyField('Module', related_name='tags_for_module', blank=True)
 
-
+    def clean(self):
+        # Normalize the tag to lowercase.
+        self.tag = self.tag.lower()
+        # Check for duplicate tags in a case-insensitive manner.
+        if Tags.objects.filter(tag=self.tag).exclude(pk=self.pk).exists():
+            raise ValidationError({"tag": "A tag with this name already exists."})
+        super().clean()
 
     def save(self, *args, **kwargs):
         """tag are normalised to lower case and stored"""
-        self.tag = self.tag.lower()
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

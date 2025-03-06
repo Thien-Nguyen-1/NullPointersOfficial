@@ -1,6 +1,6 @@
 import random
 from django.shortcuts import render
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
@@ -11,7 +11,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
+from returnToWork.models import User
 from rest_framework.authentication import TokenAuthentication
+
 
 class ProgressTrackerView(APIView):
 
@@ -212,7 +215,29 @@ class UserDetail(APIView):
 
         return Response(response_data)
 
+class ServiceUserListView(generics.ListAPIView):
+    """API view to get all service users"""
+    serializer_class = UserSerializer
 
+    def get_queryset(self):
+        queryset = User.objects.filter(user_type="service user")
+        # Get 'username' from query parameters
+        username = self.request.query_params.get("username", None)
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+        return queryset.prefetch_related("tags")  # Prefetch tags for efficiency
+
+class DeleteServiceUserView(generics.DestroyAPIView):
+    """API view to delete a user by username"""
+    permission_classes = [AllowAny]
+
+    def delete(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            user.delete()
+            return Response({"message": f"User with username \"{username}\" has been deleted."}, status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -245,5 +270,6 @@ class UserPasswordChangeView(APIView):
             serializer.save()
             return Response({"message": "Password uUpdated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
