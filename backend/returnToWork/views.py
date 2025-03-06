@@ -10,9 +10,15 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 
+
+
+
 class ProgressTrackerView(APIView):
 
+
     def get(self, request):
+
+        
         progressTrackerObjects = ProgressTracker.objects.all()
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
@@ -25,6 +31,7 @@ class ProgressTrackerView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
+        print(request.data)
         try:
             progress_tracker = ProgressTracker.objects.get(pk=pk)
         except ProgressTracker.DoesNotExist:
@@ -33,6 +40,24 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            #Check for upvote
+            try:
+                temp_module = Module.objects.get(id=request.data["module"])
+
+                if(request.data["hasLiked"]):
+                    temp_module.upvote()
+                else:
+                    temp_module.downvote()
+
+                temp_module.save()
+            
+            except Module.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            
+
+
+
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -104,10 +129,14 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
 
+
 class ModuleViewSet(viewsets.ModelViewSet):
     
+
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
+
+
 
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
@@ -200,7 +229,7 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-                'pinned': tracker.module.pinned,
+               # 'pinned': tracker.module.pinned,
                 'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 
@@ -220,10 +249,14 @@ class UserDetail(APIView):
 
     def put(self,request):
 
-        #If this interferes with your view let me know
+        # Works but Need To Use Seralizer - TO DO
        
         try:
             user = request.user
+
+            print("USERRR ISSSS")
+            print(user)
+
             user_serializer = UserSerializer(user)
 
             data = request.data
@@ -237,6 +270,9 @@ class UserDetail(APIView):
             tag_data = data['tags']
             
             mod_data = data['module']
+            
+            print(" ===== MODULE DATA =====")
+            print(mod_data)
 
             tags = []
             modules = []
@@ -258,6 +294,8 @@ class UserDetail(APIView):
                 if module['id']:
                     mod_instance = Module.objects.filter(id=module['id']).first()
                     if mod_instance:
+
+
                         modules.append(mod_instance)
                     else:
                         return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND) 

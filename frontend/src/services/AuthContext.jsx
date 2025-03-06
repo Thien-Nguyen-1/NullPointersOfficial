@@ -19,16 +19,19 @@ const AuthContext = createContext("")
 const AuthContextProvider = ({children}) => {
 
     const [user , setUser] = useState(null) // user data accessible across every component regardless of hierarchy
-    const [token, setToken] = useState("")
+    const [token, setToken] = useState("") 
 
 
     // Initially load user details if it exists or when re-render triggered
     useEffect( () => {
+
         const userData = JSON.parse(localStorage.getItem("user")) || null
         const userToken = localStorage.getItem("token")
 
         setUser(userData)
         setToken(userToken)
+
+
 
     }, [])
 
@@ -39,6 +42,7 @@ const AuthContextProvider = ({children}) => {
       }
         
     }, [user])
+
 
     // ===== UPADING USER ===== //
     async function updateUser(newUserObj){ //parameter must be a copy of the user 
@@ -66,6 +70,7 @@ const AuthContextProvider = ({children}) => {
     }
 
 
+
     // ===== LOGGING IN ====== //
 
     async function loginUser(username, password){
@@ -82,6 +87,9 @@ const AuthContextProvider = ({children}) => {
           
           
           setUser(response.data.user)
+          
+          console.log("USER LOADED IN")
+
 
           return response.data;
         }
@@ -94,6 +102,7 @@ const AuthContextProvider = ({children}) => {
         }
       }
     
+
 
      // ===== SIGNING IN ===== //
     
@@ -120,6 +129,7 @@ const AuthContextProvider = ({children}) => {
     }
 
 
+
     // ===== RESET PASSWORD ===== //
 
     async function ResetPassword(username, new_password , confirm_new_password){
@@ -131,7 +141,6 @@ const AuthContextProvider = ({children}) => {
           });
           
 
-
           return response.data;
         }
         catch(error) {
@@ -140,6 +149,7 @@ const AuthContextProvider = ({children}) => {
         }
       }
     
+
 
     // ===== LOGOUT USER ======
 
@@ -160,7 +170,7 @@ const AuthContextProvider = ({children}) => {
           // Clear all user-related data from localStorage
           localStorage.removeItem('user');
           localStorage.removeItem('token');
-
+          
 
           //clear state
           setUser("")
@@ -177,12 +187,14 @@ const AuthContextProvider = ({children}) => {
           localStorage.removeItem('user');
           localStorage.removeItem('token');
           window.location.href = '/';
+
           
           throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
+     
         }
     }
 
-
+                    
     return (
         // DONNOT let setUser be globally accessible, it should be done via updateUser
         <AuthContext.Provider value={{user, loginUser, logoutUser, updateUser}}>

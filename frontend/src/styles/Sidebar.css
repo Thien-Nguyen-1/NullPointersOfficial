@@ -3,7 +3,7 @@
   flex-direction: column;
   background-color: var(--secondary-green); 
   color: white;
-  height: 100vh;
+  height: 100dvh;
   width: 80px;
   position: fixed;
   left: 0;

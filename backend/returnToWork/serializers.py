@@ -8,7 +8,7 @@ User = get_user_model()
 class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
-        fields = ['id','title','description','tags','pinned','upvotes']
+        fields = ['id','title','description','tags','upvotes']
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -83,7 +83,7 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed']
+        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):

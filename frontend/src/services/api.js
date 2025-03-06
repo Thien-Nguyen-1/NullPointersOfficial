@@ -57,5 +57,54 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 };
 
 
+export async function GetModule(id){
+  try {
+
+    const response = await api.get(`/modules/${ id !== undefined ? id : ""}`)
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+
+  } catch (err){
+    throw new Error("Failed to retrieve modules")
+  }
+}
+
+export async function GetAllProgressTracker(){
+  try {
+   
+    const response = await api.get(`/api/progress-tracker/`)
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  } catch(err){
+
+    return []
+
+  }
+
+}
+
+export async function SaveProgressTracker(tracker, id){
+  try{
+
+    const response = await api.put(`/api/progress-tracker/${id}`, tracker)
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data
+
+  } catch(err){
+    return []
+  }
+}
 
 export default api 

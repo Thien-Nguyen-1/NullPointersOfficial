@@ -3,10 +3,11 @@ import "../styles/Courses.css";
 import "../App.css";
 
 import { AuthContext } from "../services/AuthContext";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
-
+import { GetModule, GetAllProgressTracker, SaveProgressTracker } from "../services/api";
+import { IoMdArrowDropupCircle } from "react-icons/io";
 
 
 
@@ -16,13 +17,48 @@ function Courses({ role }) {
     
     const [filterOption, setFilter] = useState("All Courses")
     const [active, setActiveTab] = useState("")
+    const [modules, setModules] = useState([])
+
+    const [userTracker, setTracker] = useState([])
+
+    useEffect(()=> {
+        
+        async function fetchModules(){
+            const allModules = await GetModule();
+           
+            setModules(allModules || [])
+            
+        }
+
+
+        async function fetchProgressTrackers(){
+
+            const allTrackers = await GetAllProgressTracker();
+            
+
+            if(allTrackers && user){
+                const userTrackers = allTrackers.filter( (track) => track.user == user.id )
+              
+                setTracker(userTrackers)
+             
+            }
+          
+        }
+        
+        fetchModules()
+        fetchProgressTrackers()
+       
+        
+    }, [] )
+
+
 
     const FILTER_MAP = {
-        //"All Courses": user ? user.module.map( (module, index) => <div key={index}>hi</div>  ) : (<div> No </div>),
         
-        "Your Courses": user ? (<CourseItem module={user.module[0]}/>) : (<> Unavailable Mate</>),
+      //  "Your Courses": user ? (<CourseItem module={user.module[0]} userTracker={userTracker} update_progress_tracker={update_progress_tracker}/>) : (<> Unavailable Mate</>),
+        "Your Courses": user ? render_user_list() : (<div>NOHING</div>),
 
-        "All Courses": user ? (<></>) : (<div>NOHING</div>),
+        "All Courses": user ? render_list(modules) : (<div>NOHING</div>),
 
         "Popular" : (<div></div>),
 
@@ -34,20 +70,53 @@ function Courses({ role }) {
         setFilter(option)
     }
 
-    function render_list(){
+    function render_user_list(){
+        
+        const user_mods = userTracker
+            .map( (trck) => modules.filter( (mod) => trck.module === mod.id)).flat()
+          
+       
+        render_list(user_mods)
+    }
+
+    function render_list(mods){
+
+        return mods.map( (module) => (
+            
+            <CourseItem 
+                key={module.id} 
+                module={module} 
+                userTracker={userTracker}
+                update_progress_tracker = {update_progress_tracker}
+            
+            />
+        ))
 
     }
 
-    function handle_module_select(){
+    async function update_progress_tracker(tracker){
+        if(tracker){
+            console.log("SAVING progress")
+            console.log(tracker)
+            const response = await SaveProgressTracker(tracker, tracker.id)
 
+            if(response){
+                console.log(response)
+            }
+
+
+        }
     }
 
+
+
+    
     return (
 
         <div className="course-container mt-2">
-
+           
             <h1 className="page-title"> Your Tags </h1>
-            {console.log(user)}
+           
             <section className="tag-course-container mb-2 ">
         
                 {user && (
@@ -70,10 +139,11 @@ function Courses({ role }) {
             <section className="course-selection-container">
 
                 <h1 className="page-title">Courses</h1>
-
+                
                 <div className="filter-container">
                     
                     <div className="tabs-filter">
+
                         {Object.keys(FILTER_MAP).map( (option, index) => (
                             <button key={index} 
                                     onClick={() => handle_option_chosen(option, index)}
@@ -81,6 +151,7 @@ function Courses({ role }) {
                                     
                             > {option} </button>
                         ))}
+
                     </div>
 
                 </div>

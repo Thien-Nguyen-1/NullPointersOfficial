@@ -11,9 +11,16 @@ function Module2(){
             <h1 className="page-title">Worker Dashboard</h1>
     
             {/* Stats, Tasks for module 2, and Chart Components */}
+
             <StatsCards />
+
             <KnowValuesTaskList/>
+
+           
+
             <LearningChart />
+
+
     </div>
 
 

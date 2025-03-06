@@ -71,13 +71,13 @@ class Questionnaire(models.Model):
 
 
 class Module(models.Model):
+
     title = models.CharField(max_length=255)
     description = models.TextField()
     id = models.AutoField(primary_key=True)  
     tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
 
-    pinned = models.BooleanField(default=False)  
-    upvotes = models.PositiveIntegerField(default=0) 
+    upvotes = models.PositiveIntegerField(default=0)  
 
     def upvote(self):
         self.upvotes += 1
@@ -156,24 +156,30 @@ class User(AbstractUser):
 
     class Meta:
         """Model options."""
-
         ordering = ['first_name', 'last_name']
+
 
     def full_name(self):
         """Return a string containing the user's full name."""
 
         return f'{self.first_name} {self.last_name}'
+    
 
     def __str__(self):
+
         return f"{self.full_name()} - {self.username} - {self.user_id}"
     
 
 
-
 class ProgressTracker(models.Model):
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
+
+    pinned = models.BooleanField(default=False)  
+    hasLiked = models.BooleanField(default=False)
+
     
     def __str__(self):
         return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
@@ -181,9 +187,11 @@ class ProgressTracker(models.Model):
 
 # Model for Content
 # Parent class for ALL Content Types
+    
 class Content(models.Model):
     # Primary Key
     # generate a unique identifier, cannot be manually changed, must be unique
+
     contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255)
     moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="%(class)s_contents")  # Link to Module (later)
@@ -192,6 +200,7 @@ class Content(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     is_published= models.BooleanField(default=False)
+
     
 
     class Meta:

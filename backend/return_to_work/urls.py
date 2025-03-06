@@ -27,7 +27,7 @@ router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 
 
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail
+from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ModuleViewSet
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/signup/', SignUpView.as_view(), name= 'signup'),
     path('api/profile/', UserProfileView.as_view(), name= 'profile'),
     path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
+    path('api/progress-tracker/<int:pk>', ProgressTrackerView.as_view(), name='progress-tracker'),
     path('api/user/', UserDetail.as_view(), name='user-detail'),
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
