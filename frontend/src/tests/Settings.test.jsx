@@ -46,9 +46,9 @@ test("get and display user settings", async() => {
 //             <Settings/>
 //         </MemoryRouter>
 //     );
-//     fireEvent.change(screen.getByPlaceholderText(/Old Password/i), {target: {value: "oldpassword"}});
-//     fireEvent.change(screen.getByLabelText(/New Password/i), {target: {value: "newpassword"}});
-//     fireEvent.change(screen.getByLabelText(/Confirm New Password/i), {target: {value: "newpassword"}});
+//     fireEvent.change(screen.getByLabelText(/Old Password:   /i), {target: {value: ""}});
+//     fireEvent.change(screen.getByLabelText(/New Password:  /i), {target: {value: ""}});
+//     fireEvent.change(screen.getByLabelText(/Confirm New Password:   /i), {target: {value: ""}});
 
 //     await act(async() => fireEvent.click(screen.getByText(/Change Password/i)));
 
