@@ -27,7 +27,7 @@ router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 
 
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),

@@ -4,14 +4,15 @@ import axios from 'axios';
 const baseURL =
   typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000'; // Fallback to localhost if no environment variable is found
+    : 'http://localhost:8000'; 
 
-    : 'http://localhost:8000';
     
 const api = axios.create({
   baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
+
+//Anything affiliated with the model User, please make amendments to AuthContext.jsx
 
 // Generic fetch function for users
 const fetchData = async (endpoint) => {
@@ -142,48 +143,7 @@ export async function deleteUserSettings(){
   }
 }
 
-export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
-  try{
-    const token = localStorage.getItem("token");
-    const response = await api.put(`worker/password-change/`, {
-    old_password:  oldPassword,
-    new_password: newPassword,
-    confirm_new_password: confirmNewPassword,
-    
-    } , {
-      headers: {
-        'Authorization': `Token ${token}`
-      }
-    });
-    return response.data;
-  }
-  catch(error){
-    throw new Error ("Failed to change password");
-  }
-}
 
-
-
-
-
-
-
-export async function GetAllProgressTracker(){
-  try {
-    // Get the token from localStorage
-    
-    const token = localStorage.getItem('token');
-    const response = await api.delete(`/worker/settings/`, {
-      headers: {
-        'Authorization': `Token ${token}`
-      }
-    });
-    return response.data;
-  }
-  catch(error){
-    throw new Error ("Failed to delete user account");
-  }
-}
 
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
@@ -202,6 +162,7 @@ export async function changeUserPassword(oldPassword, newPassword, confirmNewPas
   }
   catch(error){
     throw new Error ("Failed to change password");
+    
   }
 }
 

@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
 
    # tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(), many=True) #serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
     module = ModuleSerializer(many=True)
-    tags = TagSerializer(many=True)
+   # tags = TagSerializer(many=True)
 
     class Meta:
         model = User

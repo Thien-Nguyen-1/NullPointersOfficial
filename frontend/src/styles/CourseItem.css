@@ -9,7 +9,7 @@
     border-radius: 0.7rem;
     padding: 0.8rem;
     margin-bottom: 1rem;
-    
+
     svg {
         border: none;
         scale: 1.5;
@@ -28,9 +28,12 @@
 
 .course-opt-container .like-container {
     display: inherit;
+    align-items: center;
     gap: 0.3rem;
     
-
+    p {
+        margin-bottom: 0.2rem;
+    }
    
 }
 
