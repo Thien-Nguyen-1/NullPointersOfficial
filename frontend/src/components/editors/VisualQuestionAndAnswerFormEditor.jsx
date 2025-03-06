@@ -74,8 +74,8 @@ const VisualQuestionAndAnswerFormEditor = () => {
         <div ref={qaEditorRef}>
             {entries.map((entry, index) => (
                 <div key={index} className="qa-entry">
-                    <div>Question: {entry.question}</div>
-                    <div>Answer: {entry.answer}</div>
+                    <div className="question-answer-container">Question: {entry.question}</div>
+                    <div className="question-answer-container">Answer: {entry.answer}</div>
                     <button onClick={() => handleRemoveEntry(entry.contentID)}>Remove</button>
                 </div>
             ))}
