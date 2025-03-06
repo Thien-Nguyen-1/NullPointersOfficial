@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../styles/VisualQuestionAndAnswerFormEditor.css';
-
+const editorRefs = useRef({
+    ...editorRefs.current,
+    qaEditor: useRef(null) // This will hold a reference to your Q&A editor
+  });
 const VisualQuestionAndAnswerFormEditor = () => {
     const authorId = 1;
     const [modules, setModules] = useState([]);
