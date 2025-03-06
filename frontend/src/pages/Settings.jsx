@@ -129,9 +129,9 @@ return (
     </div>
 
     {showModal && (
-      <div>
-        <div>
-          <h2>Confirm Deletion</h2>
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h1>Confirm Deletion</h1>
           <p>Are you sure you want to delete your account? This action cannot be undone.</p>
           <div className="modal-buttons">
             <button onClick={() => setShowModal(false)}>
