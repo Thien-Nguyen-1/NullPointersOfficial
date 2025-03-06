@@ -1,54 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import '../../styles/VisualQuestionAndAnswerFormEditor.css';
 
-const VisualQuestionAndAnswerFormEditor = ({ authorId }) => {  // Assuming `authorId` is passed as a prop or otherwise available
-    const [moduleData, setModuleData] = useState({
-        title: '',
-        description: '',
-        author: authorId  // Set the author for the module
-    });
+const VisualQuestionAndAnswerFormEditor = () => {
+    const authorId = 1;  
+    const [modules, setModules] = useState([]);  
+    const [selectedModuleId, setSelectedModuleId] = useState('');
     const [questionData, setQuestionData] = useState({
+        title: 'Question and Answer Form',  
+        description: 'A form for entering Q&A pairs.', 
         question: '',
         answer: '',
-        moduleId: '',
-        author: authorId  // Set the author for the question and answer form
+        is_published: true,
+        moduleID: '',  
+        author: authorId
     });
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // If authorId is not hardcoded, fetch it or ensure it's available here
-        setModuleData(m => ({ ...m, author: authorId }));
-        setQuestionData(q => ({ ...q, author: authorId }));
-    }, [authorId]);
+        const fetchModules = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/api/modules/');
+                setModules(response.data);
+            } catch (error) {
+                setError('Failed to fetch modules');
+                console.error('Error fetching modules:', error);
+            }
+        };
 
-    const handleModuleChange = (event) => {
-        const { name, value } = event.target;
-        setModuleData(prev => ({ ...prev, [name]: value }));
-    };
+        fetchModules();
+    }, []);
 
     const handleQuestionChange = (event) => {
         const { name, value } = event.target;
         setQuestionData(prev => ({ ...prev, [name]: value }));
     };
 
-    const createModule = async () => {
-        try {
-            const response = await axios.post('http://localhost:8000/api/modules/', moduleData);
-            setQuestionData(prev => ({ ...prev, moduleId: response.data.id })); // Store the module ID
-            return response.data.id;
-        } catch (error) {
-            setError('Failed to create module');
-            console.error('Error creating module:', error);
-        }
+    const handleModuleChange = (event) => {
+        const moduleIDInt = parseInt(event.target.value, 10); // Convert to integer
+        setSelectedModuleId(moduleIDInt); // Store as integer
+        setQuestionData(prev => ({ ...prev, moduleID: moduleIDInt })); // Set as integer, using "moduleID"
     };
 
-    const createQuestionAnswer = async () => {
-        if (!questionData.moduleId) {
-            setError('Module ID is required');
-            return;
-        }
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
         try {
+            console.log("Submitting with data:", questionData);
             await axios.post('http://localhost:8000/api/question_answer_forms/', questionData);
         } catch (error) {
             setError('Failed to create question and answer');
@@ -56,41 +54,30 @@ const VisualQuestionAndAnswerFormEditor = ({ authorId }) => {  // Assuming `auth
         }
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const moduleId = await createModule();
-        if (moduleId) {
-            createQuestionAnswer();
-        }
-    };
-
     return (
         <form onSubmit={handleSubmit}>
-            <h2>Create Module</h2>
-            <input
-                name="title"
-                value={moduleData.title}
-                onChange={handleModuleChange}
-                placeholder="Module Title"
-            />
-            <textarea
-                name="description"
-                value={moduleData.description}
-                onChange={handleModuleChange}
-                placeholder="Module Description"
-            />
             <h2>Create Question and Answer</h2>
+            <select value={selectedModuleId} onChange={handleModuleChange}>
+                <option value="">Select a Module</option>
+                {modules.map((module) => (
+                    <option key={module.id} value={module.id}>
+                        {module.title}
+                    </option>
+                ))}
+            </select>
             <input
                 name="question"
                 value={questionData.question}
                 onChange={handleQuestionChange}
                 placeholder="Question"
+                required
             />
             <input
                 name="answer"
                 value={questionData.answer}
                 onChange={handleQuestionChange}
                 placeholder="Answer"
+                required
             />
             <button type="submit">Submit</button>
             {error && <p>{error}</p>}
@@ -99,6 +86,11 @@ const VisualQuestionAndAnswerFormEditor = ({ authorId }) => {  // Assuming `auth
 };
 
 export default VisualQuestionAndAnswerFormEditor;
+
+
+
+
+
 
 
 
