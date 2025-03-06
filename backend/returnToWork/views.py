@@ -1,12 +1,12 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer
 from django.contrib.auth import login, logout
-from django.contrib.auth.models import User
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -16,9 +16,15 @@ from returnToWork.models import User
 from rest_framework.authentication import TokenAuthentication
 
 
+
+
+
 class ProgressTrackerView(APIView):
 
+
     def get(self, request):
+
+        
         progressTrackerObjects = ProgressTracker.objects.all()
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
@@ -31,6 +37,7 @@ class ProgressTrackerView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
+        print(request.data)
         try:
             progress_tracker = ProgressTracker.objects.get(pk=pk)
         except ProgressTracker.DoesNotExist:
@@ -39,6 +46,9 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+        
+
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -56,8 +66,13 @@ class LogInView(APIView):
         serializer = LogInSerializer(data = request.data)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
+
+            
+
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
+
+            print(UserSerializer(user).data)
             return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -93,6 +108,7 @@ class UserProfileView(APIView):
 class PasswordResetView(APIView):
     permission_classes = []
     def post(self,request):
+        print("RECEIVED DATUM!!!!")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -104,10 +120,14 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
 
+
 class ModuleViewSet(viewsets.ModelViewSet):
     
+
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
+
+
 
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
@@ -200,7 +220,7 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-                'pinned': tracker.module.pinned,
+               # 'pinned': tracker.module.pinned,
                 'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 
@@ -214,7 +234,73 @@ class UserDetail(APIView):
         })
 
         return Response(response_data)
+    
+    def put(self,request):
 
+        # Works but Need To Use Seralizer - TO DO
+       
+        try:
+            user = request.user
+
+            print("USERRR ISSSS")
+            print(user)
+
+            user_serializer = UserSerializer(user)
+
+            data = request.data
+        
+            user_in = User.objects.filter(user_id = data['user_id']).first()
+            user_in.username = user.username
+            user_in.first_name = user.first_name
+            user_in.last_name = user.last_name
+            user_in.user_type = user.user_type
+            
+            tag_data = data['tags']
+            
+            mod_data = data['module']
+            
+
+            tags = []
+            modules = []
+
+
+            for tag_obj in tag_data:
+                    
+                    if tag_obj['id']:
+                        tag_instance = Tags.objects.filter(tag=tag_obj['tag']).first()
+                        if tag_instance:
+                            tags.append(tag_instance)
+                        else:
+                            return Response({"detail": f"Tag ID not found."}, status=status.HTTP_404_NOT_FOUND)
+                    else:
+                        return Response({"detail": "Tag ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            for module in mod_data:
+                if module['id']:
+                    mod_instance = Module.objects.filter(id=module['id']).first()
+                    if mod_instance:
+
+
+                        modules.append(mod_instance)
+                    else:
+                        return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND) 
+                else:
+                    return Response({"detail": "Module ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            user_in.tags.set(tags)
+            user_in.module.set(modules)
+            user_in.save()
+
+        except:
+            
+            return Response({"detail": "Unable to locate user"}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+
+        return Response({"message": "Login Successful", "user": UserSerializer(user).data})
+    
 class ServiceUserListView(generics.ListAPIView):
     """API view to get all service users"""
     serializer_class = UserSerializer
@@ -272,4 +358,73 @@ class UserPasswordChangeView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+    
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class UserInteractionView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+      
+        option = request.query_params.get("filter")
+
+        allInteracts = UserModuleInteraction.objects.filter(user=user) if option == "user" else UserModuleInteraction.objects.all()
+
+        if allInteracts:
+             serializedInf = UserModuleInteractSerializer(allInteracts,many=True)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(serializedInf.data, status=status.HTTP_200_OK)
+       
+
+
+    def post(self, request, module_id):
+        user = request.user
+        data = request.data
+        print(data)
+        module = Module.objects.get(id = module_id)
+        
+        if module:
+            
+            try:
+                interactObj, hasCreated = UserModuleInteraction.objects.get_or_create(user=user, module=module)
+                
+
+                if( (data["hasLiked"]) and (((not hasCreated)  and ( not interactObj.hasLiked)) or (hasCreated))):
+                    module.upvote()
+                elif( (not data["hasLiked"]) and (not hasCreated ) and (interactObj.hasLiked)):
+                    module.downvote()
+                    
+
+                interactObj.hasPinned = data["hasPinned"]
+                interactObj.hasLiked = data["hasLiked"]
+                interactObj.save()
+
+                module.save()
+
+            except:
+                return Response({"message": "sent data formatted incorrectly!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response({"message": "Module Not Found Mate"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)

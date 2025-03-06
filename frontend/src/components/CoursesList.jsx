@@ -5,7 +5,8 @@ export default function CoursesList({ courses }) {
   const [activeTab, setActiveTab] = useState("In Progress");
   
   // Filter courses based on active tab
-  const filteredCourses = courses.filter(course => {
+  var filteredCourses = courses.filter(course => {
+    console.log(course)
     if (activeTab === "In Progress") {
       return course.progress > 0 && course.progress < 100;
     } else if (activeTab === "Completed") {
@@ -15,6 +16,9 @@ export default function CoursesList({ courses }) {
     }
     return false;
   });
+
+  var filteredCourses = courses;
+  
 
   // Handle tab click
   const handleTabClick = (tabName) => {

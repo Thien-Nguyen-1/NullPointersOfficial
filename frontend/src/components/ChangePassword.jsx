@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { ResetPassword } from "../services/api";
+//import { ResetPassword } from "../services/api";
 import '../styles/ChangePassword.css';
+
+import { AuthContext } from "../services/AuthContext";
 
 const ChangePassword = () => {
 
@@ -10,6 +12,9 @@ const ChangePassword = () => {
     const [confirmNewPassword,setConfirmNewPassword] = useState("");
     const navigate = useNavigate();
     const [error, setError] = useState(null);
+
+    const {ResetPassword} = useContext(AuthContext) 
+
 
     const handleChangePassword = async(e) => {
             e.preventDefault();

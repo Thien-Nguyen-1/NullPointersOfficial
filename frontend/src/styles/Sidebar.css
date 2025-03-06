@@ -3,12 +3,14 @@
   flex-direction: column;
   background-color: var(--secondary-green); 
   color: white;
-  height: 100vh;
+  height: 100dvh;
   width: 80px;
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 100;
+   align-items: center; /* center all UI VERTICALLY*/
+   transition: left 0.3s ease;;
+   z-index: 100;
 }
 
 .logo {
@@ -75,6 +77,26 @@
 
 .logout {
   margin-top: auto;
+  padding-bottom: 20px;
+  color: #9fca85 !important; /* Ensures it matches other icons */
+  text-decoration: none; /* Removes underline if any */
+}
+
+.logout-icon {
+  font-size: 24px;
+  color: #9fca85 !important; /* Forces the correct color */
+  cursor: pointer;
+}
+
+.logout:hover .logout-icon {
+  color: #76b947 !important; /* Ensures hover color is applied */
+}
+
+.stats-chart-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* ✅ Stats take 2x space, chart takes 1x */
+  gap: 20px;
+  width: 100%;
   margin-bottom: 20px;
   width: 100%;
   display: flex;
@@ -86,4 +108,60 @@
 .logout:hover {
   background-color: var(--primary-green-light);
   transform: scale(1.1);
+}
+
+
+
+.menu-button svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  top: 1rem;
+}
+
+.menu-button {
+  position: absolute;
+  left: 0;
+}
+
+.side-open {
+  left: 0
+}
+
+
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+
+  .menu-button {
+    display: block;
+  }
+
+  .sidebar {
+    left: -80px !important; 
+    
+  }
+
+  .side-open {
+    left: 0px !important;
+  }
+
+
+  .menu-button {
+    color: black;
+
+  }
+
+}
+
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+ 
+
+}
+
+
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+  
 }

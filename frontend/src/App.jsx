@@ -21,11 +21,12 @@ import Module2 from './pages/KnowValuesModule';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
 
 import "./App.css";
-
+import {AuthContextProvider} from './services/AuthContext.jsx'
 
 
 function App() {
   return (
+    <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
     <Router>
       <Routes>
         {/* Auth Routes (No Sidebar) */}
@@ -45,9 +46,9 @@ function App() {
                 <Route path="home" element={<WorkerDashboard />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
-                <Route path="courses" element={<Courses role="worker" />} />
+                <Route path="courses" element={<Courses/>} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="KnowValuesModule" element={<Module2 role="worker" />} />
+                <Route path="KnowValuesModule" element={<Module2/>} />
               </Routes>
             </DashboardLayout>
           }
@@ -61,7 +62,7 @@ function App() {
                 <Route path="home" element={<AdminDashboard />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
-                <Route path="courses" element={<Courses role="admin" />} />
+                <Route path="courses" element={<Courses />} />
                 <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="create-module" element={<CreateModule />} />
@@ -71,6 +72,7 @@ function App() {
         />
       </Routes>
     </Router>
+    </AuthContextProvider>
   );
 }
 
