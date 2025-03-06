@@ -6,20 +6,26 @@ import { AuthContext } from "../services/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
-import { GetModule, GetAllProgressTracker, SaveProgressTracker } from "../services/api";
+import { GetModule, GetAllProgressTracker, SaveProgressTracker , SaveUserModuleInteract, GetUserModuleInteract} from "../services/api";
 import { IoMdArrowDropupCircle } from "react-icons/io";
+import { MdOutlineUnsubscribe } from "react-icons/md";
 
 
 
 function Courses({ role }) {
 
-    const {user} = useContext(AuthContext)
+    const {user, token} = useContext(AuthContext)
     
     const [filterOption, setFilter] = useState("All Courses")
     const [active, setActiveTab] = useState("")
     const [modules, setModules] = useState([])
 
-    const [userTracker, setTracker] = useState([])
+   
+    const [userInteractions, setInteract] = useState([])
+
+    if(!user){
+        return (<><h3> Placeholder: Authorization Failed mate. Please log in </h3></>)
+    }
 
     useEffect(()=> {
         
@@ -28,39 +34,29 @@ function Courses({ role }) {
            
             setModules(allModules || [])
             
-        }
-
-
-        async function fetchProgressTrackers(){
-
-            const allTrackers = await GetAllProgressTracker();
             
-
-            if(allTrackers && user){
-                const userTrackers = allTrackers.filter( (track) => track.user == user.id )
-              
-                setTracker(userTrackers)
-             
-            }
-          
         }
-        
+
+        async function fetchInteractions(){
+            
+            const allInteractions = await GetUserModuleInteract(token)
+           
+            setInteract(allInteractions || [])
+
+        }
+       
         fetchModules()
-        fetchProgressTrackers()
+        fetchInteractions()
        
         
-    }, [] )
-
+    }, [filterOption] )
 
 
     const FILTER_MAP = {
         
-      //  "Your Courses": user ? (<CourseItem module={user.module[0]} userTracker={userTracker} update_progress_tracker={update_progress_tracker}/>) : (<> Unavailable Mate</>),
         "Your Courses": user ? render_user_list() : (<div>NOHING</div>),
-
         "All Courses": user ? render_list(modules) : (<div>NOHING</div>),
-
-        "Popular" : (<div></div>),
+        "Popular" : user ? render_order_list() : (<div>NOHING</div>),
 
     }
 
@@ -72,11 +68,15 @@ function Courses({ role }) {
 
     function render_user_list(){
         
-        const user_mods = userTracker
-            .map( (trck) => modules.filter( (mod) => trck.module === mod.id)).flat()
+        const user_mods = userInteractions
+            .map( (trck) => modules.filter( (mod) => (trck.module === mod.id) && (trck.hasPinned === true))).flat()
           
-       
-        render_list(user_mods)
+        return render_list(user_mods)
+    }
+
+    function render_order_list(){
+        const like_mods = [...modules].sort( (a,b) => b.upvotes - a.upvotes)
+        return render_list(like_mods)
     }
 
     function render_list(mods){
@@ -86,27 +86,25 @@ function Courses({ role }) {
             <CourseItem 
                 key={module.id} 
                 module={module} 
-                userTracker={userTracker}
-                update_progress_tracker = {update_progress_tracker}
+                userInteractTarget={userInteractions?.find((obj) => obj.module === module.id)}
+                update_interact_module={update_interact_module}
             
             />
         ))
 
     }
 
-    async function update_progress_tracker(tracker){
-        if(tracker){
-            console.log("SAVING progress")
-            console.log(tracker)
-            const response = await SaveProgressTracker(tracker, tracker.id)
+    async function update_interact_module(modId, objInteract){
+        if(objInteract){
+            const response = await SaveUserModuleInteract(modId, objInteract, token)
 
             if(response){
                 console.log(response)
             }
 
-
         }
     }
+
 
 
 
@@ -114,7 +112,7 @@ function Courses({ role }) {
     return (
 
         <div className="course-container mt-2">
-           
+        
             <h1 className="page-title"> Your Tags </h1>
            
             <section className="tag-course-container mb-2 ">
@@ -157,19 +155,20 @@ function Courses({ role }) {
                 </div>
                 
 
-                {FILTER_MAP[filterOption]}
+                { FILTER_MAP[filterOption] }
 
-
-                {/* Show the "Create Module" button only if the user is an Admin */}
-                {role === "admin" && (
+                <h4> Feel free to change the styling Im </h4>
+                
+               
+                
+                {user?.user_type == "admin" && (
                     <Link to="/admin/create-module" className="create-module-btn">
-                    Create Module
-                </Link>
-            )}
+                    Create Module </Link>
+                )}
+
+                
+           
              </section>
-
-
-
 
 
 

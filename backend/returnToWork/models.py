@@ -185,6 +185,19 @@ class ProgressTracker(models.Model):
         return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
 
 
+class UserModuleInteraction(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+
+    hasPinned = models.BooleanField(default=False)  
+    hasLiked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.module.title} - Pinned: {self.hasPinned} - Liked: {self.hasLiked}"
+
+
+
 # Model for Content
 # Parent class for ALL Content Types
     

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -120,3 +120,11 @@ class TaskSerializer(ContentSerializer):
         model = Task
         fields  = ContentSerializer.Meta.fields + ['text_content']        
 
+
+
+class UserModuleInteractSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=UserModuleInteraction
+        fields = ['id', 'user', 'module', 'hasPinned', 'hasLiked']
+    

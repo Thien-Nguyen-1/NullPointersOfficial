@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { ApiContextProvider } from './api_context';
+//import { ApiContextProvider } from './api_context';
 import { useSearchParams } from 'react-router-dom';
 
 /* const baseURL =
@@ -105,7 +105,7 @@ const AuthContextProvider = ({children}) => {
 
 
      // ===== SIGNING IN ===== //
-    
+    //  Please complete this //
     async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
         try {
           const response = await api.post(`/api/signup/`, {
@@ -117,7 +117,10 @@ const AuthContextProvider = ({children}) => {
             confirm_password: confirmPassword,
           });
 
-          setUser(response.data.user)
+          
+
+
+
       
           return response.data;
       
@@ -128,7 +131,7 @@ const AuthContextProvider = ({children}) => {
          }
     }
 
-
+  
 
     // ===== RESET PASSWORD ===== //
 
@@ -197,7 +200,7 @@ const AuthContextProvider = ({children}) => {
                     
     return (
         // DONNOT let setUser be globally accessible, it should be done via updateUser
-        <AuthContext.Provider value={{user, loginUser, logoutUser, updateUser}}>
+        <AuthContext.Provider value={{user, token, loginUser, logoutUser, updateUser, SignUpUser}}>
             {children}
         </AuthContext.Provider>
     )

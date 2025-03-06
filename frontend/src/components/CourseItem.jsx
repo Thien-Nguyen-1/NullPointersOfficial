@@ -3,79 +3,57 @@ import { FaSearch } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt , MdBookmark, MdBookmarkBorder, MdOutlineUnsubscribe} from "react-icons/md";
 import { AuthContext } from "../services/AuthContext";
 
+
 import "../styles/CourseItem.css"
 
 function CourseItem(props){
 
     const module = props.module
-    const allUserTracker = props.userTracker
+    const userInteractTarget  = props.userInteractTarget
 
-    console.log(allUserTracker)
 
     const {user, updateUser} = useContext(AuthContext) //to pre-load user's liked + favourite
 
     const userTracker = useRef(null)
-    const totalLikes = useRef(module.upvotes || 0)
+    const [totalLikes, addLike] = useState(module.upvotes || 0)
     
-    //props will also contain methods to call from parent container
 
     const [status, setStatus] = useState({
-        liked: false,
-        favourite: false,
+        hasLiked: false,
+        hasPinned: false,
     })
 
 
-    useEffect( () => {
-
-        if (user.module) {
-
-
-            const user_tempTracker = allUserTracker.find(usrtrck => usrtrck.module === module.id)
-
-            if(user_tempTracker){
-                setStatus({...status, liked: user_tempTracker.hasLiked, favourite: user_tempTracker.pinned})
-                userTracker.current = user_tempTracker
-                
-            }
-
+    useEffect(() => {
+        
+        if(userInteractTarget){
+        
+            setStatus({...status, hasLiked: userInteractTarget.hasLiked, hasPinned: userInteractTarget.hasPinned})
         }
-    }, [])
-
+    }, [userInteractTarget]); 
 
     const toggleLike = () => {
 
-        const usrTracker = userTracker.current
+        props.update_interact_module(module.id, {...status, hasLiked:!status.hasLiked})
 
-        if (usrTracker){
-            usrTracker.hasLiked = !status.liked
-            props.update_progress_tracker(usrTracker, usrTracker.id)
-
-            if(!status.liked){
-                totalLikes.current += 1
-            } else{
-                totalLikes.current -= 1
-            }
-
-            setStatus( {...status, liked: !status.liked})
+        if(status.hasLiked){
+            //totalLikes.current = totalLikes.current > 0 ? totalLikes.current -= 1 : 0
+            addLike(totalLikes > 0 ? totalLikes - 1 : 0)
+        } else{
+            //totalLikes.current += 1
+            addLike(totalLikes + 1)
         }
 
-    
-    
+        setStatus({...status, hasLiked: !status.hasLiked})
+
     }
 
     const toggleFavourite = () => {
 
-        const usrTracker = userTracker.current
-        if (usrTracker){
-            usrTracker.pinned = !status.favourite
-            props.update_progress_tracker(usrTracker, usrTracker.id)
+        props.update_interact_module(module.id, {...status, hasPinned:!status.hasPinned})
 
-
-            setStatus( {...status, favourite: !status.favourite})
-
-        }
-
-        
+        setStatus({...status, hasPinned: !status.hasPinned})
+      
     }
 
     return (
@@ -89,19 +67,20 @@ function CourseItem(props){
 
             <p> {module.title}</p>
 
-           
             <div className="like-container">
                 <button onClick={ () => {toggleLike()}}>
-                    {status.liked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt />}
+                    { status.hasLiked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt /> }
+                    
                 
                 </button>
 
-                <p> {totalLikes.current}</p>
+                <p> {totalLikes}</p>
 
             </div>
 
             <button onClick={ () => {toggleFavourite()}}>  
-                    {status.favourite ? <MdBookmark/> : <MdBookmarkBorder />}
+                    { status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
+                  
             </button>
            
             <div className="view-container">        

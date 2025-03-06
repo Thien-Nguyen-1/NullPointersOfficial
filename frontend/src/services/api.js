@@ -107,4 +107,54 @@ export async function SaveProgressTracker(tracker, id){
   }
 }
 
+
+export async function GetUserModuleInteract(token){
+  try {
+   
+    const response = await api.get(`/api/user-interaction/`, {
+      params: {"filter": "user" },
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+     
+    });
+      
+
+    if(response.error){
+      throw new Error(response.error);
+    } 
+    else if(response.status === 204 ){
+      return []
+    } 
+   
+    return response.data;
+
+  } catch(err){
+
+    return []
+
+  }
+
+}
+
+
+export async function SaveUserModuleInteract(modId, objInteract, token) {
+ 
+  try {
+    
+    const response = await api.post(`api/user-interaction/${modId}/`, objInteract, { headers: {'Authorization': `Token ${token}`}})
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data
+
+  } catch(err){
+    throw new Error("Unable to save user module interaction")
+  }
+}
+
+
+
 export default api 

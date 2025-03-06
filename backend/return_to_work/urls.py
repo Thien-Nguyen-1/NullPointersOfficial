@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -34,10 +34,23 @@ urlpatterns = [
     path('api/logout/', LogOutView.as_view(), name= 'logout'),
     path('api/signup/', SignUpView.as_view(), name= 'signup'),
     path('api/profile/', UserProfileView.as_view(), name= 'profile'),
-    path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
-    path('api/progress-tracker/<int:pk>', ProgressTrackerView.as_view(), name='progress-tracker'),
     path('api/user/', UserDetail.as_view(), name='user-detail'),
     path('', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
+
+
+
+
+
+
+
+
+
+
+
+
+
+    path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction')
 ]
