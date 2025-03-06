@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import axios from 'axios';
 import '../../styles/VisualQuestionAndAnswerFormEditor.css';
-const editorRefs = useRef({
-    ...editorRefs.current,
-    qaEditor: useRef(null) // This will hold a reference to your Q&A editor
-  });
+
 const VisualQuestionAndAnswerFormEditor = () => {
     const authorId = 1;
     const [modules, setModules] = useState([]);
@@ -16,6 +13,7 @@ const VisualQuestionAndAnswerFormEditor = () => {
         moduleID: '',
     });
     const [error, setError] = useState('');
+    const qaEditorRef = useRef(null);  // Correctly using useRef to create a reference
 
     useEffect(() => {
         const fetchModules = async () => {
@@ -73,7 +71,7 @@ const VisualQuestionAndAnswerFormEditor = () => {
     };
 
     return (
-        <div>
+        <div ref={qaEditorRef}>
             {entries.map((entry, index) => (
                 <div key={index} className="qa-entry">
                     <div>Question: {entry.question}</div>
