@@ -1,9 +1,23 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction
 from django.contrib.auth import authenticate, get_user_model
 
 
 User = get_user_model()
+
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id','title','description','tags','upvotes']
+
+class TagSerializer(serializers.ModelSerializer):
+
+    modules = ModuleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Tags        
+        fields = ['id','tag','modules']
+
 
 class UserSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField( #Ensures tags are serialized as a list of tag names rather than ID
@@ -11,9 +25,14 @@ class UserSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field="tag"
     )
+
+   # tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(), many=True) #serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
+    module = ModuleSerializer(many=True)
+   # tags = TagSerializer(many=True)
+
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -69,7 +88,7 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed']
+        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
@@ -77,19 +96,6 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
         model = Questionnaire
         fields = ["id", "question", "yes_next_q", "no_next_q"]
   
-class ModuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Module
-        fields = ['id','title','description','tags','pinned','upvotes']
-
-
-class TagSerializer(serializers.ModelSerializer):
-
-    modules = ModuleSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Tags        
-        fields = ['id','tag','modules']
 
 class ContentSerializer(serializers.ModelSerializer):
     
@@ -120,6 +126,13 @@ class TaskSerializer(ContentSerializer):
         fields  = ContentSerializer.Meta.fields + ['text_content']        
 
 
+
+class UserModuleInteractSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=UserModuleInteraction
+        fields = ['id', 'user', 'module', 'hasPinned', 'hasLiked']
+    
 class UserSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

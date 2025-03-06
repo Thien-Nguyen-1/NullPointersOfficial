@@ -1,3 +1,11 @@
+
+* { /* don't touch this */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
 .create-module-btn {
   display: inline-block;
   margin-top: 10px;
@@ -11,5 +19,133 @@
 }
 
 .create-module-btn:hover {
-  background-color: #76b947; /* Slightly darker green */
+  background-color: var( --primary-green-dark) /* Slightly darker green */
+}
+
+
+.course-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-items: center;
+  
+  
+}
+
+.course-container .tag-course-container {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  justify-items: center;
+  align-items: center;
+
+}
+
+.course-selection-container {
+  display: inherit;
+  flex-direction: inherit;
+  align-items: flex-start;
+
+
+}
+
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+  .course-container .tag-course-container {
+    grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+    
+    p {
+      font-size: 0.7em;
+    }
+  }
+
+}
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+
+  .course-container .tag-course-container {
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    p {
+      font-size: 1em;
+    }
+  }
+
+}
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+
+}
+
+
+
+/* TO BE MOVED */
+
+
+.tag-course {
+  
+  width: 100%;
+  height: auto;
+  
+  background-color: var(--primary-green-dark);
+  color: white;
+
+  border-color: var(--primary-green-dark);
+  border-style: ridge;
+
+  border-radius: 1rem;
+
+  font-size: 16px;
+  text-align: center;
+  line-height: 2.2rem;     
+  transition: all 0.3s ease;  
+  cursor: pointer;  
+
+
+}
+
+
+.edit-button {
+  background-color: grey;
+
+}
+
+
+
+.tabs-filter {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-start;
+
+}
+
+.tabs-filter button {
+  background-color: transparent;
+  color: var(--text-subtle);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  min-width: 100px;
+
+  font-size: clamp(0.6rem, 1vw, 1rem);
+  
+}
+
+.tabs-filter button:hover {
+  background-color: var(--primary-green-light);
+  transform: translateY(-2px);
+}
+
+.tabs-filter button.active {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.tabs-filter button.active:hover {
+  background-color: var(--primary-green-dark);
 }

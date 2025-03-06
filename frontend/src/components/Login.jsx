@@ -1,38 +1,31 @@
-import React, { useState } from "react";
-import { loginUser, redirectBasedOnUserType } from "../services/api";
+import React, { useState, useContext } from "react";
+//import { loginUser, redirectBasedOnUserType } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Login.css';
 
+import { AuthContext } from "../services/AuthContext";
+import {redirectBasedOnUserType } from "../services/api";
+
+
 const Login = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-    const [username,setUsername] = useState("");
-    const [password,setPassword] = useState("");
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
-
-    const handleLogin = async(e) => {
-        e.preventDefault();
-        try{
-            const data = await loginUser(username, password);
-            console.log("Login succesful:" , data)
-            // alert("Log in worked " + username)
-
-            localStorage.setItem("user_type", data.user_type);
-            if(data.user_type === "Admin"){
-                navigate("/admin/home");
-            }
-            else {
-                navigate("/worker/home");
-            }
-            
-        }
-        catch(err){
-            setError("Invalid username or password");
-        }
+  const {loginUser} = useContext(AuthContext) 
+  
+  const handleLogin = async(e) => {
+    e.preventDefault();
+    try {
+    //  const data = await loginUser(username, password);
+      const data = await loginUser(username, password);
+      redirectBasedOnUserType(data);
+    } catch(err) {
+      setError("Invalid username or password");
     }
-
-
-
+  }
+  
   return (
     <div className="login-container">
       <div className="login-box">
