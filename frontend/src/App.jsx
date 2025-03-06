@@ -13,7 +13,6 @@ import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
 import Profile from "./pages/Profile";
 import Questionnaire from "./components/Questionnaire";
-import CreateModule from "./pages/CreateModule";
 import QuizEditor from './pages/QuizEditor';
 import Login from './components/Login';
 import Signup from './components/SignUp';
@@ -80,7 +79,6 @@ function App() {
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses role="admin" />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="courses/create-module" element={<CreateModule />} />
                 {/* Conditional Routing for Editors Based on quizType */}
                 <Route path="courses/create-module/:moduleId/:quizType" element={<QuizEditorSelector />} />
                 {/* Add Fill-in-the-Blank Quiz Editor */}
