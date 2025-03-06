@@ -3,17 +3,14 @@ import axios from 'axios';
 import '../../styles/VisualQuestionAndAnswerFormEditor.css';
 
 const VisualQuestionAndAnswerFormEditor = () => {
-    const authorId = 1;  
-    const [modules, setModules] = useState([]);  
+    const authorId = 1;
+    const [modules, setModules] = useState([]);
+    const [entries, setEntries] = useState([]);
     const [selectedModuleId, setSelectedModuleId] = useState('');
     const [questionData, setQuestionData] = useState({
-        title: 'Question and Answer Form',  
-        description: 'A form for entering Q&A pairs.', 
         question: '',
         answer: '',
-        is_published: true,
-        moduleID: '',  
-        author: authorId
+        moduleID: '',
     });
     const [error, setError] = useState('');
 
@@ -37,55 +34,70 @@ const VisualQuestionAndAnswerFormEditor = () => {
     };
 
     const handleModuleChange = (event) => {
-        const moduleIDInt = parseInt(event.target.value, 10); // Convert to integer
-        setSelectedModuleId(moduleIDInt); // Store as integer
-        setQuestionData(prev => ({ ...prev, moduleID: moduleIDInt })); // Set as integer, using "moduleID"
+        const moduleIDInt = parseInt(event.target.value, 10);
+        setSelectedModuleId(moduleIDInt);
+        setQuestionData(prev => ({ ...prev, moduleID: moduleIDInt }));
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         try {
-            console.log("Submitting with data:", questionData);
-            await axios.post('http://localhost:8000/api/question_answer_forms/', questionData);
+            const completeData = {
+                ...questionData,
+                title: 'Question and Answer Form',
+                description: 'A form for entering Q&A pairs.',
+                is_published: true,
+                author: authorId
+            };
+            const response = await axios.post('http://localhost:8000/api/question_answer_forms/', completeData);
+            setEntries([...entries, response.data]); // Add to entries array
+            setQuestionData({ question: '', answer: '', moduleID: '' }); // Reset for new entry
         } catch (error) {
             setError('Failed to create question and answer');
             console.error('Error creating question and answer:', error);
         }
     };
 
+    const handleRemoveEntry = async (contentID) => {
+        try {
+            await axios.delete(`http://localhost:8000/api/question_answer_forms/${contentID}/`);
+            const updatedEntries = entries.filter(entry => entry.contentID !== contentID);
+            setEntries(updatedEntries);
+        } catch (error) {
+            setError(`Failed to delete question and answer: ${error.message}`);
+            console.error('Error deleting question and answer:', error);
+        }
+    };
+
     return (
-        <form onSubmit={handleSubmit}>
-            <h2>Create Question and Answer</h2>
-            <select value={selectedModuleId} onChange={handleModuleChange}>
-                <option value="">Select a Module</option>
-                {modules.map((module) => (
-                    <option key={module.id} value={module.id}>
-                        {module.title}
-                    </option>
-                ))}
-            </select>
-            <input
-                name="question"
-                value={questionData.question}
-                onChange={handleQuestionChange}
-                placeholder="Question"
-                required
-            />
-            <input
-                name="answer"
-                value={questionData.answer}
-                onChange={handleQuestionChange}
-                placeholder="Answer"
-                required
-            />
-            <button type="submit">Submit</button>
-            {error && <p>{error}</p>}
-        </form>
+        <div>
+            {entries.map((entry, index) => (
+                <div key={index} className="qa-entry">
+                    <div>Question: {entry.question}</div>
+                    <div>Answer: {entry.answer}</div>
+                    <button onClick={() => handleRemoveEntry(entry.contentID)}>Remove</button>
+                </div>
+            ))}
+            <div className="qa-entry">
+                <form onSubmit={handleSubmit}>
+                    <select onChange={handleModuleChange} value={questionData.moduleID || ''}>
+                        <option value="">Select a Module</option>
+                        {modules.map((module) => (
+                            <option key={module.id} value={module.id}>{module.title}</option>
+                        ))}
+                    </select>
+                    <input name="question" value={questionData.question} onChange={handleQuestionChange} placeholder="Enter your question" required />
+                    <input name="answer" value={questionData.answer} onChange={handleQuestionChange} placeholder="Enter your answer" required />
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+        </div>
     );
 };
 
 export default VisualQuestionAndAnswerFormEditor;
+
+
 
 
 

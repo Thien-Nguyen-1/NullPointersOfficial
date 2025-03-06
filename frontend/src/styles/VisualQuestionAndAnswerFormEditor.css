@@ -3,83 +3,70 @@
     background-color: #ffffff;
     padding: 20px;
     margin-bottom: 20px;
-    border-radius: 12px; /* Rounded edges for a smoother look */
-    border: 2px solid #e0e0e0; /* Subtle border for definition */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Soft shadow for depth */
-    display: flex;
-    align-items: center; /* Center align the items for better visual alignment */
-    position: relative; /* Set position relative for pseudo-elements */
-}
-
-/* Circular number indicator for each QA entry */
-.qa-entry::before {
-    content: counter(item); /* Incremental counter for each item */
-    counter-increment: item; /* Initialize counter */
-    position: absolute;
-    left: -30px; /* Position outside the entry box */
-    top: 50%; /* Center vertically */
-    transform: translateY(-50%); /* Align center to the middle of the div */
-    width: 40px;
-    height: 40px;
-    background-color: #4CAF50; /* Matching the button color */
-    color: white;
-    border-radius: 50%; /* Perfect circle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for the circle */
-}
-
-/* Enhanced overall container styles */
-.visual-qa-form {
-    background-color: #59979f;
-    padding: 30px;
-    border-radius: 15px; /* More pronounced rounded corners for the form */
-    box-shadow: 0 6px 15px rgba(3, 11, 5, 0.1); /* Deeper shadow for the outer form */
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    width: auto;
     max-width: 600px;
-    margin: 40px auto;
-    font-family: 'Arial', sans-serif; /* Ensuring font consistency */
+    margin: auto; /* Center each card */
 }
 
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 /* Style adjustments for the form elements */
-.new-entry input[type="text"],
-.new-entry button {
-    border-radius: 15px; /* Uniform rounded edges for all form elements */
+.input-field,
+input, select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+button:hover {
+    background-color: #566779;
+}
+.form-group {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    width: 100%; /* Full width to match parent's width */
+    margin-bottom: 15px; /* Space between groups */
+}
+
+.label {
+    display: block; /* Labels above inputs */
+    margin-bottom: 5px; /* Space between label and input */
+    font-weight: bold; /* Highlight label text */
+}
+
+.input-field {
+    padding: 8px; /* Comfortable text entry */
+    border: 1px solid #ccc; /* Stylish and subtle border */
+    border-radius: 4px; /* Consistent rounded corners */
+    width: calc(100% - 16px); /* Adjust for padding */
 }
 
 /* Error and button interaction styles */
 .error,
-.new-entry button,
 .button {
-    transition: all 0.3s ease; /* Smooth transition for all interactive elements */
+    transition: all 0.3s ease; /* Smooth transitions for interactions */
 }
 
-/* Adjust spacing and positioning */
-.new-entry {
-    gap: 15px; /* Increase gap for better visual separation between fields */
+.error {
+    color: red; /* Immediately recognizable as an error */
+    margin-top: 10px; /* Separate from other content */
 }
 
-.button {
-    padding: 10px 15px;
-    background-color: #4e7c5c; 
-    color: white;
-    border-radius: 20px; 
-    transition: all 0.3s ease; 
-    transform: scale(1); 
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
-    font-size: 30px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-.button:hover {
-    background-color: #566779; 
-    padding: 12px 18px; 
-    transform: scale(1.4); 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); 
-}
