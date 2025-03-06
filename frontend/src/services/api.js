@@ -6,12 +6,61 @@ const baseURL =
     ? import.meta.env.VITE_API_URL
     : 'http://localhost:8000'; // Fallback to localhost if no environment variable is found
 
+    : 'http://localhost:8000';
     
 const api = axios.create({
   baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
+// Generic fetch function for users
+const fetchData = async (endpoint) => {
+  try {
+    const response = await api.get(`${endpoint}/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    throw new Error(`Failed to fetch ${endpoint}`);
+  }
+};
+
+export const fetchServiceUsers = () => fetchData("service-users");
+
+export const deleteServiceUser = async (username) => {
+    try {
+        const response = await api.delete(`/service-users/${username}/`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error deleting user ${username}:`, error);
+        throw error;
+    }
+};
+
+export async function loginUser(username, password){
+  try {
+    const response = await api.post(`/login/`, {
+      username,
+      password,
+    });
+        
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    localStorage.setItem('token', response.data.token);
+  
+    return response.data;
+
+    if(response.data){
+      localStorage.setItem("user_type",response.data.user_type);
+      return response.data;
+    }
+
+    
+  }
+  catch(error) {
+    throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
+
+  }
+}
 
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
@@ -55,6 +104,107 @@ export async function SubmitQuestionAnswer(question_id, answer) {
     throw new Error("Failed to submit answer");
   } 
 };
+
+  
+export async function getUserSettings(){
+  
+  try{
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    const response = await api.get(`/worker/settings/` , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to get user settings", error.response?.data || error.message);
+  }
+}
+
+export async function deleteUserSettings(){
+  try{
+    const token = localStorage.getItem('token');
+    const response = await api.delete(`/worker/settings/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to delete user account");
+  }
+}
+
+export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
+  try{
+    const token = localStorage.getItem("token");
+    const response = await api.put(`worker/password-change/`, {
+    old_password:  oldPassword,
+    new_password: newPassword,
+    confirm_new_password: confirmNewPassword,
+    
+    } , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to change password");
+  }
+}
+
+
+
+
+
+
+
+export async function GetAllProgressTracker(){
+  try {
+    // Get the token from localStorage
+    
+    const token = localStorage.getItem('token');
+    const response = await api.delete(`/worker/settings/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to delete user account");
+  }
+}
+
+export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
+  try{
+    const token = localStorage.getItem("token");
+    const response = await api.put(`worker/password-change/`, {
+    old_password:  oldPassword,
+    new_password: newPassword,
+    confirm_new_password: confirmNewPassword,
+    
+    } , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to change password");
+  }
+}
+
 
 
 export async function GetModule(id){

@@ -18,6 +18,7 @@ import Welcome from './components/Welcome';
 import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
+import ServiceUsersPage from "./pages/ServiceUsersPage";
 
 import "./App.css";
 import {AuthContextProvider} from './services/AuthContext.jsx'
@@ -62,6 +63,7 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses />} />
+                <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="create-module" element={<CreateModule />} />
               </Routes>
