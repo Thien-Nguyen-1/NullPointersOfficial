@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -120,12 +120,18 @@ class VideoSerializer(ContentSerializer):
         fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
 
 class TaskSerializer(ContentSerializer):
-
+    
+    # Override the author field to allow writing to it
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    
     class Meta:
         model = Task
-        fields  = ContentSerializer.Meta.fields + ['text_content']        
+        fields = ContentSerializer.Meta.fields + ['text_content', 'quiz_type']
 
-
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestion
+        fields = '__all__'
 
 class UserModuleInteractSerializer(serializers.ModelSerializer):
 
