@@ -23,6 +23,8 @@ const AddModule = () => {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [headingSize, setHeadingSize] = useState("heading1");
+
   
   // Create a ref to store references to editor components
   const editorRefs = useRef({});
@@ -32,6 +34,12 @@ const AddModule = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
+
+//to change size of heading for title
+  const handleHeadingChange = (event) => {
+    setHeadingSize(event.target.value);
+};
+
 
   // Module types and their corresponding components
   const moduleOptions = {
@@ -755,14 +763,20 @@ const AddModule = () => {
       {isLoading && <div className="loading-overlay">Loading...</div>}
       
       {/* Module Title */}
+      <div className="module-title-container">
       <input
         type="text"
         placeholder="Module Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="module-input heading-input"
+        className={`module-input heading-input  ${headingSize}`}
       />
-      
+      <select className="heading-dropdown" onChange={handleHeadingChange} value={headingSize}>
+    <option value="heading1">Heading 1</option>
+    <option value="heading2">Heading 2</option>
+    <option value="heading3">Heading 3</option>
+  </select>
+      </div>
       {/* Module Description */}
       <textarea
         placeholder="Module Description"
