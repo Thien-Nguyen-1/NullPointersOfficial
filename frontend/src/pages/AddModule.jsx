@@ -240,9 +240,29 @@ const AddModule = () => {
     // Make sure we have a valid author ID
     let authorId = 1; // Default fallback
     if (currentUser) {
-      authorId = currentUser.id || currentUser.user_id || 1;
+      console.log("[DEBUG] Current User Object:", currentUser);
+      
+      
+      if (currentUser.id) {
+        authorId = currentUser.id;
+      } else if (currentUser.user_id) {
+        authorId = currentUser.user_id;
+      } else if (currentUser.pk) {
+        authorId = currentUser.pk;
+      } else {
+        console.error("Could not extract user ID from:", currentUser);
+        setError("Unable to determine user identity");
+        return;
+      }
+
+    } else {
+      console.error("[DEBUG]Could not extract user ID from:", currentUser);
+      setError("Unable to determine user identity");
+      return;
     }
     
+    console.log("[DEBUG] Using Author ID:", authorId);
+
   
     setIsLoading(true);
     setError(null);
