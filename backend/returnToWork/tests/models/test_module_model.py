@@ -11,7 +11,6 @@ class ModuleModelTest(TestCase):
         self.module = Module.objects.create(
             title="Handling WORK stress",
             description="This is a test module.",
-            pinned=True,
             upvotes=10
         )
 
