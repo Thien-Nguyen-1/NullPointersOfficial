@@ -15,7 +15,8 @@ import CreateModule from "./pages/CreateModule";
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
-import ChangePassword from './components/ChangePassword';
+import PasswordReset from './components/PasswordReset.jsx';
+import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
@@ -33,7 +34,8 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path = "/change-password" element = {<ChangePassword />} />
+        <Route path = "/password-reset" element = {<RequestPasswordReset />} />
+        <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
         <Route path="/tag" element={<Tag />} />
         <Route path="/questionnaire" element={<Questionnaire />} />
 

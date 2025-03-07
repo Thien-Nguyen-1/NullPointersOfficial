@@ -12,11 +12,24 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
 
   const {SignUpUser} = useContext(AuthContext)
 
 
   const navigate = useNavigate();
+
+  const checkUsernameExists = async (username) => {
+    try {
+      const response = await fetch (`/api/check-username?username=${username}`);
+      const data = await response.json();
+      return data.exists;
+    } 
+    catch(err) {
+      console.error("Error checking username:", err);
+      return true;
+    }
+  };
 
   const handleSignUp = async(e) => {
     e.preventDefault();
@@ -34,11 +47,19 @@ const Signup = () => {
       setError("Passwords do not match.");
       return;
     }
+
+    const usernameTaken = await checkUsernameExists(username);
+    if(usernameTaken){
+      setError("This username is already taken, please choose another.");
+      return;
+    }
     
     try{
-      const data = await SignUpUser(username, firstName, lastName, userType, password, confirmPassword);
+      const data = await SignUpUser(username, firstName, lastName, userType, password, confirmPassword, email);
       console.log("Sign Up successful:", data);
       alert("Sign up worked " + username);
+
+      navigate("/login")
     }
     catch(err){
       setError(err.message);
@@ -70,6 +91,13 @@ const Signup = () => {
             placeholder="Last Name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
           <select 

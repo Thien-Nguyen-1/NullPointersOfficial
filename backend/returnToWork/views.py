@@ -4,7 +4,7 @@ from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer
 from django.contrib.auth import login, logout
 
 from rest_framework.response import Response
@@ -14,8 +14,10 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from returnToWork.models import User
 from rest_framework.authentication import TokenAuthentication
-
-
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
 
 
 
@@ -67,8 +69,6 @@ class LogInView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
 
-            
-
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
 
@@ -107,11 +107,13 @@ class UserProfileView(APIView):
     
 class PasswordResetView(APIView):
     permission_classes = []
-    def post(self,request):
+    def post(self,request,uidb64,token):
+        request.data["uidb64"] = uidb64
+        request.data["token"] = token
         print("RECEIVED DATUM!!!!")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            serializer.save()
             return Response({"message":"Password reset successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -359,16 +361,26 @@ class UserPasswordChangeView(APIView):
 
 
     
+class CheckUsernameView(APIView):
+    def get(self,request):
+        username = request.query_params.get('username',None)
+        if not username:
+            return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exists = User.objects.filter(username=username).exists()
+        return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
 
 
+class RequestPasswordResetView(APIView):
+    def post(self,request):
+        serialzer = RequestPasswordResetSerializer(data = request.data)
+        if serialzer.is_valid():
+            serialzer.save()
+            return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
+        return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
-
-
+        
 
 
 

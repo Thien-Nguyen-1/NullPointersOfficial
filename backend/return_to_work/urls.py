@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -36,7 +36,8 @@ urlpatterns = [
     path('api/profile/', UserProfileView.as_view(), name= 'profile'),
     path('api/user/', UserDetail.as_view(), name='user-detail'),
     path('', include(router.urls)),
-    path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
+    path('api/password-reset/<str:uidb64>/<str:token>/', PasswordResetView.as_view(), name= 'password-reset'),
+    path('api/password-reset/', RequestPasswordResetView.as_view(), name= 'request-password-reset'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
     path("service-users/", ServiceUserListView.as_view(), name="service-users-list"),
     path("service-users/<str:username>/", DeleteServiceUserView.as_view(), name="delete-service-user"),
@@ -44,6 +45,7 @@ urlpatterns = [
     path("api/worker/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
     path("api/admin/settings/", UserSettingsView.as_view(), name= "user-settings"),
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
+    path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
    
 
 

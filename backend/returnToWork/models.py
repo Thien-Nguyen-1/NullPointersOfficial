@@ -1,4 +1,4 @@
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator , EmailValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
 from django.contrib.auth.models import User
@@ -153,6 +153,12 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
    
+    email = models.EmailField(
+        unique=True,
+        validators=[EmailValidator(message="Enter a valid email address.")],
+        blank=False,
+        null=False
+    )
     
     # module = models.ForeignKey(Module, on_delete=models.CASCADE)
     # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
