@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
+import { AuthContext } from "../services/AuthContext";
 
 import "../styles/AddModule.css";
 
@@ -20,7 +21,10 @@ const AddModule = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  // const [currentUser, setCurrentUser] = useState(null);
+  
+  // Use AuthContext to get the current user
+  const { user: currentUser } = useContext(AuthContext);
   
   // Create a ref to store references to editor components
   const editorRefs = useRef({});
@@ -39,24 +43,31 @@ const AddModule = () => {
   };
 
   // For development, use a prototype author
-  useEffect(() => {
-    // Set a prototype author for development
-    const prototypeAuthor = { id: 1, user_id: 1 };
-    setCurrentUser(prototypeAuthor);
-    console.log("Using prototype author for development:", prototypeAuthor);
+  // useEffect(() => {
+  //   // Set a prototype author for development
+  //   const prototypeAuthor = { id: 1, user_id: 1 };
+  //   setCurrentUser(prototypeAuthor);
+  //   console.log("Using prototype author for development:", prototypeAuthor);
     
-    // Optional: Still try to load from localStorage if available
-    try {
-      const userString = localStorage.getItem('user');
-      if (userString) {
-        const userData = JSON.parse(userString);
-        setCurrentUser(userData);
-        console.log("Loaded user from localStorage:", userData);
-      }
-    } catch (err) {
-      console.warn("Could not parse user data from localStorage:", err);
-    }
-  }, []);
+  //   // Optional: Still try to load from localStorage if available
+  //   try {
+  //     const userString = localStorage.getItem('user');
+  //     if (userString) {
+  //       const userData = JSON.parse(userString);
+  //       setCurrentUser(userData);
+  //       console.log("Loaded user from localStorage:", userData);
+  //     }
+  //   } catch (err) {
+  //     console.warn("Could not parse user data from localStorage:", err);
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    if (!currentUser)
+      navigate('/login')
+    // Rely on AuthContext to provide the user
+    console.log("Current user from AuthContext:", currentUser);
+  }, [currentUser, navigate]);
 
   // Fetch available tags
   const fetchTags = useCallback(async () => {
@@ -228,10 +239,8 @@ const AddModule = () => {
 
     // Make sure we have a valid author ID
     let authorId = 1; // Default fallback
-    if (currentUser && currentUser.id) {
-      authorId = currentUser.id;
-    } else if (currentUser && currentUser.user_id) {
-      authorId = currentUser.user_id;
+    if (currentUser) {
+      authorId = currentUser.id || currentUser.user_id || 1;
     }
     
   
