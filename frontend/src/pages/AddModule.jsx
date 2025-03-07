@@ -435,7 +435,7 @@ const AddModule = () => {
       }
       
       alert(isEditing ? "Module updated successfully!" : "Module published successfully!");
-      navigate("/admin/courses");
+      navigate("/admin/all-courses");
     } catch (err) {
       console.error(isEditing ? "Error updating module:" : "Error publishing module:", err);
       setError(`Failed to ${isEditing ? 'update' : 'publish'} module: ${err.response?.data?.detail || err.message}`);

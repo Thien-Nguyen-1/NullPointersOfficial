@@ -98,7 +98,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
     <div className="question-box">
       <div className="question-header">
         <h2 className="question-number">Question {index + 1}</h2>
-        <div className="icon-container">
+        <div className="editor-icon-container">
           {isEditing ? (
             <button className="save-button" onClick={handleSave}>Save</button>
           ) : (

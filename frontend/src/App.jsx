@@ -11,6 +11,7 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
 import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
+import CoursesList from './pages/CoursesList.jsx';
 import Profile from "./pages/Profile";
 import Questionnaire from "./components/Questionnaire";
 import Login from './components/Login';
@@ -50,7 +51,6 @@ function App() {
         <Route path="/questionnaire" element={<Questionnaire />} />
 
         {/* Temporary Quiz Route */}
-        <Route path="/quiz" element={<Navigate to="/admin/courses" />} />
         <Route path="/quiz/:taskId" element={<QuizContainer />} />  
 
         {/* Protected Routes (With Sidebar) */}
@@ -63,6 +63,7 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses/>} />
+                <Route path="all-courses" element={<CoursesList/>} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="KnowValuesModule" element={<Module2/>} />
               </Routes>
@@ -79,9 +80,10 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses />} />
+                <Route path="all-courses" element={<CoursesList role="admin" />} />
                 <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="courses/create-and-manage-module" element={<AddModule />} />
+                <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
               </Routes>
             </DashboardLayout>
           }
