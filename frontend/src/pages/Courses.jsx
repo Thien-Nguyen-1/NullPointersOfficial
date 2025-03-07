@@ -180,4 +180,3 @@ function Courses({ role }) {
 }
     
 export default Courses;
-    
