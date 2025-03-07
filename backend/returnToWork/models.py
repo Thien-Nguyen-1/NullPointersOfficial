@@ -221,7 +221,7 @@ class Task(Content):
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
         ('question_answer_form', 'Question Answer Form'),
-        ('matching_questions', 'Matching Questions Quiz')
+        ('matching_questions', 'Matching Question Quiz')
     ]
     
     quiz_type = models.CharField(

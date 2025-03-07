@@ -158,7 +158,7 @@ export const QuizApiUtils = {
       'Fill in the Blanks': 'text_input',
       'Flowchart Quiz': 'statement_sequence',
       'Question and Answer Form': 'text_input',
-      'Matching Questions Quiz': 'text_input'
+      'Matching Question Quiz': 'text_input'
 
     };
     return typeMap[uiType] || 'text_input';
@@ -171,7 +171,7 @@ export const QuizApiUtils = {
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
       'text_input':'Question and Answer Form',
-      'text_input':'Matching Questions Quiz'
+      'text_input':'Matching Question Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },

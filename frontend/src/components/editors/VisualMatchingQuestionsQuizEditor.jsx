@@ -3,16 +3,13 @@ import axios from 'axios';
 import '../../styles/VisualMatchingQuestionsEditor.css';
 
 const VisualMatchingQuestionsQuizEditor = () => {
-    const authorId = 1;
     const apiUrl = 'http://localhost:8000/api/matching_questions/';
     const [pairs, setPairs] = useState([]);
     const [newPair, setNewPair] = useState({ question: '', answer: '', moduleID: '' });
     const [modules, setModules] = useState([]);
     const [selectedModuleId, setSelectedModuleId] = useState('');
     const [error, setError] = useState('');
-    const qaEditorRef = useRef(null);
 
-    // Fetch all modules on component mount
     useEffect(() => {
         const fetchModules = async () => {
             try {
@@ -26,7 +23,6 @@ const VisualMatchingQuestionsQuizEditor = () => {
         fetchModules();
     }, []);
 
-    // Handle changes in input fields
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setNewPair({ ...newPair, [name]: value });
@@ -37,25 +33,20 @@ const VisualMatchingQuestionsQuizEditor = () => {
         setSelectedModuleId(moduleIDInt);
         setNewPair(prev => ({ ...prev, moduleID: moduleIDInt }));
     };
-    // Handle adding a new pair
+
     const handleAddPair = async (event) => {
         event.preventDefault();
-        // if (!newPair.question || !newPair.answer || !newPair.moduleId) {
-        //     setError('All fields including module selection are required.');
-        //     return;
-        // }
-
         try {
             const completeData = {
                 ...newPair,
-               title: 'Matching Question Quiz',
-               description: 'A Quiz for entering matching pairs.',
-               is_published: true,
-               author: authorId
+                title: 'Matching Question Quiz',
+                description: 'A Quiz for entering matching pairs.',
+                is_published: true,
+                author: 1
             };
             const response = await axios.post(apiUrl, completeData);
-            setPairs([...pairs, response.data]);
-            setNewPair({ question: '', answer: '', moduleId: selectedModuleId }); // Reset form but keep selected moduleId
+            setPairs([...pairs, response.data]);  // Assume response.data includes contentID.
+            setNewPair({ question: '', answer: '', moduleID: selectedModuleId });
             setError('');
         } catch (err) {
             setError('Failed to save the pair. Please try again.');
@@ -63,46 +54,63 @@ const VisualMatchingQuestionsQuizEditor = () => {
         }
     };
 
-    // // Handle module change
-    // const handleModuleChange = (event) => {
-    //     setSelectedModuleId(event.target.value);
-    //     setNewPair(prev => ({ ...prev, moduleId: event.target.value }));
-    // };
+    const handleRemoveEntry = async (contentID) => {
+        try {
+            await axios.delete(`${apiUrl}${contentID}/`);
+            const updatedPairs = pairs.filter(pair => pair.contentID !== contentID);
+            setPairs(updatedPairs);
+        } catch (error) {
+            setError(`Failed to delete the pair: ${error.message}`);
+            console.error('Error deleting the pair:', error);
+        }
+    };
 
     return (
-        <div ref={qaEditorRef} className="matching-quiz-editor">
+       <div className="matching-quiz-editor">
             <h1>Create Matching Question and Answer Pairs</h1>
             {error && <div className="error">{error}</div>}
             <form onSubmit={handleAddPair} className="pair-form">
                 <select onChange={handleModuleChange} value={selectedModuleId || ''}>
-                    <option value="">Select a Module</option>
+                    <option value="">Select correct Module</option>
                     {modules.map((module) => (
                         <option key={module.id} value={module.id}>{module.title}</option>
                     ))}
                 </select>
+                
+                    <div className='pair-question'>
                 <input
                     type="text"
                     name="question"
                     value={newPair.question}
                     onChange={handleInputChange}
-                    placeholder="Enter question"
+                    placeholder="Question"
                     required
                 />
+                </div>
+                <div className='pair-answer'>
                 <input
                     type="text"
                     name="answer"
                     value={newPair.answer}
                     onChange={handleInputChange}
-                    placeholder="Enter matching answer"
+                    placeholder="Answer"
                     required
                 />
-                <button type="submit">Add Pair</button>
+                </div>
+                <button type="submit" className='button'>Add Pair</button>
+                
             </form>
             <div className="pairs-list">
-                {pairs.map((pair, index) => (
-                    <div key={index} className="pair">
-                        <p><strong>Question:</strong> {pair.question}</p>
-                        <p><strong>Answer:</strong> {pair.answer}</p>
+                {pairs.map((pair,index) => (
+                    <div key={pair.contentID} className="pair-container">
+                        <div className="pair-title">Pair {index + 1}</div> 
+                        <div className='pair-question'>
+                        <p><strong>Question {index + 1}:</strong> {pair.question}</p>
+                        </div>
+                        <div className='pair-answer'>
+                        <p><strong>Answer {index + 1}:</strong> {pair.answer}</p>
+                        </div>
+                        <button onClick={() => handleRemoveEntry(pair.contentID)} className='button'>Remove</button>
                     </div>
                 ))}
             </div>
@@ -111,6 +119,8 @@ const VisualMatchingQuestionsQuizEditor = () => {
 };
 
 export default VisualMatchingQuestionsQuizEditor;
+
+
 
 
 
