@@ -9,17 +9,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 10px;
-    width: 160px;
-    height: 50px;
+    
+    width: 100%;
+    height: auto;
+    
+    min-height: 2rem;
     background-color: #ff0099;
     color: white;
     border-radius: 25px;
     font-size: 16px;
     text-align: center;
-    line-height: 50px;  
+    line-height: 50px;      
     transition: all 0.3s ease;  
     cursor: pointer;  
+
+
 }
 
 .tag:hover {
@@ -27,3 +31,21 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);  
 }
 
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+    .tag {
+        padding: 1rem;
+    }
+}
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+    .tag {
+        padding: 3rem;
+    }
+}
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+
+}

@@ -98,7 +98,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
     <div className="question-box">
       <div className="question-header">
         <h2 className="question-number">Question {index + 1}</h2>
-        <div className="icon-container">
+        <div className="editor-icon-container">
           {isEditing ? (
             <button className="save-button" onClick={handleSave}>Save</button>
           ) : (
@@ -143,15 +143,10 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
   
-  // Log props and state for debugging purposes
-  console.log(`[DEBUG] VisualFillTheFormEditor initialQuestions:`, initialQuestions);
-  console.log(`[DEBUG] VisualFillTheFormEditor moduleId:`, moduleId);
-
   // Expose getQuestions method to parent component
   useImperativeHandle(ref, () => ({
     getQuestions: () => {
       // Format questions for API compatibility
-      console.log(`[DEBUG] getQuestions called, returning:`, questions);
       return questions.map((question, index) => ({
         id: Date.now() + index, // Temporary ID for UI
         question_text: question || '',
@@ -167,35 +162,27 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
       // Format questions for consistency - convert from API format to component format
       const formattedQuestions = initialQuestions.map(q => {
         const questionText = q.question_text || q.text || '';
-        console.log(`[DEBUG] Formatting question:`, questionText);
         return questionText;
       });
       
-      console.log(`[DEBUG] Setting questions from initialQuestions:`, formattedQuestions);
       setQuestions(formattedQuestions);
     } else {
-      console.log(`[DEBUG] No initialQuestions provided or empty array`);
       setQuestions([]);
     }
   }, [initialQuestions]);
 
-  // For debugging - log when questions state changes
   useEffect(() => {
-    console.log(`[DEBUG] Questions state updated:`, questions);
   }, [questions]);
 
   const addQuestion = (newQuestion) => {
-    console.log(`[DEBUG] Adding new question:`, newQuestion);
     setQuestions(prevQuestions => [...prevQuestions, newQuestion]);
   };
 
   const deleteQuestion = (index) => {
-    console.log(`[DEBUG] Deleting question at index:`, index);
     setQuestions(prevQuestions => prevQuestions.filter((_, i) => i !== index));
   };
 
   const editQuestion = (index, newQuestion) => {
-    console.log(`[DEBUG] Editing question at index ${index}:`, newQuestion);
     const updatedQuestions = [...questions];
     updatedQuestions[index] = newQuestion;
     setQuestions(updatedQuestions);

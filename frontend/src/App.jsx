@@ -11,16 +11,16 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
 import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
+import CoursesList from './pages/CoursesList.jsx';
 import Profile from "./pages/Profile";
 import Questionnaire from "./components/Questionnaire";
-import CreateModule from "./pages/CreateModule";
-import QuizEditor from './pages/QuizEditor';
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
 import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
+import ServiceUsersPage from "./pages/ServiceUsersPage";
 import QuizContainer from './components/quizzes/QuizContainer';
 import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
 import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
@@ -31,7 +31,7 @@ import VisualMatchingQuestionsQuizEditor from './components/editors/VisualMatchi
 import AddModule from './pages/AddModule';
 
 import "./App.css";
-
+import {AuthContextProvider} from './services/AuthContext.jsx'
 
 
 function App() {
@@ -42,6 +42,7 @@ function App() {
   };
   
   return (
+    <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
     <Router>
       <Routes>
         {/* Auth Routes (No Sidebar) */}
@@ -53,7 +54,6 @@ function App() {
         <Route path="/questionnaire" element={<Questionnaire />} />
 
         {/* Temporary Quiz Route */}
-        <Route path="/quiz" element={<Navigate to="/admin/courses" />} />
         <Route path="/quiz/:taskId" element={<QuizContainer />} />  
 
         {/* Protected Routes (With Sidebar) */}
@@ -65,9 +65,10 @@ function App() {
                 <Route path="home" element={<WorkerDashboard />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
-                <Route path="courses" element={<Courses role="worker" />} />
+                <Route path="courses" element={<Courses/>} />
+                <Route path="all-courses" element={<CoursesList/>} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="KnowValuesModule" element={<Module2 role="worker" />} />
+                <Route path="KnowValuesModule" element={<Module2/>} />
               </Routes>
             </DashboardLayout>
           }
@@ -81,7 +82,9 @@ function App() {
                 <Route path="home" element={<AdminDashboard />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
-                <Route path="courses" element={<Courses role="admin" />} />
+                <Route path="courses" element={<Courses />} />
+                <Route path="all-courses" element={<CoursesList role="admin" />} />
+                <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="courses/create-module" element={<CreateModule />} />
                 {/* Conditional Routing for Editors Based on quizType */}
@@ -98,6 +101,7 @@ function App() {
         />
       </Routes>
     </Router>
+    </AuthContextProvider>
   );
 }
 

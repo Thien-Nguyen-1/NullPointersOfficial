@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { SignUpUser } from "../services/api";
+import { useContext, useState } from "react";
+//import { SignUpUser } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../services/AuthContext";
 import '../styles/Signup.css';
 
 const Signup = () => {
@@ -11,6 +12,10 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+
+  const {SignUpUser} = useContext(AuthContext)
+
+
   const navigate = useNavigate();
 
   const handleSignUp = async(e) => {
@@ -44,6 +49,7 @@ const Signup = () => {
     <div className="signup-container">
       <div className="signup-box">
         <h3>Sign Up page</h3>
+
         <form onSubmit={handleSignUp}>
           <input
             type="text"
@@ -91,6 +97,7 @@ const Signup = () => {
           />
           <button type="submit">Sign Up</button>
         </form>
+
         {error && <p className="error">{error}</p>}
         <div className="signup-links">
           <button onClick={() => navigate("/login")}>Login</button>

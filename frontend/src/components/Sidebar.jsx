@@ -1,12 +1,24 @@
-import React from "react";
+import React, { useContext, useRef, useState, } from "react";
 import { FaHome, FaUser, FaEnvelope, FaCog, FaSignOutAlt, FaBrain, FaBook } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import '../styles/Sidebar.css'; 
-import {logoutUser} from "../services/api";
+//import {logoutUser} from "../services/api";
+import { IoMdMenu } from "react-icons/io"
+import {useOutsiderClicker} from "../hooks-custom/outside-clicker.js"
+
+import { AuthContext } from "../services/AuthContext.jsx";
 
 const Sidebar = ({ role }) => {
   const location = useLocation();
   const basePath = role === "admin" ? "/admin" : "/worker";
+
+  const {logoutUser} = useContext(AuthContext)
+
+  const [menuStatus, setMenuStatus] = useState(false)
+  const wrapperSidebar = useRef(null)
+
+  useOutsiderClicker(wrapperSidebar, () => {setMenuStatus(false)})
+
 
   const menuItems = [
     { path: "home", icon: <FaHome size={24} />, label: "Home" },
@@ -33,14 +45,26 @@ const Sidebar = ({ role }) => {
     }
   };
 
+ 
+
   return (
-    <div className="sidebar">
+
+   <> 
+
+    <div className="menu-button">
+         <IoMdMenu onClick={() => {setMenuStatus(!menuStatus)}}> </IoMdMenu>
+    </div>
+
+
+    <div className={`sidebar ${menuStatus === true ? 'side-open' : ''} `} ref={wrapperSidebar}>
+      
       <div className="logo">
         <div className="logo-circle">
           <FaBrain size={30} color="white" />
         </div>
       </div>
 
+  
       <div className="menu">
         {menuItems.map((item) => {
           const active = isActive(item.path);
@@ -62,6 +86,9 @@ const Sidebar = ({ role }) => {
         <FaSignOutAlt size={24} />
       </div>
     </div>
+
+    </>
+
   );
 };
 

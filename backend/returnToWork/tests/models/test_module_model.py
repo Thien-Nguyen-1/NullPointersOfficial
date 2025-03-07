@@ -11,7 +11,6 @@ class ModuleModelTest(TestCase):
         self.module = Module.objects.create(
             title="Handling WORK stress",
             description="This is a test module.",
-            pinned=True,
             upvotes=10
         )
 
@@ -22,7 +21,6 @@ class ModuleModelTest(TestCase):
         """Test if the module is created successfully."""
         self.assertEqual(self.module.title, "Handling Work Stress")
         self.assertEqual(self.module.description, "This is a test module.")
-        self.assertTrue(self.module.pinned)
         self.assertEqual(self.module.upvotes, 10)
 
     def test_upvote_method(self):

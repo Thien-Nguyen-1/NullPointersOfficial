@@ -4,28 +4,39 @@ import axios from 'axios';
 const baseURL =
   import.meta.env && import.meta.env.VITE_API_URL 
     ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000'; // this should points to Django backend
+    : 'http://localhost:8000'; 
+
     
 const api = axios.create({
-  baseURL, 
+  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
-// Add request interceptor to include auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Token ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+//Anything affiliated with the model User, please make amendments to AuthContext.jsx
 
-// Authentication functions
+// Generic fetch function for users
+const fetchData = async (endpoint) => {
+  try {
+    const response = await api.get(`${endpoint}/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    throw new Error(`Failed to fetch ${endpoint}`);
+  }
+};
+
+export const fetchServiceUsers = () => fetchData("service-users");
+
+export const deleteServiceUser = async (username) => {
+    try {
+        const response = await api.delete(`/service-users/${username}/`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error deleting user ${username}:`, error);
+        throw error;
+    }
+};
+
 export async function loginUser(username, password){
   try {
     const response = await api.post(`/api/login/`, {
@@ -38,6 +49,13 @@ export async function loginUser(username, password){
     localStorage.setItem('token', response.data.token);
   
     return response.data;
+
+    if(response.data){
+      localStorage.setItem("user_type",response.data.user_type);
+      return response.data;
+    }
+
+    
   }
   catch(error) {
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
@@ -58,43 +76,6 @@ export function redirectBasedOnUserType(userData) {
             window.location.href = '/worker/home';
     }
 
-}
-
-
-export async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
-  try {
-    const response = await api.post(`/api/signup/`, {
-      username,
-      first_name: firstName,
-      last_name: lastName,
-      user_type: userType,
-      password,
-      confirm_password: confirmPassword,
-    });
-
-    return response.data;
-
-  }
-  catch(error) {
-    console.error("Sign Up error:", error.response?.data || error.message);
-    throw new Error("Sign Up failed:" + (error.response?.data?.detail || "Unknown error"));
-   }
-}
-
-export async function ResetPassword(username, new_password , confirm_new_password){
-  try {
-    const response = await api.post(`/api/change-password/`, {
-      username,
-      new_password,
-      confirm_new_password
-    });
-
-    return response.data;
-  }
-  catch(error) {
-    throw new Error("Reset of password failed:" + (error.response?.data?.detail || "Unknown error"));
-
-  }
 }
 
 export async function GetQuestion(id = null) {
@@ -124,6 +105,169 @@ export async function SubmitQuestionAnswer(question_id, answer) {
     throw new Error("Failed to submit answer");
   } 
 };
+
+  
+export async function getUserSettings(){
+  
+  try{
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('No authentication token found');
+
+    }
+    
+    const response = await api.get(`/worker/settings/` , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to get user settings", error.response?.data || error.message);
+  }
+}
+
+
+export async function deleteUserSettings(){
+  try{
+    const token = localStorage.getItem('token');
+    const response = await api.delete(`/worker/settings/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to delete user account");
+  }
+}
+
+
+
+export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
+  try{
+    const token = localStorage.getItem("token");
+    const response = await api.put(`worker/password-change/`, {
+    old_password:  oldPassword,
+    new_password: newPassword,
+    confirm_new_password: confirmNewPassword,
+    
+    } , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to change password");
+    
+  }
+}
+
+
+
+export async function GetModule(id){
+  try {
+
+    const response = await api.get(`/modules/${ id !== undefined ? id : ""}`)
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+
+  } catch (err){
+    throw new Error("Failed to retrieve modules")
+  }
+}
+
+export async function GetAllProgressTracker(){
+  try {
+   
+    const response = await api.get(`/api/progress-tracker/`)
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  } catch(err){
+
+    return []
+
+  }
+
+}
+
+export async function SaveProgressTracker(tracker, id){
+  try{
+
+    const response = await api.put(`/api/progress-tracker/${id}`, tracker)
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data
+
+  } catch(err){
+    return []
+  }
+}
+
+
+export async function GetUserModuleInteract(token){
+  try {
+   
+    const response = await api.get(`/api/user-interaction/`, {
+      params: {"filter": "user" },
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+     
+    });
+      
+
+    if(response.error){
+      throw new Error(response.error);
+    } 
+    else if(response.status === 204 ){
+      return []
+    } 
+   
+    return response.data;
+
+  } catch(err){
+
+    return []
+
+  }
+
+}
+
+
+export async function SaveUserModuleInteract(modId, objInteract, token) {
+ 
+  try {
+    
+    const response = await api.post(`api/user-interaction/${modId}/`, objInteract, { headers: {'Authorization': `Token ${token}`}})
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data
+
+  } catch(err){
+    throw new Error("Unable to save user module interaction")
+  }
+}
+
 
 // Module related functions
 export const moduleApi = {
@@ -162,40 +306,3 @@ export const quizApi = {
 };
 
 export default api 
-
-
-
-
-export async function logoutUser() {
-  try {
-    // Get the token from localStorage
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-      // Call backend logout endpoint
-      await api.post('api/logout/', {}, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      });
-    }
-    
-    // Clear all user-related data from localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    
-    // Redirect to login page
-    window.location.href = '/';
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Logout error:", error);
-    
-    // Even if the API call fails, still clear localStorage and redirect
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    window.location.href = '/';
-    
-    throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
-  }
-}
