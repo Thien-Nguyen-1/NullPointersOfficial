@@ -184,16 +184,13 @@ export const QuizApiUtils = {
       const response = await api.get('/api/tasks/', { 
         params: { moduleID: moduleId } 
       });
-      
-      // Log the module-task relationship for debugging
-      console.log(`[DEBUG] Filtering tasks specifically for module ${moduleId}`);
+    
       
       // Ensure we only return tasks that belong to this specific module
       const tasks = response.data.filter(task => {
         return String(task.moduleID) === String(moduleId);
       });
       
-      console.log(`[DEBUG] Found ${tasks.length} tasks belonging to module ${moduleId}:`, tasks);
       return tasks;
     } catch (error) {
       console.error('Error fetching module-specific tasks:', error);
@@ -210,7 +207,6 @@ export const QuizApiUtils = {
         moduleID: moduleId
       };
       
-      console.log(`[DEBUG] Creating new task explicitly for module ${moduleId}:`, data);
       const response = await api.post('/api/tasks/', data);
       return response.data;
     } catch (error) {
@@ -222,7 +218,6 @@ export const QuizApiUtils = {
   // Add a function to delete tasks that don't belong to the current module
   cleanupOrphanedTasks: async (moduleId, keepTaskIds) => {
     try {
-      console.log(`[DEBUG] Cleaning up tasks for module ${moduleId}, keeping only tasks:`, keepTaskIds);
       const allTasks = await api.get('/api/tasks/', { 
         params: { moduleID: moduleId } 
       });
@@ -232,11 +227,7 @@ export const QuizApiUtils = {
         !keepTaskIds.includes(task.contentID)
       );
       
-      console.log(`[DEBUG] Found ${tasksToDelete.length} orphaned tasks to delete from module ${moduleId}:`, 
-        tasksToDelete.map(t => t.contentID));
-      
       for (const task of tasksToDelete) {
-        console.log(`[DEBUG] Deleting orphaned task ${task.contentID} from module ${moduleId}`);
         await api.delete(`/api/tasks/${task.contentID}/`);
       }
       
