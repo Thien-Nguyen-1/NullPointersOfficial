@@ -1,124 +1,81 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import '../../styles/VisualMatchingQuestionsEditor.css';
 
-const VisualMatchingQuestionsQuizEditor = () => {
-    const apiUrl = 'http://localhost:8000/api/matching_questions/';
+const VisualMatchingQuestionsQuizEditor = forwardRef((props, ref) => {
     const [pairs, setPairs] = useState([]);
-    const [newPair, setNewPair] = useState({ question: '', answer: '', moduleID: '' });
-    const [modules, setModules] = useState([]);
-    const [selectedModuleId, setSelectedModuleId] = useState('');
+    const [newPair, setNewPair] = useState({ question: '', answer: '' });
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchModules = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/modules/');
-                setModules(response.data);
-            } catch (error) {
-                setError('Failed to fetch modules');
-                console.error('Error fetching modules:', error);
-            }
-        };
-        fetchModules();
-    }, []);
+    // Expose methods to parent via ref
+    useImperativeHandle(ref, () => ({
+        getPairs: () => pairs,
+
+        addPair: (pair) => {
+            setPairs(prevPairs => [...prevPairs, pair]);
+        },
+        removePair: (index) => {
+            setPairs(prevPairs => prevPairs.filter((_, idx) => idx !== index));
+        }
+    }));
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setNewPair({ ...newPair, [name]: value });
+        setNewPair(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleModuleChange = (event) => {
-        const moduleIDInt = parseInt(event.target.value, 10);
-        setSelectedModuleId(moduleIDInt);
-        setNewPair(prev => ({ ...prev, moduleID: moduleIDInt }));
-    };
-
-    const handleAddPair = async (event) => {
+    const handleAddPair = (event) => {
         event.preventDefault();
-        try {
-            const completeData = {
-                ...newPair,
-                title: 'Matching Question Quiz',
-                description: 'A Quiz for entering matching pairs.',
-                is_published: true,
-                author: 1
-            };
-            const response = await axios.post(apiUrl, completeData);
-            setPairs([...pairs, response.data]);  // Assume response.data includes contentID.
-            setNewPair({ question: '', answer: '', moduleID: selectedModuleId });
-            setError('');
-        } catch (err) {
-            setError('Failed to save the pair. Please try again.');
-            console.error('Error adding pair:', err);
+        if (!newPair.question || !newPair.answer) {
+            setError("Both question and answer fields must be filled.");
+            return;
         }
-    };
-
-    const handleRemoveEntry = async (contentID) => {
-        try {
-            await axios.delete(`${apiUrl}${contentID}/`);
-            const updatedPairs = pairs.filter(pair => pair.contentID !== contentID);
-            setPairs(updatedPairs);
-        } catch (error) {
-            setError(`Failed to delete the pair: ${error.message}`);
-            console.error('Error deleting the pair:', error);
-        }
+        setPairs([...pairs, newPair]);
+        setNewPair({ question: '', answer: '' });
+        setError('');
     };
 
     return (
-       <div className="matching-quiz-editor">
+        <div ref={ref} className="matching-quiz-editor">
             <h1>Create Matching Question and Answer Pairs</h1>
             {error && <div className="error">{error}</div>}
             <form onSubmit={handleAddPair} className="pair-form">
-                <select onChange={handleModuleChange} value={selectedModuleId || ''}>
-                    <option value="">Select correct Module</option>
-                    {modules.map((module) => (
-                        <option key={module.id} value={module.id}>{module.title}</option>
-                    ))}
-                </select>
-                
-                    <div className='pair-question'>
                 <input
                     type="text"
                     name="question"
                     value={newPair.question}
                     onChange={handleInputChange}
-                    placeholder="Question"
+                    placeholder="Enter question"
                     required
+                    className="input-field"
                 />
-                </div>
-                <div className='pair-answer'>
                 <input
                     type="text"
                     name="answer"
                     value={newPair.answer}
                     onChange={handleInputChange}
-                    placeholder="Answer"
+                    placeholder="Enter answer"
                     required
+                    className="input-field"
                 />
-                </div>
-                <button type="submit" className='button'>Add Pair</button>
-                
+                <button type="submit" className="button">Add Pair</button>
             </form>
             <div className="pairs-list">
-                {pairs.map((pair,index) => (
-                    <div key={pair.contentID} className="pair-container">
-                        <div className="pair-title">Pair {index + 1}</div> 
-                        <div className='pair-question'>
-                        <p><strong>Question {index + 1}:</strong> {pair.question}</p>
-                        </div>
-                        <div className='pair-answer'>
-                        <p><strong>Answer {index + 1}:</strong> {pair.answer}</p>
-                        </div>
-                        <button onClick={() => handleRemoveEntry(pair.contentID)} className='button'>Remove</button>
+                {pairs.map((pair, index) => (
+                    <div key={index} className="pair-container">
+                        <div className="pair-question"><strong>Question:</strong> {pair.question}</div>
+                        <div className="pair-answer"><strong>Answer:</strong> {pair.answer}</div>
+                        <button onClick={() => {
+                            setPairs(currentPairs => currentPairs.filter((_, idx) => idx !== index));
+                        }} className="button">Remove</button>
                     </div>
                 ))}
             </div>
         </div>
     );
-};
+});
 
 export default VisualMatchingQuestionsQuizEditor;
+
 
 
 
