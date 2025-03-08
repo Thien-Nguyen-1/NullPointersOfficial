@@ -33,7 +33,7 @@ router.register(r'matching_questions', MatchingQuestionQuizViewSet)
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
     path('api/logout/', LogOutView.as_view(), name= 'logout'),
     path('api/signup/', SignUpView.as_view(), name= 'signup'),

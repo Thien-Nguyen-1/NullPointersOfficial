@@ -25,9 +25,6 @@ import QuizContainer from './components/quizzes/QuizContainer';
 import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
 import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
 import VisualFlowChartQuiz from './components/editors/VisualFlowChartQuiz';
-import VisualQuestionAndAnswerFormEditor from './components/editors/VisualQuestionAndAnswerFormEditor';
-import VisualMatchingQuestionsQuizEditor from './components/editors/VisualMatchingQuestionsQuizEditor';
-
 import AddModule from './pages/AddModule';
 
 import "./App.css";
@@ -86,15 +83,7 @@ function App() {
                 <Route path="all-courses" element={<CoursesList role="admin" />} />
                 <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="courses/create-module" element={<CreateModule />} />
-                {/* Conditional Routing for Editors Based on quizType */}
-                <Route path="courses/create-module/:moduleId/:quizType" element={<QuizEditorSelector />} />
-                {/* Add Fill-in-the-Blank Quiz Editor */}
-                <Route path="courses/create-module/fill-in-the-blanks" element={<VisualFillTheFormEditor />} />
-                <Route path="courses/create-module/flow-chart-quiz" element={<VisualFlowChartQuiz />} />
-                <Route path="courses/create-module/question-and-answer-form" element={<VisualQuestionAndAnswerFormEditor/>} />
-                <Route path="courses/create-module/matching-question-quiz" element={<VisualMatchingQuestionsQuizEditor/>} />
-                <Route path="courses/create-and-manage-module" element={<AddModule />} />
+                <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
               </Routes>
             </DashboardLayout>
           }

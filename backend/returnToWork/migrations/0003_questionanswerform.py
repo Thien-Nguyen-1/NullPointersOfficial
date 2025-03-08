@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('returnToWork', '0002_task_quiz_type_quizquestion_userresponse'),
+        ('returnToWork', '0003_usermoduleinteraction'),
     ]
 
     operations = [
