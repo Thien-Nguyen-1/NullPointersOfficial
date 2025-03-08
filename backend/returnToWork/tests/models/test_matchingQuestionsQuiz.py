@@ -7,7 +7,6 @@ class MatchingQuestionsQuizTest(TestCase):
         self.module = Module.objects.create(
             title="Handling work anxiety",
             description="This is a test module.",
-            pinned=True,
             upvotes=9
         )
         self.user = User.objects.create_user(

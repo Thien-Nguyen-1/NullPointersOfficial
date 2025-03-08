@@ -88,7 +88,7 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
+        fields = ['id', 'user', 'module', 'completed']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
