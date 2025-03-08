@@ -78,12 +78,35 @@ export const QuizApiUtils = {
     }
   },
 
+  // updateTask: async (taskId, taskData) => {
+  //   try {
+  //     const response = await api.put(`/api/tasks/${taskId}/`, taskData);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error updating task:', error);
+  //     throw error;
+  //   }
+  // },
+
   updateTask: async (taskId, taskData) => {
     try {
+      console.log("Updating task with ID:", taskId);
+      console.log("Task data:", taskData);
+      
+      // Ensure moduleID is properly formatted
+      if (taskData.moduleID) {
+        // Make sure moduleID is a number if it should be
+        if (typeof taskData.moduleID === 'string') {
+          taskData.moduleID = parseInt(taskData.moduleID, 10);
+        }
+      }
+      
       const response = await api.put(`/api/tasks/${taskId}/`, taskData);
+      console.log("Task update response:", response.data);
       return response.data;
     } catch (error) {
       console.error('Error updating task:', error);
+      console.error('Error response data:', error.response?.data);
       throw error;
     }
   },
@@ -121,12 +144,50 @@ export const QuizApiUtils = {
     }
   },
 
+  // createQuestion: async (questionData) => {
+  //   try {
+  //     const response = await api.post('/api/quiz/questions/', questionData);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error creating question:', error);
+  //     throw error;
+  //   }
+  // },
+
   createQuestion: async (questionData) => {
     try {
-      const response = await api.post('/api/quiz/questions/', questionData);
+      console.log("[DEBUG] Creating question with original data:", questionData);
+      
+      // Validate required fields
+      if (!questionData.task_id && !questionData.task) {
+        console.error("Error: Both task_id and task are missing");
+        throw new Error("Task ID is required");
+      }
+      
+      if (!questionData.question_text && !questionData.text) {
+        console.error("Error: Both question_text and text are missing");
+        throw new Error("Question text is required");
+      }
+      
+      // Prepare data in the format expected by the API
+      const apiData = {
+        task_id: questionData.task || questionData.task_id, // Use either task or task_id
+        question_text: questionData.question_text || questionData.text || "",
+        hint_text: questionData.hint_text || questionData.hint || "",
+        order: questionData.order || 0
+      };
+      
+      console.log("[DEBUG] Sending to API:", apiData);
+      
+      // Make the API call
+      const response = await api.post('/api/quiz/questions/', apiData);
       return response.data;
     } catch (error) {
-      console.error('Error creating question:', error);
+      // Enhanced error logging
+      console.error("Error creating question:", error);
+      console.error("Error response data:", error.response?.data);
+      
+      // Rethrow the error for the caller to handle
       throw error;
     }
   },
@@ -194,18 +255,41 @@ export const QuizApiUtils = {
   },
 
   // Also add a function to create the module-task relationship in the backend
+  // createModuleTask: async (moduleId, taskData) => {
+  //   try {
+  //     // Ensure the moduleID is explicitly set to this module
+  //     const data = {
+  //       ...taskData,
+  //       moduleID: moduleId
+  //     };
+      
+  //     const response = await api.post('/api/tasks/', data);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error creating module task:', error);
+  //     throw error;
+  //   }
+  // },
+
   createModuleTask: async (moduleId, taskData) => {
     try {
-      // Ensure the moduleID is explicitly set to this module
+      console.log("Creating task for module ID:", moduleId);
+      console.log("Task data:", taskData);
+      
+      // Ensure the moduleID is properly set
       const data = {
         ...taskData,
-        moduleID: moduleId
+        moduleID: parseInt(moduleId, 10) // Ensure moduleID is a number
       };
       
+      console.log("Prepared task data:", data);
+      
       const response = await api.post('/api/tasks/', data);
+      console.log("Task creation response:", response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating module task:', error);
+      console.error('Error response data:', error.response?.data);
       throw error;
     }
   },
@@ -236,3 +320,6 @@ export const QuizApiUtils = {
 };
 
 export default QuizApiUtils;
+if (typeof window !== 'undefined') {
+  window.QuizApiUtils = QuizApiUtils;
+}

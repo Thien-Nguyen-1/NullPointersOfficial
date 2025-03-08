@@ -10,11 +10,13 @@ const VisualFlowChartQuiz = forwardRef((props, ref) => {
   // Expose getQuestions method for parent component to access
   useImperativeHandle(ref, () => ({
     getQuestions: () => {
-      // Format statements as questions for API compatibility
-      return statements.map((statement, index) => ({
-        id: statement.id, // Temporary ID for UI
-        question_text: statement.text || "",
-        hint_text: statement.question || "", // We use hint_text to store the question
+      // Filter out empty statements and format for API
+      return statements
+      .filter(statement => statement.text.trim() !== "")
+      .map((statement, index) => ({
+        id: statement.id,
+        question_text: statement.text || "Default statement text",
+        hint_text: statement.question || "",
         order: index
       }));
     }
@@ -57,8 +59,8 @@ const VisualFlowChartQuiz = forwardRef((props, ref) => {
       ...statements, 
       { 
         id: Date.now(), 
-        text: "", 
-        question: "", 
+        text: "New statement - click to edit", // Default text
+        question: "Enter question here", // Default question
         answer: "Sample Answer" 
       }
     ]);

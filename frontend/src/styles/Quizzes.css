@@ -1,0 +1,590 @@
+/* Quizzes.css - Common styles for all quiz types */
+
+/* General Quiz Styles */
+.quiz-loading, .quiz-error, .quiz-empty {
+    padding: 30px;
+    text-align: center;
+    background-color: white;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  
+  .quiz-error {
+    color: #ff4d4f;
+    background-color: #fff1f0;
+    border: 1px solid #ffccc7;
+  }
+  
+  .quiz-empty {
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+  }
+  
+  .quiz-progress span {
+    font-size: 14px;
+    color: var(--text-subtle);
+  }
+  
+  .quiz-progress progress {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  .quiz-progress progress::-webkit-progress-bar {
+    background-color: var(--secondary-green);
+  }
+  
+  .quiz-progress progress::-webkit-progress-value {
+    background-color: var(--primary-green);
+  }
+  
+  .quiz-progress progress::-moz-progress-bar {
+    background-color: var(--primary-green);
+  }
+  
+  .quiz-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+  }
+  
+  .prev-button, .next-button, .submit-button, .restart-button, .retry-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-weight: bold;
+  }
+  
+  .prev-button {
+    background-color: var(--secondary-green);
+    color: var(--primary-green);
+  }
+  
+  .prev-button:hover {
+    background-color: var(--primary-green-light);
+  }
+  
+  .prev-button:disabled {
+    background-color: #f5f5f5;
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .next-button, .submit-button {
+    background-color: var(--primary-green);
+    color: white;
+  }
+  
+  .next-button:hover, .submit-button:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  .restart-button, .retry-button {
+    background-color: var(--primary-green);
+    color: white;
+  }
+  
+  .restart-button:hover, .retry-button:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  /* Flashcard Quiz Styles */
+  .flashcard-quiz-container {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .flashcard {
+    width: 100%;
+    height: 320px;
+    perspective: 1000px;
+    margin-bottom: 30px;
+    cursor: pointer;
+  }
+  
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  
+  .flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .flashcard-front {
+    background-color: var(--secondary-green);
+    border: 1px solid var(--primary-green-light);
+  }
+  
+  .flashcard-back {
+    background-color: white;
+    border: 1px solid var(--primary-green-light);
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard-front h3, .flashcard-back h3 {
+    margin-top: 0;
+    color: var(--primary-green);
+    font-size: 18px;
+    border-bottom: 1px solid var(--primary-green-light);
+    padding-bottom: 10px;
+  }
+  
+  .flashcard-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1.6;
+    padding: 20px 0;
+  }
+  
+  .flip-instruction {
+    font-size: 12px;
+    color: var(--text-subtle);
+    text-align: center;
+    font-style: italic;
+  }
+  
+  .user-answer {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border: 1px solid var(--secondary-green);
+    border-radius: 4px;
+    resize: none;
+    margin-top: 10px;
+    font-family: inherit;
+  }
+  
+  .quiz-completed {
+    text-align: center;
+    padding: 30px;
+    background-color: var(--secondary-green);
+    border: 1px solid var(--primary-green-light);
+    border-radius: 8px;
+  }
+  
+  .quiz-completed h3 {
+    color: var(--primary-green);
+    margin-top: 0;
+  }
+  
+  /* Fill-in-the-Blanks Quiz Styles */
+  .fill-blanks-quiz-container {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .quiz-instructions {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--secondary-green);
+  }
+  
+  .quiz-instructions h3 {
+    margin-top: 0;
+    color: var(--primary-green);
+  }
+  
+  .quiz-instructions p {
+    color: var(--text-subtle);
+    line-height: 1.5;
+  }
+  
+  .questions-container {
+    margin-bottom: 30px;
+  }
+  
+  .fill-blanks-question {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: var(--secondary-green);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-green);
+  }
+  
+  .fill-blanks-question h3 {
+    margin-top: 0;
+    color: var(--primary-green);
+    font-size: 16px;
+  }
+  
+  .question-text {
+    line-height: 1.8;
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  .blank-input {
+    background-color: white;
+    border: 1px solid var(--primary-green-light);
+    border-radius: 4px;
+    padding: 5px 10px;
+    margin: 0 5px;
+    width: 120px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  
+  .blank-input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px var(--primary-green-light);
+  }
+  
+  .blank-input:disabled {
+    background-color: #f5f5f5;
+    border-color: #d9d9d9;
+    color: var(--text-subtle);
+  }
+  
+  .hint-text {
+    font-size: 14px;
+    color: var(--primary-green);
+    margin-top: 10px;
+    padding: 5px;
+    background-color: var(--primary-green-light);
+    border-radius: 4px;
+  }
+  
+  .quiz-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .quiz-results {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: var(--secondary-green);
+    border: 1px solid var(--primary-green-light);
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .quiz-results h3 {
+    color: var(--primary-green);
+    margin-top: 0;
+  }
+  
+  .quiz-results p {
+    color: var(--text-subtle);
+    line-height: 1.5;
+  }
+  
+  /* Flowchart Quiz Styles */
+  .flowchart-quiz-container {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .flowchart-content {
+    margin: 20px 0;
+  }
+  
+  .previous-statements {
+    margin-bottom: 20px;
+  }
+  
+  .previous-statement-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: var(--secondary-green);
+    border-radius: 4px;
+  }
+  
+  .current-statement {
+    padding: 20px;
+    background-color: var(--primary-green-light);
+    border-radius: 8px;
+    border: 1px solid var(--primary-green-light);
+    margin-bottom: 20px;
+  }
+  
+  .statement-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-green);
+    color: white;
+    border-radius: 50%;
+    margin-right: 15px;
+    flex-shrink: 0;
+    font-weight: bold;
+  }
+  
+  .previous-statement-item .statement-number {
+    background-color: var(--text-subtle);
+  }
+  
+  .statement-content {
+    flex: 1;
+    line-height: 1.6;
+  }
+  
+  .statement-question {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--secondary-green);
+    border-radius: 4px;
+    color: var(--primary-green);
+  }
+  
+  .statement-answer {
+    margin-top: 15px;
+  }
+  
+  .statement-answer textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--secondary-green);
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    min-height: 80px;
+  }
+  
+  .statement-answer textarea:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px var(--primary-green-light);
+  }
+  
+  .flowchart-completed {
+    padding: 20px;
+    margin-top: 20px;
+    background-color: var(--secondary-green);
+    border: 1px solid var(--primary-green-light);
+    border-radius: 8px;
+  }
+  
+  .flowchart-completed h3 {
+    color: var(--primary-green);
+    margin-top: 0;
+  }
+  
+  .flowchart-summary {
+    margin-top: 20px;
+  }
+  
+  .flowchart-review {
+    margin-top: 10px;
+  }
+  
+  .flowchart-review-item {
+    display: flex;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: var(--secondary-green);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-green);
+  }
+  
+  .user-response {
+    margin-top: 10px;
+    font-style: italic;
+    color: var(--primary-green);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .flashcard {
+      height: 250px;
+    }
+    
+    .blank-input {
+      width: 100px;
+    }
+    
+    .quiz-navigation {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .quiz-navigation button {
+      width: 100%;
+    }
+
+
+    /* Flowchart Visual Styles */
+    .flowchart-visual-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+        width: 100%;
+    }
+    
+    .flowchart-visual {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .flowchart-box {
+        position: relative;
+        width: 80%;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        background-color: var(--secondary-green);
+        border: 1px solid var(--primary-green-light);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s;
+    }
+    
+    .flowchart-box.completed {
+        background-color: var(--secondary-green);
+        opacity: 0.7;
+    }
+    
+    .flowchart-box.current {
+        background-color: var(--primary-green-light);
+        border: 2px solid var(--primary-green);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        transform: scale(1.02);
+    }
+    
+    .flowchart-box.upcoming {
+        opacity: 0.5;
+    }
+    
+    .flowchart-box-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        background-color: var(--primary-green);
+        color: white;
+        border-radius: 50%;
+        margin-right: 15px;
+        flex-shrink: 0;
+        font-weight: bold;
+    }
+    
+    .flowchart-box-content {
+        flex: 1;
+        font-size: 16px;
+        color: var(--primary-green);
+    }
+    
+    .flowchart-connector {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .flowchart-arrow {
+        width: 2px;
+        height: 20px;
+        background-color: var(--primary-green);
+        position: relative;
+    }
+    
+    .flowchart-arrow:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: -4px;
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 8px solid var(--primary-green);
+    }
+    
+    .flowchart-connector.completed .flowchart-arrow {
+        background-color: var(--primary-green);
+    }
+    
+    .flowchart-connector.current .flowchart-arrow {
+        background-color: var(--primary-green);
+    }
+    
+    .flowchart-connector.upcoming .flowchart-arrow {
+        background-color: #ccc;
+    }
+    
+    .flowchart-connector.upcoming .flowchart-arrow:after {
+        border-top-color: #ccc;
+    }
+    
+    .flowchart-response-box {
+        width: 80%;
+        padding: 10px 15px;
+        margin-top: 5px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        border: 1px dashed var(--primary-green-light);
+    }
+    
+    .flowchart-response-header {
+        font-weight: bold;
+        color: var(--primary-green);
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+    
+    .flowchart-response-content {
+        font-style: italic;
+        color: var(--text-subtle);
+    }
+    
+    /* Responsive adjustments for flowchart */
+    @media (max-width: 768px) {
+        .flowchart-box {
+        width: 95%;
+        }
+        
+        .flowchart-response-box {
+        width: 95%;
+        }
+    }
+  }

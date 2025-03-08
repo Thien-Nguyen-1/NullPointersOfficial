@@ -1,0 +1,222 @@
+/* ModuleView.css */
+
+.module-view-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+  }
+  
+  .module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--secondary-green);
+    padding-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--secondary-green);
+    color: var(--primary-green);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .back-button:hover {
+    background-color: var(--primary-green-light);
+  }
+  
+  .module-title {
+    font-size: 24px;
+    margin: 0;
+    color: var(--primary-green);
+    flex: 1;
+    text-align: center;
+  }
+  
+  .module-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .like-button, .pin-button {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--secondary-green);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--primary-green);
+    gap: 5px;
+  }
+  
+  .like-button:hover, .pin-button:hover {
+    background-color: var(--primary-green-light);
+  }
+  
+  .like-button.active, .pin-button.active {
+    background-color: var(--primary-green-light);
+    color: var(--primary-green);
+  }
+  
+  .like-count {
+    font-weight: bold;
+  }
+  
+  .module-description {
+    margin-bottom: 25px;
+    line-height: 1.6;
+    color: var(--text-subtle);
+  }
+  
+  .module-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 25px;
+  }
+  
+  .module-tag {
+    background-color: var(--secondary-green);
+    padding: 5px 10px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--primary-green);
+  }
+  
+  .module-content {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+    min-height: 500px;
+  }
+  
+  .tasks-navigation {
+    flex: 0 0 250px;
+    border-right: 1px solid var(--secondary-green);
+    padding-right: 20px;
+  }
+  
+  .tasks-navigation h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--secondary-green);
+    color: var(--primary-green);
+  }
+  
+  .tasks-navigation ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .tasks-navigation li {
+    padding: 12px 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    color: var(--text-subtle);
+  }
+  
+  .tasks-navigation li:hover {
+    background-color: var(--secondary-green);
+  }
+  
+  .tasks-navigation li.active {
+    background-color: var(--primary-green-light);
+    color: var(--primary-green);
+    font-weight: bold;
+  }
+  
+  .task-content {
+    flex: 1;
+    padding: 15px;
+    background-color: var(--secondary-green);
+    border-radius: 8px;
+  }
+  
+  .task-title {
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--primary-green-light);
+    color: var(--primary-green);
+  }
+  
+  .no-tasks-message {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  
+  .module-loading, .module-error, .module-not-found {
+    text-align: center;
+    padding: 50px;
+    color: var(--text-subtle);
+  }
+  
+  .module-error {
+    color: #ff4d4f;
+  }
+  
+  .module-error button {
+    margin-top: 20px;
+    padding: 8px 16px;
+    background-color: var(--primary-green);
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .module-error button:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .module-content {
+      flex-direction: column;
+    }
+    
+    .tasks-navigation {
+      flex: none;
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--secondary-green);
+      padding-right: 0;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .module-header {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .back-button {
+      align-self: flex-start;
+    }
+    
+    .module-actions {
+      width: 100%;
+      justify-content: center;
+    }
+  }

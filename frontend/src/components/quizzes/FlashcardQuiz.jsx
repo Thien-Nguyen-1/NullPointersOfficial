@@ -1,164 +1,186 @@
+import React, { useState, useEffect } from "react";
+import { QuizApiUtils } from "../../services/QuizApiUtils";
+import "../../styles/Quizzes.css";
 
-// FlashcardQuiz.jsx
-import React, { useState, useEffect } from 'react';
-import "../../styles/MainQuizContainer.css";
-
-const FlashcardQuiz = ({ quizData, saveResponse }) => {
-  console.log("FlashcardQuiz rendering with data:", quizData);
-  
-  // Ensure questions array exists and has items
-  const questions = quizData.questions || [];
-  
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+const FlashcardQuiz = ({ taskId, onComplete }) => {
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
-  const [saveStatus, setSaveStatus] = useState({});
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
-  // Initialize user answers from existing data
+  // Fetch questions when component mounts
   useEffect(() => {
-    if (questions.length > 0) {
-      const initialAnswers = questions.reduce((acc, q) => {
-        acc[q.id] = q.user_response || '';
-        return acc;
-      }, {});
-      setUserAnswers(initialAnswers);
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true);
+        console.log("Fetching questions for taskId:", taskId);
+        const fetchedQuestions = await QuizApiUtils.getQuestions(taskId);
+        console.log("Fetched questions:", fetchedQuestions);
+        
+        if (fetchedQuestions && fetchedQuestions.length > 0) {
+          // Normalize question data to handle API inconsistencies
+          const normalizedQuestions = fetchedQuestions.map(q => ({
+            id: q.id,
+            // Handle both data structures (text or question_text)
+            question_text: q.question_text || q.text || "",
+            hint_text: q.hint_text || q.hint || "",
+            order: q.order || 0
+          }));
+          
+          setQuestions(normalizedQuestions);
+          
+          // Initialize userAnswers with empty strings
+          const initialAnswers = {};
+          normalizedQuestions.forEach(q => {
+            initialAnswers[q.id] = '';
+          });
+          setUserAnswers(initialAnswers);
+        } else {
+          console.warn("No questions returned from API");
+          setError("No questions available for this quiz.");
+        }
+        
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching flashcard questions:", err);
+        setError("Failed to load flashcards. Please try again later.");
+        setIsLoading(false);
+      }
+    };
+    
+    if (taskId) {
+      fetchQuestions();
+    } else {
+      console.error("No taskId provided to FlashcardQuiz component");
+      setError("Quiz configuration error. Please contact support.");
+      setIsLoading(false);
     }
-  }, [questions]);
+  }, [taskId]);
 
-  // Safely get current card
-  const currentCard = questions.length > 0 ? questions[currentCardIndex] : null;
+  // Move to the next question
+  const nextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setFlipped(false);
+    } else {
+      completeQuiz();
+    }
+  };
 
-  if (!currentCard) {
-    return <div className="error-message">No flashcard questions available</div>;
-  }
+  // Move to the previous question
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setFlipped(false);
+    }
+  };
 
-  const handleFlip = () => {
+  // Complete the quiz
+  const completeQuiz = () => {
+    setQuizCompleted(true);
+    if (onComplete) {
+      onComplete(userAnswers);
+    }
+  };
+
+  // Handle user answer input
+  const handleAnswerChange = (e) => {
+    const currentQuestion = questions[currentQuestionIndex];
+    setUserAnswers({
+      ...userAnswers,
+      [currentQuestion.id]: e.target.value
+    });
+  };
+
+  // Toggle card flip
+  const toggleFlip = () => {
     setFlipped(!flipped);
   };
 
-  const handlePrevCard = () => {
-    if (currentCardIndex > 0) {
-      setCurrentCardIndex(currentCardIndex - 1);
-      setFlipped(false);
-    }
-  };
+  if (isLoading) {
+    return <div className="quiz-loading">Loading flashcards...</div>;
+  }
 
-  const handleNextCard = () => {
-    if (currentCardIndex < questions.length - 1) {
-      setCurrentCardIndex(currentCardIndex + 1);
-      setFlipped(false);
-    }
-  };
+  if (error) {
+    return <div className="quiz-error">{error}</div>;
+  }
 
-  const handleAnswerChange = (e) => {
-    setUserAnswers({
-      ...userAnswers,
-      [currentCard.id]: e.target.value,
-    });
-  };
+  if (!questions || questions.length === 0) {
+    return <div className="quiz-empty">No flashcards available for this quiz.</div>;
+  }
 
-  const handleSaveAnswer = async () => {
-    if (!currentCard) return;
-    
-    setSaveStatus({
-      ...saveStatus,
-      [currentCard.id]: 'saving'
-    });
-    
-    try {
-      const result = await saveResponse(currentCard.id, userAnswers[currentCard.id] || '');
-      
-      setSaveStatus({
-        ...saveStatus,
-        [currentCard.id]: result.status === 'success' ? 'saved' : 'error'
-      });
-      
-      // Clear status after 2 seconds
-      setTimeout(() => {
-        setSaveStatus(prev => ({
-          ...prev,
-          [currentCard.id]: null
-        }));
-      }, 2000);
-    } catch (err) {
-      console.error("Error saving answer:", err);
-      setSaveStatus({
-        ...saveStatus,
-        [currentCard.id]: 'error'
-      });
-    }
-  };
-
-  // Generate status message
-  const getStatusMessage = () => {
-    if (!currentCard) return null;
-    const status = saveStatus[currentCard.id];
-    
-    if (status === 'saving') return 'Saving...';
-    if (status === 'saved') return 'Saved!';
-    if (status === 'error') return 'Error saving';
-    return null;
-  };
-  
-  return (
-    <div className="flashcard-quiz">
-      <div className="progress-bar">
-        <div className="progress-indicator">
-          Card {currentCardIndex + 1} of {questions.length}
-        </div>
+  if (quizCompleted) {
+    return (
+      <div className="quiz-completed">
+        <h3>Flashcard Review Complete!</h3>
+        <p>You've gone through all the flashcards in this section.</p>
+        <button 
+          className="restart-quiz-button"
+          onClick={() => {
+            setCurrentQuestionIndex(0);
+            setFlipped(false);
+            setQuizCompleted(false);
+          }}
+        >
+          Review Again
+        </button>
       </div>
+    );
+  }
 
-      <div 
-        className={`flashcard ${flipped ? 'flipped' : ''}`} 
-        onClick={handleFlip}
-      >
-        <div className="card-front">
-          <h3>Question {currentCardIndex + 1}</h3>
-          <div className="card-content">{currentCard.text}</div>
-          <div className="flip-instruction">Click to flip</div>
-        </div>
-        
-        <div className="card-back">
-          <h3>Your Answer</h3>
-          <textarea
-            value={userAnswers[currentCard.id] || ''}
-            onChange={handleAnswerChange}
-            onBlur={handleSaveAnswer}
-            placeholder="Write your answer here..."
-            onClick={(e) => e.stopPropagation()}
-          />
-          {currentCard.hint && (
-            <div className="hint">
-              <h4>Hint:</h4>
-              <p>{currentCard.hint}</p>
-            </div>
-          )}
-          <div className={`save-status ${saveStatus[currentCard.id] || ''}`}>
-            {getStatusMessage()}
+  const currentQuestion = questions[currentQuestionIndex];
+  
+  // Make sure we have a valid question before rendering
+  if (!currentQuestion) {
+    return <div className="quiz-error">Error loading current question.</div>;
+  }
+
+  return (
+    <div className="flashcard-quiz-container">
+      <div className="quiz-progress">
+        <span>{currentQuestionIndex + 1} of {questions.length}</span>
+        <progress value={currentQuestionIndex + 1} max={questions.length}></progress>
+      </div>
+      
+      <div className={`flashcard ${flipped ? 'flipped' : ''}`} onClick={toggleFlip}>
+        <div className="flashcard-inner">
+          <div className="flashcard-front">
+            <h3>Question</h3>
+            <p className="flashcard-content">
+              {currentQuestion.question_text}
+            </p>
+            <div className="flip-instruction">Click to flip</div>
+          </div>
+          <div className="flashcard-back">
+            <h3>Hint/Answer</h3>
+            <p>{currentQuestion.hint_text || "No hint provided."}</p>
+            <textarea
+              className="user-answer"
+              placeholder="Write your answer here..."
+              value={userAnswers[currentQuestion.id] || ''}
+              onChange={handleAnswerChange}
+              onClick={(e) => e.stopPropagation()} // Prevent flip when typing
+            ></textarea>
           </div>
         </div>
       </div>
-
-      <div className="card-nav">
-        <button
-          onClick={handlePrevCard}
-          disabled={currentCardIndex === 0}
-          className="nav-button prev"
+      
+      <div className="quiz-navigation">
+        <button 
+          className="prev-button" 
+          onClick={prevQuestion}
+          disabled={currentQuestionIndex === 0}
         >
           Previous
         </button>
-        <button
-          onClick={handleFlip}
-          className="nav-button flip"
+        <button 
+          className="next-button" 
+          onClick={nextQuestion}
         >
-          {flipped ? 'Show Question' : 'Show Answer'}
-        </button>
-        <button
-          onClick={handleNextCard}
-          disabled={currentCardIndex === questions.length - 1}
-          className="nav-button next"
-        >
-          Next
+          {currentQuestionIndex < questions.length - 1 ? "Next" : "Finish"}
         </button>
       </div>
     </div>
@@ -166,4 +188,3 @@ const FlashcardQuiz = ({ quizData, saveResponse }) => {
 };
 
 export default FlashcardQuiz;
-

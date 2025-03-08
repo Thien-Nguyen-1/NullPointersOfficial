@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FlashcardQuiz from './FlashcardQuiz';
-import FlowchartSequenceQuiz from './FlowchartSequenceQuiz';
-import FillBlankQuiz from './FillBlankQuiz';
 import "../../styles/MainQuizContainer.css";
 import { useParams } from "react-router-dom";
 

@@ -210,7 +210,8 @@ function CoursesList({ role }) {
                             <div className="course-actions">
                                 <Link 
                                     // Need to be fixed later
-                                    to={`/${role}/courses/${course.id}`} 
+                                    // to={`/${role}/courses/${course.id}`} 
+                                    to={`/modules/${course.id}`} 
                                     className="view-course-btn"
                                 >
                                     View Course
