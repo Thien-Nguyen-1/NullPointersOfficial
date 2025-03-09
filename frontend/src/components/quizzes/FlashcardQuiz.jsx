@@ -197,7 +197,7 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
         
         {Object.keys(validationErrors).length > 0 && (
           <div className="validation-error-summary">
-            <p className="error-message">Please go back and answer all questions.</p>
+            <p>Please go back and answer all questions.</p>
           </div>
         )}
         

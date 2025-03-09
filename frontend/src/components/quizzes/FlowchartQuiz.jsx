@@ -195,7 +195,7 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
         
         {Object.keys(validationErrors).length > 0 && (
           <div className="validation-error-summary">
-            <p className="error-message">Some steps are missing responses. Please go back and complete all steps.</p>
+            <p>Some steps are missing responses. Please go back and complete all steps.</p>
           </div>
         )}
         

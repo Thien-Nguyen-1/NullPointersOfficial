@@ -218,12 +218,12 @@
   
   .alt-heading h1 {
     font-size: 24px;
-    margin-bottom: 15px;
+    margin-bottom: 0px;
   }
   
   .alt-heading h2 {
     font-size: 22px;
-    margin-bottom: 12px;
+    margin-bottom: 0;
   }
   
   .alt-heading h3 {

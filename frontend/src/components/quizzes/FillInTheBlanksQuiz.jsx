@@ -337,7 +337,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
       
       {validationAttempted && hasValidationErrors && (
         <div className="validation-summary">
-          <p className="error-message">Please fill in all blanks before submitting.</p>
+          <p>Please fill in all blanks before submitting.</p>
         </div>
       )}
       
