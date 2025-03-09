@@ -8,6 +8,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
   const [error, setError] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   // Fetch questions when component mounts
   useEffect(() => {
@@ -76,9 +77,14 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     }));
   };
 
-  // Submit the quiz
+  // Submit the quiz and show review
   const submitQuiz = () => {
     setQuizSubmitted(true);
+    setShowReview(true);
+  };
+
+  // Continue after review
+  const handleContinue = () => {
     if (onComplete) {
       onComplete(userAnswers);
     }
@@ -98,6 +104,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     
     setUserAnswers(resetAnswers);
     setQuizSubmitted(false);
+    setShowReview(false);
   };
 
   // Render a question with interactive blanks
@@ -156,6 +163,61 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     );
   };
 
+  // Render the review screen
+  const renderReview = () => {
+    return (
+      <div className="quiz-review">
+        <h3>Fill in the Blanks - Review</h3>
+        
+        <div className="review-summary">
+          <p>You've completed all {questions.length} questions in this exercise.</p>
+        </div>
+        
+        <div className="review-questions">
+          {questions.map((question, index) => {
+            const parts = question.question_text.split(/\b____\b/);
+            const answers = userAnswers[question.id] || [];
+            
+            return (
+              <div key={question.id} className="review-question-item">
+                <div className="review-question-number">{index + 1}</div>
+                <div className="review-question-content">
+                  <p className="review-question-text">
+                    {parts.map((part, i) => (
+                      <React.Fragment key={i}>
+                        {part}
+                        {i < parts.length - 1 && (
+                          <span className="review-answer-highlight">
+                            {answers[i] || "(no answer)"}
+                          </span>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <div className="quiz-actions">
+          <button 
+            className="restart-button"
+            onClick={resetQuiz}
+          >
+            Try Again
+          </button>
+          <button 
+            className="continue-button"
+            onClick={handleContinue}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return <div className="quiz-loading">Loading questions...</div>;
   }
@@ -166,6 +228,11 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
 
   if (!questions || questions.length === 0) {
     return <div className="quiz-empty">No questions available for this quiz.</div>;
+  }
+
+  // Show review screen if quiz is submitted
+  if (showReview) {
+    return renderReview();
   }
 
   return (
@@ -196,14 +263,6 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
           </button>
         )}
       </div>
-      
-      {quizSubmitted && (
-        <div className="quiz-results">
-          <h3>Quiz Completed!</h3>
-          <p>You have completed this Fill in the Blanks exercise.</p>
-          <p>Remember that learning is a journey. It's okay if you didn't get everything right. The important thing is to review and learn from any mistakes.</p>
-        </div>
-      )}
     </div>
   );
 };

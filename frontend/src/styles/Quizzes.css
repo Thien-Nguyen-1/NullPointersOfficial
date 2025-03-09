@@ -93,7 +93,7 @@
   }
   
   .restart-button, .retry-button {
-    background-color: var(--primary-green);
+    background-color: #d9d9d9;
     color: white;
   }
   
@@ -101,12 +101,17 @@
     background-color: var(--primary-green-dark);
   }
   
-  /* Flashcard Quiz Styles */
-  .flashcard-quiz-container {
+  /* Flashcard Quiz Styles (Contained within compnonent-wrapper) */
+  /* .flashcard-quiz-container {
     padding: 20px;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  } */
+  .flashcard-quiz-container {
+    width: 100%;
+    background-color: white;
+    border-radius: 8px;
   }
   
   .flashcard {
@@ -286,6 +291,7 @@
     display: flex;
     justify-content: center;
     margin-top: 20px;
+    gap: 20px; /* creates space between the buttons */
   }
   
   .quiz-results {
@@ -308,18 +314,135 @@
   }
   
   /* Flowchart Quiz Styles */
-  .flowchart-quiz-container {
+  /* .flowchart-quiz-container {
     padding: 20px;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+   */
+
+  .flowchart-quiz-container {
+    width: 100%;
+    background-color: white;
+    border-radius: 8px;
   }
   
   .flowchart-content {
     margin: 20px 0;
   }
   
-  .previous-statements {
+  /* Flowchart Visual Styles */
+  .flowchart-visual-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px 0;
+    width: 100%;
+  }
+  
+  .flowchart-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .flowchart-box {
+    position: relative;
+    width: 80%;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    background-color: var(--secondary-green);
+    border: 1px solid var(--primary-green-light);
+    display: flex;
+    align-items: center;
+    transition: all 0.3s;
+  }
+  
+  .flowchart-box.completed {
+    background-color: var(--secondary-green);
+    opacity: 0.7;
+  }
+  
+  .flowchart-box.current {
+    background-color: var(--primary-green-light);
+    border: 2px solid var(--primary-green);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+  }
+  
+  .flowchart-box.upcoming {
+    opacity: 0.5;
+  }
+  
+  .flowchart-box-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: var(--primary-green);
+    color: white;
+    border-radius: 50%;
+    margin-right: 15px;
+    flex-shrink: 0;
+    font-weight: bold;
+  }
+  
+  .flowchart-box-content {
+    flex: 1;
+    font-size: 16px;
+    color: var(--primary-green);
+  }
+  
+  .flowchart-connector {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .flowchart-arrow {
+    width: 2px;
+    height: 20px;
+    background-color: var(--primary-green);
+    position: relative;
+  }
+  
+  .flowchart-arrow:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -4px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid var(--primary-green);
+  }
+  
+  .flowchart-connector.completed .flowchart-arrow {
+    background-color: var(--primary-green);
+  }
+  
+  .flowchart-connector.current .flowchart-arrow {
+    background-color: var(--primary-green);
+  }
+  
+  .flowchart-connector.upcoming .flowchart-arrow {
+    background-color: #ccc;
+  }
+  
+  .flowchart-connector.upcoming .flowchart-arrow:after {
+    border-top-color: #ccc;
+  }
+
+  
+  /* .previous-statements {
     margin-bottom: 20px;
   }
   
@@ -330,7 +453,7 @@
     margin-bottom: 10px;
     background-color: var(--secondary-green);
     border-radius: 4px;
-  }
+  } */
   
   .current-statement {
     padding: 20px;
@@ -354,9 +477,9 @@
     font-weight: bold;
   }
   
-  .previous-statement-item .statement-number {
+  /* .previous-statement-item .statement-number {
     background-color: var(--text-subtle);
-  }
+  } */
   
   .statement-content {
     flex: 1;
@@ -408,7 +531,7 @@
     margin-top: 20px;
   }
   
-  .flowchart-review {
+  /* .flowchart-review {
     margin-top: 10px;
   }
   
@@ -425,166 +548,156 @@
     margin-top: 10px;
     font-style: italic;
     color: var(--primary-green);
+  } */
+
+  .flowchart-response-box {
+    width: 80%;
+    padding: 10px 15px;
+    margin-top: 5px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    border: 1px dashed var(--primary-green-light);
   }
   
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .flashcard {
-      height: 250px;
-    }
-    
-    .blank-input {
-      width: 100px;
-    }
-    
-    .quiz-navigation {
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .quiz-navigation button {
-      width: 100%;
-    }
-
-
-    /* Flowchart Visual Styles */
-    .flowchart-visual-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin: 20px 0;
-        width: 100%;
-    }
-    
-    .flowchart-visual {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-    
-    .flowchart-box {
-        position: relative;
-        width: 80%;
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 8px;
-        background-color: var(--secondary-green);
-        border: 1px solid var(--primary-green-light);
-        display: flex;
-        align-items: center;
-        transition: all 0.3s;
-    }
-    
-    .flowchart-box.completed {
-        background-color: var(--secondary-green);
-        opacity: 0.7;
-    }
-    
-    .flowchart-box.current {
-        background-color: var(--primary-green-light);
-        border: 2px solid var(--primary-green);
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        transform: scale(1.02);
-    }
-    
-    .flowchart-box.upcoming {
-        opacity: 0.5;
-    }
-    
-    .flowchart-box-number {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-        background-color: var(--primary-green);
-        color: white;
-        border-radius: 50%;
-        margin-right: 15px;
-        flex-shrink: 0;
-        font-weight: bold;
-    }
-    
-    .flowchart-box-content {
-        flex: 1;
-        font-size: 16px;
-        color: var(--primary-green);
-    }
-    
-    .flowchart-connector {
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-    
-    .flowchart-arrow {
-        width: 2px;
-        height: 20px;
-        background-color: var(--primary-green);
-        position: relative;
-    }
-    
-    .flowchart-arrow:after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: -4px;
-        width: 0;
-        height: 0;
-        border-left: 5px solid transparent;
-        border-right: 5px solid transparent;
-        border-top: 8px solid var(--primary-green);
-    }
-    
-    .flowchart-connector.completed .flowchart-arrow {
-        background-color: var(--primary-green);
-    }
-    
-    .flowchart-connector.current .flowchart-arrow {
-        background-color: var(--primary-green);
-    }
-    
-    .flowchart-connector.upcoming .flowchart-arrow {
-        background-color: #ccc;
-    }
-    
-    .flowchart-connector.upcoming .flowchart-arrow:after {
-        border-top-color: #ccc;
-    }
-    
-    .flowchart-response-box {
-        width: 80%;
-        padding: 10px 15px;
-        margin-top: 5px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-        border: 1px dashed var(--primary-green-light);
-    }
-    
-    .flowchart-response-header {
-        font-weight: bold;
-        color: var(--primary-green);
-        margin-bottom: 5px;
-        font-size: 14px;
-    }
-    
-    .flowchart-response-content {
-        font-style: italic;
-        color: var(--text-subtle);
-    }
-    
-    /* Responsive adjustments for flowchart */
-    @media (max-width: 768px) {
-        .flowchart-box {
-        width: 95%;
-        }
-        
-        .flowchart-response-box {
-        width: 95%;
-        }
-    }
+  .flowchart-response-header {
+    font-weight: bold;
+    color: var(--primary-green);
+    margin-bottom: 5px;
+    font-size: 14px;
   }
+  
+  .flowchart-response-content {
+    font-style: italic;
+    color: var(--text-subtle);
+  }
+
+  /* Fill in the Blanks Review Styles */
+.review-answer-highlight {
+  color: var(--primary-green);
+  font-weight: bold;
+  background-color: var(--secondary-green);
+  padding: 2px 8px;
+  margin: 0 2px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.continue-button {
+  padding: 10px 24px;
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.continue-button:hover {
+  background-color: var(--primary-green-dark);
+}
+
+/* These are shared styles for all quiz types' review screens */
+.quiz-review {
+  background-color: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-review h3 {
+  color: var(--primary-green);
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--secondary-green);
+  font-size: 22px;
+}
+
+.review-summary {
+  background-color: var(--secondary-green);
+  padding: 15px;
+  border-radius: 6px;
+  margin: 15px 0 20px;
+}
+
+.review-summary p {
+  margin: 0;
+  color: var(--primary-green);
+  font-weight: 500;
+}
+
+.review-questions {
+  margin-bottom: 25px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.review-question-item {
+  display: flex;
+  margin-bottom: 15px;
+  padding: 15px;
+  background-color: var(--secondary-green);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-green);
+}
+
+.review-question-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background-color: var(--primary-green);
+  color: white;
+  border-radius: 50%;
+  margin-right: 15px;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+.review-question-content {
+  flex: 1;
+}
+
+.review-question-text {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--primary-green);
+  line-height: 1.8;
+}
+  
+  /* Responsive adjustments */
+@media (max-width: 1200px) {
+  .flashcard {
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .flashcard {
+    height: 250px;
+  }
+  
+  .blank-input {
+    width: 100px;
+  }
+  
+  .quiz-navigation {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .quiz-navigation button {
+    width: 100%;
+  }
+  
+  .flowchart-box {
+    width: 95%;
+  }
+  
+  .flowchart-response-box {
+    width: 95%;
+  }
+}

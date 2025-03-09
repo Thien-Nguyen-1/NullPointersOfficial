@@ -79,9 +79,9 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
     } else {
       // Complete the quiz
       setQuizCompleted(true);
-      if (onComplete) {
-        onComplete(userAnswers);
-      }
+      // if (onComplete) {
+      //   onComplete(userAnswers);
+      // }
     }
   };
 
@@ -150,11 +150,24 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
               </div>
             ))}
           </div>
-          
         </div>
+
+        <div className="quiz-actions">
         <button className="restart-button" onClick={restartQuiz}>
           Restart Flowchart
         </button>
+          <button
+            className="continue-button"
+            onClick={() => {
+              if (onComplete) {
+                onComplete(userAnswers)
+              }
+            }}
+          >
+            Continue
+          </button>
+        </div>
+
       </div>
     );
   }

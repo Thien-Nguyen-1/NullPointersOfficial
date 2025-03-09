@@ -10,6 +10,7 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
   const [error, setError] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
   const [quizCompleted, setQuizCompleted] = useState(false);
+  
 
   // Fetch questions when component mounts
   useEffect(() => {
@@ -81,9 +82,13 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
   // Complete the quiz
   const completeQuiz = () => {
     setQuizCompleted(true);
-    if (onComplete) {
-      onComplete(userAnswers);
-    }
+
+    // setTimeout(() => {
+    //   if (onComplete) {
+    //     onComplete(userAnswers);
+    //   }
+    // }, 3000) // 3 seconds delay
+
   };
 
   // Handle user answer input
@@ -117,16 +122,30 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
       <div className="quiz-completed">
         <h3>Flashcard Review Complete!</h3>
         <p>You've gone through all the flashcards in this section.</p>
-        <button 
-          className="restart-quiz-button"
-          onClick={() => {
-            setCurrentQuestionIndex(0);
-            setFlipped(false);
-            setQuizCompleted(false);
-          }}
-        >
-          Review Again
-        </button>
+        <div className="quiz-actions">
+          <button 
+            className="restart-button"
+            onClick={() => {
+              setCurrentQuestionIndex(0);
+              setFlipped(false);
+              setQuizCompleted(false);
+            }}
+          >
+            Review Again
+          </button>
+
+          <button 
+            className="continue-button"
+            onClick={() => { 
+              if (onComplete) {
+              onComplete(userAnswers);
+            }
+            }}
+          >
+            Continue
+          </button>
+        </div>
+        
       </div>
     );
   }

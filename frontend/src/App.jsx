@@ -20,7 +20,10 @@ import Welcome from './components/Welcome';
 import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
+
 import ModuleView from './components/ModuleView.jsx';
+import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
+
 import ServiceUsersPage from "./pages/ServiceUsersPage";
 import QuizContainer from './components/quizzes/QuizContainer';
 import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
@@ -57,7 +60,7 @@ function App() {
         {/* ModuleView Route - Added at root level */}
         <Route path="/modules/:moduleId" element={
           <DashboardLayout>
-            <ModuleView />
+            <ModuleViewAlternative />
           </DashboardLayout>
         } />
 
@@ -73,6 +76,7 @@ function App() {
                 <Route path="courses" element={<Courses/>} />
                 <Route path="all-courses" element={<CoursesList/>} />
                 <Route path="/modules/:moduleId" element={<ModuleView />} />
+                <Route path="/alt-modules/:moduleId" element={<ModuleViewAlternative />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="KnowValuesModule" element={<Module2/>} />
               </Routes>
@@ -91,6 +95,7 @@ function App() {
                 <Route path="courses" element={<Courses />} />
                 <Route path="all-courses" element={<CoursesList role="admin" />} />
                 <Route path="/modules/:moduleId" element={<ModuleView />} />
+                <Route path="/alt-modules/:moduleId" element={<ModuleViewAlternative />} />
                 <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
