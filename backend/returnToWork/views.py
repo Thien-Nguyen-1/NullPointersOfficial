@@ -161,22 +161,36 @@ class QuestionnaireView(APIView):
 class RankingQuestionViewSet(viewsets.ModelViewSet):
     queryset = RankingQuestion.objects.all()
     serializer_class = RankingQuestionSerializer
+    def perform_create(self, serializer): # Automatically set the authenticated user as the author when a new ranking question is created
+        serializer.save(author=self.request.user)
 
 class InlinePictureViewSet(viewsets.ModelViewSet):
     queryset = InlinePicture.objects.all()
     serializer_class = InlinePictureSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 class AudioClipViewSet(viewsets.ModelViewSet):
     queryset = AudioClip.objects.all()
     serializer_class = AudioClipSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 class EmbeddedVideoViewSet(viewsets.ModelViewSet):
     queryset = EmbeddedVideo.objects.all()
     serializer_class = EmbeddedVideoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]  

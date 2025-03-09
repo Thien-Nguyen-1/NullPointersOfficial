@@ -94,7 +94,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id','tag','modules']
 
 class ContentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField() 
+    author = UserSerializer(read_only=True)
     moduleID = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
     class Meta:
         model = Content
