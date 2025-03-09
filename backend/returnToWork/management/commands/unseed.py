@@ -19,8 +19,8 @@ class Command(BaseCommand):
         # Delete modules and tags
         Module.objects.all().delete()
         Tags.objects.all().delete()
-        MatchingQuestionQuiz.all().delete()
-        QuestionAnswerForm.all().delete()
+        MatchingQuestionQuiz.objects.all().delete()
+        QuestionAnswerForm.objects.all().delete()
 
 
         self.stdout.write(self.style.SUCCESS("Database unseeding complete!"))
