@@ -9,6 +9,8 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [validationAttempted, setValidationAttempted] = useState(false);
 
   // Fetch questions when component mounts
   useEffect(() => {
@@ -65,23 +67,70 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
   const handleAnswerChange = (e) => {
     if (currentStep < questions.length) {
       const currentQuestion = questions[currentStep];
+      const newValue = e.target.value;
+      
       setUserAnswers({
         ...userAnswers,
-        [currentQuestion.id]: e.target.value
+        [currentQuestion.id]: newValue
       });
+      
+      // Clear validation error when user types
+      if (newValue.trim() !== '' && validationErrors[currentQuestion.id]) {
+        const updatedErrors = { ...validationErrors };
+        delete updatedErrors[currentQuestion.id];
+        setValidationErrors(updatedErrors);
+      }
     }
+  };
+
+  // Validate the current step before proceeding
+  const validateCurrentStep = () => {
+    const currentQuestion = questions[currentStep];
+    const answer = userAnswers[currentQuestion.id];
+    
+    if (!answer || answer.trim() === '') {
+      setValidationErrors({
+        ...validationErrors,
+        [currentQuestion.id]: 'Please provide a response before continuing.'
+      });
+      setValidationAttempted(true);
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Validate all answers before completing
+  const validateAllAnswers = () => {
+    const errors = {};
+    let hasErrors = false;
+    
+    questions.forEach(question => {
+      const answer = userAnswers[question.id];
+      if (!answer || answer.trim() === '') {
+        errors[question.id] = 'This statement requires a response.';
+        hasErrors = true;
+      }
+    });
+    
+    setValidationErrors(errors);
+    setValidationAttempted(true);
+    
+    return !hasErrors;
   };
 
   // Move to the next statement
   const nextStep = () => {
-    if (currentStep < questions.length - 1) {
-      setCurrentStep(currentStep + 1);
+    // If at the last step, validate everything before completing
+    if (currentStep === questions.length - 1) {
+      if (validateAllAnswers()) {
+        setQuizCompleted(true);
+      }
     } else {
-      // Complete the quiz
-      setQuizCompleted(true);
-      // if (onComplete) {
-      //   onComplete(userAnswers);
-      // }
+      // If not the last step, just validate the current step
+      if (validateCurrentStep()) {
+        setCurrentStep(currentStep + 1);
+      }
     }
   };
 
@@ -96,6 +145,8 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
   const restartQuiz = () => {
     setCurrentStep(0);
     setQuizCompleted(false);
+    setValidationAttempted(false);
+    setValidationErrors({});
     
     // Reset answers
     const resetAnswers = {};
@@ -103,6 +154,25 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
       resetAnswers[q.id] = '';
     });
     setUserAnswers(resetAnswers);
+  };
+
+  // Handle final submission - validate one more time
+  const handleFinalSubmit = () => {
+    if (validateAllAnswers()) {
+      if (onComplete) {
+        onComplete(userAnswers);// Answers are passed to the ModuleView
+      }
+    } else {
+      // Find the first unanswered question
+      const firstEmptyQuestionId = Object.keys(validationErrors)[0];
+      const questionIndex = questions.findIndex(q => q.id === parseInt(firstEmptyQuestionId));
+      
+      if (questionIndex !== -1) {
+        // Go back to editing mode and jump to the first empty question
+        setQuizCompleted(false);
+        setCurrentStep(questionIndex);
+      }
+    }
   };
 
   if (isLoading) {
@@ -122,13 +192,20 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
     return (
       <div className="flowchart-completed">
         <h3>Flowchart Exercise Complete!</h3>
+        
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="validation-error-summary">
+            <p className="error-message">Some steps are missing responses. Please go back and complete all steps.</p>
+          </div>
+        )}
+        
         <div className="flowchart-summary">
           <h4>Your Flowchart Responses:</h4>
           
           <div className="flowchart-visual-container">
             {questions.map((question, index) => (
               <div key={question.id} className="flowchart-visual">
-                <div className="flowchart-box">
+                <div className={`flowchart-box ${validationErrors[question.id] ? 'error' : ''}`}>
                   <div className="flowchart-box-number">{index + 1}</div>
                   <div className="flowchart-box-content">
                     <p>{question.question_text}</p>
@@ -141,11 +218,16 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
                   </div>
                 )}
                 
-                <div className="flowchart-response-box">
+                <div className={`flowchart-response-box ${validationErrors[question.id] ? 'error' : ''}`}>
                   <div className="flowchart-response-header">Your Answer:</div>
                   <div className="flowchart-response-content">
-                    {userAnswers[question.id] || "No answer provided"}
+                    {userAnswers[question.id] || (
+                      <span className="empty-response">No answer provided</span>
+                    )}
                   </div>
+                  {validationErrors[question.id] && (
+                    <div className="validation-error">{validationErrors[question.id]}</div>
+                  )}
                 </div>
               </div>
             ))}
@@ -153,26 +235,22 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
         </div>
 
         <div className="quiz-actions">
-        <button className="restart-button" onClick={restartQuiz}>
-          Restart Flowchart
-        </button>
+          <button className="restart-button" onClick={restartQuiz}>
+            Try Again
+          </button>
           <button
             className="continue-button"
-            onClick={() => {
-              if (onComplete) {
-                onComplete(userAnswers)
-              }
-            }}
+            onClick={handleFinalSubmit}
           >
-            Continue
+            Done
           </button>
         </div>
-
       </div>
     );
   }
 
   const currentQuestion = questions[currentStep];
+  const currentError = validationErrors[currentQuestion?.id];
   
   // Make sure we have a valid question before rendering
   if (!currentQuestion) {
@@ -186,6 +264,7 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
         <progress value={currentStep + 1} max={questions.length}></progress>
       </div>
       
+      
       <div className="flowchart-content">
         {/* Visual Flowchart Representation */}
         <div className="flowchart-visual-container">
@@ -196,9 +275,12 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
               index === currentStep ? "current" : 
               "upcoming";
             
+            // Check if this step has a validation error
+            const hasError = validationErrors[question.id] && validationAttempted;
+            
             return (
               <React.Fragment key={question.id}>
-                <div className={`flowchart-box ${stepState}`}>
+                <div className={`flowchart-box ${stepState} ${hasError ? 'error' : ''}`}>
                   <div className="flowchart-box-number">{index + 1}</div>
                   <div className="flowchart-box-content">
                     <p>{question.question_text}</p>
@@ -217,7 +299,7 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
         </div>
         
         {/* Current Question Interaction Area */}
-        <div className="current-statement">
+        <div className={`current-statement ${currentError && validationAttempted ? 'error' : ''}`}>
           <div className="statement-number">{currentStep + 1}</div>
           <div className="statement-content">{currentQuestion.question_text}</div>
           
@@ -229,11 +311,16 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
           
           <div className="statement-answer">
             <textarea
+              className={currentError && validationAttempted ? 'error' : ''}
               value={userAnswers[currentQuestion.id] || ''}
               onChange={handleAnswerChange}
               placeholder="Write your answer here..."
               rows={3}
             ></textarea>
+            
+            {currentError && validationAttempted && (
+              <div className="validation-error">{currentError}</div>
+            )}
           </div>
         </div>
       </div>

@@ -10,6 +10,8 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
   const [error, setError] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   
 
   // Fetch questions when component mounts
@@ -67,7 +69,7 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setFlipped(false);
     } else {
-      completeQuiz();
+      validateAndCompleteQuiz();
     }
   };
 
@@ -79,30 +81,100 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
     }
   };
 
+  // Validate all answers before completing the quiz
+  const validateAndCompleteQuiz = () => {
+    const errors = {};
+    let hasErrors = false;
+    
+    // Check each answer
+    questions.forEach(question => {
+      const answer = userAnswers[question.id];
+      if (!answer || answer.trim() === '') {
+        errors[question.id] = 'This question requires an answer.';
+        hasErrors = true;
+      }
+    });
+    
+    setValidationErrors(errors);
+    setAttemptedSubmit(true);
+    
+    if (!hasErrors) {
+      completeQuiz();
+    } else {
+      // If there are errors, find the first unanswered question
+      const firstUnansweredIndex = questions.findIndex(
+        question => !userAnswers[question.id] || userAnswers[question.id].trim() === ''
+      );
+      
+      if (firstUnansweredIndex !== -1) {
+        setCurrentQuestionIndex(firstUnansweredIndex);
+        setFlipped(true); // Flip to answer side
+      }
+    }
+  };
+
   // Complete the quiz
   const completeQuiz = () => {
     setQuizCompleted(true);
-
-    // setTimeout(() => {
-    //   if (onComplete) {
-    //     onComplete(userAnswers);
-    //   }
-    // }, 3000) // 3 seconds delay
-
   };
 
   // Handle user answer input
   const handleAnswerChange = (e) => {
     const currentQuestion = questions[currentQuestionIndex];
+    const newValue = e.target.value;
+    
     setUserAnswers({
       ...userAnswers,
-      [currentQuestion.id]: e.target.value
+      [currentQuestion.id]: newValue
     });
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[currentQuestion.id] && newValue.trim() !== '') {
+      const updatedErrors = { ...validationErrors };
+      delete updatedErrors[currentQuestion.id];
+      setValidationErrors(updatedErrors);
+    }
   };
 
   // Toggle card flip
   const toggleFlip = () => {
     setFlipped(!flipped);
+  };
+
+  // Handle final submission after review
+  const handleSubmitAnswers = () => {
+    // Final validation before sending to parent component
+    const errors = {};
+    let hasErrors = false;
+    
+    questions.forEach(question => {
+      const answer = userAnswers[question.id];
+      if (!answer || answer.trim() === '') {
+        errors[question.id] = 'This question requires an answer.';
+        hasErrors = true;
+      }
+    });
+    
+    setValidationErrors(errors);
+    
+    if (!hasErrors) {
+      if (onComplete) {
+        onComplete(userAnswers);// Answers are passed to the ModuleView
+      }
+    } else {
+      // Show alert about unanswered questions
+      alert("Please answer all questions before submitting.");
+      
+      // Return to quiz mode to complete missing answers
+      setQuizCompleted(false);
+      
+      // Navigate to the first question with an error
+      const firstErrorIndex = questions.findIndex(q => errors[q.id]);
+      if (firstErrorIndex !== -1) {
+        setCurrentQuestionIndex(firstErrorIndex);
+        setFlipped(true); // Show answer side
+      }
+    }
   };
 
   if (isLoading) {
@@ -120,8 +192,15 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
   if (quizCompleted) {
     return (
       <div className="quiz-completed">
-        <h3>Flashcard Review Complete!</h3>
+        <h3>Flashcard Exercise Complete!</h3>
         <p>You've gone through all the flashcards in this section.</p>
+        
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="validation-error-summary">
+            <p className="error-message">Please go back and answer all questions.</p>
+          </div>
+        )}
+        
         <div className="quiz-actions">
           <button 
             className="restart-button"
@@ -131,21 +210,16 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
               setQuizCompleted(false);
             }}
           >
-            Review Again
+            Try Again
           </button>
 
           <button 
             className="continue-button"
-            onClick={() => { 
-              if (onComplete) {
-              onComplete(userAnswers);
-            }
-            }}
+            onClick={handleSubmitAnswers}
           >
-            Continue
+            Done
           </button>
         </div>
-        
       </div>
     );
   }
@@ -156,6 +230,8 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
   if (!currentQuestion) {
     return <div className="quiz-error">Error loading current question.</div>;
   }
+
+  const currentQuestionHasError = validationErrors[currentQuestion.id];
 
   return (
     <div className="flashcard-quiz-container">
@@ -176,13 +252,19 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
           <div className="flashcard-back">
             <h3>Hint/Answer</h3>
             <p>{currentQuestion.hint_text || "No hint provided."}</p>
-            <textarea
-              className="user-answer"
-              placeholder="Write your answer here..."
-              value={userAnswers[currentQuestion.id] || ''}
-              onChange={handleAnswerChange}
-              onClick={(e) => e.stopPropagation()} // Prevent flip when typing
-            ></textarea>
+            <div className="answer-input-container">
+              <textarea
+                className={`user-answer ${currentQuestionHasError ? 'error' : ''}`}
+                placeholder="Write your answer here..."
+                value={userAnswers[currentQuestion.id] || ''}
+                onChange={handleAnswerChange}
+                onClick={(e) => e.stopPropagation()} // Prevent flip when typing
+              ></textarea>
+              
+              {currentQuestionHasError && attemptedSubmit && (
+                <div className="validation-error">{validationErrors[currentQuestion.id]}</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

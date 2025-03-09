@@ -315,7 +315,58 @@ export const QuizApiUtils = {
       console.error('Error cleaning up orphaned tasks:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Submit a set of answers for a quiz
+   * @param {string} taskId - The task/quiz ID
+   * @param {Object} answers - Object mapping question IDs to answers
+   * @param {string} token - Auth token
+   * @returns {Promise} - API response
+   */
+  submitQuizAnswers: async (taskId, answers, token) => {
+    try {
+      console.log("Submitting answers for quiz:", taskId);
+      
+      // Convert the answers object to an array of submissions
+      const submissions = [];
+      
+      // Process each answer
+      for (const [questionId, answer] of Object.entries(answers)) {
+        // Handle both single string answers and array answers (for fill-in-the-blanks)
+        const answerText = Array.isArray(answer) ? answer.join(' | ') : answer;
+        
+        // Add to submissions
+        submissions.push({
+          question_id: questionId,
+          response_text: answerText
+        });
+      }
+      
+      // Make separate API calls for each answer (matching your backend structure)
+      const results = [];
+      for (const submission of submissions) {
+        const headers = token ? { 'Authorization': `Token ${token}` } : {};
+        
+        const response = await api.post('/api/quiz/response/', submission, { 
+          headers 
+        });
+        
+        results.push(response.data);
+        console.log(`Response saved for question ${submission.question_id}:`, response.data);
+      }
+      
+      return {
+        status: 'success',
+        message: `Saved ${results.length} responses`,
+        results
+      };
+    } catch (error) {
+      console.error('Error submitting quiz answers:', error);
+      throw error;
+    }
+  },
+
 
 };
 

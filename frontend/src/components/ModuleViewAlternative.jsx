@@ -203,7 +203,9 @@ const ModuleViewAlternative = () => {
   };
 
   // Handle content completion
-  const handleContentComplete = (contentId, results) => {
+  
+// Handle content completion
+const handleContentComplete = async (contentId, results) => {
     console.log(`Content completed: ${contentId}`);
     
     // Add this content to completed set
@@ -214,6 +216,32 @@ const ModuleViewAlternative = () => {
       return updated;
     });
     
+    // Find the completed quiz data
+    const completedContent = moduleContent.flatMap(section => 
+      section.content?.filter(item => item.id === contentId) || [] // Find the content item matching contentId
+    )[0];
+    
+    // If this is a quiz, submit the answers to the backend
+    if (completedContent && completedContent.type === 'quiz' && completedContent.taskData) {
+      try {
+        console.log("Saving quiz responses to backend:", results);
+        
+        if (user && token) {
+          const saveResult = await QuizApiUtils.submitQuizAnswers(
+            completedContent.taskData.contentID, 
+            results,
+            token
+          );
+          console.log("Quiz answers saved successfully:", saveResult);
+        } else {
+          console.warn("User not logged in - quiz answers will not be saved to backend");
+        }
+      } catch (err) {
+        console.error("Failed to save quiz answers:", err);
+        // Don't block completion if saving fails
+      }
+    }
+    
     // Calculate all content IDs that need to be completed
     let allContentIds = [];
     
@@ -221,6 +249,7 @@ const ModuleViewAlternative = () => {
     moduleContent.forEach(section => {
       if (section.content) {
         section.content.forEach(item => {
+            // Check if the content type is one that requires completion tracking
           if (['quiz', 'image', 'video', 'infosheet'].includes(item.type)) {
             allContentIds.push(item.id);
           }
@@ -235,7 +264,7 @@ const ModuleViewAlternative = () => {
     
     // Check if all content is completed
     const isComplete = allContentIds.length === updatedCompletedSet.size && 
-                      allContentIds.every(id => updatedCompletedSet.has(id));
+                       allContentIds.every(id => updatedCompletedSet.has(id));
     console.log("Is module complete?", isComplete);
     
     // If all content items are completed, mark the module as completed

@@ -9,6 +9,8 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
   const [userAnswers, setUserAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [showReview, setShowReview] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [validationAttempted, setValidationAttempted] = useState(false);
 
   // Fetch questions when component mounts
   useEffect(() => {
@@ -75,18 +77,88 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
         ...(prevAnswers[questionId] || []).slice(blankIndex + 1)
       ]
     }));
+    
+    // Clear validation error when user types in previously empty blank
+    if (value.trim() !== '' && validationErrors[questionId]?.[blankIndex]) {
+      const updatedErrors = { ...validationErrors };
+      if (updatedErrors[questionId]) {
+        const questionErrors = [...updatedErrors[questionId]];
+        questionErrors[blankIndex] = null;
+        // If all blanks for this question are now valid, remove the question entry
+        if (questionErrors.every(error => !error)) {
+          delete updatedErrors[questionId];
+        } else {
+          updatedErrors[questionId] = questionErrors;
+        }
+        setValidationErrors(updatedErrors);
+      }
+    }
+  };
+
+  // Validate all answers before submitting
+  const validateQuiz = () => {
+    const errors = {};
+    let hasErrors = false;
+    
+    questions.forEach(question => {
+      const questionText = question.question_text || '';
+      const blankMatches = questionText.match(/\b____\b/g);
+      const blankCount = blankMatches ? blankMatches.length : 0;
+      const answers = userAnswers[question.id] || [];
+      
+      const questionErrors = [];
+      let questionHasError = false;
+      
+      for (let i = 0; i < blankCount; i++) {
+        const answer = answers[i] || '';
+        if (!answer.trim()) {
+          questionErrors[i] = 'This blank must be filled.';
+          questionHasError = true;
+          hasErrors = true;
+        } else {
+          questionErrors[i] = null;
+        }
+      }
+      
+      if (questionHasError) {
+        errors[question.id] = questionErrors;
+      }
+    });
+    
+    setValidationErrors(errors);
+    setValidationAttempted(true);
+    
+    return !hasErrors;
   };
 
   // Submit the quiz and show review
   const submitQuiz = () => {
-    setQuizSubmitted(true);
-    setShowReview(true);
+    if (validateQuiz()) {
+      setQuizSubmitted(true);
+      setShowReview(true);
+    } else {
+      // Scroll to the first error
+      const firstErrorQuestion = Object.keys(validationErrors)[0];
+      if (firstErrorQuestion) {
+        const element = document.getElementById(`question-${firstErrorQuestion}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
   };
 
-  // Continue after review
+  // Continue after review - final validation before completing
   const handleContinue = () => {
-    if (onComplete) {
-      onComplete(userAnswers);
+    // Double-check validation before sending to parent component
+    if (validateQuiz()) {
+      if (onComplete) {
+        onComplete(userAnswers); // Answers are passed to the ModuleView
+      }
+    } else {
+      // Return to quiz mode to complete missing answers
+      setShowReview(false);
+      setQuizSubmitted(false);
     }
   };
 
@@ -105,6 +177,8 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     setUserAnswers(resetAnswers);
     setQuizSubmitted(false);
     setShowReview(false);
+    setValidationErrors({});
+    setValidationAttempted(false);
   };
 
   // Render a question with interactive blanks
@@ -133,23 +207,33 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     
     const parts = questionText.split(/\b____\b/);
     const answers = userAnswers[question.id] || [];
+    const questionErrors = validationErrors[question.id] || [];
     
     return (
-      <div key={question.id} className="fill-blanks-question">
+      <div 
+        id={`question-${question.id}`} 
+        key={question.id} 
+        className={`fill-blanks-question ${questionErrors.length > 0 ? 'has-errors' : ''}`}
+      >
         <h3>Question {index + 1}</h3>
         <div className="question-text">
           {parts.map((part, i) => (
             <React.Fragment key={i}>
               {part}
               {i < parts.length - 1 && (
-                <input 
-                  type="text"
-                  className="blank-input"
-                  value={answers[i] || ''}
-                  onChange={(e) => handleBlankChange(question.id, i, e.target.value)}
-                  disabled={quizSubmitted}
-                  placeholder="fill in"
-                />
+                <div className="blank-input-container">
+                  <input 
+                    type="text"
+                    className={`blank-input ${questionErrors[i] && validationAttempted ? 'error' : ''}`}
+                    value={answers[i] || ''}
+                    onChange={(e) => handleBlankChange(question.id, i, e.target.value)}
+                    disabled={quizSubmitted}
+                    placeholder="fill in"
+                  />
+                  {questionErrors[i] && validationAttempted && (
+                    <div className="validation-error">{questionErrors[i]}</div>
+                  )}
+                </div>
               )}
             </React.Fragment>
           ))}
@@ -173,6 +257,12 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
           <p>You've completed all {questions.length} questions in this exercise.</p>
         </div>
         
+        {Object.keys(validationErrors).length > 0 && (
+          <div className="validation-error-summary">
+            <p className="error-message">There are still blanks that need to be filled. Please go back and complete all answers.</p>
+          </div>
+        )}
+        
         <div className="review-questions">
           {questions.map((question, index) => {
             const parts = question.question_text.split(/\b____\b/);
@@ -187,7 +277,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
                       <React.Fragment key={i}>
                         {part}
                         {i < parts.length - 1 && (
-                          <span className="review-answer-highlight">
+                          <span className={`review-answer-highlight ${!answers[i] ? 'error' : ''}`}>
                             {answers[i] || "(no answer)"}
                           </span>
                         )}
@@ -211,7 +301,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
             className="continue-button"
             onClick={handleContinue}
           >
-            Continue
+            Done
           </button>
         </div>
       </div>
@@ -235,12 +325,21 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     return renderReview();
   }
 
+  // Calculate if there are any validation errors
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+
   return (
     <div className="fill-blanks-quiz-container">
       <div className="quiz-instructions">
         <h3>Fill in the Blanks</h3>
         <p>Read each sentence and fill in the missing words in the blanks.</p>
       </div>
+      
+      {validationAttempted && hasValidationErrors && (
+        <div className="validation-summary">
+          <p className="error-message">Please fill in all blanks before submitting.</p>
+        </div>
+      )}
       
       <div className="questions-container">
         {questions.map((question, index) => renderQuestion(question, index))}
