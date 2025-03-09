@@ -52,7 +52,7 @@ const ModuleViewAlternative = () => {
                 id: 'heading-intro',
                 type: 'heading',
                 level: 1,
-                text: 'Welcome to this Module'
+                text: 'Welcome to this Module (H1)'
               },
               {
                 id: 'paragraph-intro',
@@ -77,7 +77,7 @@ const ModuleViewAlternative = () => {
                 id: 'heading-concepts',
                 type: 'heading',
                 level: 2,
-                text: 'Core Principles'
+                text: 'Core Principles (H2)'
               },
               {
                 id: 'paragraph-concepts',
