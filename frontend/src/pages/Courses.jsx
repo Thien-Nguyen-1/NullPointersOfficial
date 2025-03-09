@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import "../styles/Courses.css";
+import ModuleFiltering from "../components/ModuleFiltering";
+import { FaThumbsUp, FaBookmark, FaBook} from "react-icons/fa";
+
 
 function Courses({ role }) {
     const [courses, setCourses] = useState([]);
@@ -84,70 +87,51 @@ function Courses({ role }) {
         : courses;
 
     return (
-        <div>
-            <h1 className="page-title">Courses</h1>
+        <div className="course-page">
+            <h1 className="page-title">Module Builder</h1>
             
-            {/* Show the "Create Module" button only if the user is an Admin */}
+            {/* Show the "Create Module" button only if the user is an Admin
             {role === "admin" && (
                 <div className="admin-actions">
                     <Link to="/admin/courses/create-and-manage-module" className="create-module-btn">
                         Create Module
                     </Link>
                 </div>
-            )}
+            )} */}
 
+
+            
             {/* Filter and Sort Controls */}
-            <div className="controls-row">
-                {/* Tag filter */}
-                {tags.length > 0 && (
-                    <div className="filter-section">
-                        <div className="filter-label">Filter by tag:</div>
-                        <div className="tags-list">
-                            <button 
-                                className={`tag-btn ${selectedTag === null ? 'active' : ''}`}
-                                onClick={() => setSelectedTag(null)}
-                            >
-                                All
-                            </button>
-                            {tags.map(tag => (
-                                <button 
-                                    key={tag.id}
-                                    className={`tag-btn ${selectedTag === tag.id ? 'active' : ''}`}
-                                    onClick={() => setSelectedTag(tag.id)}
-                                >
-                                    {tag.tag}
-                                </button>
-                            ))}
-                        </div>
+            {/* Tag filter */}
+            <h2 className="subheading">Tags</h2>
+            {tags.length > 0 && (
+                <div className="filter-section">
+                    <div className="filter-label">
+                        {tags.length == 1 ?
+                            <>There is <strong>{tags.length}</strong> tag created</> :
+                            <>There are <strong>{tags.length}</strong> tags created</>
+                        }
                     </div>
-                )}
-                
-                {/* Sort options */}
-                <div className="sort-section">
-                    <div className="sort-label">Sort by:</div>
-                    <div className="sort-options">
+                    <div className="tags-list">
                         <button 
-                            className={`sort-btn ${sortOption === 'newest' ? 'active' : ''}`}
-                            onClick={() => handleSortChange('newest')}
+                            className={`tag-btn ${selectedTag === null ? 'active' : ''}`}
+                            onClick={() => setSelectedTag(null)}
                         >
-                            Newest
+                            All
                         </button>
-                        <button 
-                            className={`sort-btn ${sortOption === 'oldest' ? 'active' : ''}`}
-                            onClick={() => handleSortChange('oldest')}
-                        >
-                            Oldest
-                        </button>
-                        <button 
-                            className={`sort-btn ${sortOption === 'title' ? 'active' : ''}`}
-                            onClick={() => handleSortChange('title')}
-                        >
-                            Title
-                        </button>
+                        {tags.map(tag => (
+                            <button 
+                                key={tag.id}
+                                className={`tag-btn ${selectedTag === tag.id ? 'active' : ''}`}
+                                onClick={() => setSelectedTag(tag.id)}
+                            >
+                                {tag.tag}
+                            </button>
+                        ))}
                     </div>
                 </div>
-            </div>
-
+            )}
+            
             {/* Loading state */}
             {loading && (
                 <div className="loading-state">
@@ -179,10 +163,26 @@ function Courses({ role }) {
 
             {/* Course cards container */}
             {!loading && !error && filteredCourses.length > 0 && (
-                <div className="courses-container">
-                    {filteredCourses.map(course => (
-                        <div key={course.id} className="course-card">
-                            <div className="course-card-header">
+                <>
+                    <h2 className="subheading">All Courses</h2>
+                    <div className="course-label">
+                            {filteredCourses.length == 1 ?
+                                <>There is <strong>{filteredCourses.length}</strong> module created</> :
+                                <>There are <strong>{filteredCourses.length}</strong> modules created</>
+                            }
+                    </div>
+                    
+                    <div className="sort-bar">
+                        <ModuleFiltering handleSort={handleSortChange} currentSortOption={sortOption} />
+                        {role === "admin" && ( 
+                            <Link to="/admin/courses/create-and-manage-module" className="add-module-button">
+                                +
+                            </Link>
+                        )}
+                    </div>
+                    <div className="long-card-container">
+                        {filteredCourses.map(course => (
+                            <div key={course.id} className="course-long-card">
                                 <h3 className="course-title">{course.title}</h3>
                                 {course.pinned && (
                                     <span className="pinned-badge" title="Pinned course">
@@ -191,39 +191,58 @@ function Courses({ role }) {
                                         </svg>
                                     </span>
                                 )}
-                            </div>
-                            <p className="course-description">{course.description || "No description available."}</p>
-                            <div className="course-tags">
-                                {course.tags && course.tags.length > 0 ? course.tags.map(tagId => {
-                                    const tagObject = tags.find(t => t.id === tagId);
-                                    return tagObject ? (
-                                        <span key={tagId} className="course-tag">
-                                            {tagObject.tag}
-                                        </span>
-                                    ) : null;
-                                }) : (
-                                    <span className="no-tags">No tags</span>
-                                )}
-                            </div>
-                            <div className="course-actions">
-                                <Link 
-                                    to={`/${role}/courses/${course.id}`} 
-                                    className="view-course-btn"
-                                >
-                                    View Course
-                                </Link>
-                                {role === "admin" && (
+                                
+                                {/* <p className="course-description">{course.description || "No description available."}</p> */}
+                                <div className="course-tags">
+                                    {course.tags && course.tags.length > 0 ? course.tags.map(tagId => {
+                                        const tagObject = tags.find(t => t.id === tagId);
+                                        return tagObject ? (
+                                            <span key={tagId} className="course-tag">
+                                                {tagObject.tag}
+                                            </span>
+                                        ) : null;
+                                    }) : (
+                                        <span className="no-tags">No tags</span>
+                                    )}
+                                </div>
+                                
+
+                                <div className="icon-buttons">
+                                    <button className="icon-button">
+                                        <FaThumbsUp className="icon" />
+                                        {course.upvotes}
+                                    </button>
+
+                                    <button className="icon-button">
+                                        <FaBookmark className="icon" />    
+                                    </button>
+                                    
+                                </div>
+
+
+
+
+
+                                <div className="course-actions">
                                     <Link 
-                                        to={`/admin/courses/create-and-manage-module?edit=${course.id}`}
-                                        className="edit-course-btn"
+                                        to={`/${role}/courses/${course.id}`} 
+                                        className="view-course-btn"
                                     >
-                                        Edit
+                                        View Course
                                     </Link>
-                                )}
+                                    {role === "admin" && (
+                                        <Link 
+                                            to={`/admin/courses/create-and-manage-module?edit=${course.id}`}
+                                            className="edit-course-btn"
+                                        >
+                                            Edit
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     );

@@ -1,13 +1,13 @@
 import axios from 'axios';
 
 
-const baseURL =
-  import.meta.env && import.meta.env.VITE_API_URL 
-    ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000'; // this should points to Django backend
+// const baseURL =
+//   import.meta.env && import.meta.env.VITE_API_URL 
+//     ? import.meta.env.VITE_API_URL
+//     : 'http://localhost:8000'; // this should points to Django backend
     
 const api = axios.create({
-  baseURL, 
+  baseURL: 'http://localhost:8000', 
   withCredentials: true,
 });
 
@@ -27,12 +27,12 @@ api.interceptors.request.use(
 
 // Authentication functions
 export async function loginUser(username, password){
+  console.log(username, password);
   try {
     const response = await api.post(`/api/login/`, {
       username,
       password,
     });
-        
     // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
     localStorage.setItem('token', response.data.token);
