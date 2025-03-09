@@ -2,14 +2,17 @@ import axios from 'axios';
 
 
 const baseURL =
-  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+  import.meta.env && import.meta.env.VITE_API_URL 
     ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000';
+    : 'http://localhost:8000'; 
+
     
 const api = axios.create({
-  baseURL,
+  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
+
+//Anything affiliated with the model User, please make amendments to AuthContext.jsx
 
 // Generic fetch function for users
 const fetchData = async (endpoint) => {
@@ -36,7 +39,7 @@ export const deleteServiceUser = async (username) => {
 
 export async function loginUser(username, password){
   try {
-    const response = await api.post(`/login/`, {
+    const response = await api.post(`/api/login/`, {
       username,
       password,
     });
@@ -46,6 +49,13 @@ export async function loginUser(username, password){
     localStorage.setItem('token', response.data.token);
   
     return response.data;
+
+    if(response.data){
+      localStorage.setItem("user_type",response.data.user_type);
+      return response.data;
+    }
+
+    
   }
   catch(error) {
     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
@@ -66,43 +76,6 @@ export function redirectBasedOnUserType(userData) {
             window.location.href = '/worker/home';
     }
 
-}
-
-
-export async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
-  try {
-    const response = await api.post(`/signup/`, {
-      username,
-      first_name: firstName,
-      last_name: lastName,
-      user_type: userType,
-      password,
-      confirm_password: confirmPassword,
-    });
-
-    return response.data;
-
-  }
-  catch(error) {
-    console.error("Sign Up error:", error.response?.data || error.message);
-    throw new Error("Sign Up failed:" + error.response?.data?.detail || "Unkown error");
-   }
-}
-
-export async function ResetPassword(username, new_password , confirm_new_password){
-  try {
-    const response = await api.post(`/change-password/`, {
-      username,
-      new_password,
-      confirm_new_password
-    });
-
-    return response.data;
-  }
-  catch(error) {
-    throw new Error("Reset of password failed:" + error.response?.data?.detail || "Unkown error");
-
-  }
 }
 
 export async function GetQuestion(id = null) {
@@ -133,41 +106,203 @@ export async function SubmitQuestionAnswer(question_id, answer) {
   } 
 };
 
-export default api 
-
-
-
-
-export async function logoutUser() {
-  try {
-    // Get the token from localStorage
+  
+export async function getUserSettings(){
+  
+  try{
     const token = localStorage.getItem('token');
     
-    if (token) {
-      // Call backend logout endpoint
-      await api.post('/logout/', {}, {
-        headers: {
-          'Authorization': `Token ${token}`
-        }
-      });
+    if (!token) {
+      throw new Error('No authentication token found');
+
     }
     
-    // Clear all user-related data from localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    
-    // Redirect to login page
-    window.location.href = '/';
-    
-    return { success: true };
-  } catch (error) {
-    console.error("Logout error:", error);
-    
-    // Even if the API call fails, still clear localStorage and redirect
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    window.location.href = '/';
-    
-    throw new Error("Logout failed: " + (error.response?.data?.detail || "Unknown error"));
+    const response = await api.get(`/worker/settings/` , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to get user settings", error.response?.data || error.message);
   }
 }
+
+
+export async function deleteUserSettings(){
+  try{
+    const token = localStorage.getItem('token');
+    const response = await api.delete(`/worker/settings/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to delete user account");
+  }
+}
+
+
+
+export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
+  try{
+    const token = localStorage.getItem("token");
+    const response = await api.put(`worker/password-change/`, {
+    old_password:  oldPassword,
+    new_password: newPassword,
+    confirm_new_password: confirmNewPassword,
+    
+    } , {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    return response.data;
+  }
+  catch(error){
+    throw new Error ("Failed to change password");
+    
+  }
+}
+
+
+
+export async function GetModule(id){
+  try {
+
+    const response = await api.get(`/modules/${ id !== undefined ? id : ""}`)
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data;
+
+  } catch (err){
+    throw new Error("Failed to retrieve modules")
+  }
+}
+
+export async function GetAllProgressTracker(){
+  try {
+   
+    const response = await api.get(`/api/progress-tracker/`)
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data;
+  } catch(err){
+
+    return []
+
+  }
+
+}
+
+export async function SaveProgressTracker(tracker, id){
+  try{
+
+    const response = await api.put(`/api/progress-tracker/${id}`, tracker)
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data
+
+  } catch(err){
+    return []
+  }
+}
+
+
+export async function GetUserModuleInteract(token){
+  try {
+   
+    const response = await api.get(`/api/user-interaction/`, {
+      params: {"filter": "user" },
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+     
+    });
+      
+
+    if(response.error){
+      throw new Error(response.error);
+    } 
+    else if(response.status === 204 ){
+      return []
+    } 
+   
+    return response.data;
+
+  } catch(err){
+
+    return []
+
+  }
+
+}
+
+
+export async function SaveUserModuleInteract(modId, objInteract, token) {
+ 
+  try {
+    
+    const response = await api.post(`api/user-interaction/${modId}/`, objInteract, { headers: {'Authorization': `Token ${token}`}})
+
+    if(response.error){
+      throw new Error(response.error);
+    }
+
+    return response.data
+
+  } catch(err){
+    throw new Error("Unable to save user module interaction")
+  }
+}
+
+
+// Module related functions
+export const moduleApi = {
+  getAll: () => api.get('/api/modules/'),
+  getById: (id) => api.get(`/api/modules/${id}/`),
+  create: (data) => api.post('/api/modules/', data),
+  update: (id, data) => api.put(`/api/modules/${id}/`, data),
+  delete: (id) => api.delete(`/api/modules/${id}/`)
+};
+
+// Tag related functions
+export const tagApi = {
+  getAll: () => api.get('/api/tags/'),
+  getById: (id) => api.get(`/api/tags/${id}/`),
+  create: (data) => api.post('/api/tags/', data)
+};
+
+// Task related functions
+export const taskApi = {
+  getAll: (moduleId) => api.get('/api/tasks/', { params: { moduleID: moduleId } }),
+  getById: (id) => api.get(`/api/tasks/${id}/`),
+  create: (data) => api.post('/api/tasks/', data),
+  update: (id, data) => api.put(`/api/tasks/${id}/`, data),
+  delete: (id) => api.delete(`/api/tasks/${id}/`)
+};
+
+// Quiz question related functions
+export const quizApi = {
+  getQuestions: (taskId) => api.get('/api/quiz/questions/', { params: { task_id: taskId } }),
+  getQuestion: (id) => api.get(`/api/quiz/questions/${id}/`),
+  createQuestion: (data) => api.post('/api/quiz/questions/', data),
+  updateQuestion: (id, data) => api.put(`/api/quiz/questions/${id}/`, data),
+  deleteQuestion: (id) => api.delete(`/api/quiz/questions/${id}/`),
+  getQuizDetails: (taskId) => api.get(`/api/quiz/${taskId}/`),
+  submitResponse: (data) => api.post('/api/quiz/response/', data)
+};
+
+export default api 

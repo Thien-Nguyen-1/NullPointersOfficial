@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content, Questionnaire, RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion
 from django.contrib.auth import authenticate, get_user_model
 from django.core.files.base import ContentFile
 import uuid
@@ -7,15 +7,34 @@ import base64
 
 User = get_user_model()
 
+class ModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Module
+        fields = ['id','title','description','tags','upvotes']
+
+class TagSerializer(serializers.ModelSerializer):
+
+    modules = ModuleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Tags
+        fields = ['id','tag','modules']
+
+
 class UserSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField( #Ensures tags are serialized as a list of tag names rather than ID
         many=True,
         read_only=True,
         slug_field="tag"
     )
+
+   # tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(), many=True) #serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
+    module = ModuleSerializer(many=True)
+   # tags = TagSerializer(many=True)
+
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -71,27 +90,14 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed']
+        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questionnaire
         fields = ["id", "question", "yes_next_q", "no_next_q"]
-  
-class ModuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Module
-        fields = ['id','title','description','tags','pinned','upvotes']
 
-
-class TagSerializer(serializers.ModelSerializer):
-
-    modules = ModuleSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Tags        
-        fields = ['id','tag','modules']
 
 class ContentSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
@@ -100,6 +106,65 @@ class ContentSerializer(serializers.ModelSerializer):
         model = Content
         fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
         read_only_fields = ['contentID', 'created_at', 'updated_at']
+
+class InfoSheetSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = InfoSheet
+        fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
+
+class VideoSerializer(ContentSerializer):
+
+    class Meta(ContentSerializer.Meta):
+        model = Video
+        fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
+
+class TaskSerializer(ContentSerializer):
+
+    # Override the author field to allow writing to it
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = Task
+        fields = ContentSerializer.Meta.fields + ['text_content', 'quiz_type']
+
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestion
+        fields = '__all__'
+
+class UserModuleInteractSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=UserModuleInteraction
+        fields = ['id', 'user', 'module', 'hasPinned', 'hasLiked']
+
+class UserSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['user_id','first_name','last_name','username','user_type']
+
+class UserPasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only = True, required = True)
+    new_password = serializers.CharField(write_only = True, required = True)
+    confirm_new_password= serializers.CharField(write_only = True, required = True)
+
+    def validate(self,data):
+        user = self.context.get("request").user
+
+        if not user.check_password(data["old_password"]):
+            raise serializers.ValidationError({"old_password": "Incorrect old password"})
+
+        if data["new_password"] != data["confirm_new_password"]:
+            raise serializers.ValidationError({"new_password" : "New passwords do not match"})
+
+        return data
+
+    def save(self, **kwargs):
+        user = self.context["request"].user
+        user.set_password(self.validated_data["new_password"])
+        user.save()
+        return user
 
 class RankingQuestionSerializer(ContentSerializer):
     class Meta:
@@ -211,3 +276,4 @@ class ContentPublishSerializer(serializers.Serializer):
                 )
 
         return module
+

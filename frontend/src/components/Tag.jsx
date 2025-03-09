@@ -8,7 +8,7 @@ const predefinedTags = [
     { id: 5, name: 'Low Self-Esteem', description: 'low-self' }
   ];
 
-  const Tags = () => {
+const Tags = () => {
     return (
         <div className="tags-container">
             <h1>Predefined Tags</h1>

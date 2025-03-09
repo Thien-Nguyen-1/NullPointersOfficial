@@ -75,7 +75,6 @@ class Module(models.Model):
     description = models.TextField()
     id = models.AutoField(primary_key=True)  
     tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
-    pinned = models.BooleanField(default=False)  
     upvotes = models.PositiveIntegerField(default=0) 
 
     def upvote(self):
@@ -161,7 +160,6 @@ class User(AbstractUser):
 
     class Meta:
         """Model options."""
-
         ordering = ['first_name', 'last_name']
 
     def full_name(self):
@@ -171,15 +169,28 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.full_name()} - {self.username} - {self.user_id}"
+    
 
 class ProgressTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
+    pinned = models.BooleanField(default=False)
+    hasLiked = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
 
+class UserModuleInteraction(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+
+    hasPinned = models.BooleanField(default=False)
+    hasLiked = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.module.title} - Pinned: {self.hasPinned} - Liked: {self.hasLiked}"
 
 # Model for Content
 # Parent class for ALL Content Types
@@ -198,7 +209,6 @@ class Content(models.Model):
 
     def __str__(self):
         return self.title
-
 
 class RankingQuestion(Content):
     """Model for Ranking Question content type"""
@@ -220,3 +230,73 @@ class Document(Content):
 class EmbeddedVideo(Content):
     """Model for Embedded Video content type"""
     video_url = models.URLField()
+
+# Extend Content class
+class InfoSheet(Content):
+    infosheet_file= models.FileField(upload_to="infosheets/")
+    infosheet_content = models.TextField(blank=True, null=True)
+
+class Video(Content):
+    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
+    video_file= models.FileField(upload_to="videos/")
+    duration= models.PositiveBigIntegerField()
+    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+
+# This model defines the overall interactive quiz properties
+class Task(Content):
+    text_content = models.TextField()
+
+    # Quiz type choices
+    QUIZ_TYPE_CHOICES = [
+        ('flashcard', 'Flashcard Quiz'),
+        ('statement_sequence', 'Statement Sequence Quiz'),
+        ('text_input', 'Text Input Quiz'),
+    ]
+
+    quiz_type = models.CharField(
+        max_length=30,
+        choices=QUIZ_TYPE_CHOICES,
+        default='text_input',
+    )
+
+    def __str__(self):
+        return f"{self.title} ({self.get_quiz_type_display()})"
+
+
+# QuizQuestion stores the individual questions
+class QuizQuestion(models.Model):
+    """
+    Model to store individual quiz questions tied to a Task.
+    This allows for multiple questions per quiz/task.
+    """
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    order = models.PositiveIntegerField(default=0)  # For ordering questions in sequence
+
+    # For flashcard quiz type - optional text shown on the back of the card
+    hint_text = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.question_text[:30]}..."
+
+#UserResponse captures only the user interaction data
+class UserResponse(models.Model):
+    """
+    Model to store user responses to quiz questions.
+    No correct/incorrect validation - just storing what the user submitted.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_responses')
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name='responses')
+    response_text = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"Response by {self.user.username} for {self.question}"
+
+
