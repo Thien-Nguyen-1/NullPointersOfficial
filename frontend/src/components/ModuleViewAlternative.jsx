@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../services/AuthContext";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { SaveUserModuleInteract, GetUserModuleInteract } from "../services/api";
-import FlashcardQuiz from "./quizzes/FlashcardQuiz";
-import FillInTheBlanksQuiz from "./quizzes/FillInTheBlanksQuiz";
-import FlowchartQuiz from "./quizzes/FlowchartQuiz";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt, MdBookmark, MdBookmarkBorder } from "react-icons/md";
+
+import ContentRenderer from "./module-content/ContentRenderer";
+import TableOfContents from "./module-content/TableOfContents";
+import ModuleCompletion from "./module-content/ModuleCompletion";
+
 import "../styles/AlternativeModuleView.css";
 import "../styles/Quizzes.css";
 
@@ -279,254 +281,8 @@ const handleContentComplete = async (contentId, results) => {
     console.log("Module completed state changed:", moduleCompleted);
   }, [moduleCompleted]);
 
-  // Module completion congratulations screen
-  const renderModuleCompletion = () => {
-    // Get the user role from the AuthContext
-    const role = user?.user_type || 'worker'; // Default to 'worker' if role is undefined
-    // Create the correct path based on role
-    const coursesPath = role === 'admin' ? '/admin/all-courses' : '/worker/all-courses';
-    
-    return (
-      <div className="alt-module-completion">
-        <div className="congratulations-icon">🎉</div>
-        <h2>Congratulations!</h2>
-        <p>You have successfully completed all content in this module.</p>
-        <p className="completion-message">
-          Your progress has been saved. You can now continue to explore other modules.
-        </p>
-        <div className="completion-actions">
-          <button 
-            className="back-to-modules-button"
-            onClick={() => navigate(coursesPath)}
-          >
-            Back to Modules
-          </button>
-        </div>
-      </div>
-    );
-  };
+
   
-  // Render a quiz component
-  const renderQuiz = (quizData) => {
-    if (!quizData || !quizData.taskData) return null;
-    
-    let quizComponent = null;
-    
-    switch (quizData.quiz_type) {
-      case 'flashcard':
-        quizComponent = <FlashcardQuiz 
-          taskId={quizData.taskData.contentID} 
-          onComplete={(results) => handleContentComplete(quizData.id, results)}
-        />;
-        break;
-      case 'text_input':
-        quizComponent = <FillInTheBlanksQuiz 
-          taskId={quizData.taskData.contentID} 
-          onComplete={(results) => handleContentComplete(quizData.id, results)}
-        />;
-        break;
-      case 'statement_sequence':
-        quizComponent = <FlowchartQuiz 
-          taskId={quizData.taskData.contentID} 
-          onComplete={(results) => handleContentComplete(quizData.id, results)}
-        />;
-        break;
-      default:
-        return <div className="error-message">Unknown quiz type: {quizData.quiz_type}</div>;
-    }
-    
-    return (
-      <div className="alt-component">
-        <div className="alt-component-header">
-          <h3>{quizData.title}</h3>
-          {completedContentIds.has(quizData.id) && (
-            <span className="completed-check">✓</span>
-          )}
-        </div>
-        <div className="alt-component-content">
-          {quizComponent}
-        </div>
-      </div>
-    );
-  };
-
-  // Render an image component
-  const renderImage = (imageData) => {
-    return (
-      <div className="alt-component">
-        <div className="alt-component-header">
-          <h3>{imageData.title}</h3>
-          {completedContentIds.has(imageData.id) && (
-            <span className="completed-check">✓</span>
-          )}
-        </div>
-        <div className="alt-component-content">
-          <div className="alt-image-container">
-            <img 
-              src={imageData.source} 
-              alt={imageData.title}
-              className="alt-image"
-            />
-          </div>
-          
-          {imageData.caption && (
-            <div className="alt-image-caption">
-              <p>{imageData.caption}</p>
-            </div>
-          )}
-          
-          <div className="alt-mark-complete">
-            {!completedContentIds.has(imageData.id) && (
-              <button 
-                className="mark-complete-button"
-                onClick={() => handleContentComplete(imageData.id, { viewed: true })}
-              >
-                Mark as Viewed
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render a video component
-  const renderVideo = (videoData) => {
-    return (
-      <div className="alt-component">
-        <div className="alt-component-header">
-          <h3>{videoData.title}</h3>
-          {completedContentIds.has(videoData.id) && (
-            <span className="completed-check">✓</span>
-          )}
-        </div>
-        <div className="alt-component-content">
-          <div className="alt-video-container">
-            {videoData.source ? (
-              <video controls className="alt-video">
-                <source src={videoData.source} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <div className="alt-video-placeholder">
-                <img src={videoData.thumbnail} alt="Video thumbnail" />
-                <div className="alt-video-play-button">▶</div>
-              </div>
-            )}
-          </div>
-          
-          {videoData.duration && (
-            <div className="alt-video-duration">
-              <p>Duration: {videoData.duration}</p>
-            </div>
-          )}
-          
-          <div className="alt-mark-complete">
-            {!completedContentIds.has(videoData.id) && (
-              <button 
-                className="mark-complete-button"
-                onClick={() => handleContentComplete(videoData.id, { viewed: true })}
-              >
-                Mark as Viewed
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render an infosheet component
-  const renderInfosheet = (infosheetData) => {
-    return (
-      <div className="alt-component">
-        <div className="alt-component-header">
-          <h3>{infosheetData.title}</h3>
-          {completedContentIds.has(infosheetData.id) && (
-            <span className="completed-check">✓</span>
-          )}
-        </div>
-        <div className="alt-component-content">
-          <div className="alt-infosheet">
-            <p>{infosheetData.content}</p>
-          </div>
-          
-          <div className="alt-mark-complete">
-            {!completedContentIds.has(infosheetData.id) && (
-              <button 
-                className="mark-complete-button"
-                onClick={() => handleContentComplete(infosheetData.id, { viewed: true })}
-              >
-                Mark as Viewed
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render heading
-  const renderHeading = (headingData) => {
-    const HeadingTag = `h${headingData.level}`;
-    return (
-      <div className="alt-heading">
-        <HeadingTag>{headingData.text}</HeadingTag>
-      </div>
-    );
-  };
-
-  // Render paragraph
-  const renderParagraph = (paragraphData) => {
-    return (
-      <div className="alt-paragraph">
-        <p>{paragraphData.text}</p>
-      </div>
-    );
-  };
-
-  // Render content item based on type
-  const renderContentItem = (item) => {
-    switch (item.type) {
-      case 'heading':
-        return renderHeading(item);
-      case 'paragraph':
-        return renderParagraph(item);
-      case 'image':
-        return renderImage(item);
-      case 'video':
-        return renderVideo(item);
-      case 'infosheet':
-        return renderInfosheet(item);
-      case 'quiz':
-        return renderQuiz(item);
-      default:
-        return <div className="alt-error">Unknown content type: {item.type}</div>;
-    }
-  };
-
-  // Table of Contents
-  const renderTableOfContents = () => {
-    return (
-      <div className="alt-table-of-contents">
-        <h3>Table of Contents</h3>
-        <ul>
-          {moduleContent.map((section) => (
-            <li 
-              key={section.id}
-              className={activeSection === section.id ? 'active' : ''}
-              onClick={() => {
-                document.getElementById(section.id).scrollIntoView({ behavior: 'smooth' });
-                setActiveSection(section.id);
-              }}
-            >
-              {section.title}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
 
   if (isLoading) {
     return <div className="alt-module-container alt-loading">Loading module data...</div>;
@@ -592,13 +348,17 @@ const handleContentComplete = async (contentId, results) => {
       
       {moduleCompleted ? (
         // When module is completed, show congratulations screen
-        renderModuleCompletion()
+        <ModuleCompletion user={user} />
       ) : (
         // Otherwise show module content
         <div className="alt-content-layout">
           {/* Table of Contents (fixed on scroll) */}
           <div className="alt-sidebar">
-            {renderTableOfContents()}
+            <TableOfContents 
+                moduleContent={moduleContent} 
+                activeSection={activeSection}
+                setActiveSection={setActiveSection}
+            />
           </div>
           
           {/* Main Content Area */}
@@ -612,7 +372,11 @@ const handleContentComplete = async (contentId, results) => {
                 <div className="alt-section-content">
                   {section.content && section.content.map((item) => (
                     <div key={item.id} className="alt-content-item">
-                      {renderContentItem(item)}
+                        <ContentRenderer 
+                        item={item}
+                        completedContentIds={completedContentIds}
+                        onContentComplete={handleContentComplete}
+                        />
                     </div>
                   ))}
                 </div>
