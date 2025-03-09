@@ -331,7 +331,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
   return (
     <div className="fill-blanks-quiz-container">
       <div className="quiz-instructions">
-        <h3>Fill in the Blanks</h3>
+        <h3>Fill in the Blanks / Title</h3>
         <p>Read each sentence and fill in the missing words in the blanks.</p>
       </div>
       
