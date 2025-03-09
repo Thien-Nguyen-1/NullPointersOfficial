@@ -474,7 +474,29 @@ const AddModule = () => {
         }
       } catch (verifyErr) {
       }
-      
+      for (const module of modules) {
+        if (module.type === 'Question and Answer Form') {
+          const editorRef = editorRefs.current[module.id];
+          const questionAnswers = editorRef?.getSubmittedData?.() || [];
+          for (const qa of questionAnswers){
+          let formData = {
+            title: `${module.type} for ${title}`,
+            description: `${module.type} content for ${title}`,
+            question:qa.question,
+            answer:qa.answer,
+            moduleID: moduleId,
+            author: authorId
+          };
+          try {
+            await QuizApiUtils.createQuestionAnswerFormTask(formData);
+            console.log('Question Answer Form task created successfully');
+          } catch (error) {
+            console.error('Error creating Question Answer Form task:', error);
+          }
+        }
+        }
+      }
+
       alert(isEditing ? "Module updated successfully!" : "Module published successfully!");
       navigate("/admin/all-courses");
     } catch (err) {

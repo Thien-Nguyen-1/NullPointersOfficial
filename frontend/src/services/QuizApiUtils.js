@@ -238,13 +238,12 @@ export const QuizApiUtils = {
     }
   },
 
-  createQuestionAnswerFormTask: async(moduleId,formData) =>{
+  createQuestionAnswerFormTask: async(formData) =>{
     try{
       const data = {
-        ...formData,
-        moduleID:moduleId
+        ...formData
       };
-      const response = await api.post('/api/question_answer_forms/');
+      const response = await api.post('/api/question_answer_forms/',data);
       return response.data;
     }catch(error){
       console.error('Error Question & Answer form task task:', error);
