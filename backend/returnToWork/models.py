@@ -133,6 +133,7 @@ class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
         ('service user', 'Service user')
+        
     ]
 
     user_type = models.CharField(
@@ -248,6 +249,8 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
+        ('question_answer_form', 'Question Answer Form'),
+        ('matching_questions', 'Matching Question Quiz')
     ]
     
     quiz_type = models.CharField(
@@ -298,3 +301,17 @@ class UserResponse(models.Model):
 
 
 
+class QuestionAnswerForm(Content):
+    question = models.TextField()
+    answer = models.TextField()
+
+    def __str__(self):
+        return self.question[:50]
+    
+class MatchingQuestionQuiz(Content):
+
+    question = models.TextField()
+    answer = models.TextField()
+
+    def __str__(self):
+        return self.question[:50]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -88,7 +88,7 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
+        fields = ['id', 'user', 'module', 'completed']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
@@ -167,3 +167,13 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         return user
     
 
+
+class QuestionAnswerFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionAnswerForm
+        fields = '__all__'
+
+class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchingQuestionQuiz
+        fields = '__all__'

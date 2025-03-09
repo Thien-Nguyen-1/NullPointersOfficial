@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -26,11 +26,14 @@ router.register(r'tags', TagViewSet,basename='tag')
 router.register(r'infosheets', InfoSheetViewSet, basename='infosheet')
 router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'question_answer_forms', QuestionAnswerFormViewSet)
+router.register(r'matching_questions', MatchingQuestionQuizViewSet)
+
 
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
     path('api/logout/', LogOutView.as_view(), name= 'logout'),
     path('api/signup/', SignUpView.as_view(), name= 'signup'),

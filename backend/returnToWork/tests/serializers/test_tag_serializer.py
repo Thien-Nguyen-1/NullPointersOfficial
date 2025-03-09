@@ -11,13 +11,11 @@ class TagSerializerTest(TestCase):
         cls.module1 = Module.objects.create(
             title="Anxiety",
             description="Deep dive into how you feel.",
-            pinned=True,
             upvotes=22
         )
         cls.module2 = Module.objects.create(
             title="Superpowers",
             description="Learn your superpowers.",
-            pinned=False,
             upvotes=15
         )
         cls.tag = Tags.objects.create(tag='Anxiety')

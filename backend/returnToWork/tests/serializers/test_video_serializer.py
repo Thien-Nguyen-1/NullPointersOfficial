@@ -10,7 +10,7 @@ class VideoSerializerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username='john', password='testcase123')
-        cls.module = Module.objects.create(title='Stress', description='Dealing with work stress', pinned=False, upvotes=1)
+        cls.module = Module.objects.create(title='Stress', description='Dealing with work stress', upvotes=1)
         cls.video = Video.objects.create(
             title="How to Manage Stress",
             moduleID=cls.module,

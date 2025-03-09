@@ -1,8 +1,8 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer
 from django.contrib.auth import login, logout
 
 from rest_framework.response import Response
@@ -697,3 +697,12 @@ class QuizQuestionView(APIView):
                 {'error': 'Question not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    
+class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
+    queryset = QuestionAnswerForm.objects.all()
+    serializer_class = QuestionAnswerFormSerializer    
+
+class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
+    queryset = MatchingQuestionQuiz.objects.all()
+    serializer_class = MatchingQuestionQuizSerializer
