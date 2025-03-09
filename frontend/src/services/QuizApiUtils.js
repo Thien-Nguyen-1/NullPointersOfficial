@@ -236,8 +236,22 @@ export const QuizApiUtils = {
       console.error('Error cleaning up orphaned tasks:', error);
       throw error;
     }
-  }
+  },
 
+  createQuestionAnswerFormTask: async(moduleId,formData) =>{
+    try{
+      const data = {
+        ...formData,
+        moduleID:moduleId
+      };
+      const response = await api.post('/api/question_answer_forms/');
+      return response.data;
+    }catch(error){
+      console.error('Error Question & Answer form task task:', error);
+      throw error;
+    }
+
+  }
 };
 
 export default QuizApiUtils;
