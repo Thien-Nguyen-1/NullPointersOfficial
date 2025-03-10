@@ -1,0 +1,90 @@
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center;   */
+    align-items: center;      
+    min-height: 100vh;            
+    width: 100%;             
+    background-color: var(--secondary-green); 
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.settings-card {
+    background-color: var(--secondary-green); 
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    flex: 1;
+    min-width: 400px; 
+    max-width: 900px; 
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px; 
+}
+
+.settings-cards-wrapper {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    gap: 30px; 
+    width: 100%;
+    max-width: 700px;
+}
+
+
+.settings-card h1 {
+    color: var(--primary-green);
+    font-size: 28px;
+    margin: 0 0 10px 0;
+}
+
+.extra-space {
+    margin-bottom: 30px; 
+
+}
+
+button {
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    background-color: var(--primary-green); 
+    color: white; 
+    border: none; 
+  }
+  
+button:hover {
+    background-color: #217a4e; 
+  }
+  
+.delete-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    margin-top: 20px; 
+    width: 100%; 
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center; 
+    gap: 20px; 
+    margin-top: 20px; 
+}
+
+input {
+    border-radius: 8px; 
+    border: 2px solid var(--primary-green); 
+    background-color: white; 
+    font-size: 16px;
+    color: black;
+    outline: none; 
+    margin-bottom: 20px;
+    align-items: centre;
+    
+}
+
+  
+  

@@ -9,7 +9,7 @@ html, body {
 
 #root {
   max-width: 1280px;
-  padding: 2rem;
+  padding: 0.5rem;
   background-color: var(--background-color);
 }
   
@@ -28,9 +28,13 @@ html, body {
   flex-direction: column;
   justify-content: start;
   align-items: flex-start;
-  margin-left: 5rem;
-  padding-right: 15px;
+  padding: 0;
+   /* Why is the margin so huge? */
+  margin-left: 1.2rem;
+  margin-right: 1.2rem;
   overflow-y: visible;
+  /* margin-left: 5rem;
+  padding-right: 15px; */
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
@@ -89,4 +93,57 @@ html, body {
   height: 2px;
   width: 100%;
   margin-top: 30px;
+
+
+
+/* ===== MARGIN STYLES ===== */
+
+.mt-1 {margin-top: 1rem;}
+.mt-2 {margin-top: 2rem;}
+.mt-5 {margin-top: 5rem;}
+
+.mb-1 {margin-bottom: 1rem;}
+.mb-2 {margin-bottom: 2rem;}
+.mb-5{margin-bottom: 5rem;}
+
+.mr-1 {margin-right: 1rem;}
+.mr-2 {margin-right: 2rem;}
+.mr-5 {margin-left: 5rem;}
+
+.ml-1 {margin-left: 1rem;}
+.ml-2 {margin-left: 2rem;}
+.ml-5 {margin-left: 5rem;}
+
+
+.flex {
+  display: flex;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+   .main-content {
+      margin-left: 1rem;
+      margin-right: 1rem;
+   }
+}
+
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+  .main-content {
+    margin-left: 2rem;
+    margin-right: 2rem;
+ }
+}
+
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+  .main-content {
+    margin-left: 5rem;
+    margin-right: 5rem;
+ }
 }

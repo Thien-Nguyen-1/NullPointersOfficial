@@ -10,7 +10,7 @@ class InfoSheetSerializerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username='john', password='testcase123')
-        cls.module = Module.objects.create(title='Stress', description='Dealing with work stress', pinned=False, upvotes=1)
+        cls.module = Module.objects.create(title='Stress', description='Dealing with work stress', upvotes=1)
         cls.infosheet = InfoSheet.objects.create(
             title="Stress Exercise",
             moduleID=cls.module,
