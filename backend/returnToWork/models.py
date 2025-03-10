@@ -159,6 +159,11 @@ class User(AbstractUser):
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
+    firebase_token = models.TextField(
+        default="",
+        blank=False,
+        null=False,
+    )
 
     class Meta:
         """Model options."""
@@ -242,6 +247,27 @@ class Video(Content):
 class Task(Content):
     text_content= models.TextField()
 
+
+
+class Conversation(models.Model): #one-to-many relationship with Messages
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="user_conversation")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="admin_conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    hasEngaged = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Conversation created for: {self.user} and {self.admin}"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    text_content = models.TextField()
+    timestamp =  models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Text sent: {self.text_content}"
+            
 
 
 

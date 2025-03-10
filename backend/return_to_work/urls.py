@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, UserSupportView, UserChatView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -59,5 +59,7 @@ urlpatterns = [
 
 
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
-    path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction')
+    path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
+    path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
 ]

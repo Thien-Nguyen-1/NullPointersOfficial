@@ -1,0 +1,93 @@
+
+
+
+/* MAIN CONTENT */
+.support-main-container {
+    display: flex;
+    width: 100%;
+
+    justify-content: center;
+    align-items: center;
+
+    height: 100dvh;
+    box-sizing: border-box;
+    padding: 3rem 0;
+    
+   
+
+}
+
+/* SIDEBAR STYLING */
+
+.chat-side-box {
+
+ 
+}
+
+
+
+/* CHAT STYLING */
+.view-chat-container {
+
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    margin-top: 2rem;
+   flex-grow: 0;
+}
+
+.chat-container {
+    flex-grow: 1;
+  
+   
+
+   
+}
+
+.user-interact-container{
+    flex-grow: 0;
+    padding-bottom: env(safe-area-inset-bottom); 
+  
+
+    justify-content: center;
+    
+    
+    
+  
+  
+}
+
+.send-message-button {
+    margin-left: 0.8rem;
+    margin-top: 0.2rem;
+}
+
+
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+   .create-chat-container{
+         display: block;
+   }
+
+  
+   .user-interact-container{
+      
+   }
+
+ }
+ 
+ /* Tablet Resolution */
+ @media screen and (min-width: 768px ){
+    
+
+ }
+ 
+ /* Desktop Resolution */
+ @media screen and (min-width: 1080px) {
+   
+ }

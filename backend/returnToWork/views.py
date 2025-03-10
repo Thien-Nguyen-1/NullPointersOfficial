@@ -1,10 +1,10 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction, Conversation, Message
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, MessageSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, ConversationSerializer
 from django.contrib.auth import login, logout
 
 from rest_framework.response import Response
@@ -15,7 +15,8 @@ from rest_framework.permissions import AllowAny
 from returnToWork.models import User
 from rest_framework.authentication import TokenAuthentication
 
-
+from django.db.models import Q
+from firebase_admin import messaging
 
 
 
@@ -255,13 +256,19 @@ class UserDetail(APIView):
             user_in.last_name = user.last_name
             user_in.user_type = user.user_type
             
-            tag_data = data['tags']
+            tag_data = data.get('tags')
             
-            mod_data = data['module']
+            mod_data = data.get('module')
+            
+            fire_token = data.get('firebase_token')
             
 
             tags = []
             modules = []
+
+            if(fire_token):
+                user_in.firebase_token = fire_token
+            
 
 
             for tag_obj in tag_data:
@@ -377,6 +384,11 @@ class UserPasswordChangeView(APIView):
 
 
 
+
+
+
+
+
 class UserInteractionView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -428,3 +440,181 @@ class UserInteractionView(APIView):
             return Response({"message": "Module Not Found Mate"}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)
+    
+
+
+
+
+
+
+
+
+
+
+class UserSupportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    MAX_LIMIT = 5
+
+    def get(self, request):
+        user_ = request.user
+        data = request.data
+
+        
+
+        try:
+          
+            info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+            
+            serialized_info = ConversationSerializer(info_chats, many=True)
+            
+            
+            updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
+            
+
+            return Response(updated_data, status=status.HTTP_200_OK)
+
+        except:
+            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+    
+        
+
+    def post(self, request):
+        user_ = request.user
+        data = request.data
+
+        currentNo = Conversation.objects.filter(user = user_).count()
+
+        if( (user_.user_type == "service user") and ( currentNo < self.MAX_LIMIT )):
+            Conversation.objects.create(user=user_)
+
+
+        elif((user_.user_type == "admin") and data):
+         
+            conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+
+            if conversation_:
+                if not conversation_.hasEngaged:
+
+                    conversation_.hasEngaged = True
+                    conversation_.admin = user_
+
+                    conversation_.save()
+                    
+                else:
+                    return Response({"message": "Conversation already occupied"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            else:
+                return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+    
+        else:
+            return Response({"message": "Maximum Support Room Limit (5) Reached"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        return Response({"message": "success"}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+class UserChatView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def getFcmToken(self, usr_type, conv_Obj):
+      
+        if usr_type == "service user": # user -> admin
+           
+            if getattr(conv_Obj.admin, "firebase_token", False):
+                return conv_Obj.admin.firebase_token
+               
+        elif usr_type == "admin":  # admin -> user
+            if getattr(conv_Obj.user, "firebase_token", False):
+                return conv_Obj.user.firebase_token
+
+        
+        return None
+
+        
+    def get(self, request, room_id):
+        user_ = request.user
+        data = request.data
+
+        conv_Obj = Conversation.objects.get(id = room_id)
+
+        if conv_Obj:
+            
+           
+            all_Messages = Message.objects.filter(conversation=conv_Obj)
+            
+            serialized_messages = MessageSerializer(all_Messages, many=True)
+           
+            return Response(serialized_messages.data, status=status.HTTP_200_OK)
+
+        
+        else:
+            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+
+    def post(self,request, room_id):
+        user_ = request.user
+        data = request.data
+
+        conv_Obj = Conversation.objects.get(id = room_id)
+
+  
+
+        if conv_Obj:
+            
+            token = self.getFcmToken(user_.user_type, conv_Obj)
+
+            if token:
+
+                message_content = data["message"]
+
+                #Create a new message object
+                Message.objects.create(
+                    conversation=conv_Obj,
+                    sender=user_,
+                    text_content = message_content
+                )
+
+                message = messaging.Message(
+                     notification=messaging.Notification(
+                         title="Test title",
+                         body = message_content
+                     ),
+                     token=token
+                 )
+
+                try:
+                     response = messaging.send(message)
+                     print('Successfully sent message:', response)
+                except:
+                    print("ERROR")
+                    
+      
+                
+
+ 
+            else:
+                return Response({"message": "token unlocated"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+            return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
+
+
+        else:
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+

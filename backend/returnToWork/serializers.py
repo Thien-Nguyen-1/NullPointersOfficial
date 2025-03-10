@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, Conversation, Message
 from django.contrib.auth import authenticate, get_user_model
 
 
@@ -32,7 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags', 'firebase_token']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -161,3 +161,13 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         return user
     
 
+class ConversationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Conversation
+        fields = ['id', 'user', 'admin', 'created_at', 'hasEngaged']
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'conversation', 'sender', 'text_content', 'timestamp']

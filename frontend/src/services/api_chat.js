@@ -1,0 +1,59 @@
+import axios from 'axios';
+
+
+const baseURL =
+  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL
+    : 'http://localhost:8000'; 
+
+    
+const api = axios.create({
+  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
+
+
+export async function GetConversations(token, objConvoReq = {}){
+   console.log(token)
+    try{
+        const response = await api.get(`api/support/chat-details/`,
+        {
+            params: objConvoReq,
+            headers: {'Authorization': `Token ${token}`}
+        })
+
+        return response.data
+       
+    } catch(error){
+        return response.error
+    }
+}
+
+export async function CreateConversation(token, objConvoReq = {}) {
+    try{
+        const response = await api.post(`api/support/chat-details/`, objConvoReq,
+        {
+            headers: {'Authorization': `Token ${token}`}
+            
+            
+
+        })
+
+        return response.data
+    }catch(error){
+        return response.error
+    }
+}
+
+export async function GetMessages(token, id=-10){
+    try{
+        const response = await api.get(`api/support/chat-room/${id}/`, 
+        {
+            headers: {'Authorization': `Token ${token}`}
+        })
+
+        return response.data
+    }  catch(error){
+        return response.error
+    }
+}

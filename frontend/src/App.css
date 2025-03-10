@@ -1,9 +1,15 @@
 html, body {
-  overflow-x: hidden;
+  /* overflow-x: hidden;
   background-color: var(--background-color);
   margin: 0;
   padding: 0;
-  width: 100vw;
+  width: 100vw; */
+
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
 }
 
 .app-container {
@@ -25,7 +31,7 @@ html, body {
    /* Why is the margin so huge? */
   margin-left: 1.2rem;
   margin-right: 1.2rem;
-  overflow-y: auto;
+
   width: 100%;
   height: 100vh;
   box-sizing: border-box;
@@ -68,8 +74,9 @@ html, body {
 
 #root {
   max-width: 1280px;
-  padding: 0.5rem;
+  padding: 0rem;
   background-color: var(--background-color);
+  height: 100dvh;
 }
 
 
