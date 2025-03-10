@@ -1,8 +1,8 @@
 function Users() {
     return (
         <div>
-          <h1 className="page-title">Profile</h1>
-          <p className="mt-2 text-gray-600">Profile coming soon.</p>
+          <h1 className="page-title">Users</h1>
+          <p className="mt-2 text-gray-600">Users coming soon.</p>
         </div>
     );
 }

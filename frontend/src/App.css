@@ -1,71 +1,92 @@
 html, body {
   overflow-x: hidden;
-  background-color: var(--background-color);
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-}
-
-.app-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-}
-
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: flex-start;
-  padding: 0;
-  margin-left: 5rem;
   overflow-y: auto;
-  width: 100%;
-  height: 100vh;
-  box-sizing: border-box;
   background-color: var(--background-color);
-}
-
-.page-title {
-  font-size: 3.0rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: left;
-  width: 100%;
-  color: var(--primary-green);
-}
-
-.dashboard-container {
-  background-color: var(--background-color);
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: calc(100vw - 80px);
-  overflow: hidden;
-}
-
-.top-row, .bottom-row {
-  display: flex;
-  width: 100%;
-  gap: 20px;
-}
-
-.admin-features-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  width: 100%;
-  margin-top: 10px;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
 }
 
 #root {
   max-width: 1280px;
   padding: 2rem;
   background-color: var(--background-color);
+}
+  
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+}
+  
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: flex-start;
+  margin-left: 5rem;
+  padding-right: 15px;
+  overflow-y: visible;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+}
+  
+ 
+.page-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: left;
+  width: 100%;
+  color: var(--primary-green);
+}
+  
+.dashboard-container {
+  background-color: var(--background-color);
+  width: 100%;
+  max-width: calc(100vw - 80px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 30px 50px 20px;
+  margin-bottom: 50px;
+}
+  
+.top-row, .bottom-row {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 20px;
+  box-sizing: border-box;
+}
+  
+.admin-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.dashboard-container > div {
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-container:after {
+  content: "";
+  display: block;
+  height: 2px;
+  width: 100%;
+  margin-top: 30px;
 }
