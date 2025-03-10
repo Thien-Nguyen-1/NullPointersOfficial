@@ -48,26 +48,27 @@ export async function loginUser(username, password){
     const response = await api.post(`/api/login/`, {
       username,
       password,
-    });
-        
-//     // Store user data in localStorage
-//     localStorage.setItem('user', JSON.stringify(response.data.user));
-//     localStorage.setItem('token', response.data.token);
+    })
   
-//     return response.data;
+        
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    localStorage.setItem('token', response.data.token);
+  
+    return response.data;
 
-//     if(response.data){
-//       localStorage.setItem("user_type",response.data.user_type);
-//       return response.data;
-//     }
+    if(response.data){
+      localStorage.setItem("user_type",response.data.user_type);
+      return response.data;
+    }
 
     
-//   }
-//   catch(error) {
-//     throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
+  }
+  catch(error) {
+    throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
 
-//   }
-// }
+  }
+}
 
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
@@ -156,7 +157,7 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`worker/password-change/`, {
+    const response = await api.put(`/api/worker/password-change/`, {
     old_password:  oldPassword,
     new_password: newPassword,
     confirm_new_password: confirmNewPassword,
@@ -311,4 +312,30 @@ export const quizApi = {
   submitResponse: (data) => api.post('/api/quiz/response/', data)
 };
 
-export default api 
+export const downloadCompletedTask = async(taskId, token) => {
+  try {
+    const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
+      headers:{
+        Authorization: `Token ${token}`,
+        Accept: "application/pdf",
+      },
+      responseType: "blob",
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Task_${taskId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    console.log("PDF download started.");
+  } 
+  catch (error) {
+    console.error("Error downloading PDF:", error.response?.data || error.message);
+    throw error;
+  }
+
+  };
+
+  
+export default api;

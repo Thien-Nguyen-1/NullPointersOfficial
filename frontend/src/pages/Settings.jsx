@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { getUserSettings, deleteUserSettings, changeUserPassword, GetModule, GetAllProgressTracker } from "../services/api";
+import { getUserSettings, deleteUserSettings, changeUserPassword, GetModule, GetAllProgressTracker, downloadCompletedTask } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Settings.css';
 import {AuthContext} from "../services/AuthContext";
@@ -10,6 +10,8 @@ function Settings() {
   const navigate = useNavigate();
   // const [user, setUser] = useState({});
   const [completedCourses, setCompletedCourses] = useState([]);
+  const [taskId, setTaskId] = useState("");
+  const token = localStorage.getItem("token");
 
   const [passwordData,setPasswordData] = useState ({
     old_password: "",
@@ -17,9 +19,9 @@ function Settings() {
     confirm_new_password: "" 
   }); 
   
-  if(!user){
-    return<div className="loading">Loading user data...</div>;
-  }
+  // if(!user){
+  //   return<div className="loading">Loading user data...</div>;
+  // }
 
 //   useEffect(() => {
 //     async function fetchSettings () {
@@ -41,21 +43,25 @@ function Settings() {
 
 useEffect(() => {
   async function fetchCompletedCourses() {
-    if (!user) return;
+    if (!user || !user.id) {
+      console.warn("User is not available.");
+      return;
+    }
 
     try {
-      // Fetch all modules
       const allModules = await GetModule();
-      // Fetch user's progress tracker
-      const progressData = await GetAllProgressTracker();
+      const progressData = await GetAllProgressTracker(); 
 
       if (allModules && progressData) {
-        // Filter completed courses
         const completed = progressData
-          .filter((tracker) => tracker.user === user.id && tracker.completed)
-          .map((tracker) => allModules.find((mod) => mod.id === tracker.module))
-          .filter(Boolean); // Remove undefined values
-
+          .filter(tracker => tracker.user === user.id && tracker.completed)
+          .map(tracker => {
+            const foundModule = allModules.find(mod => mod.id === tracker.module);
+            if (!foundModule) {
+            }
+            return foundModule ? { ...foundModule, progressId: tracker.id } : null;
+          })
+          .filter(Boolean); 
         setCompletedCourses(completed);
       }
     } catch (error) {
@@ -65,6 +71,21 @@ useEffect(() => {
 
   fetchCompletedCourses();
 }, [user]);
+
+
+const handleDownload = async(taskId) => {
+  if(token){
+    alert("user isnt authenticated");
+    return;
+  }
+  try{
+    await downloadCompletedTask(taskId, token);
+
+  }
+  catch(error){
+    alert("Error downloading pdf");
+  }
+};
 
 
 const handlePasswordChange = async() => {
@@ -80,9 +101,9 @@ const handlePasswordChange = async() => {
 
   try {
     await changeUserPassword(
-      {old_password:passwordData.old_password,
-      new_password:passwordData.new_password
-      }
+      passwordData.old_password,
+      passwordData.new_password,
+      passwordData.confirm_new_password
     );
     alert("Password updated successfully.");
     setPasswordData({old_password: "", new_password:"", confirm_new_password:""});
@@ -90,7 +111,7 @@ const handlePasswordChange = async() => {
   }
   catch (erorr){
       alert("Failed to change password, please try again.");
-  
+
   }
 };
 
@@ -118,8 +139,13 @@ return (
       <h1>Completed Courses</h1>
       {completedCourses.length > 0 ? (
         <ul>
-          {completedCourses.map((course, index) => (
-            <li key={index}>{course.title}</li>
+          {completedCourses.map((module, index) => (
+            <li key={index}>
+              {module.title}
+              <button onClick={() => handleDownload(module.id)} className="download-button">
+                    Download PDF
+                </button>
+              </li>
           ))}
         </ul>
       ) : (

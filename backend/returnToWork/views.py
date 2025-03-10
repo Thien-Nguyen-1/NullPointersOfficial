@@ -8,7 +8,7 @@ from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerial
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer
 from django.contrib.auth import login, logout
-
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -23,8 +23,9 @@ from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-
-
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 class ProgressTrackerView(APIView):
 
@@ -742,3 +743,47 @@ class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
 class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
     queryset = MatchingQuestionQuiz.objects.all()
     serializer_class = MatchingQuestionQuizSerializer
+
+
+class TaskPdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        user = request.user
+        try:
+            task = Task.objects.get(contentID = task_id)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        questions = QuizQuestion.objects.filter(task = task)
+        
+        if not questions.exists():
+            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+        pdf.drawString(100,800,f"Task:{task.title}")
+
+        y_position = 780
+
+        for question in questions:
+            try:
+                response = UserResponse.objects.filter(user=user, question=question).first()
+                answer_text = response.response_text
+
+            except UserResponse.DoesNotExist:
+                answer_text = "No response provided"
+
+            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            y_position -=20
+            pdf.drawString(120, y_position, f"A: {answer_text}")
+            y_position -=30
+
+        pdf.save()
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        return response
+
+
+        

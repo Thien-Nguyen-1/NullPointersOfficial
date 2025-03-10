@@ -51,6 +51,7 @@ function App() {
         <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
         <Route path="/tag" element={<Tag />} />
         <Route path="/questionnaire" element={<Questionnaire />} />
+        <Route path="/settings" element={<Settings />} />
 
         {/* Temporary Quiz Route */}
         <Route path="/quiz/:taskId" element={<QuizContainer />} />  

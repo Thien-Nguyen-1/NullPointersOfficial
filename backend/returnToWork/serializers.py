@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -221,3 +221,29 @@ class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchingQuestionQuiz
         fields = '__all__'
+
+# class TaskResponseForDowloadSerializer(serializers.ModelSerializer):
+#     questions = serializers.SerializerMethodField
+#     class Meta:
+#         model = Task
+#         fields = ['contentID','title','description','quiz_type','questions']
+
+#     def get_questions(self,obj):
+#         user = self.context.get('user')
+#         questions = QuizQuestion.objects.filter(task=obj)
+
+#         question_data = []
+#         for question in questions:
+#             try:
+#                 response = UserResponse.object.filter(user=user, question=question)
+#                 user_response_text = response.response_text
+#             except UserResponse.DoesNotExist:
+#                 user_response_text = "No response provided"
+            
+#             question_data.append({
+#                 'id':question.id,
+#                 'question_text': question.question_text,
+#                 'user_response': user_response_text,
+#             })
+
+#             return question_data
