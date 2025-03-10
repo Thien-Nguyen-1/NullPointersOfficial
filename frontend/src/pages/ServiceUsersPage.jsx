@@ -57,7 +57,7 @@ const ServiceUsersPage = () => {
 
     return (
         <div>
-            <h2>Service Users</h2>
+          <h1 className="page-title">Users</h1>
 
             {successMessage && (
                 <div style={{ background: "#d4edda", color: "#155724", padding: "10px", borderRadius: "5px", marginBottom: "10px" }}>

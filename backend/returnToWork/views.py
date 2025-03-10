@@ -217,7 +217,7 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-               # 'pinned': tracker.module.pinned,
+                'pinned': tracker.pinned,
                 'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 

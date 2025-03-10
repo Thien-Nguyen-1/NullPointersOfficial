@@ -27,7 +27,6 @@ const Sidebar = ({ role }) => {
 
   const commonItems = [
     { path: "home", icon: <FaHome size={24} />, label: "Home" },
-    { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
     { path: "support", icon: <BiSupport size={24} />, label: "Support" },
     { path: "settings", icon: <FaCog size={24} />, label: "Settings" },
 
@@ -35,13 +34,16 @@ const Sidebar = ({ role }) => {
   
   // Admin-specific menu items
   const adminItems = [
-    { path: "users", icon: <FaUsers size={24} />, label: "Manage Users" },
-    { path: "create-module", icon: <PiColumnsPlusLeftFill size={24} />, label: "Create Module" }
+    { path: "service-users", icon: <FaUsers size={24} />, label: "Manage Users" },
+    { path: "all-courses", icon: <PiBooksBold size={24} />, label: "Courses" },
+    { path: "all-courses/create-and-manage-module", icon: <PiColumnsPlusLeftFill size={24} />, label: "Create Module" }
 
   ];
   
   // Worker-specific menu items (for "service user")
-  const workerItems = [  ];
+  const workerItems = [ 
+    { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
+  ];
 
   const menuItems = [...commonItems];
   if (role === "admin") {

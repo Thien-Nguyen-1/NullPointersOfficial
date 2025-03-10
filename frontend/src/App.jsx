@@ -80,8 +80,8 @@ function App() {
                 <Route path="support" element={<Support />} />
                 <Route path="courses" element={<Courses />} />
                 <Route path="all-courses" element={<CoursesList role="admin" />} />
-                <Route path="/service-users" element={<ServiceUsersPage />} />
-                <Route path="users" element={<Users />} />
+                <Route path="service-users" element={<ServiceUsersPage />} />
+                {/* <Route path="users" element={<Users />} /> */}
                 <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
               </Routes>
             </DashboardLayout>
