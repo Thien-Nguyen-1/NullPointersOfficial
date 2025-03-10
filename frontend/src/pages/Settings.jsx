@@ -1,37 +1,71 @@
-import { useEffect, useState } from "react";
-import { getUserSettings, deleteUserSettings, changeUserPassword } from "../services/api";
+import { useEffect, useState, useContext } from "react";
+import { getUserSettings, deleteUserSettings, changeUserPassword, GetModule, GetAllProgressTracker } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Settings.css';
+import {AuthContext} from "../services/AuthContext";
 
 function Settings() {
-
+  const {user, updateUser}= useContext(AuthContext);
   const [showModal, setShowModal] = useState (false);
   const navigate = useNavigate();
-  const [user, setUser] = useState({});
+  // const [user, setUser] = useState({});
+  const [completedCourses, setCompletedCourses] = useState([]);
 
   const [passwordData,setPasswordData] = useState ({
     old_password: "",
     new_password: "",
     confirm_new_password: "" 
-  });  
+  }); 
+  
+  if(!user){
+    return<div className="loading">Loading user data...</div>;
+  }
 
-  useEffect(() => {
-    async function fetchSettings () {
-      try {
-        const userData = await getUserSettings();
-        console.log("Fetched user data in settings:", userData)
-        setUser(userData);
-        console.log("User Data:", user);
+//   useEffect(() => {
+//     async function fetchSettings () {
+//       try {
+//         const userData = await getUserSettings();
+//         console.log("Fetched user data in settings:", userData)
+//         setUser(userData);
+//         console.log("User Data:", user);
 
+//       }
+//       catch(error) {
+//         console.error ("Error fetching user settings", error);
+//       }
+//     }
+//     fetchSettings();
+//   },
+//   []
+// );
+
+useEffect(() => {
+  async function fetchCompletedCourses() {
+    if (!user) return;
+
+    try {
+      // Fetch all modules
+      const allModules = await GetModule();
+      // Fetch user's progress tracker
+      const progressData = await GetAllProgressTracker();
+
+      if (allModules && progressData) {
+        // Filter completed courses
+        const completed = progressData
+          .filter((tracker) => tracker.user === user.id && tracker.completed)
+          .map((tracker) => allModules.find((mod) => mod.id === tracker.module))
+          .filter(Boolean); // Remove undefined values
+
+        setCompletedCourses(completed);
       }
-      catch(error) {
-        console.error ("Error fetching user settings", error);
-      }
+    } catch (error) {
+      console.error("Error fetching completed courses:", error);
     }
-    fetchSettings();
-  },
-  []
-);
+  }
+
+  fetchCompletedCourses();
+}, [user]);
+
 
 const handlePasswordChange = async() => {
   if(passwordData.new_password !== passwordData.confirm_new_password){
@@ -46,9 +80,9 @@ const handlePasswordChange = async() => {
 
   try {
     await changeUserPassword(
-      passwordData.old_password,
-      passwordData.new_password,
-      passwordData.confirm_new_password
+      {old_password:passwordData.old_password,
+      new_password:passwordData.new_password
+      }
     );
     alert("Password updated successfully.");
     setPasswordData({old_password: "", new_password:"", confirm_new_password:""});
@@ -76,13 +110,23 @@ return (
   <div>
     <h1 className="page-title">Settings</h1>
    <div className = "settings-card">
-        <h1>Welcome, {user.first_name} {user.last_name}</h1>
-        <p className="mt-2 text-gray-600">Username: {user.username}</p>
+        <h1>Welcome, {user?.first_name} {user?.last_name}</h1>
+        <p className="mt-2 text-gray-600">Username: {user?.username}</p>
     </div>
     {user.user_type === "service user" && (
       <div className="settings-card">
-        <h1>Download content</h1>
-      </div>
+      <h1>Completed Courses</h1>
+      {completedCourses.length > 0 ? (
+        <ul>
+          {completedCourses.map((course, index) => (
+            <li key={index}>{course.title}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No completed courses yet.</p>
+      )}
+    </div>
+    
     )}
     <div className="settings-card">
       <h1>Change Password</h1>
