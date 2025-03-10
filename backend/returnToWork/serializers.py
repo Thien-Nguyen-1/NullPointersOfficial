@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -103,7 +103,7 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
+        fields = ['id', 'user', 'module', 'completed']
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
@@ -135,12 +135,18 @@ class VideoSerializer(ContentSerializer):
         fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
 
 class TaskSerializer(ContentSerializer):
-
+    
+    # Override the author field to allow writing to it
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    
     class Meta:
         model = Task
-        fields  = ContentSerializer.Meta.fields + ['text_content']        
+        fields = ContentSerializer.Meta.fields + ['text_content', 'quiz_type']
 
-
+class QuizQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestion
+        fields = '__all__'
 
 class UserModuleInteractSerializer(serializers.ModelSerializer):
 
@@ -205,3 +211,13 @@ class RequestPasswordResetSerializer(serializers.Serializer):
             )
         
             return user
+
+class QuestionAnswerFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionAnswerForm
+        fields = '__all__'
+
+class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchingQuestionQuiz
+        fields = '__all__'

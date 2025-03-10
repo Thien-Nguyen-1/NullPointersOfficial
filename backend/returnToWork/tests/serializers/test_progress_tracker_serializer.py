@@ -16,7 +16,6 @@ class ProgressTrackerSerializerTest(TestCase):
         cls.module = Module.objects.create(
             title="Confidence",
             description="Find out how to imrpove your confidence",
-            pinned=False,
             upvotes=0
         )
         
@@ -36,17 +35,21 @@ class ProgressTrackerSerializerTest(TestCase):
         """ Test serialization of ProgressTracker data to JSON """
         serializer = ProgressTrackerSerializer(instance=self.progress_tracker)
         data = serializer.data
-        self.assertEqual(set(data.keys()), {'id', 'user', 'module', 'completed'})
+        self.assertEqual(set(data.keys()),{'id', 'user', 'module', 'completed'})
         self.assertEqual(data['user'], self.user.id)
         self.assertEqual(data['module'], self.module.id)
         self.assertTrue(data['completed'])
+        self.assertTrue(data['pinned'])
+        self.assertFalse(data['hasLiked'])
 
     def test_deserialize_data(self):
         """ Test deserialization of JSON to ProgressTracker data """
         input_data = {
             'user': self.user.id,
             'module': self.module.id,
-            'completed': False
+            'completed': False,
+            
+            
         }
         serializer = ProgressTrackerSerializer(data=input_data)
         self.assertTrue(serializer.is_valid())

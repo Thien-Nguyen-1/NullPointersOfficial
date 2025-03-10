@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
 import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
+import { useParams } from "react-router-dom";
+
 
 import AdminDashboard from "./pages/AdminDashboard";
 // import MedicalProfessionalDashboard from "./pages/MedicalProfessionalDashboard";
@@ -9,9 +11,9 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
 import Messaging from "./pages/Messaging";
 import Courses from "./pages/Courses";
+import CoursesList from './pages/CoursesList.jsx';
 import Profile from "./pages/Profile";
 import Questionnaire from "./components/Questionnaire";
-import CreateModule from "./pages/CreateModule";
 import Login from './components/Login';
 import Signup from './components/SignUp';
 import Welcome from './components/Welcome';
@@ -20,12 +22,23 @@ import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
+import QuizContainer from './components/quizzes/QuizContainer';
+import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
+import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
+import VisualFlowChartQuiz from './components/editors/VisualFlowChartQuiz';
+import AddModule from './pages/AddModule';
 
 import "./App.css";
 import {AuthContextProvider} from './services/AuthContext.jsx'
 
 
 function App() {
+  const QuizEditorSelector = () => {
+    const { quizType } = useParams();
+    
+    return quizType === "flashcard" ? <VisualFlashcardEditor /> : <VisualStatementSequenceEditor />;
+  };
+  
   return (
     <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
     <Router>
@@ -39,6 +52,9 @@ function App() {
         <Route path="/tag" element={<Tag />} />
         <Route path="/questionnaire" element={<Questionnaire />} />
 
+        {/* Temporary Quiz Route */}
+        <Route path="/quiz/:taskId" element={<QuizContainer />} />  
+
         {/* Protected Routes (With Sidebar) */}
         <Route
           path="/worker/*"
@@ -49,6 +65,7 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses/>} />
+                <Route path="all-courses" element={<CoursesList/>} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="KnowValuesModule" element={<Module2/>} />
               </Routes>
@@ -65,9 +82,10 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="messages" element={<Messaging />} />
                 <Route path="courses" element={<Courses />} />
+                <Route path="all-courses" element={<CoursesList role="admin" />} />
                 <Route path="/service-users" element={<ServiceUsersPage />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="create-module" element={<CreateModule />} />
+                <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
               </Routes>
             </DashboardLayout>
           }
