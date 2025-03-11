@@ -43,12 +43,12 @@ html, body {
   
  
 .page-title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: left;
-  width: 100%;
   color: var(--primary-green);
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--secondary-green, #e7efea);
+  padding-bottom: 12px;
 }
   
 .dashboard-container {

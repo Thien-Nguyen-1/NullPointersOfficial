@@ -32,38 +32,38 @@ class UserDetailViewTests(APITestCase):
         self.module1 = Module.objects.create(
             title='Module 1',
             description='First test module',
-            pinned=True
         )
         
         self.module2 = Module.objects.create(
             title='Module 2',
             description='Second test module',
-            pinned=False
         )
         
         self.module3 = Module.objects.create(
             title='Module 3',
             description='Third test module',
-            pinned=True
         )
         
         # Create progress trackers
         self.tracker1 = ProgressTracker.objects.create(
             user=self.user,
             module=self.module1,
-            completed=True
+            completed=True,
+            pinned=True
         )
         
         self.tracker2 = ProgressTracker.objects.create(
             user=self.user,
             module=self.module2,
-            completed=False
+            completed=False,
+            pinned=False
         )
         
         self.tracker3 = ProgressTracker.objects.create(
             user=self.user,
             module=self.module3,
-            completed=False
+            completed=False,
+            pinned=True
         )
         
         # Set up the client

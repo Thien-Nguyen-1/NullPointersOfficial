@@ -12,7 +12,6 @@ import Settings from "./pages/Settings";
 import Support from "./pages/Support";
 import Courses from "./pages/Courses";
 import CoursesList from './pages/CoursesList.jsx';
-import Users from "./pages/Users";
 import Questionnaire from "./components/Questionnaire";
 import Login from './components/Login';
 import Signup from './components/SignUp';
@@ -81,7 +80,6 @@ function App() {
                 <Route path="courses" element={<Courses />} />
                 <Route path="all-courses" element={<CoursesList role="admin" />} />
                 <Route path="service-users" element={<ServiceUsersPage />} />
-                {/* <Route path="users" element={<Users />} /> */}
                 <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
               </Routes>
             </DashboardLayout>

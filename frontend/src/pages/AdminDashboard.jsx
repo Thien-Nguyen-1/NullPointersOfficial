@@ -31,7 +31,7 @@ function AdminDashboard() {
       </div>
 
       <div className="admin-features-grid">
-        <Link to="/admin/create-module" className="feature-card">
+        <Link to="/admin/all-courses/create-and-manage-module" className="feature-card">
           <h3>Create Module</h3>
           <p>Design and manage learning modules.</p>
         </Link>
@@ -39,13 +39,15 @@ function AdminDashboard() {
           <h3>Create Tag</h3>
           <p>Organize content with tags.</p>
         </Link>
-        <Link to="/admin/users" className="feature-card">
+        <Link to="/admin/service-users" className="feature-card">
           <h3>Patient Profiles</h3>
           <p>Manage patient data and records.</p>
         </Link>
       </div>
 
-      <Link to="/admin/support" className="attention-section">
+      {/* Wrap the attention section in a div to match the structure of other sections */}
+      <div className="attention-container">
+        <Link to="/admin/support" className="attention-section">
           <h3 className="attention-section-title">Requires Attention</h3>
           <div className="flex">
             <div className="attention-item">
@@ -57,7 +59,8 @@ function AdminDashboard() {
               <p className="attention-value warning">{attentionItems.pendingApprovals}</p>
             </div>
           </div>
-      </Link>
+        </Link>
+      </div>
     </div>
   );
 }
