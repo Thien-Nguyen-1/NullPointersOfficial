@@ -114,7 +114,6 @@ class UserProfileView(APIView):
     
 class PasswordResetView(APIView):
     permission_classes = []
-    def post(self,request):
     def post(self,request,uidb64,token):
         request.data["uidb64"] = uidb64
         request.data["token"] = token
