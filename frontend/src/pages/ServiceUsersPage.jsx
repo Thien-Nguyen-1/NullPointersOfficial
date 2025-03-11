@@ -137,7 +137,7 @@ const ServiceUsersPage = () => {
                                     <td>{user.first_name}</td>
                                     <td>{user.last_name}</td>
                                     <td>
-                                        <div className="tags-container">
+                                        <div className="users-tags-container">
                                             {user.tags && user.tags.length > 0 ? 
                                                 user.tags.map((tag, index) => (
                                                     <span key={index} className="tag">{tag}</span>
