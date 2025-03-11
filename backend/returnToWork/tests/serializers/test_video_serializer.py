@@ -48,7 +48,6 @@ class VideoSerializerTest(TestCase):
             }
         serializer = VideoSerializer(data=video_data)
         if not serializer.is_valid():
-            print(serializer.errors)  
             self.assertTrue(serializer.is_valid())
             new_video = serializer.save()
             self.assertEqual(new_video.title, 'New Stress Techniques')

@@ -45,7 +45,6 @@ class ProgressTrackerView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
-        print(request.data)
         try:
             progress_tracker = ProgressTracker.objects.get(pk=pk)
         except ProgressTracker.DoesNotExist:
@@ -78,7 +77,6 @@ class LogInView(APIView):
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
 
-            print(UserSerializer(user).data)
             return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -116,6 +114,7 @@ class UserProfileView(APIView):
     
 class PasswordResetView(APIView):
     permission_classes = []
+    def post(self,request):
     def post(self,request,uidb64,token):
         request.data["uidb64"] = uidb64
         request.data["token"] = token
@@ -168,7 +167,6 @@ class QuestionnaireView(APIView):
 
     def post(self, request, *args, **kwargs):
         """Get next question based on user's answer"""
-        # print("Received Data:", request.data)
 
         question_id = request.data.get("question_id")
         answer = request.data.get("answer")  # Expected: "yes" or "no"
@@ -231,7 +229,7 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-               # 'pinned': tracker.module.pinned,
+                'pinned': tracker.pinned,
                 'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 
@@ -252,10 +250,6 @@ class UserDetail(APIView):
        
         try:
             user = request.user
-
-            print("USERRR ISSSS")
-            print(user)
-
             user_serializer = UserSerializer(user)
 
             data = request.data
@@ -528,7 +522,6 @@ class UserInteractionView(APIView):
     def post(self, request, module_id):
         user = request.user
         data = request.data
-        print(data)
         module = Module.objects.get(id = module_id)
         
         if module:
