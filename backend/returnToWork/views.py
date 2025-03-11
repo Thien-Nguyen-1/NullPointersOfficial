@@ -26,6 +26,7 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
     
+    # Creates progress tracker entries
     def post(self, request):
         serializer = ProgressTrackerSerializer(data=request.data)
         if serializer.is_valid():

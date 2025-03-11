@@ -48,6 +48,8 @@ urlpatterns = [
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
+
 
     # Quiz question endpoints
     path('api/quiz/questions/', QuizQuestionView.as_view(), name='quiz_questions'),
