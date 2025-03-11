@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { FaSearch } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt , MdBookmark, MdBookmarkBorder, MdOutlineUnsubscribe} from "react-icons/md";
 import { AuthContext } from "../services/AuthContext";
-
 
 import "../styles/CourseItem.css"
 
 function CourseItem(props){
 
+    const navigate = useNavigate();
     const module = props.module
     const userInteractTarget  = props.userInteractTarget
 
@@ -84,7 +85,7 @@ function CourseItem(props){
             </button>
            
             <div className="view-container">        
-                <button>
+                <button onClick={ () => navigate(`/modules/${module.id}`)}>
                     <p> View Course </p>
                 </button>
 
