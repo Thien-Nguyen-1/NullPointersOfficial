@@ -1,0 +1,186 @@
+/* EnrollmentModal.css */
+.enrollment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(191, 205, 196, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .enrollment-modal {
+    background-color: #fff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transform: translateY(0);
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .enrollment-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    /* Lighter gradient for the header */
+    background: linear-gradient(135deg, #6a9a7f 0%, var(--primary-green) 100%);
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .enrollment-modal-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.85);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .close-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: rotate(90deg);
+  }
+  
+  .enrollment-modal-content {
+    padding: 28px 24px;
+    background-color: var(--background-color);
+  }
+  
+  .enrollment-modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: var(--primary-green-dark);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  
+  .module-description {
+    margin-top: 0;
+    margin-bottom: 28px;
+    line-height: 1.7;
+    color: var(--text-subtle);
+    font-size: 1.05rem;
+    padding-left: 2px;
+  }
+  
+  .module-tags {
+    margin-top: 16px;
+    background-color: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .module-tags h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.05rem;
+    color: var(--primary-green);
+    font-weight: 600;
+  }
+  
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .module-tag {
+    background-color: var(--secondary-green);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.875rem;
+    color: var(--primary-green-dark);
+    font-weight: 500;
+    box-shadow: inset 0 0 0 1px rgba(66, 103, 81, 0.15);
+    transition: all 0.2s;
+  }
+  
+  .module-tag:hover {
+    background-color: var(--primary-green-light);
+    transform: translateY(-1px);
+    box-shadow: inset 0 0 0 1px rgba(66, 103, 81, 0.25), 0 2px 5px rgba(66, 103, 81, 0.15);
+  }
+  
+  .enrollment-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 32px;
+  }
+  
+  .modal-cancel-btn {
+    padding: 10px 22px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666666;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+  
+  .modal-cancel-btn:hover {
+    background-color: #f7f7f7;
+    color: #444;
+    border-color: #ccc;
+  }
+  
+  .enroll-btn {
+    padding: 10px 22px;
+    background-color: var(--primary-green-dark) !important;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(66, 103, 81, 0.25), 0 1px 2px rgba(66, 103, 81, 0.15);
+  }
+  
+  .enroll-btn:hover {
+    background-color: var(--primary-green-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(66, 103, 81, 0.3), 0 2px 4px rgba(66, 103, 81, 0.2);
+  }
+  
+  .enroll-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(66, 103, 81, 0.25);
+  }

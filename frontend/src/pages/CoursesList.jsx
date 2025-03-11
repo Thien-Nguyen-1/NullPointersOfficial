@@ -1,17 +1,27 @@
 // All Courses Page
 
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { AuthContext } from "../services/AuthContext";
 import "../styles/AllCourses.css";
 
 function CoursesList({ role }) {
+    const { user, token } = useContext(AuthContext);
+    const navigate = useNavigate(); 
+
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tags, setTags] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [sortOption, setSortOption] = useState("newest"); // Default sort: newest first
+
+    // State for the enrollment modal
+    const [enrollmentModal, setEnrollmentModal] = useState({
+        isOpen: false,
+        selectedCourse: null
+    });
 
     // Fetch all modules/courses when component mounts
     useEffect(() => {
@@ -52,26 +62,60 @@ function CoursesList({ role }) {
         fetchTags();
     }, []);
 
-    // Handle sort change
+    // Handle course enrollment before client view the module
+    const handleEnroll = async (courseId) => {
+        try {
+            // Create a ProgressTracker entry for this user and module
+            await api.post('/api/progress-tracker/', {
+                user: user.id,  
+                module: courseId,
+                completed: false,  
+                pinned: false,     
+                hasLiked: false    
+            }, {
+                headers: { Authorization: `Token ${token}`}
+            });
+    
+            // Close modal
+            setEnrollmentModal({isOpen: false, selectedCourse: null});
+    
+            // Navigate to the module view
+            navigate(`/modules/${courseId}`);
+        } catch (err) {
+            console.error("Error enrolling in course:", err);
+            alert("Failed to enroll in course. Please try again later.");
+        }
+    };
+
+    const handleViewCourse = (course) => {
+        if (role === "admin") {
+            navigate(`/modules/${course.id}`); // Fixed: use lowercase navigate function
+        } else {
+            // Only worker sees the enrollment popup
+            setEnrollmentModal({
+                isOpen: true,
+                selectedCourse: course
+            });
+        }
+    };
+
+    // Handle sort change (no changes needed here)
     const handleSortChange = (option) => {
+        // Your existing sort code
         setSortOption(option);
         
-        // Sort courses based on the selected option
         const sortedCourses = [...courses].sort((a, b) => {
             if (option === "newest") {
-                // Sort by created_at or id (newest first)
                 if (a.created_at && b.created_at) {
                     return new Date(b.created_at) - new Date(a.created_at);
                 }
                 return b.id - a.id;
             } else if (option === "oldest") {
-                // Sort by created_at or id (oldest first)
                 if (a.created_at && b.created_at) {
                     return new Date(a.created_at) - new Date(b.created_at);
                 }
                 return a.id - b.id;
             } else if (option === "title") {
-                // Sort alphabetically by title
                 return a.title.localeCompare(b.title);
             }
             return 0;
@@ -89,7 +133,7 @@ function CoursesList({ role }) {
         <div>
             <h1 className="page-title">Courses</h1>
             
-            {/* Show the "Create Module" button only if the user is an Admin */}
+            {/* Admin actions */}
             {role === "admin" && (
                 <div className="admin-actions">
                     <Link to="/admin/all-courses/create-and-manage-module" className="create-module-btn">
@@ -98,9 +142,9 @@ function CoursesList({ role }) {
                 </div>
             )}
 
-            {/* Filter and Sort Controls */}
+            {/* Filter and Sort Controls - no changes needed */}
             <div className="controls-row">
-                {/* Tag filter */}
+                {/* Your existing filter controls */}
                 {tags.length > 0 && (
                     <div className="filter-section">
                         <div className="filter-label">Filter by tag:</div>
@@ -150,14 +194,13 @@ function CoursesList({ role }) {
                 </div>
             </div>
 
-            {/* Loading state */}
+            {/* Loading, Error, and Empty states - no changes needed */}
             {loading && (
                 <div className="loading-state">
                     <p>Loading courses...</p>
                 </div>
             )}
 
-            {/* Error state */}
             {error && (
                 <div className="error-state">
                     <p>{error}</p>
@@ -170,7 +213,6 @@ function CoursesList({ role }) {
                 </div>
             )}
 
-            {/* Empty state */}
             {!loading && !error && filteredCourses.length === 0 && (
                 <div className="empty-state">
                     <p className="mt-2 text-gray-600">
@@ -208,14 +250,13 @@ function CoursesList({ role }) {
                                 )}
                             </div>
                             <div className="course-actions">
-                                <Link 
-                                    // Need to be fixed later
-                                    // to={`/${role}/courses/${course.id}`} 
-                                    to={`/modules/${course.id}`} 
+                                <button 
+                                    onClick={() => handleViewCourse(course)} 
                                     className="view-course-btn"
                                 >
                                     View Course
-                                </Link>
+                                </button>
+                                
                                 {role === "admin" && (
                                     <Link 
                                         to={`/admin/all-courses/create-and-manage-module?edit=${course.id}`}
@@ -229,6 +270,14 @@ function CoursesList({ role }) {
                     ))}
                 </div>
             )}
+
+            {/* Enrollment Modal */}
+            <EnrollmentModal
+                isOpen={enrollmentModal.isOpen}
+                onClose={() => setEnrollmentModal({ isOpen: false, selectedCourse: null })}
+                module={enrollmentModal.selectedCourse}
+                onEnroll={handleEnroll}
+            />
         </div>
     );
 }
