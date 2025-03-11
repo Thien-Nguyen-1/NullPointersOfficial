@@ -222,28 +222,3 @@ class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
         model = MatchingQuestionQuiz
         fields = '__all__'
 
-# class TaskResponseForDowloadSerializer(serializers.ModelSerializer):
-#     questions = serializers.SerializerMethodField
-#     class Meta:
-#         model = Task
-#         fields = ['contentID','title','description','quiz_type','questions']
-
-#     def get_questions(self,obj):
-#         user = self.context.get('user')
-#         questions = QuizQuestion.objects.filter(task=obj)
-
-#         question_data = []
-#         for question in questions:
-#             try:
-#                 response = UserResponse.object.filter(user=user, question=question)
-#                 user_response_text = response.response_text
-#             except UserResponse.DoesNotExist:
-#                 user_response_text = "No response provided"
-            
-#             question_data.append({
-#                 'id':question.id,
-#                 'question_text': question.question_text,
-#                 'user_response': user_response_text,
-#             })
-
-#             return question_data
