@@ -48,8 +48,6 @@ export async function loginUser(username, password){
     localStorage.setItem('user', JSON.stringify(response.data.user));
     localStorage.setItem('token', response.data.token);
   
-    return response.data;
-
     if(response.data){
       localStorage.setItem("user_type",response.data.user_type);
       return response.data;
