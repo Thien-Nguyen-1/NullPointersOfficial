@@ -140,7 +140,11 @@ export async function getUserSettings(){
 export async function deleteUserSettings(){
   try{
     const token = localStorage.getItem('token');
-    const response = await api.delete(`/worker/settings/`, {
+    if (!token) {
+      throw new Error('No authentication token found');
+
+    }
+    const response = await api.delete(`/api/worker/settings/`, {
       headers: {
         'Authorization': `Token ${token}`
       }
@@ -312,6 +316,7 @@ export const quizApi = {
   submitResponse: (data) => api.post('/api/quiz/response/', data)
 };
 
+//get the task that needs downloading nd the authentication token
 export const downloadCompletedTask = async(taskId, token) => {
   try {
     const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
@@ -319,7 +324,7 @@ export const downloadCompletedTask = async(taskId, token) => {
         Authorization: `Token ${token}`,
         Accept: "application/pdf",
       },
-      responseType: "blob",
+      responseType: "blob", //dowlaod pdf in blob format
     });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");

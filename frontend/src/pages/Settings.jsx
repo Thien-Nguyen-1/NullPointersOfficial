@@ -18,59 +18,37 @@ function Settings() {
     new_password: "",
     confirm_new_password: "" 
   }); 
-  
-  // if(!user){
-  //   return<div className="loading">Loading user data...</div>;
-  // }
 
-//   useEffect(() => {
-//     async function fetchSettings () {
-//       try {
-//         const userData = await getUserSettings();
-//         console.log("Fetched user data in settings:", userData)
-//         setUser(userData);
-//         console.log("User Data:", user);
-
-//       }
-//       catch(error) {
-//         console.error ("Error fetching user settings", error);
-//       }
+// useEffect(() => {
+//   async function fetchCompletedCourses() {
+//     if (!user || !user.id) {
+//       console.warn("User is not available.");
+//       return;
 //     }
-//     fetchSettings();
-//   },
-//   []
-// );
 
-useEffect(() => {
-  async function fetchCompletedCourses() {
-    if (!user || !user.id) {
-      console.warn("User is not available.");
-      return;
-    }
+//     try {
+//       const allModules = await GetModule();
+//       const progressData = await GetAllProgressTracker(); 
 
-    try {
-      const allModules = await GetModule();
-      const progressData = await GetAllProgressTracker(); 
+//       if (allModules && progressData) {
+//         const completed = progressData
+//           .filter(tracker => tracker.user === user.id && tracker.completed)
+//           .map(tracker => {
+//             const foundModule = allModules.find(mod => mod.id === tracker.module);
+//             if (!foundModule) {
+//             }
+//             return foundModule ? { ...foundModule, progressId: tracker.id } : null;
+//           })
+//           .filter(Boolean); 
+//         setCompletedCourses(completed);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching completed courses:", error);
+//     }
+//   }
 
-      if (allModules && progressData) {
-        const completed = progressData
-          .filter(tracker => tracker.user === user.id && tracker.completed)
-          .map(tracker => {
-            const foundModule = allModules.find(mod => mod.id === tracker.module);
-            if (!foundModule) {
-            }
-            return foundModule ? { ...foundModule, progressId: tracker.id } : null;
-          })
-          .filter(Boolean); 
-        setCompletedCourses(completed);
-      }
-    } catch (error) {
-      console.error("Error fetching completed courses:", error);
-    }
-  }
-
-  fetchCompletedCourses();
-}, [user]);
+//   fetchCompletedCourses();
+// }, [user]);
 
 
 const handleDownload = async(taskId) => {
@@ -115,16 +93,29 @@ const handlePasswordChange = async() => {
   }
 };
 
-const handleDelete = async() => {
-  try {
-    await deleteUserSettings();
-    alert("Account deleted successfully.");
-    navigate("/signup");
+const handleDelete = async () => {
+  if (!user) {
+    alert("User data not loaded");
+    return;
   }
-  catch (erorr){
-    alert("Failed to delete account");
+  try {
+    const response = await deleteUserSettings();
+    if (response) {
+      alert("Account deleted successfully.");
+      
+      updateUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+
+      navigate("/signup");
+    } else {
+      alert("Failed to delete account. Please try again.");
+    }
+  } catch (error) {
+    alert("Failed to delete account.");
   }
 };
+
 
 return (
   <div className="settings-container">
@@ -134,10 +125,10 @@ return (
         <h1>Welcome, {user?.first_name} {user?.last_name}</h1>
         <p className="mt-2 text-gray-600">Username: {user?.username}</p>
     </div>
-    {user.user_type === "service user" && (
+    {user?.user_type === "service user" && (
       <div className="settings-card">
       <h1>Completed Courses</h1>
-      {completedCourses.length > 0 ? (
+      {/* {completedCourses.length > 0 ? (
         <ul>
           {completedCourses.map((module, index) => (
             <li key={index}>
@@ -150,7 +141,7 @@ return (
         </ul>
       ) : (
         <p>No completed courses yet.</p>
-      )}
+      )} */}
     </div>
     
     )}

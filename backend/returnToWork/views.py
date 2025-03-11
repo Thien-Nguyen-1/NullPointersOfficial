@@ -33,7 +33,7 @@ class ProgressTrackerView(APIView):
     def get(self, request):
 
         
-        progressTrackerObjects = ProgressTracker.objects.all()
+        progressTrackerObjects = ProgressTracker.objects.all() #(filter user request and commpleted = true)
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
     
@@ -62,7 +62,7 @@ class ProgressTrackerView(APIView):
 
     def delete(self, request, pk):
         try:
-            progress_tracker = ProgressTracker.objects.get(pk=pk)
+            progress_tracker = ProgressTracker.objects.get(pk=pk)  
         except ProgressTracker.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         progress_tracker.delete()
@@ -85,9 +85,12 @@ class LogInView(APIView):
 class LogOutView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
+        user=request.user
+        Token.objects.filter(user=user).delete()
         logout(request)
-        if hasattr(request.user, 'auth_token'):
-            request.user.auth_token.delete()
+
+        # if hasattr(request.user, 'auth_token'):
+        #     request.user.auth_token.delete()
         return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
     
 class SignUpView(APIView):
@@ -501,14 +504,6 @@ class RequestPasswordResetView(APIView):
             return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
         return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-        
-
-
-
-
-
-
-
 
 class UserInteractionView(APIView):
 
@@ -750,11 +745,13 @@ class TaskPdfView(APIView):
 
     def get(self, request, task_id):
         user = request.user
+        # get task details
         try:
             task = Task.objects.get(contentID = task_id)
         except Task.DoesNotExist:
             return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
         
+        # get related questions 
         questions = QuizQuestion.objects.filter(task = task)
         
         if not questions.exists():
@@ -765,7 +762,7 @@ class TaskPdfView(APIView):
         pdf.drawString(100,800,f"Task:{task.title}")
 
         y_position = 780
-
+        # get related response and create the pdf
         for question in questions:
             try:
                 response = UserResponse.objects.filter(user=user, question=question).first()

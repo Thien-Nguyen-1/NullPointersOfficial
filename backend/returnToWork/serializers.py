@@ -195,11 +195,11 @@ class RequestPasswordResetSerializer(serializers.Serializer):
             email = self.validated_data["email"]
             user = User.objects.get(email =email)
 
+            #encode users pk to send id in resetlink securly, and generate a password reset token
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
 
             reset_url = f"http://localhost:5173/password-reset/{uidb64}/{token}/"
-
 
 
             send_mail(

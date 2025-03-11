@@ -163,6 +163,7 @@ class User(AbstractUser):
     
     # module = models.ForeignKey(Module, on_delete=models.CASCADE)
     # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
+    
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
@@ -183,6 +184,7 @@ class User(AbstractUser):
         return f"{self.full_name()} - {self.username} - {self.user_id}"
     
 
+#task has a module id - but 
 
 class ProgressTracker(models.Model):
 
