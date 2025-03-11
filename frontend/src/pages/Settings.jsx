@@ -99,8 +99,8 @@ const handleDelete = async () => {
     return;
   }
   try {
-    const response = await deleteUserSettings();
-    if (response) {
+    await deleteUserSettings();
+    
       alert("Account deleted successfully.");
       
       updateUser(null);
@@ -108,9 +108,7 @@ const handleDelete = async () => {
       localStorage.removeItem("token");
 
       navigate("/signup");
-    } else {
-      alert("Failed to delete account. Please try again.");
-    }
+    
   } catch (error) {
     alert("Failed to delete account.");
   }
