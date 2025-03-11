@@ -73,10 +73,12 @@ html, body {
 }
 
 #root {
+
   max-width: 1280px;
   padding: 0rem;
   background-color: var(--background-color);
   height: 100dvh;
+  
 }
 
 
@@ -111,24 +113,32 @@ html, body {
 
 /* Phone Resolution */
 @media screen and (min-width: 375px ){
+
    .main-content {
       margin-left: 1rem;
       margin-right: 1rem;
    }
+
 }
 
 /* Tablet Resolution */
 @media screen and (min-width: 768px ){
+
+  
+
   .main-content {
     margin-left: 2rem;
     margin-right: 2rem;
  }
+
 }
 
 /* Desktop Resolution */
 @media screen and (min-width: 1080px) {
+
   .main-content {
     margin-left: 5rem;
     margin-right: 5rem;
  }
+
 }

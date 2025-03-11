@@ -549,7 +549,6 @@ class UserChatView(APIView):
 
         if conv_Obj:
             
-           
             all_Messages = Message.objects.filter(conversation=conv_Obj)
             
             serialized_messages = MessageSerializer(all_Messages, many=True)
@@ -570,42 +569,42 @@ class UserChatView(APIView):
         conv_Obj = Conversation.objects.get(id = room_id)
 
   
-
         if conv_Obj:
             
             token = self.getFcmToken(user_.user_type, conv_Obj)
 
-            if token:
+            admin = conv_Obj.admin
 
-                message_content = data["message"]
+            message_content = data["message"]
 
+                
                 #Create a new message object
-                Message.objects.create(
-                    conversation=conv_Obj,
-                    sender=user_,
-                    text_content = message_content
-                )
+            Message.objects.create(
+                conversation=conv_Obj,
+                sender=user_,
+                text_content = message_content
+            )
+
+            if token:
 
                 message = messaging.Message(
                      notification=messaging.Notification(
                          title="Test title",
-                         body = message_content
+                         body = message_content,
                      ),
                      token=token
                  )
-
-                try:
-                     response = messaging.send(message)
-                     print('Successfully sent message:', response)
-                except:
-                    print("ERROR")
-                    
-      
                 
+                try:
+                    response = messaging.send(message)
+                    print('Successfully sent message:', response)
+                except:
+                    pass
 
+                
  
             else:
-                return Response({"message": "token unlocated"}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"message": "token unlocated"}, status=status.HTTP_200_OK)
 
 
 
@@ -613,7 +612,7 @@ class UserChatView(APIView):
 
 
         else:
-            return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
 
 
 

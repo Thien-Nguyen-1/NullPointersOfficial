@@ -5,7 +5,7 @@ function ChatList(props){
 
     const allChats = props.all_Chats
     
-    console.log(allChats)
+   // console.log(allChats)
 
     return (
         <div className="chat-selection-container">
@@ -14,7 +14,9 @@ function ChatList(props){
                     key={chat.id}
                     chat_Detail={chat}
                     handleUserCreateChat={props.handleUserCreateChat}
-                    getUserMessages={props.getUserMessages}/>
+                    getUserMessages={props.getUserMessages}
+                    requestPermissionAndGetToken={props.requestPermissionAndGetToken}
+                    />
             ) )}
         </div>
     )

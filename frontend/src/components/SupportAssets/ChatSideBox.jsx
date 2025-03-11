@@ -15,16 +15,19 @@ function ChatSideBox(props){
     }
 
 
-    console.log(convoObj)
+    //console.log(convoObj)
 
 
     async function assign_chat(){
         props.handleUserCreateChat(chatReqObj)
+   
     }
 
     async function render_chat(){
         console.log("CLICKING")
         props.getUserMessages(convoObj.id)
+        props.requestPermissionAndGetToken()
+     
     }
 
 

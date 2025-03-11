@@ -57,3 +57,17 @@ export async function GetMessages(token, id=-10){
         return response.error
     }
 }
+
+
+export async function SendMessage(token, id=-10, objMessage = {"message": ""}){
+    try {
+        const response = await api.post(`api/support/chat-room/${id}/`, objMessage,
+        {
+            headers:  {'Authorization': `Token ${token}`}
+        }
+        
+        )
+    } catch(error){
+        return response.error
+    }
+}

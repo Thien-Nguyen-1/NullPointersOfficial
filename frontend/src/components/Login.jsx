@@ -38,6 +38,7 @@ const Login = () => {
             placeholder="Username"
             required
           />
+
           <input
             type="password"
             value={password}
@@ -45,6 +46,7 @@ const Login = () => {
             placeholder="Password"
             required
           />
+          
           <button type="submit">Login</button>
         </form>
         {error && <p className="error">{error}</p>}
