@@ -233,14 +233,16 @@ class EmbeddedVideo(Content):
 
 # Extend Content class
 class InfoSheet(Content):
-    infosheet_file= models.FileField(upload_to="infosheets/")
+    infosheet_file = models.FileField(upload_to="infosheets/")
     infosheet_content = models.TextField(blank=True, null=True)
+
 
 class Video(Content):
     # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    video_file= models.FileField(upload_to="videos/")
-    duration= models.PositiveBigIntegerField()
+    video_file = models.FileField(upload_to="videos/")
+    duration = models.PositiveBigIntegerField()
     thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+
 
 # This model defines the overall interactive quiz properties
 class Task(Content):
@@ -282,7 +284,8 @@ class QuizQuestion(models.Model):
     def __str__(self):
         return f"{self.question_text[:30]}..."
 
-#UserResponse captures only the user interaction data
+
+# UserResponse captures only the user interaction data
 class UserResponse(models.Model):
     """
     Model to store user responses to quiz questions.

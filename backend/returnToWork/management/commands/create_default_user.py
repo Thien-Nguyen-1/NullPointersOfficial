@@ -14,7 +14,7 @@ class Command(BaseCommand):
             defaults={
                 "first_name": "Default",
                 "last_name": "User",
-                "user_type": "service user",  # adjust if needed
+                "user_type": "admin",  # adjust if needed
             }
         )
         if created:
