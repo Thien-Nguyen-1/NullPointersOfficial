@@ -99,13 +99,15 @@ const AddModule = () => {
       setIsLoading(true);
       
       const moduleData = await QuizApiUtils.getModule(moduleId);
+      console.log("[DEBUG] Fetched Module Data:",moduleData);
       setTitle(moduleData.title);
       setDescription(moduleData.description || "");
       setTags(moduleData.tags || []);
       
       // Use the new module-specific task function
       const tasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-      
+      console.log("[DEBUG] Fetched Tasks for Module :",tasks);
+
 
       // Reset the initialQuestionsRef to avoid any stale data
       initialQuestionsRef.current = {};
@@ -115,7 +117,8 @@ const AddModule = () => {
 
         try {
           const questions = await QuizApiUtils.getQuestions(task.contentID);
-          
+          console.log(`[DEBUG] Fetched Questions for Task ID (${task.contentID}) - Type: ${task.quiz_type}:`, questions);
+
           // Store initial questions in the ref using task.contentID as the key
           initialQuestionsRef.current[task.contentID] = questions;
           
@@ -141,6 +144,8 @@ const AddModule = () => {
       }));
 
       setModules(moduleTemplates);
+      console.log("[DEBUG] Final Module Templates :",moduleTemplates);
+
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching module data:", err);
@@ -502,6 +507,8 @@ const AddModule = () => {
         if (module.type === 'Matching Question Quiz') {
           const editorRef = editorRefs.current[module.id];
           const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
+          console.log(`[DEBUG] Saving Matching Question Pairs for Module ID: ${moduleId}`, matchingQuestionAnswers);
+
           for (const qa of matchingQuestionAnswers){
           let pairData = {
             title: `${module.type} for ${title}`,
