@@ -1,6 +1,7 @@
+import "../styles/ServiceUsersPage.css"
 import React, { useEffect, useState } from "react";
 import { fetchServiceUsers, deleteServiceUser } from "../services/api";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaSearch, FaTimes } from "react-icons/fa";
 
 const ServiceUsersPage = () => {
     const [users, setUsers] = useState([]);
@@ -47,64 +48,118 @@ const ServiceUsersPage = () => {
         }
     };
 
-
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
+    if (loading) return (
+        <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading users...</p>
+        </div>
+    );
+    
+    if (error) return (
+        <div className="error-container">
+            <p>Error: {error}</p>
+        </div>
+    );
 
     if (users.length === 0) {
-        return <p>No service users registered yet.</p>;
+        return (
+            <div className="empty-state">
+                <p>No service users registered yet.</p>
+            </div>
+        );
     }
 
     return (
-        <div>
-            <h2>Service Users</h2>
+        <div className="users-page">
+            <h1 className="page-title">Service User Directory</h1>
 
             {successMessage && (
-                <div style={{ background: "#d4edda", color: "#155724", padding: "10px", borderRadius: "5px", marginBottom: "10px" }}>
-                    {successMessage} <button onClick={() => setSuccessMessage("")} style={{ marginLeft: "10px", cursor: "pointer" }}>✖</button>
+                <div className="success-message">
+                    {successMessage}
+                    <button 
+                        onClick={() => setSuccessMessage("")} 
+                        className="close-button"
+                        aria-label="Close notification"
+                    >
+                        <FaTimes />
+                    </button>
                 </div>
             )}
 
-            <input
-                type="text"
-                placeholder="Search by username..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ marginBottom: "10px", padding: "5px", width: "100%" }}
-            />
+            <div className="search-container">
+                <div className="search-input-wrapper">
+                    <div className="search-icon-container">
+                        <FaSearch size={16} />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search by username..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="search-input"
+                        autoComplete="off"
+                    />
+                    {searchQuery && (
+                        <div className="clear-button-container">
+                            <button 
+                                onClick={() => setSearchQuery("")} 
+                                className="clear-search"
+                                aria-label="Clear search"
+                                type="button"
+                            >
+                                <FaTimes size={16} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {filteredUsers.length === 0 ? (
-                <p>All {users.length} records of service users searched : None found with username "{searchQuery}"</p>
+                <div className="no-results">
+                    <p>All {users.length} records of service users searched: None found with username "{searchQuery}"</p>
+                </div>
             ) : (
-                <table border="1">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Tags</th>
-                            <th>Delete Account</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map((user) => (
-                            <tr key={user.user_id}>
-                                <td>{user.username}</td>
-                                <td>{user.first_name}</td>
-                                <td>{user.last_name}</td>
-                                <td>{user.tags?.join(" | ") || "No tags"}</td>
-                                <td>
-                                    <button
-                                        onClick={() => handleDelete(user.username)}
-                                        style={{ background: "none", border: "none", cursor: "pointer", color: "red" }}
-                                    >
-                                        <FaTrash />
-                                    </button>
-                                </td>
+                <div className="table-container">
+                    <table className="users-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Tags</th>
+                                <th>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredUsers.map((user) => (
+                                <tr key={user.user_id}>
+                                    <td>{user.username}</td>
+                                    <td>{user.first_name}</td>
+                                    <td>{user.last_name}</td>
+                                    <td>
+                                        <div className="tags-container">
+                                            {user.tags && user.tags.length > 0 ? 
+                                                user.tags.map((tag, index) => (
+                                                    <span key={index} className="tag">{tag}</span>
+                                                )) : 
+                                                <span className="no-tags">No tags</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button
+                                            onClick={() => handleDelete(user.username)}
+                                            className="delete-button"
+                                            aria-label={`Delete user ${user.username}`}
+                                        >
+                                            <FaTrash />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

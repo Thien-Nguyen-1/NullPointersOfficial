@@ -212,22 +212,27 @@ export const QuizApiUtils = {
     }
   },
 
-  // Quiz type helper
+  // Quiz type helper - maps frontend quiz names to their database type
   getQuizTypeValue: (uiType) => {
     const typeMap = {
       'Flashcard Quiz': 'flashcard',
       'Fill in the Blanks': 'text_input',
-      'Flowchart Quiz': 'statement_sequence'
+      'Flowchart Quiz': 'statement_sequence',
+      'Question and Answer Form': 'text_input',
+      'Matching Question Quiz': 'text_input'
+
     };
     return typeMap[uiType] || 'text_input';
   },
 
-  // Get UI type from API type
+  // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
   getUITypeFromAPIType: (apiType) => {
     const typeMap = {
       'flashcard': 'Flashcard Quiz',
       'text_input': 'Fill in the Blanks',
-      'statement_sequence': 'Flowchart Quiz'
+      'statement_sequence': 'Flowchart Quiz',
+      'text_input':'Question and Answer Form',
+      'text_input':'Matching Question Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
@@ -368,6 +373,33 @@ export const QuizApiUtils = {
   },
 
 
+  createQuestionAnswerFormTask: async(formData) =>{
+    try{
+      const data = {
+        ...formData
+      };
+      const response = await api.post('/api/question_answer_forms/',data);
+      return response.data;
+    }catch(error){
+      console.error('Error Question & Answer form task:', error);
+      throw error;
+    }
+
+  },
+
+  createMatchingQuestionsTask: async(pairData) =>{
+    try{
+      const data = {
+        ...pairData
+      };
+      const response = await api.post('/api/matching_questions/',data);
+      return response.data;
+    }catch(error){
+      console.error('Error matching questions task:', error);
+      throw error;
+    }
+
+  }
 };
 
 export default QuizApiUtils;

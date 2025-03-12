@@ -1,4 +1,3 @@
-// WorkerDashboard.jsx
 import React, { useEffect, useState } from "react";
 import StatsCards from "../components/StatsCards";
 import LearningChart from "../components/LearningChart";
@@ -26,7 +25,6 @@ export default function WorkerDashboard() {
         if (!token) {
           throw new Error('No authentication token found');
         }
-        console.log("AAAAAH")
         const response = await axios.get('/api/user/', {
           headers: {
             'Authorization': `Token ${token}`
@@ -45,7 +43,7 @@ export default function WorkerDashboard() {
         const transformedCourses = response.data.modules.map(module => ({
           id: module.id,
           title: module.title,
-         // progress: module.progress_percentage,
+          progress: module.progress_percentage,
           
           action: "View Course"
         }));
@@ -78,9 +76,6 @@ export default function WorkerDashboard() {
 
   return (
     <div className="dashboard-container">
-
-     
-
       <div className="top-row">
         <StatsCards 
           userName={userName} 

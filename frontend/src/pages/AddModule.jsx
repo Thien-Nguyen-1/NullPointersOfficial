@@ -3,11 +3,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
+import AudioQuestionEditor from "../components/editors/AudioQuestionEditor";
+import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
 
 import "../styles/AddModule.css";
+import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
 
 const AddModule = () => {
   const [title, setTitle] = useState("");
@@ -22,6 +25,8 @@ const AddModule = () => {
   const [editId, setEditId] = useState(null);
   const [error, setError] = useState(null);
   // const [currentUser, setCurrentUser] = useState(null);
+  const [headingSize, setHeadingSize] = useState("heading1");
+
   
   // Use AuthContext to get the current user
   const { user: currentUser } = useContext(AuthContext);
@@ -35,11 +40,19 @@ const AddModule = () => {
   const location = useLocation();
   const dropdownRef = useRef(null);
 
+//to change size of heading for title
+  const handleHeadingChange = (event) => {
+    setHeadingSize(event.target.value);
+};
+
+
   // Module types and their corresponding components
   const moduleOptions = {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
+    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'},
+    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'text_input'}
   };
 
   // For development, use a prototype author
@@ -478,7 +491,56 @@ const AddModule = () => {
         }
       } catch (verifyErr) {
       }
-      
+      for (const module of modules) {
+        if (module.type === 'Question and Answer Form') {
+          const editorRef = editorRefs.current[module.id];
+          const questionAnswers = editorRef?.getSubmittedData?.() || [];
+          for (const qa of questionAnswers){
+          let formData = {
+            title: `${module.type} for ${title}`,
+            description: `${module.type} content for ${title}`,
+            question:qa.question,
+            answer:qa.answer,
+            moduleID: moduleId,
+            author: authorId
+          };
+          try {
+            await QuizApiUtils.createQuestionAnswerFormTask(formData);
+            console.log('Question Answer Form task created successfully');
+          } catch (error) {
+            console.error('Error creating Question Answer Form task:', error);
+          }
+        }
+        }
+      }
+
+      for (const module of modules) {
+        if (module.type === 'Matching Question Quiz') {
+          const editorRef = editorRefs.current[module.id];
+          const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
+          for (const qa of matchingQuestionAnswers){
+          let pairData = {
+            title: `${module.type} for ${title}`,
+            description: `${module.type} content for ${title}`,
+            question:qa.question,
+            answer:qa.answer,
+            moduleID: moduleId,
+            author: authorId
+          };
+          try {
+            await QuizApiUtils.createMatchingQuestionsTask(pairData);
+            console.log('matching question pairs task created successfully');
+          } catch (error) {
+            console.error('Error creating matching question pairs task:', error);
+          }
+        }
+        }
+      }
+
+
+
+
+
       alert(isEditing ? "Module updated successfully!" : "Module published successfully!");
       navigate("/admin/all-courses");
     } catch (err) {
@@ -496,14 +558,20 @@ const AddModule = () => {
       {isLoading && <div className="loading-overlay">Loading...</div>}
       
       {/* Module Title */}
+      <div className="module-title-container">
       <input
         type="text"
         placeholder="Module Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="module-input heading-input"
+        className={`module-input heading-input  ${headingSize}`}
       />
-      
+      <select className="heading-dropdown" onChange={handleHeadingChange} value={headingSize}>
+    <option value="heading1">Heading 1</option>
+    <option value="heading2">Heading 2</option>
+    <option value="heading3">Heading 3</option>
+  </select>
+      </div>
       {/* Module Description */}
       <textarea
         placeholder="Module Description"

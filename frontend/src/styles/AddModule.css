@@ -80,7 +80,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 30px;
+    /*font-size: 30px;*/
     font-weight: bold;
     width: 100%;
     color: #3a6f50;
@@ -258,4 +258,43 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  
+  .module-title-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between input and dropdown */
+    width: 100%;
+    max-width: 600px;
+}
+
+.heading-input {
+    flex: 2; /* Allows the input to take up more space */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.heading-dropdown {
+    flex: 1; /* Allows the dropdown to take up less space */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: rgb(125, 146, 128);
+    cursor: pointer;
+}
+
+.heading-input.heading1 {
+  font-size: 30px;
+}
+
+/* Bigger size for Heading 2 */
+.heading-input.heading2 {
+  font-size: 40px; 
+}
+
+/* Even bigger size for Heading 3 */
+.heading-input.heading3 {
+  font-size: 50px; 
+}

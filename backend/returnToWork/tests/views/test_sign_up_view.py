@@ -11,6 +11,7 @@ class SignUpViewTest(APITestCase):
             username ="@zaki135768",
             first_name ="jane",
             last_name= "doe",
+            email = "jane@example.org",
             user_type = "service user",
             password ="password123",
             # confirm_password = "password123"
@@ -22,6 +23,7 @@ class SignUpViewTest(APITestCase):
             "username" :"@zaki1357680",
             "first_name" :"jane",
             "last_name":"doe",
+            "email":"jane23@example.org",
             "user_type" : "service user",
             "password" :"password123",
             "confirm_password" : "password123"
@@ -38,6 +40,7 @@ class SignUpViewTest(APITestCase):
             "username": "@zaki17",
             "first_name": "jane",
             "last_name":"doe",
+            "email":"jane1@example.org",
             "user_type":"service user",
             "password":"password12345",
             "confirm_password":"password1234567",
@@ -69,3 +72,9 @@ class SignUpViewTest(APITestCase):
         response = self.client.post(self.login_url,data,format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("username", response.data)
+
+    def test_missing_email(self):
+        data = {"username": "@zaki135768",}
+        response = self.client.post(self.login_url,data,format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.data)

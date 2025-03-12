@@ -1,27 +1,28 @@
 import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 //import { ResetPassword } from "../services/api";
-import '../styles/ChangePassword.css';
+import '../styles/PasswordReset.css';
 
 import { AuthContext } from "../services/AuthContext";
 
-const ChangePassword = () => {
+const PasswordReset = () => {
 
-    const [username,setUsername] = useState("");
     const [newPassword,setNewPassword] = useState("");
     const [confirmNewPassword,setConfirmNewPassword] = useState("");
     const navigate = useNavigate();
     const [error, setError] = useState(null);
+    const {uidb64, token} = useParams();
 
     const {ResetPassword} = useContext(AuthContext) 
 
 
-    const handleChangePassword = async(e) => {
+    const handlePasswordReset = async(e) => {
             e.preventDefault();
+            // setMessage("");
             try{
-                const data = await ResetPassword(username, newPassword, confirmNewPassword);
-                console.log("Password reset succesful:" , data)
-                alert("Password reset worked" + username)
+                const data = await ResetPassword(newPassword, confirmNewPassword, uidb64, token);
+                console.log("Password reset succesful:" , data);
+                alert("Password reset worked" );
                 
             }
             catch(err){
@@ -32,15 +33,8 @@ const ChangePassword = () => {
     return (
         <div className = "changepassword-container">
         <div className = "changepassword-box">
-            <h4>Change password page</h4>
-        <form onSubmit={handleChangePassword}>
-            <input
-                type ="text"
-                value ={ username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                required
-            />
+            <h4>Reset your password</h4>
+        <form onSubmit={handlePasswordReset}>
             <input 
                 type ="password"
                 value = {newPassword}
@@ -55,7 +49,7 @@ const ChangePassword = () => {
                 placeholder=" Confirm New Password"
                 required
             />
-            <button type ="submit">Reset Password</button>
+            <button type ="submit">Confirm</button>
         </form>
         {error && <p className="error">{error}</p>}
         <div className="changepassword-links">
@@ -72,4 +66,4 @@ const ChangePassword = () => {
     );
 };
 
-export default ChangePassword;
+export default PasswordReset;
