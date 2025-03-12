@@ -1,4 +1,4 @@
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator , EmailValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
 from django.contrib.auth.models import User
@@ -131,6 +131,7 @@ class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
         ('service user', 'Service user')
+        
     ]
 
     user_type = models.CharField(
@@ -151,9 +152,16 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
    
+    email = models.EmailField(
+        unique=True,
+        validators=[EmailValidator(message="Enter a valid email address.")],
+        blank=False,
+        null=False
+    )
     
     # module = models.ForeignKey(Module, on_delete=models.CASCADE)
     # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
+    
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
@@ -170,6 +178,8 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.full_name()} - {self.username} - {self.user_id}"
     
+
+#task has a module id - but 
 
 class ProgressTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -258,7 +268,8 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
-        ('audio_clip', 'Audio Clip Question'),
+        ('question_answer_form', 'Question Answer Form'),
+        ('matching_questions', 'Matching Question Quiz')
     ]
 
     quiz_type = models.CharField(
@@ -309,3 +320,18 @@ class UserResponse(models.Model):
         return f"Response by {self.user.username} for {self.question}"
 
 
+
+class QuestionAnswerForm(Content):
+    question = models.TextField()
+    answer = models.TextField()
+
+    def __str__(self):
+        return self.question[:50]
+    
+class MatchingQuestionQuiz(Content):
+
+    question = models.TextField()
+    answer = models.TextField()
+
+    def __str__(self):
+        return self.question[:50]

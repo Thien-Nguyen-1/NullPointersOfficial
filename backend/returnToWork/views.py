@@ -1,13 +1,12 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer
-from .models import ProgressTracker,Tags,Module,Content, Questionnaire, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer, QuestionnaireSerializer, ContentPublishSerializer, RankingQuestionSerializer, InlinePictureSerializer, AudioClipSerializer, DocumentSerializer, EmbeddedVideoSerializer
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer
+from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -20,11 +19,20 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 import json
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 class ProgressTrackerView(APIView):
 
     def get(self, request):
-        progressTrackerObjects = ProgressTracker.objects.all()
+
+        
+        progressTrackerObjects = ProgressTracker.objects.all() #(filter user request and commpleted = true)
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
     
@@ -36,7 +44,6 @@ class ProgressTrackerView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
-        print(request.data)
         try:
             progress_tracker = ProgressTracker.objects.get(pk=pk)
         except ProgressTracker.DoesNotExist:
@@ -50,7 +57,7 @@ class ProgressTrackerView(APIView):
 
     def delete(self, request, pk):
         try:
-            progress_tracker = ProgressTracker.objects.get(pk=pk)
+            progress_tracker = ProgressTracker.objects.get(pk=pk)  
         except ProgressTracker.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         progress_tracker.delete()
@@ -65,16 +72,18 @@ class LogInView(APIView):
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
 
-            print(UserSerializer(user).data)
             return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LogOutView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
+        user=request.user
+        Token.objects.filter(user=user).delete()
         logout(request)
-        if hasattr(request.user, 'auth_token'):
-            request.user.auth_token.delete()
+
+        # if hasattr(request.user, 'auth_token'):
+        #     request.user.auth_token.delete()
         return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
     
 class SignUpView(APIView):
@@ -100,11 +109,13 @@ class UserProfileView(APIView):
     
 class PasswordResetView(APIView):
     permission_classes = []
-    def post(self,request):
+    def post(self,request,uidb64,token):
+        request.data["uidb64"] = uidb64
+        request.data["token"] = token
         print("RECEIVED DATUM!!!!")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            serializer.save()
             return Response({"message":"Password reset successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -142,7 +153,6 @@ class QuestionnaireView(APIView):
 
     def post(self, request, *args, **kwargs):
         """Get next question based on user's answer"""
-        # print("Received Data:", request.data)
 
         question_id = request.data.get("question_id")
         answer = request.data.get("answer")  # Expected: "yes" or "no"
@@ -240,7 +250,7 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-               # 'pinned': tracker.module.pinned,
+                'pinned': tracker.pinned,
                 'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 
@@ -261,10 +271,6 @@ class UserDetail(APIView):
 
         try:
             user = request.user
-
-            print("USERRR ISSSS")
-            print(user)
-
             user_serializer = UserSerializer(user)
 
             data = request.data
@@ -513,6 +519,24 @@ class QuizDataView(APIView):
         }
 
         return Response(quiz_data, status=status.HTTP_200_OK)
+class CheckUsernameView(APIView):
+    def get(self,request):
+        username = request.query_params.get('username',None)
+        if not username:
+            return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exists = User.objects.filter(username=username).exists()
+        return Response ({"exists":exists}, status=status.HTTP_200_OK)
+
+
+
+class RequestPasswordResetView(APIView):
+    def post(self,request):
+        serialzer = RequestPasswordResetSerializer(data = request.data)
+        if serialzer.is_valid():
+            serialzer.save()
+            return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
+        return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
 class UserInteractionView(APIView):
@@ -538,7 +562,6 @@ class UserInteractionView(APIView):
     def post(self, request, module_id):
         user = request.user
         data = request.data
-        print(data)
         module = Module.objects.get(id = module_id)
 
         if module:
@@ -739,3 +762,58 @@ class QuizQuestionView(APIView):
                 {'error': 'Question not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    
+class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
+    queryset = QuestionAnswerForm.objects.all()
+    serializer_class = QuestionAnswerFormSerializer    
+
+class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
+    queryset = MatchingQuestionQuiz.objects.all()
+    serializer_class = MatchingQuestionQuizSerializer
+
+
+class TaskPdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        user = request.user
+        # get task details
+        try:
+            task = Task.objects.get(contentID = task_id)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # get related questions 
+        questions = QuizQuestion.objects.filter(task = task)
+        
+        if not questions.exists():
+            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+        pdf.drawString(100,800,f"Task:{task.title}")
+
+        y_position = 780
+        # get related response and create the pdf
+        for question in questions:
+            try:
+                response = UserResponse.objects.filter(user=user, question=question).first()
+                answer_text = response.response_text
+
+            except UserResponse.DoesNotExist:
+                answer_text = "No response provided"
+
+            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            y_position -=20
+            pdf.drawString(120, y_position, f"A: {answer_text}")
+            y_position -=30
+
+        pdf.save()
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        return response
+
+
+        

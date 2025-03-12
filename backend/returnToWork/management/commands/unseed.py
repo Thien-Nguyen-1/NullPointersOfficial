@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from returnToWork.models import User, Tags, Module, ProgressTracker, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
+from returnToWork.models import User, Tags, Module, ProgressTracker, InfoSheet, Video, Task,MatchingQuestionQuiz, QuestionAnswerFormRankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, RankingQuestion, QuestionAnswerForm
 
 class Command(BaseCommand):
     help = "Remove all seeded data from the database"
@@ -21,5 +21,8 @@ class Command(BaseCommand):
         # Delete modules and tags
         Module.objects.all().delete()
         Tags.objects.all().delete()
+        MatchingQuestionQuiz.objects.all().delete()
+        QuestionAnswerForm.objects.all().delete()
+
 
         self.stdout.write(self.style.SUCCESS("Database unseeding complete!"))

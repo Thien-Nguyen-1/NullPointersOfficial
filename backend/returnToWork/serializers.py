@@ -1,9 +1,14 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion
-from django.contrib.auth import authenticate, get_user_model
 from django.core.files.base import ContentFile
 import uuid
 import base64
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
+from django.contrib.auth import authenticate, get_user_model
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+
 
 User = get_user_model()
 
@@ -52,7 +57,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password']
+        fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password','email']
         read_only_fields = ["user_id"]
 
     def validate(self,data):
@@ -65,27 +70,38 @@ class SignUpSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-class PasswordResetSerializer(serializers.Serializer):
-    username = serializers.CharField(write_only = True)
-    new_password = serializers.CharField(write_only = True)
-    confirm_new_password= serializers.CharField(write_only = True)
 
-    def validate(self,data):
+class PasswordResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True)
+    confirm_new_password = serializers.CharField(write_only=True)
+    uidb64 = serializers.CharField()
+    token = serializers.CharField()
+
+    def validate(self, data):
+
         if data["new_password"] != data["confirm_new_password"]:
             raise serializers.ValidationError("New passwords do not match")
-        return data
-    
-    def save(self):
-        username = self.validated_data["username"]
+
         try:
-            user = User.objects.get(username = username)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User does not exist")
-        
+            uid = urlsafe_base64_decode(data.get("uidb64")).decode()
+            user = User.objects.get(pk=uid)
+
+            if not default_token_generator.check_token(user, data.get("token")):
+                raise serializers.ValidationError({"token": "Invalid or expired token."})
+
+        except (User.DoesNotExist, ValueError):
+            raise serializers.ValidationError({"user": "Invalid user or token"})
+
+        return data
+
+    def save(self):
+        uid = urlsafe_base64_decode(self.validated_data["uidb64"]).decode()
+        user = User.objects.get(pk=uid)
+
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
-    
+
 
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -276,4 +292,45 @@ class ContentPublishSerializer(serializers.Serializer):
                 )
 
         return module
+    
+class RequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self,value):
+        try: 
+            user = User.objects.get(email = value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No user found with that email")
+        return value
+    
+    def save(self):
+            email = self.validated_data["email"]
+            user = User.objects.get(email =email)
+
+            #encode users pk to send id in resetlink securly, and generate a password reset token
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+
+            reset_url = f"http://localhost:5173/password-reset/{uidb64}/{token}/"
+
+
+            send_mail(
+                subject= "Password reset",
+                message = f"Click the link to reset your password: {reset_url}",
+                from_email = "readiness.to.return.to.work@gmail.com",
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        
+            return user
+
+class QuestionAnswerFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionAnswerForm
+        fields = '__all__'
+
+class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchingQuestionQuiz
+        fields = '__all__'
 

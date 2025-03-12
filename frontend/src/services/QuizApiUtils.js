@@ -157,7 +157,9 @@ export const QuizApiUtils = {
       'Flashcard Quiz': 'flashcard',
       'Fill in the Blanks': 'text_input',
       'Flowchart Quiz': 'statement_sequence',
-      'Audio Clip Question': 'audio_clip'
+      'Question and Answer Form': 'text_input',
+      'Matching Question Quiz': 'text_input'
+
     };
     return typeMap[uiType] || 'text_input';
   },
@@ -168,7 +170,8 @@ export const QuizApiUtils = {
       'flashcard': 'Flashcard Quiz',
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
-      'audio_clip': 'Audio Clip Question'
+      'text_input':'Question and Answer Form',
+      'text_input':'Matching Question Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
@@ -233,8 +236,35 @@ export const QuizApiUtils = {
       console.error('Error cleaning up orphaned tasks:', error);
       throw error;
     }
-  }
+  },
 
+  createQuestionAnswerFormTask: async(formData) =>{
+    try{
+      const data = {
+        ...formData
+      };
+      const response = await api.post('/api/question_answer_forms/',data);
+      return response.data;
+    }catch(error){
+      console.error('Error Question & Answer form task:', error);
+      throw error;
+    }
+
+  },
+
+  createMatchingQuestionsTask: async(pairData) =>{
+    try{
+      const data = {
+        ...pairData
+      };
+      const response = await api.post('/api/matching_questions/',data);
+      return response.data;
+    }catch(error){
+      console.error('Error matching questions task:', error);
+      throw error;
+    }
+
+  }
 };
 
 export default QuizApiUtils;

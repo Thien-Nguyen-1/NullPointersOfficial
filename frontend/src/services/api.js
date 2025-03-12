@@ -37,19 +37,24 @@ export const deleteServiceUser = async (username) => {
     }
 };
 
+// export async function loginUser(username, password){
+//   try {
+//     const response = await api.post(`/login/`, {
+//       username,
+//       password,
+//     });
 export async function loginUser(username, password){
   try {
     const response = await api.post(`/api/login/`, {
       username,
       password,
-    });
+    })
+  
         
     // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
     localStorage.setItem('token', response.data.token);
   
-    return response.data;
-
     if(response.data){
       localStorage.setItem("user_type",response.data.user_type);
       return response.data;
@@ -133,7 +138,11 @@ export async function getUserSettings(){
 export async function deleteUserSettings(){
   try{
     const token = localStorage.getItem('token');
-    const response = await api.delete(`/worker/settings/`, {
+    if (!token) {
+      throw new Error('No authentication token found');
+
+    }
+    const response = await api.delete(`/api/worker/settings/`, {
       headers: {
         'Authorization': `Token ${token}`
       }
@@ -150,7 +159,7 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`worker/password-change/`, {
+    const response = await api.put(`/api/worker/password-change/`, {
     old_password:  oldPassword,
     new_password: newPassword,
     confirm_new_password: confirmNewPassword,
@@ -305,4 +314,31 @@ export const quizApi = {
   submitResponse: (data) => api.post('/api/quiz/response/', data)
 };
 
-export default api 
+//get the task that needs downloading nd the authentication token
+export const downloadCompletedTask = async(taskId, token) => {
+  try {
+    const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
+      headers:{
+        Authorization: `Token ${token}`,
+        Accept: "application/pdf",
+      },
+      responseType: "blob", //dowlaod pdf in blob format
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Task_${taskId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    console.log("PDF download started.");
+  } 
+  catch (error) {
+    console.error("Error downloading PDF:", error.response?.data || error.message);
+    throw error;
+  }
+
+  };
+
+  
+export default api;

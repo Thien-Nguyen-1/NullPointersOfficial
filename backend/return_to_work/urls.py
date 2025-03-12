@@ -17,8 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -31,16 +31,21 @@ router.register(r'inline-picture', InlinePictureViewSet, basename='inline-pictur
 router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
 router.register(r'document',DocumentViewSet , basename='document')
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
+router.register(r'question_answer_forms', QuestionAnswerFormViewSet)
+router.register(r'matching_questions', MatchingQuestionQuizViewSet)
+
 
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView, UserInteractionView, UserPasswordChangeView, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
 urlpatterns = [
-    path('admin/', admin.site.urls),
+     path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
     path('api/logout/', LogOutView.as_view(), name= 'logout'),
     path('api/signup/', SignUpView.as_view(), name= 'signup'),
     path('api/profile/', UserProfileView.as_view(), name= 'profile'),
     path('api/user/', UserDetail.as_view(), name='user-detail'),
     path('', include(router.urls)),
+    path('api/password-reset/<str:uidb64>/<str:token>/', PasswordResetView.as_view(), name= 'password-reset'),
+    path('api/password-reset/', RequestPasswordResetView.as_view(), name= 'request-password-reset'),
     path('api/', include(router.urls)),
     path('api/change-password/', PasswordResetView.as_view(), name= 'change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name= "questionnaire"),
@@ -51,6 +56,21 @@ urlpatterns = [
     path("api/worker/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
     path("api/admin/settings/", UserSettingsView.as_view(), name= "user-settings"),
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
+    path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
+    path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
+
+
+
+
+
+
+
+
+
+
+
+
+
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
 

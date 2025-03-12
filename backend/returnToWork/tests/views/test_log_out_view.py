@@ -20,9 +20,12 @@ class LogOutViewTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         
     def test_succsesful_logout(self):
+        self.assertTrue(Token.objects.filter(user=self.user).exists())
         response = self.client.post(self.logout_url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "Successfully logged out")
+        token_exists = Token.objects.filter(user=self.user).exists()
+        self.assertFalse(token_exists, "Token wasnt dleted after logout")
         
     def test_unauthnticated_user_cant_logout(self):
         self.client.credentials()
