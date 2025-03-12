@@ -19,8 +19,6 @@ import PasswordReset from './components/PasswordReset.jsx';
 import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
-
-import ModuleView from './components/ModuleView.jsx';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 
 import ServiceUsersPage from "./pages/ServiceUsersPage";
@@ -81,8 +79,6 @@ function App() {
                     
                     {/* to be deleted */}
                     <Route path="all-courses" element={<CoursesList/>} />
-                    <Route path="/modules/:moduleId" element={<ModuleView />} />
-                    <Route path="/alt-modules/:moduleId" element={<ModuleViewAlternative />} />
                     <Route path="KnowValuesModule" element={<Module2/>} />
 
                   </Routes>
@@ -104,8 +100,6 @@ function App() {
                     {/* to be deleted */}
                     <Route path="all-courses" element={<CoursesList role="admin" />} />
                     <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
-                    <Route path="/modules/:moduleId" element={<ModuleView />} />
-                    <Route path="/alt-modules/:moduleId" element={<ModuleViewAlternative />} />
 
                   </Routes>
                 </DashboardLayout>
