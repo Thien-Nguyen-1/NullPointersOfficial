@@ -134,7 +134,7 @@ const CreateModule = () => {
         const files = Array.from(e.target.files);
         const newDocuments = files.map(file => ({
             file,
-            url: URL.createObjectURL(file), // Create a preview URL
+            url: URL.createObjectURL(file), // Create a preview URL -> create blob URLs
             name: file.name,
             type: file.name.split(".").pop(), // Extract file extension
         }));
