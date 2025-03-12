@@ -112,7 +112,8 @@ class PasswordResetView(APIView):
     def post(self,request,uidb64,token):
         request.data["uidb64"] = uidb64
         request.data["token"] = token
-        print("RECEIVED DATUM!!!!")
+        print("RECEIVED DATUM!!!! ")
+        print("BRO WHO ADDED THIS")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
