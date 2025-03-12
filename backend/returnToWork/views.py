@@ -623,6 +623,7 @@ class QuizQuestionView(APIView):
                 question_text = request.data.get('question_text')
                 hint_text = request.data.get('hint_text', '')
                 order = request.data.get('order', 0)
+                audio_file = request.FILES.get('audio_file')
 
                 if not task_id or not question_text:
                     return Response(
@@ -650,7 +651,8 @@ class QuizQuestionView(APIView):
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'audio_url': request.build_absolute_uri(question.audio_file.url) if question.audio_file else None
                 }, status=status.HTTP_200_OK)
 
             except QuizQuestion.DoesNotExist:

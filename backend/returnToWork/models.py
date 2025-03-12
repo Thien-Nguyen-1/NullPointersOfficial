@@ -221,7 +221,7 @@ class InlinePicture(Content):
 class AudioClip(Content):
     """Model for Audio Clip content type"""
     audio_file = models.FileField(upload_to="audio_clips/")
-
+    
 class Document(Content):
     """Model for Attach PDF/Documents/Infosheet content type"""
     documents = models.JSONField()  # Stores document metadata as JSON
