@@ -41,7 +41,7 @@ const AddModule = () => {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
-    "Audio Clip Question": { component: AudioQuestionEditor, type: "audio" },
+    "Audio Clip Question": { component: AudioQuestionEditor, type: "audio_clip" },
   };
 
   // For development, use a prototype author

@@ -151,22 +151,24 @@ export const QuizApiUtils = {
     }
   },
 
-  // Quiz type helper
+  // Quiz type helper - maps frontend quiz names to their database type
   getQuizTypeValue: (uiType) => {
     const typeMap = {
       'Flashcard Quiz': 'flashcard',
       'Fill in the Blanks': 'text_input',
-      'Flowchart Quiz': 'statement_sequence'
+      'Flowchart Quiz': 'statement_sequence',
+      'Audio Clip Question': 'audio_clip'
     };
     return typeMap[uiType] || 'text_input';
   },
 
-  // Get UI type from API type
+  // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
   getUITypeFromAPIType: (apiType) => {
     const typeMap = {
       'flashcard': 'Flashcard Quiz',
       'text_input': 'Fill in the Blanks',
-      'statement_sequence': 'Flowchart Quiz'
+      'statement_sequence': 'Flowchart Quiz',
+      'audio_clip': 'Audio Clip Question'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },

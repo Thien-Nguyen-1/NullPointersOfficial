@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from "react";
 import "../../styles/MainQuizContainer.css";
 import { FaTrash, FaPencilAlt, FaUpload, FaPlay, FaPause } from "react-icons/fa";
 
@@ -6,7 +6,10 @@ const AdminAudioQuestionForm = ({ onSubmit }) => {
   const [question, setQuestion] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   const [error, setError] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false); // ==> declare this state variable so that react will not throw a runtime error (using it HandleSubmit)
   const [audioPreview, setAudioPreview] = useState(null);
+  const [submittedAudio, setSubmittedAudio] = useState(false); // ==> track if audio is saved/ question is added
+
   const audioRef = React.useRef(null);
 
   const handleFileChange = (e) => {
@@ -19,9 +22,16 @@ const AdminAudioQuestionForm = ({ onSubmit }) => {
         setAudioPreview(null);
         return;
       }
+
+      // Cleanup previous preview if exists
+      if (audioPreview && !submittedAudio) {
+        URL.revokeObjectURL(audioPreview);
+      }
+
       //If file is valid audio file
       setAudioFile(file);
-      setAudioPreview(URL.createObjectURL(file)); //// Create a temporary URL for audio preview
+      setAudioPreview(URL.createObjectURL(file)); //// Create a temporary URL for audio preview -> create blob URLs (object URL)
+      setSubmittedAudio(false); // reset when new file is selected
       setError("");
     }
   };
@@ -41,17 +51,23 @@ const AdminAudioQuestionForm = ({ onSubmit }) => {
     }
 
     setError("");
+
+    // ==> create a new blob URL specifically for the question
+    const questionAudioUrl = URL.createObjectURL(audioFile);
+    
     onSubmit({
       question_text: question.trim(),
       audio_file: audioFile,
-      audio_url: audioPreview
+      audio_url: questionAudioUrl
     });
+
+    // ==> mark audio as submitted to prevent revoking its url
+    setSubmittedAudio(true);
 
     // Reset form after submission
     setQuestion("");
     setAudioFile(null);
     setAudioPreview(null);
-    setIsPlaying(false);
   };
 
   useEffect(() => {
@@ -103,7 +119,7 @@ const AdminAudioQuestionForm = ({ onSubmit }) => {
           <div className="audio-preview-row">
             <div className="audio-preview">
               {/* Standard Audio Controls */}
-              <audio controls src={audioPreview} />
+              <audio controls src={audioPreview} ref={audioRef} />
             </div>
           </div>
         )}
@@ -118,7 +134,8 @@ const AudioQuestionItem = ({ question, index, onDelete, onEdit }) => {
   const [audioPreview, setAudioPreview] = useState(question.audio_url);
   const [editError, setEditError] = useState("");
   const [userAnswer, setUserAnswer] = useState("");
-  const audioRef = React.useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false); // ==> declare this state variable so that react will not throw a runtime error (using it HandleSubmit)
+  const audioRef = useRef(null);
 
   useEffect(() => {
     // Update when question prop changes
@@ -173,14 +190,41 @@ const AudioQuestionItem = ({ question, index, onDelete, onEdit }) => {
     setIsEditing(false);
   };
 
+  // ==> handlePlay and handlePause provide control over the audio playback using React's ref system (bevcause React's state management doesnt automatically know or track these)
+  // React properties dont directly control the audio elements vehabiours, resulting in not being able to track which audio questions to listen to
+  const handlePlay = () => {
+    if (audioRef.current) { // checks if the ref is attached to an element 
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+  
+  const handlePause = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   // Cleanup audio preview URL when component unmounts
+  //   return () => {
+  //     questions.forEach(question => {
+  //       if (audioPreview && audioPreview !== question.audio_url) {
+  //         URL.revokeObjectURL(audioPreview);
+  //       }
+  //     });
+
+  //   };
+  // }, [audioPreview, question.audio_url]);
   useEffect(() => {
-    // Cleanup audio preview URL when component unmounts
     return () => {
-      if (audioPreview && audioPreview !== question.audio_url) {
+      // Only clean up blob URLs we created in this component (AUDIOQUESTIONITEM)
+      if (audioPreview && audioPreview !== question.audio_url && audioPreview.startsWith('blob:')) {
         URL.revokeObjectURL(audioPreview);
       }
     };
-  }, [audioPreview, question.audio_url]);
+  }, [audioPreview, question.audio_url]); // ==> questions doesnt exist in this component 
 
   return (
     <div className="question-box">
@@ -223,6 +267,12 @@ const AudioQuestionItem = ({ question, index, onDelete, onEdit }) => {
               </div>
             </label>
           </div>
+          {/* Standard Audio Player in Edit Mode */}
+          {audioPreview && (
+            <div className="audio-preview">
+              <audio controls src={audioPreview} />
+            </div>
+          )}
         </div>
       ) : (
         <div className="question-content">
@@ -230,7 +280,8 @@ const AudioQuestionItem = ({ question, index, onDelete, onEdit }) => {
 
           {audioPreview && (
             <div className="audio-preview">
-              <audio controls src={audioPreview} />
+              {/* include the ref function during render */}
+              <audio controls src={audioPreview} ref={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} /> 
             </div>
           )}
 
@@ -264,6 +315,7 @@ const AudioQuestionEditor = forwardRef((props, ref) => {
         question_text: question.question_text || '',
         audio_file: question.audio_file || null,
         audio_url: question.audio_url || '',
+        user_response: "",
         order: index
       }));
     }
@@ -292,7 +344,20 @@ const AudioQuestionEditor = forwardRef((props, ref) => {
     if (onUpdateQuestions) {
       onUpdateQuestions(questions);
     }
-  }, [questions, onUpdateQuestions]);
+  }, [questions, onUpdateQuestions, moduleId]); // ==> add moduleId so that the questions will always be associated with its own module 
+
+  // after updating the parent component
+  // cleanup effect for all blob URLs
+  useEffect(() => {
+    return () => {
+      // Clean up all blob URLs when the editor unmounts
+      questions.forEach(question => {
+        if (question.audio_url && question.audio_url.startsWith('blob:')) {
+          URL.revokeObjectURL(question.audio_url);
+        }
+      });
+    };
+  }, [questions]);
 
   const addQuestion = (newQuestion) => {
     const questionWithId = {
@@ -303,11 +368,27 @@ const AudioQuestionEditor = forwardRef((props, ref) => {
   };
 
   const deleteQuestion = (index) => {
+
+    // Get the question to delete so we can clean up its audio URL
+    const questionToDelete = questions[index];
+    if (questionToDelete && questionToDelete.audio_url && questionToDelete.audio_url.startsWith('blob:')) {
+      URL.revokeObjectURL(questionToDelete.audio_url);
+    }
+
     setQuestions(prevQuestions => prevQuestions.filter((_, i) => i !== index));
   };
 
   const editQuestion = (index, updatedQuestion) => {
     const updatedQuestions = [...questions];
+
+    // Clean up old audio URL if it's a blob and being replaced
+    const oldQuestion = updatedQuestions[index];
+    if (oldQuestion.audio_url !== updatedQuestion.audio_url && 
+        oldQuestion.audio_url && 
+        oldQuestion.audio_url.startsWith('blob:')) {
+      URL.revokeObjectURL(oldQuestion.audio_url);
+    }
+
     updatedQuestions[index] = updatedQuestion;
     setQuestions(updatedQuestions);
   };
