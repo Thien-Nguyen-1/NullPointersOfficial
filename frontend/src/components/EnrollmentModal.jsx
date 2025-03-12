@@ -3,7 +3,7 @@
 import React from "react";
 import "../styles/EnrollmentModal.css"; 
 
-function EnrollmentModal({ isOpen, onClose, module, onEnroll }) {
+function EnrollmentModal({ isOpen, onClose, module, onEnroll, isEnrolled }) {
   if (!isOpen) return null;
 
   const handleOverlayClick = (e) => {
@@ -20,7 +20,8 @@ function EnrollmentModal({ isOpen, onClose, module, onEnroll }) {
     >
       <div className="enrollment-modal">
         <div className="enrollment-modal-header">
-          <h2>Enrol in Course</h2>
+          {/* to cater more to user who havent enrolled */}
+          <h2>{isEnrolled ? "Module Information" : "Enrol in Course"}</h2> 
           <button className="close-button" onClick={onClose}>×</button>
         </div>
         <div className="enrollment-modal-content">
@@ -28,11 +29,19 @@ function EnrollmentModal({ isOpen, onClose, module, onEnroll }) {
           <p className="module-description">{module?.description || "No description available."}</p>
           
           {/* Will add more module details here if needed LOL */}
+          {isEnrolled && (
+            <div className="enrollment-status">
+              <p className="already-enrolled-message">
+                You are already enrolled in this module.
+              </p>
+            </div>
+          )}
+
           
           <div className="enrollment-modal-actions">
             <button className="modal-cancel-btn" onClick={onClose}>Cancel</button>
             <button className="enroll-btn" onClick={() => onEnroll(module.id)}>
-              Enrol Me
+              {isEnrolled ? "Continue Learning" : "Enrol Me"}
             </button>
           </div>
         </div>
