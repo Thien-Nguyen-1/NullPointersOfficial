@@ -52,7 +52,7 @@ const Login = () => {
           <button onClick={() => navigate("/")}>
             Back
           </button>
-          <button onClick={() => navigate("/change-password")}>
+          <button onClick={() => navigate("/password-reset")}>
             Forgot password
           </button>
           <button onClick={() => navigate("/signup")}>

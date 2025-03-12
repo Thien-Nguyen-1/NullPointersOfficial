@@ -100,34 +100,34 @@ class UserModelTestCase(TestCase):
         self._assert_user_is_invalid()
 
 
-    # def test_email_must_not_be_blank(self):
-    #     self.user.email = ''
-    #     self._assert_user_is_invalid()
+    def test_email_must_not_be_blank(self):
+        self.user.email = ''
+        self._assert_user_is_invalid()
 
-    # def test_email_must_be_unique(self):
-    #     second_user = User.objects.get(username='@janedoe')
-    #     self.user.email = second_user.email
-    #     self._assert_user_is_invalid()
+    def test_email_must_be_unique(self):
+        second_user = User.objects.get(username='@janedoe')
+        self.user.email = second_user.email
+        self._assert_user_is_invalid()
 
-    # def test_email_must_contain_username(self):
-    #     self.user.email = '@example.org'
-    #     self._assert_user_is_invalid()
+    def test_email_must_contain_username(self):
+        self.user.email = '@example.org'
+        self._assert_user_is_invalid()
 
-    # def test_email_must_contain_at_symbol(self):
-    #     self.user.email = 'johndoe.example.org'
-    #     self._assert_user_is_invalid()
+    def test_email_must_contain_at_symbol(self):
+        self.user.email = 'johndoe.example.org'
+        self._assert_user_is_invalid()
 
-    # def test_email_must_contain_domain_name(self):
-    #     self.user.email = 'johndoe@.org'
-    #     self._assert_user_is_invalid()
+    def test_email_must_contain_domain_name(self):
+        self.user.email = 'johndoe@.org'
+        self._assert_user_is_invalid()
 
-    # def test_email_must_contain_domain(self):
-    #     self.user.email = 'johndoe@example'
-    #     self._assert_user_is_invalid()
+    def test_email_must_contain_domain(self):
+        self.user.email = 'johndoe@example'
+        self._assert_user_is_invalid()
 
-    # def test_email_must_not_contain_more_than_one_at(self):
-    #     self.user.email = 'johndoe@@example.org'
-    #     self._assert_user_is_invalid()
+    def test_email_must_not_contain_more_than_one_at(self):
+        self.user.email = 'johndoe@@example.org'
+        self._assert_user_is_invalid()
 
 
     def test_full_name_must_be_correct(self):
