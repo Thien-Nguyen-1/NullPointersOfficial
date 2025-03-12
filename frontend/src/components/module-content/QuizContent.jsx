@@ -2,6 +2,7 @@ import React from "react";
 import FlashcardQuiz from "../quizzes/FlashcardQuiz";
 import FillInTheBlanksQuiz from "../quizzes/FillInTheBlanksQuiz";
 import FlowchartQuiz from "../quizzes/FlowchartQuiz";
+import QuestionAndAnswerForm from "../quizzes/QuestionAndAnswerForm";
 
 /**
  * Component for rendering quiz content in the module
@@ -30,6 +31,12 @@ const QuizContent = ({ quizData, completedContentIds, onComplete }) => {
       break;
     case 'statement_sequence':
       quizComponent = <FlowchartQuiz 
+        taskId={quizData.taskData.contentID} 
+        onComplete={(results) => onComplete(quizData.id, results)}
+      />;
+      break;
+    case 'question_answer_form':
+      quizComponent = <QuestionAndAnswerForm
         taskId={quizData.taskData.contentID} 
         onComplete={(results) => onComplete(quizData.id, results)}
       />;

@@ -130,7 +130,7 @@ function CourseItem(props){
             </button>
            
             <div className="view-container">        
-                <button onClick={() => handleViewCourse()}>
+                <button onClick={() => handleViewCourse(module)}>
                     <p> View Course </p>
                 </button>
 

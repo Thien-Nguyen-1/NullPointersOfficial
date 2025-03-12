@@ -218,8 +218,8 @@ export const QuizApiUtils = {
       'Flashcard Quiz': 'flashcard',
       'Fill in the Blanks': 'text_input',
       'Flowchart Quiz': 'statement_sequence',
-      'Question and Answer Form': 'text_input',
-      'Matching Question Quiz': 'text_input'
+      'Question and Answer Form': 'question_answer_form',
+      'Matching Question Quiz': 'matching_questions'
 
     };
     return typeMap[uiType] || 'text_input';
@@ -231,8 +231,8 @@ export const QuizApiUtils = {
       'flashcard': 'Flashcard Quiz',
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
-      'text_input':'Question and Answer Form',
-      'text_input':'Matching Question Quiz'
+      'question_answer_form':'Question and Answer Form',
+      'matching_questions':'Matching Question Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },

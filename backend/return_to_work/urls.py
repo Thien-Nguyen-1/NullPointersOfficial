@@ -31,8 +31,8 @@ router.register(r'inline-picture', InlinePictureViewSet, basename='inline-pictur
 router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
 router.register(r'document',DocumentViewSet , basename='document')
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
-router.register(r'question_answer_forms', QuestionAnswerFormViewSet)
-router.register(r'matching_questions', MatchingQuestionQuizViewSet)
+router.register(r'question_answer_forms', QuestionAnswerFormViewSet, basename='question_answer_form') # giving basename so that django rest framework know how to name the URLs
+router.register(r'matching_questions', MatchingQuestionQuizViewSet, basename='matching_question_quiz') # helps to automatically creates the viewsets
 
 
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView, UserInteractionView, UserPasswordChangeView, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
@@ -84,4 +84,5 @@ urlpatterns = [
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
+
 ]

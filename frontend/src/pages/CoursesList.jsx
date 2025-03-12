@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { AuthContext } from "../services/AuthContext";
+import EnrollmentModal from "../components/EnrollmentModal";
 import "../styles/AllCourses.css";
 
 function CoursesList({ role }) {

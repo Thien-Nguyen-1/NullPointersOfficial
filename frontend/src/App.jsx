@@ -6,7 +6,6 @@ import { useParams } from "react-router-dom";
 
 
 import AdminDashboard from "./pages/AdminDashboard";
-// import MedicalProfessionalDashboard from "./pages/MedicalProfessionalDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
@@ -26,9 +25,7 @@ import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 
 import ServiceUsersPage from "./pages/ServiceUsersPage";
 import QuizContainer from './components/quizzes/QuizContainer';
-import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
-import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
-import VisualFlowChartQuiz from './components/editors/VisualFlowChartQuiz';
+
 import AddModule from './pages/AddModule';
 
 import "./App.css";
@@ -76,11 +73,13 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="support" element={<Support />} />
                 <Route path="courses" element={<Courses/>} />
+                
+                {/* to be deleted */}
                 <Route path="all-courses" element={<CoursesList/>} />
                 <Route path="/modules/:moduleId" element={<ModuleView />} />
                 <Route path="/alt-modules/:moduleId" element={<ModuleViewAlternative />} />
-                <Route path="profile" element={<Profile />} />
                 <Route path="KnowValuesModule" element={<Module2/>} />
+
               </Routes>
             </DashboardLayout>
           }
@@ -95,12 +94,14 @@ function App() {
                 <Route path="settings" element={<Settings />} />
                 <Route path="support" element={<Support />} />
                 <Route path="courses" element={<Courses />} />
+                <Route path="/service-users" element={<ServiceUsersPage />} />
+
+                {/* to be deleted */}
                 <Route path="all-courses" element={<CoursesList role="admin" />} />
+                <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
                 <Route path="/modules/:moduleId" element={<ModuleView />} />
                 <Route path="/alt-modules/:moduleId" element={<ModuleViewAlternative />} />
-                <Route path="/service-users" element={<ServiceUsersPage />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
+
               </Routes>
             </DashboardLayout>
           }
