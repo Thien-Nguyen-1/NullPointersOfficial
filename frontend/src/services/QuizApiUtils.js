@@ -151,7 +151,7 @@ export const QuizApiUtils = {
     }
   },
 
-  // Quiz type helper
+  // Quiz type helper - maps frontend quiz names to their database type
   getQuizTypeValue: (uiType) => {
     const typeMap = {
       'Flashcard Quiz': 'flashcard',
@@ -164,7 +164,7 @@ export const QuizApiUtils = {
     return typeMap[uiType] || 'text_input';
   },
 
-  // Get UI type from API type
+  // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
   getUITypeFromAPIType: (apiType) => {
     const typeMap = {
       'flashcard': 'Flashcard Quiz',

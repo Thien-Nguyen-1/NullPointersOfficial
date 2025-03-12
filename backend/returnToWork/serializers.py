@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
+from django.core.files.base import ContentFile
+import uuid
+import base64
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -19,7 +22,7 @@ class TagSerializer(serializers.ModelSerializer):
     modules = ModuleSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Tags        
+        model = Tags
         fields = ['id','tag','modules']
 
 
@@ -110,13 +113,11 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questionnaire
         fields = ["id", "question", "yes_next_q", "no_next_q"]
-  
+
 
 class ContentSerializer(serializers.ModelSerializer):
-    
-    author = serializers.StringRelatedField() 
+    author = UserSerializer(read_only=True)
     moduleID = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
-
     class Meta:
         model = Content
         fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
@@ -135,10 +136,10 @@ class VideoSerializer(ContentSerializer):
         fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
 
 class TaskSerializer(ContentSerializer):
-    
+
     # Override the author field to allow writing to it
     author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    
+
     class Meta:
         model = Task
         fields = ContentSerializer.Meta.fields + ['text_content', 'quiz_type']
@@ -153,12 +154,12 @@ class UserModuleInteractSerializer(serializers.ModelSerializer):
     class Meta:
         model=UserModuleInteraction
         fields = ['id', 'user', 'module', 'hasPinned', 'hasLiked']
-    
+
 class UserSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['user_id','first_name','last_name','username','user_type']
-    
+
 class UserPasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only = True, required = True)
     new_password = serializers.CharField(write_only = True, required = True)
@@ -169,17 +170,128 @@ class UserPasswordChangeSerializer(serializers.Serializer):
 
         if not user.check_password(data["old_password"]):
             raise serializers.ValidationError({"old_password": "Incorrect old password"})
-        
+
         if data["new_password"] != data["confirm_new_password"]:
             raise serializers.ValidationError({"new_password" : "New passwords do not match"})
-        
+
         return data
-    
+
     def save(self, **kwargs):
         user = self.context["request"].user
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
+
+class RankingQuestionSerializer(ContentSerializer):
+    class Meta:
+        model = RankingQuestion
+        fields  = ContentSerializer.Meta.fields + ['tiers']
+
+class InlinePictureSerializer(ContentSerializer):
+    class Meta:
+        model = InlinePicture
+        fields  = ContentSerializer.Meta.fields + ['image_file']
+
+class AudioClipSerializer(ContentSerializer):
+    class Meta:
+        model = AudioClip
+        fields  = ContentSerializer.Meta.fields + ['audio_file',"question_text","user_response"]
+
+class DocumentSerializer(ContentSerializer):
+    class Meta:
+        model = Document
+        fields  = ContentSerializer.Meta.fields + ['documents']
+
+class EmbeddedVideoSerializer(ContentSerializer):
+    class Meta:
+        model = EmbeddedVideo
+        fields  = ContentSerializer.Meta.fields + ['video_url']
+
+class ContentPublishSerializer(serializers.Serializer):
+    """Serializer to handle module and content creation"""
+    title = serializers.CharField(max_length=255)
+    description = serializers.CharField(required=False, allow_blank=True)
+    elements = serializers.ListField()
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        # Use the authenticated user if available; otherwise, assign default user
+        if request.user.is_authenticated:
+            user = request.user
+        else:
+            User = get_user_model()
+            try:
+                user = User.objects.get(username="default_user")
+            except User.DoesNotExist:
+                raise serializers.ValidationError("Default user is not set up.")
+
+        # Create Module
+        module = Module.objects.create(
+            title=validated_data['title'],
+            description=validated_data.get('description', ''),
+            pinned=False,
+            upvotes=0,
+        )
+
+        # Process each element in the payload
+        for element in validated_data['elements']:
+            content_type = element.get('type')
+
+            if content_type == 'Ranking Question':
+                RankingQuestion.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    tiers=element.get('data', []),
+                    is_published=True
+                )
+
+            elif content_type == 'Inline Picture':
+                # Data expected in format "data:<mime>;base64,<encoded_data>"
+                format, imgstr = element['data'].split(';base64,')
+                ext = format.split('/')[-1]
+                data = ContentFile(base64.b64decode(imgstr), name=f'{uuid.uuid4()}.{ext}')
+
+                InlinePicture.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    image_file=data,
+                    is_published=True
+                )
+
+            elif content_type == 'Audio Clip':
+                format, audiostr = element['data'].split(';base64,')
+                ext = format.split('/')[-1]
+                data = ContentFile(base64.b64decode(audiostr), name=f'{uuid.uuid4()}.{ext}')
+
+                AudioClip.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', 'Audio Clip'),
+                    audio_file=data,
+                    is_published=True
+                )
+
+            elif content_type == 'Attach PDF':
+                Document.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    documents=element.get('data', []),
+                    is_published=True
+                )
+
+            elif content_type == 'Embedded Video':
+                EmbeddedVideo.objects.create(
+                    moduleID=module,
+                    author=user,
+                    title=element.get('title', ''),
+                    video_url=element.get('data'),
+                    is_published=True
+                )
+
+        return module
     
 class RequestPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
