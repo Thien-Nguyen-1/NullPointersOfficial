@@ -14,7 +14,7 @@ const ModuleCompletion = ({ user }) => {
   // Get the user role from the user prop
   const role = user?.user_type || 'worker'; // Default to 'worker' if role is undefined
   // Create the correct path based on role
-  const coursesPath = role === 'admin' ? '/admin/all-courses' : '/worker/all-courses';
+  const coursesPath = role === 'admin' ? '/admin/courses' : '/worker/courses';
   
   return (
     <div className="alt-module-completion">
