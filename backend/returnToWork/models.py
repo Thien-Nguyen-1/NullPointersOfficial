@@ -220,7 +220,12 @@ class InlinePicture(Content):
 
 class AudioClip(Content):
     """Model for Audio Clip content type"""
+    question_test = models.TextField(null=True, blank=True)
     audio_file = models.FileField(upload_to="audio_clips/")
+    user_response = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Audio Clip : {self.question_test}"
 
 class Document(Content):
     """Model for Attach PDF/Documents/Infosheet content type"""
@@ -253,6 +258,7 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
+        ('audio_clip', 'Audio Clip Question'),
     ]
 
     quiz_type = models.CharField(

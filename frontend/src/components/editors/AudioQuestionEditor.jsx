@@ -51,7 +51,6 @@ const AdminAudioQuestionForm = ({ onSubmit }) => {
     setQuestion("");
     setAudioFile(null);
     setAudioPreview(null);
-    setIsPlaying(false);
   };
 
   useEffect(() => {
@@ -223,6 +222,12 @@ const AudioQuestionItem = ({ question, index, onDelete, onEdit }) => {
               </div>
             </label>
           </div>
+          {/* Standard Audio Player in Edit Mode */}
+          {audioPreview && (
+            <div className="audio-preview">
+              <audio controls src={audioPreview} />
+            </div>
+          )}
         </div>
       ) : (
         <div className="question-content">
@@ -264,6 +269,7 @@ const AudioQuestionEditor = forwardRef((props, ref) => {
         question_text: question.question_text || '',
         audio_file: question.audio_file || null,
         audio_url: question.audio_url || '',
+        user_response: "",
         order: index
       }));
     }

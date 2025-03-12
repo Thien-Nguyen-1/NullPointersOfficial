@@ -179,7 +179,7 @@ class InlinePictureSerializer(ContentSerializer):
 class AudioClipSerializer(ContentSerializer):
     class Meta:
         model = AudioClip
-        fields  = ContentSerializer.Meta.fields + ['audio_file']
+        fields  = ContentSerializer.Meta.fields + ['audio_file',"question_text","user_response"]
 
 class DocumentSerializer(ContentSerializer):
     class Meta:
