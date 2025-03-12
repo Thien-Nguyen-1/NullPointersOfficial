@@ -6,6 +6,7 @@ import { AuthContext } from "../services/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
+import EnrollmentModal from "../components/EnrollmentModal";
 import { GetModule, GetAllProgressTracker, SaveProgressTracker , SaveUserModuleInteract, GetUserModuleInteract} from "../services/api";
 import { IoMdArrowDropupCircle } from "react-icons/io";
 import { MdOutlineUnsubscribe } from "react-icons/md";
@@ -26,6 +27,7 @@ function Courses({ role }) {
     if(!user){
         return (<><h3> Placeholder: Authorization Failed mate. Please log in </h3></>)
     }
+
 
     useEffect(()=> {
         
@@ -86,6 +88,7 @@ function Courses({ role }) {
             <CourseItem 
                 key={module.id} 
                 module={module} 
+                role={user?.user_type} // Pass the user's role
                 userInteractTarget={userInteractions?.find((obj) => obj.module === module.id)}
                 update_interact_module={update_interact_module}
             
@@ -169,7 +172,6 @@ function Courses({ role }) {
                 
            
              </section>
-
 
 
         </div>

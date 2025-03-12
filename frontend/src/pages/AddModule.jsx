@@ -359,16 +359,32 @@ const AddModule = () => {
               await QuizApiUtils.deleteQuestion(question.id);
             }
             
+            // Inside the for loop where you process currentQuestions
+            console.log("[DEBUG] Processing questions for task:", existingTask.contentID);
+            console.log("[DEBUG] Current questions:", currentQuestions);
+
             // Create new questions
             for (let i = 0; i < currentQuestions.length; i++) {
               const question = currentQuestions[i];
+              console.log("[DEBUG] Creating question:", i + 1);
+              console.log("[DEBUG] Question data:", question);
+
               const questionData = {
-                task_id: existingTask.contentID,
+                task: existingTask.contentID,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
                 order: i
               };
-              await QuizApiUtils.createQuestion(questionData);
+
+              console.log("[DEBUG] Formatted question data for API:", questionData);
+
+              try {
+                await QuizApiUtils.createQuestion(questionData);
+              } catch (questionError) {
+                console.error(`Error creating question ${i+1}:`, questionError);
+              }
+
+
             }
           } else {
             // Create new task

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import "../../styles/MainQuizContainer.css";
+import "./FillInTheBlanks.css"; // Import the new CSS file
 import { FaTrash, FaPencilAlt } from "react-icons/fa";
 
 const AdminQuestionForm = ({ onSubmit }) => {
@@ -29,17 +29,17 @@ const AdminQuestionForm = ({ onSubmit }) => {
   };
 
   return (
-    <div className="module-container">
-      <h2 className="module-title">Add Question</h2>
-      {error && <p className="error-message">{error}</p>}
-      <div className="input-container">
+    <div className="fitb-module-container">
+      <h2 className="fitb-module-title">Add Question</h2>
+      {error && <p className="fitb-error-message">{error}</p>}
+      <div className="fitb-input-container">
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Enter question with ____ for blanks"
-          className="input-textarea wide-input"
+          className="fitb-input-textarea"
         />
-        <button onClick={handleSubmit} className="btn-add-question green-button larger-rounded-button">
+        <button onClick={handleSubmit} className="fitb-btn-add-question">
           Add Question
         </button>
       </div>
@@ -95,30 +95,30 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
   };
 
   return (
-    <div className="question-box">
-      <div className="question-header">
-        <h2 className="question-number">Question {index + 1}</h2>
-        <div className="editor-icon-container">
+    <div className="fitb-question-box">
+      <div className="fitb-question-header">
+        <h2 className="fitb-question-number">Question {index + 1}</h2>
+        <div className="fitb-editor-icon-container">
           {isEditing ? (
-            <button className="save-button" onClick={handleSave}>Save</button>
+            <button className="fitb-save-button" onClick={handleSave}>Save</button>
           ) : (
-            <FaPencilAlt className="edit-icon" onClick={handleEdit} />
+            <FaPencilAlt className="fitb-edit-icon" onClick={handleEdit} />
           )}
-          <FaTrash className="delete-icon" onClick={() => onDelete(index)} />
+          <FaTrash className="fitb-delete-icon" onClick={() => onDelete(index)} />
         </div>
       </div>
-      <h3 className="question-subtitle">Fill in the Blanks</h3>
-      {editError && <p className="error-message">{editError}</p>}
+      <h3 className="fitb-question-subtitle">Fill in the Blanks</h3>
+      {editError && <p className="fitb-error-message">{editError}</p>}
       {isEditing ? (
         <textarea
           value={editedQuestion}
           onChange={(e) => setEditedQuestion(e.target.value)}
-          className="edit-textarea"
+          className="fitb-edit-textarea"
         />
       ) : (
-        <div className="question-content">
+        <div className="fitb-question-content">
           {/* Display the question text directly */}
-          <p className="question-preview">
+          <p className="fitb-question-preview">
             {parts.map((part, idx) => (
               <span key={idx}>
                 {part}
@@ -127,7 +127,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
                     type="text"
                     value={answers[idx]}
                     onChange={(e) => handleChange(idx, e.target.value)}
-                    className="input-field"
+                    className="fitb-input-field"
                   />
                 )}
               </span>
@@ -171,9 +171,6 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
     }
   }, [initialQuestions]);
 
-  useEffect(() => {
-  }, [questions]);
-
   const addQuestion = (newQuestion) => {
     setQuestions(prevQuestions => [...prevQuestions, newQuestion]);
   };
@@ -189,9 +186,9 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="editor-container">
+    <div className="fitb-editor-container">
       <AdminQuestionForm onSubmit={addQuestion} />
-      <div className="questions-list">
+      <div className="fitb-questions-list">
         {questions.length > 0 ? (
           questions.map((question, index) => (
             <UserFillInTheBlanks 
@@ -203,13 +200,15 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
             />
           ))
         ) : (
-          <div className="no-questions-message">
+          <div className="fitb-no-questions-message">
             <p>No questions added yet. Add a question using the form above.</p>
           </div>
         )}
       </div>
+
     </div>
   );
 });
+
 
 export default VisualFillTheFormEditor;
