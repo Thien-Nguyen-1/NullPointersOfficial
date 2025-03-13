@@ -567,7 +567,7 @@ class UserChatView(APIView):
         data = request.data
 
         conv_Obj = Conversation.objects.get(id = room_id)
-
+        
   
         if conv_Obj:
             
@@ -576,6 +576,9 @@ class UserChatView(APIView):
             admin = conv_Obj.admin
 
             message_content = data["message"]
+
+            print("ADMIN TOKEN: ", admin.firebase_token)
+            print("USER TOKEN: ", user_.firebase_token)
 
                 
                 #Create a new message object

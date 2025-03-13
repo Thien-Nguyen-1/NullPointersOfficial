@@ -56,21 +56,17 @@ function Messaging() {
   const {user, updateUser, token} = useContext(AuthContext)
   
 
+  const [chatVisible, setChatVisible] = useState("shown") 
+
   const messaging = getMessaging()
 
-  onMessage(messaging, (payload) => {
-
-    console.log('Message received ', payload)
-
-    getUserMessages(chatID)
 
 
-  })
 
-
+  /* ========== ASYNC FUNCTIONALITIES ==========*/
 
   async function requestPermissionAndGetToken() {
-   // console.log("TOKEN ASSIGNING")
+ 
     try {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
@@ -129,31 +125,34 @@ function Messaging() {
   }
 
 
+  /* ========== LOGIC FUNCTIONALITIES ========== */
+
    useEffect(() => {
 
-     
       loadConversations()
      
 
    }, [])
 
-   useEffect(() => {
-      if (fcmToken) {
 
-        console.log("FCM TOKEN IS: ", fcmToken)
-        //requestPermissionAndGetToken()
-        
+   onMessage(messaging, (payload) => {
 
-      }
-   }, [fcmToken])
+    console.log('Message received ', payload)
+
+    getUserMessages(chatID)
+
+  })
+
+
+  
+
+
 
    /*  ========== GENERIC FUNCTIONALITIES ========== */
 
 
    async function handleUserCreateChat(objConvoReq = {}) {
 
-    console.log("Received ", objConvoReq)
-    
     try{
       const response = await CreateConversation(token, objConvoReq)
       
@@ -166,55 +165,32 @@ function Messaging() {
 
   }
 
+
+
   async function getUserMessages(id){
-    //console.log("Fetching All Messages")
+
     try { 
-
-
       const response = await GetMessages(token, id)
-      //console.log(response)
 
       setMessages(response)
       setChatId(id)
     
-       
 
     } catch(error){
       return error
     }
 
-
-
   }
 
 
-   async function setCurrentChat(){
-    //update state to set current chat 
-
-
-    
-
-
-
-
-   }
-
    async function sendMessage(e){
       e.preventDefault()
-      console.log("SENDING MATE")
+     
       if(chatID){
 
-        console.log("FCM TOKEN IS ", fcmToken)
-
         const messageObj = {"message": inputText}
-
         const response = await SendMessage(token, chatID, messageObj)
-
         await getUserMessages(chatID)
-
-        console.log("API RESPONSE", response)
-        
-
         setInputText("")
 
 
@@ -225,7 +201,7 @@ function Messaging() {
 
    
   
-    /* ========== UI Functionalities ==========   */
+    /* ========== UI FUNCTIONALITIES ==========   */
 
 
     useEffect( () => {
@@ -235,7 +211,21 @@ function Messaging() {
     }, [messages])
 
 
+    function toggleChatVisibility(isVisible=false) {
+      
+      if(!isVisible){
+        setChatVisible("hidden") 
+      }
+      else {
+        setChatVisible("shown") 
+      }
+     
+      loadConversations()
 
+
+    }
+
+    
 
 
 
@@ -245,15 +235,7 @@ function Messaging() {
      
       <div className="support-main-container ">
 
-        {/* <div className="overlay"> 
-          <div className="notification-container">
-             <h2> Enable Notifications</h2>
-             <p> Allow notifications or it'll break aight</p>
-             <button onClick={requestPermissionAndGetToken}> CLICK ME </button>
-          </div>
-
-
-        </div> */}
+      
         
 
         <section className="create-chat-container">
@@ -282,19 +264,19 @@ function Messaging() {
 
 
 
-        <section className="view-chat-container">
-
-                
-                
+        <section className= {`view-chat-container ${chatVisible} `}>
+{/* 
                 <header className="chat-header"> 
 
-                    <h2> Send Message</h2>
-                    <p>sduhs</p>
+                    <button onClick={()=>{toggleChatVisibility(false)}}> {'<'} Back </button>
 
-                </header>
+                    <h2> Send Message</h2>
+                        
+                </header> */}
 
                 <div className="chat-container" ref={chatContainerRef}>
                     <Chat 
+                   
                       allMessages={messages}
                       sendMessage={sendMessage}
                       />

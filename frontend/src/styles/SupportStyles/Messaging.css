@@ -50,13 +50,18 @@
 }
 
 .chat-header {
-    margin-top: 2rem;
+
    flex-grow: 0;
 }
 
 .chat-container {
     flex: 0 0 50vh;
     overflow-y: auto;
+
+    height: 50vh;
+    /* flex-grow: 1; Let it take remaining space
+    overflow-y: auto;
+    min-height: 0; Ensures the child can shrink properly */
 
    
    
@@ -76,13 +81,23 @@
 .green {background-color: lime;}
 .grey {background-color: #e0deda;}
 
+.shown{
+    display: block;
+}
+.hidden {
+    display: none;
+}
+
 .bubble-item {
 
+    p {
+        overflow-wrap: break-word;
+    };
 
-
-    padding: 0.3rem;
+   
     border-radius: 1rem;
     max-width: 50%;
+    padding: 0.3rem;
     
 }
 

@@ -13,6 +13,8 @@ function Chat(props){
     
     return (
         <>
+        
+       
           {messages?.map( (msg) => {
             
             if(user?.id == msg.sender){
@@ -37,6 +39,7 @@ function Chat(props){
                )
             }
           })}
+
         
         </>
     )

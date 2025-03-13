@@ -21,7 +21,9 @@ const Login = () => {
     //  const data = await loginUser(username, password);
       const data = await loginUser(username, password);
       redirectBasedOnUserType(data);
+
     } catch(err) {
+      
       setError("Invalid username or password");
     }
   }
