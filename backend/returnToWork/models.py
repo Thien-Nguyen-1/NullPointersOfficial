@@ -268,8 +268,8 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
-        ('question_answer_form', 'Question Answer Form'),
-        ('matching_questions', 'Matching Question Quiz')
+        ('question_input', 'Question Answer Form'),
+        ('pair_input', 'Matching Question Quiz')
     ]
 
     quiz_type = models.CharField(

@@ -51,8 +51,8 @@ const AddModule = () => {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
-    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'},
-    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'text_input'}
+    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'question_input'},
+    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'pair_input'}
   };
 
   // For development, use a prototype author
@@ -480,28 +480,28 @@ const AddModule = () => {
         }
       } catch (verifyErr) {
       }
-      for (const module of modules) {
-        if (module.type === 'Question and Answer Form') {
-          const editorRef = editorRefs.current[module.id];
-          const questionAnswers = editorRef?.getSubmittedData?.() || [];
-          for (const qa of questionAnswers){
-          let formData = {
-            title: `${module.type} for ${title}`,
-            description: `${module.type} content for ${title}`,
-            question:qa.question,
-            answer:qa.answer,
-            moduleID: moduleId,
-            author: authorId
-          };
-          try {
-            await QuizApiUtils.createQuestionAnswerFormTask(formData);
-            console.log('Question Answer Form task created successfully');
-          } catch (error) {
-            console.error('Error creating Question Answer Form task:', error);
-          }
-        }
-        }
-      }
+      // for (const module of modules) {
+      //   if (module.type === 'Question and Answer Form') {
+      //     const editorRef = editorRefs.current[module.id];
+      //     const questionAnswers = editorRef?.getSubmittedData?.() || [];
+      //     for (const qa of questionAnswers){
+      //     let formData = {
+      //       title: `${module.type} for ${title}`,
+      //       description: `${module.type} content for ${title}`,
+      //       question:qa.question,
+      //       answer:qa.answer,
+      //       moduleID: moduleId,
+      //       author: authorId
+      //     };
+      //     try {
+      //       await QuizApiUtils.createQuestionAnswerFormTask(formData);
+      //       console.log('Question Answer Form task created successfully');
+      //     } catch (error) {
+      //       console.error('Error creating Question Answer Form task:', error);
+      //     }
+      //   }
+      //   }
+      // }
 
       for (const module of modules) {
         if (module.type === 'Matching Question Quiz') {
