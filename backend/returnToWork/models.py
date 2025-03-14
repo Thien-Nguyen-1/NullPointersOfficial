@@ -7,6 +7,8 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
@@ -184,14 +186,14 @@ class User(AbstractUser):
 #task has a module id - but 
 
 class ProgressTracker(models.Model):
+    """Track overall module progress"""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
     hasLiked = models.BooleanField(default=False)
-
-    items_completed = models.PositiveIntegerField(default=0)
-    total_items = models.PositiveIntegerField(default=0)
+    contents_completed = models.PositiveIntegerField(default=0)
+    total_contents = models.PositiveIntegerField(default=0)
     progress_percentage = models.FloatField(default=0.0)
     
     class Meta:
@@ -199,58 +201,46 @@ class ProgressTracker(models.Model):
     
     def update_progress(self):
         """Recalculate progress for this module"""
-        # Count total items
-        total_count = 0
-        for model_name in ['InfoSheet', 'Video', 'Task', 'QuestionAnswerForm', 'MatchingQuestionQuiz']:
-            model_class = self.get_content_class(model_name)
-            if model_class:
-                total_count += model_class.objects.filter(moduleID=self.module).count()
+        # Get ContentType for each model
+        content_models = [InfoSheet, Video, Task, QuestionAnswerForm, MatchingQuestionQuiz]
+        content_types = [ContentType.objects.get_for_model(model) for model in content_models]
         
-        self.total_items = total_count
+        # Count total contents
+        total_count = 0
+        for model in content_models:
+            total_count += model.objects.filter(moduleID=self.module).count()
+        
+        self.total_contents = total_count
 
-        # Count viewed items
+        # Count viewed contents
         viewed_count = 0
-        for model_name in ['InfoSheet', 'Video', 'Task', 'QuestionAnswerForm', 'MatchingQuestionQuiz']:
-            model_class = self.get_content_class(model_name)
-            if model_class:
-                # Get all IDs of this content type in this module
-                item_ids = model_class.objects.filter(moduleID=self.module).values_list('contentID', flat=True)
-                
-                # Count viewed items
-                if item_ids:
-                    viewed = ContentProgress.objects.filter(
-                        user=self.user,
-                        content_type=model_name,
-                        content_id__in=item_ids,
-                        viewed=True
-                    ).count()
-                    viewed_count += viewed
+        for model, content_type in zip(content_models, content_types):
+            # Get all IDs of this content type in this module
+            content_ids = model.objects.filter(moduleID=self.module).values_list('contentID', flat=True)
+            
+            # Count viewed contents
+            if content_ids:
+                viewed = ContentProgress.objects.filter(
+                    user=self.user,
+                    content_type=content_type,
+                    object_id__in=content_ids,
+                    viewed=True
+                ).count()
+                viewed_count += viewed
 
-        self.items_completed = viewed_count
+        self.contents_completed = viewed_count
 
         # Calculate percentage
-        if self.total_items > 0:
-            self.progress_percentage = (self.items_completed / self.total_items) * 100
+        if self.total_contents > 0:
+            self.progress_percentage = (self.contents_completed / self.total_contents) * 100
         else:
             self.progress_percentage = 0
 
         # Mark as completed if all items are viewed
-        if self.items_completed == self.total_items and self.total_items > 0:
+        if self.contents_completed == self.total_contents and self.total_contents > 0:
             self.completed = True
         
         self.save()
-    
-    def get_content_class(self, class_name):
-        """Get the actual model class based on class name string"""
-        # This is a simplified approach - you'll need to import your models
-        content_classes = {
-            'InfoSheet': InfoSheet,
-            'Video': Video,
-            'Task': Task,
-            'QuestionAnswerForm': QuestionAnswerForm,
-            'MatchingQuestionQuiz': MatchingQuestionQuiz
-        }
-        return content_classes.get(class_name)
 
     def __str__(self):
         return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
@@ -403,19 +393,19 @@ class MatchingQuestionQuiz(Content):
  # Simplified ContentProgress for tracking viewed status only (no time tracking)
 class ContentProgress(models.Model):
     """Track individual content completion status"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='content_progress')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='content_viewed_progress')
     
-    # This links to the specific content item (InfoSheet, Video, etc.)
-    # Instead of ContentType, we'll handle the polymorphic relationship differently
-    content_id = models.UUIDField()  # This will store the contentID from your Content subclasses
-    content_type = models.CharField(max_length=50)  # Store the class name as a string
+    # Using Django's ContentType framework
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()  # Using UUID for your Content subclasses
+    content_object = GenericForeignKey('content_type', 'object_id')
     
     # Progress tracking
     viewed = models.BooleanField(default=False)
     viewed_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
-        unique_together = ('user', 'content_type', 'content_id')
+        unique_together = ('user', 'content_type', 'object_id')
     
     def mark_as_viewed(self):
         self.viewed = True
@@ -423,39 +413,12 @@ class ContentProgress(models.Model):
         self.save()
         
         # Update the module progress after marking content as viewed
-        self.update_module_progress()
-    
-    def update_module_progress(self):
-        """Update the related module progress after content status changes"""
-        # Find the content object and its module
-        content_class = self.get_content_class()
-        if content_class:
-            try:
-                content_obj = content_class.objects.get(contentID=self.content_id)
-                module = content_obj.moduleID
-                
-                # Get or create progress tracker
-                progress, created = ProgressTracker.objects.get_or_create(
-                    user=self.user,
-                    module=module
-                )
-                
-                # Update the progress
-                progress.update_progress()
-            except Exception as e:
-                print(f"Error updating module progress: {e}")
-    
-    def get_content_class(self):
-        """Get the actual model class based on content_type string"""
-        # This is a simplified approach - you'll need to import your models
-        content_classes = {
-            'InfoSheet': InfoSheet,
-            'Video': Video,
-            'Task': Task,
-            'QuestionAnswerForm': QuestionAnswerForm,
-            'MatchingQuestionQuiz': MatchingQuestionQuiz
-        }
-        return content_classes.get(self.content_type)
+        module = self.content_object.moduleID
+        progress, created = ProgressTracker.objects.get_or_create(
+            user=self.user,
+            module=module
+        )
+        progress.update_progress()
     
     def __str__(self):
         return f"{self.user.username} - {self.content_type} - {self.content_id}"
@@ -463,7 +426,7 @@ class ContentProgress(models.Model):
 
 class LearningTimeLog(models.Model):
     " Aggregating dayily learning time data "
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='content_progress')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='learning_time_logs')
     date = models.DateField()
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     time_seconds = models.PositiveIntegerField(default=0)
@@ -498,7 +461,7 @@ class PageViewSession(models.Model):
     """Track user sessions at the page/module level"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='page_sessions')
-    module = models.ForeignKey('Module', on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
     start_time = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(auto_now_add=True)
     total_time_seconds = models.PositiveIntegerField(default=0)
