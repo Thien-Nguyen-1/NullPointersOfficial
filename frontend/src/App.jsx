@@ -26,6 +26,7 @@ import QuizContainer from './components/quizzes/QuizContainer';
 
 import ProtectedSuperAdminRoute from './components/ProtectedSuperAdminRoute.jsx';
 import SuperAdminSettings from './pages/SuperAdminSettings.jsx';
+import Unauthorized from './pages/Unauthorized.jsx';
 
 import AddModule from './pages/AddModule';
 
@@ -41,7 +42,7 @@ function App() {
   return (
     <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
       <SuperAdminContextProvider>
-        
+
         {/* Wrapper that helps with user enrollment into the course */}
         <EnrollmentContextProvider>
         <Router>
@@ -59,6 +60,9 @@ function App() {
               {/* Temporary Quiz Route */}
               <Route path="/quiz/:taskId" element={<QuizContainer />} />  
 
+              <Route path="/unauthorized" element={<Unauthorized />} />
+
+
               {/* ModuleView Route - Added at root level */}
               <Route path="/modules/:moduleId" element={
                 <DashboardLayout>
@@ -73,7 +77,7 @@ function App() {
                     <ProtectedSuperAdminRoute>
                       <DashboardLayout>
                         <Routes>
-                          <Route path="settings" element={<SuperAdminSettings />} />
+                          <Route path="superadmin-settings" element={<SuperAdminSettings />} />
                         </Routes>
                       </DashboardLayout>
                     </ProtectedSuperAdminRoute>

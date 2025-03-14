@@ -3,7 +3,7 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../services/AuthContext';
-import './Unauthorized.css';
+import '../styles/Unauthorized.css';
 
 const Unauthorized = () => {
   const { user } = useContext(AuthContext);

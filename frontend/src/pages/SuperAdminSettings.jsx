@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../services/AuthContext';
 import { useSuperAdmin } from '../services/SuperAdminContext';
-import './SuperAdminSettings.css';
+import '../styles/SuperAdminSettings.css';
 
 const SuperAdminSettings = () => {
   const { token } = useContext(AuthContext);

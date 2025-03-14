@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {AuthContext} from "./AuthContext";
-import api from './api';con
+import api from './api';
 
 // Create the context
 export const SuperAdminContext = createContext();

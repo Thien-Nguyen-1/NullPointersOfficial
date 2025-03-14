@@ -54,7 +54,7 @@ const Sidebar = ({ role }) => {
 
   // SuperAdmin-specific menu items
   const superAdminItems = [
-    { path: "settings", icon: <FaUserShield size={24} />, label: "Super Admin Settings" },
+    { path: "superadmin-settings", icon: <FaUserShield size={24} />, label: "Super Admin Settings" },
   ];
 
   const menuItems = [...commonItems];
