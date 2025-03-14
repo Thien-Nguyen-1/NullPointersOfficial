@@ -130,7 +130,8 @@ class User(AbstractUser):
 
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
-        ('service user', 'Service user')
+        ('service user', 'Service user'),
+        ('superadmin', 'Super Admin')
         
     ]
 
@@ -335,3 +336,18 @@ class MatchingQuestionQuiz(Content):
 
     def __str__(self):
         return self.question[:50]
+
+
+class TermsAndConditions(models.Model):
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_terms')
+    
+    class Meta:
+        verbose_name = 'Terms and Conditions'
+        verbose_name_plural = 'Terms and Conditions'
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        return f"Terms and Conditions (Updated: {self.updated_at.strftime('%Y-%m-%d')})"

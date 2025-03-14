@@ -2,7 +2,7 @@ import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, TermsAndConditions
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
@@ -814,6 +814,117 @@ class TaskPdfView(APIView):
         response = HttpResponse(buffer, content_type="application/pdf")
         response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
         return response
+    
 
+# ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
 
+# Add these views to your returnToWork/views.py file
+
+class TermsAndConditionsView(APIView):
+    """API view for managing Terms and Conditions"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get the current terms and conditions"""
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, 
+                           status=status.HTTP_401_UNAUTHORIZED)
         
+        try:
+            # Get the latest terms and conditions
+            terms = TermsAndConditions.objects.latest('updated_at')
+            return Response({
+                'content': terms.content,
+                'last_updated': terms.updated_at
+            })
+        except TermsAndConditions.DoesNotExist:
+            return Response({
+                'content': '',
+                'last_updated': None
+            })
+    
+    def put(self, request):
+        """Update the terms and conditions"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can update terms and conditions'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        content = request.data.get('content')
+        if not content:
+            return Response({'error': 'Content is required'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create new terms and conditions entry
+        terms = TermsAndConditions.objects.create(
+            content=content,
+            created_by=request.user
+        )
+        
+        return Response({
+            'content': terms.content,
+            'last_updated': terms.updated_at
+        })
+
+class AdminUsersView(APIView):
+    """API view for managing admin users"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get list of admin users"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can view admin users'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        # Get all users with user_type='admin'
+        admins = User.objects.filter(user_type='admin')
+        serializer = UserSerializer(admins, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        """Create a new admin user"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can create admin users'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        # Ensure user_type is set to 'admin'
+        data = request.data.copy()
+        data['user_type'] = 'admin'
+        
+        # Use the existing SignUpSerializer for validation
+        serializer = SignUpSerializer(data=data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminUserDetailView(APIView):
+    """API view for managing individual admin users"""
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, user_id):
+        """Delete an admin user"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can delete admin users'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            admin = User.objects.get(id=user_id, user_type='admin')
+            admin.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({'error': 'Admin user not found'}, 
+                           status=status.HTTP_404_NOT_FOUND)
+
+class CheckSuperAdminView(APIView):
+    """API view to check if the current user is a superadmin"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Check if current user is a superadmin"""
+        is_superadmin = request.user.user_type == 'superadmin'
+        return Response({'isSuperAdmin': is_superadmin})

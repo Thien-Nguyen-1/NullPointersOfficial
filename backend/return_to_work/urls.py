@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView, TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -59,17 +59,11 @@ urlpatterns = [
     path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
 
-
-
-
-
-
-
-
-
-
-
-
+    # SuperAdmin API endpoints
+    path('api/terms-and-conditions/', TermsAndConditionsView.as_view(), name='terms-and-conditions'),
+    path('api/admin-users/', AdminUsersView.as_view(), name='admin-users'),
+    path('api/admin-users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
+    path('api/check-superadmin/', CheckSuperAdminView.as_view(), name='check-superadmin'),
 
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
