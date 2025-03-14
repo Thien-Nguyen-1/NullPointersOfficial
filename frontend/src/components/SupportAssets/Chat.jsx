@@ -9,6 +9,10 @@ function Chat(props){
     const {user} = useContext(AuthContext)
     const messages = props.allMessages
 
+    console.log(messages)
+    console.log("USED ID  is", user?.id)
+    
+
     
     
     return (
@@ -19,7 +23,7 @@ function Chat(props){
             
             if(user?.id == msg.sender){
                 return (
-                    <div key={msg.id} className="bubble-container right">
+                    <div key={msg.id} className="bubble-container bubble-right">
                         <Bubble
                             message={msg.text_content}
                             background_color="green"
@@ -30,7 +34,7 @@ function Chat(props){
                 )
             } else{
                return (
-                 <div key={msg.id} className="bubble-container left">
+                 <div key={msg.id} className="bubble-container bubble-left">
                     <Bubble 
                         message={msg.text_content}
                         background_color="grey"
@@ -39,6 +43,10 @@ function Chat(props){
                )
             }
           })}
+
+          { messages?.filter( (msg) => msg.sender != user?.id ).length == 0 &&
+               <p className="mini-notif-container "> Administrator will respond within 1-3 working days </p>
+          }
 
         
         </>

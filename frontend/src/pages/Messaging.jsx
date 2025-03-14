@@ -10,7 +10,9 @@ import ChatList from "../components/SupportAssets/ChatList"
 import Chat from "../components/SupportAssets/Chat";
 import { GetConversations, CreateConversation, GetMessages, SendMessage } from "../services/api_chat";
 import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
-import '../styles/SupportStyles/Messaging.css'
+
+import "../styles/SupportStyles/Messaging.css"
+
 import { IoSend } from "react-icons/io5";
 
 
@@ -56,7 +58,7 @@ function Messaging() {
   const {user, updateUser, token} = useContext(AuthContext)
   
 
-  const [chatVisible, setChatVisible] = useState("shown") 
+  const [chatVisible, setChatVisible] = useState(false) 
 
   const messaging = getMessaging()
 
@@ -144,8 +146,6 @@ function Messaging() {
   })
 
 
-  
-
 
 
    /*  ========== GENERIC FUNCTIONALITIES ========== */
@@ -187,7 +187,7 @@ function Messaging() {
       e.preventDefault()
      
       if(chatID){
-
+        await requestPermissionAndGetToken()
         const messageObj = {"message": inputText}
         const response = await SendMessage(token, chatID, messageObj)
         await getUserMessages(chatID)
@@ -197,6 +197,40 @@ function Messaging() {
       }
 
 
+   }
+   
+   
+
+
+   async function sendNewMessage(e){
+      e.preventDefault()
+
+      if(chatID){
+
+        try{
+
+            await requestPermissionAndGetToken()
+
+            const messageObj = {"message": inputText}
+            await SendMessage(token, chatID, messageObj)
+
+            await getUserMessages(chatID)
+
+            
+            setInputText("");
+            
+
+
+
+        }catch(error){
+          console.error("Error sending message")
+
+        }
+
+
+      }
+        
+      
    }
 
    
@@ -213,13 +247,8 @@ function Messaging() {
 
     function toggleChatVisibility(isVisible=false) {
       
-      if(!isVisible){
-        setChatVisible("hidden") 
-      }
-      else {
-        setChatVisible("shown") 
-      }
-     
+      setChatVisible(isVisible)
+
       loadConversations()
 
 
@@ -238,7 +267,7 @@ function Messaging() {
       
         
 
-        <section className="create-chat-container">
+        <section className={`create-chat-container  chat-visible-${!chatVisible}`}>
             <h2> Support Page </h2>
             
             <div className="flex">
@@ -257,6 +286,7 @@ function Messaging() {
               handleUserCreateChat={handleUserCreateChat}
               getUserMessages= {getUserMessages}
               requestPermissionAndGetToken={requestPermissionAndGetToken}
+              toggleChatVisibility={toggleChatVisibility}
               />
 
         </section>
@@ -264,31 +294,33 @@ function Messaging() {
 
 
 
-        <section className= {`view-chat-container ${chatVisible} `}>
-{/* 
+        <section className= {`view-chat-container chat-visible-${chatVisible}`}>
+                
                 <header className="chat-header"> 
 
                     <button onClick={()=>{toggleChatVisibility(false)}}> {'<'} Back </button>
 
                     <h2> Send Message</h2>
                         
-                </header> */}
+                </header> 
 
                 <div className="chat-container" ref={chatContainerRef}>
                     <Chat 
                    
                       allMessages={messages}
                       sendMessage={sendMessage}
+                     
                       />
                 </div>
                 
                 <div className="user-interact-container">
-                  <form className="user-chat-form flex " onSubmit={(e) => {sendMessage(e)}}>
+                  <form className="user-chat-form flex " onSubmit={(e) => {sendNewMessage(e)}}>
 
                       <input 
                         type="text"
                         value={inputText}
                         onChange={(e) => {setInputText(e.target.value)}}/>
+                        
 
                       <IoSend 
                         className="send-message-button"

@@ -1,8 +1,9 @@
 
 import { useContext } from "react"
 import { AuthContext } from "../../services/AuthContext"
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaUserCircle } from "react-icons/fa";
 import { TiTick } from "react-icons/ti";
+
 
 function ChatSideBox(props){
 
@@ -27,28 +28,36 @@ function ChatSideBox(props){
         console.log("CLICKING")
         props.getUserMessages(convoObj.id)
         props.requestPermissionAndGetToken()
+        props.toggleChatVisibility(true)
      
     }
 
 
     return (
         <div className="chat-side-box" onClick={render_chat}>
-            <h3>{convoObj?.user_username}</h3>
+
+            <div className="chat-profile">
+                 <FaUserCircle className="chat-profile-icon"/>
+            </div>
             
             
+            <div>
+                <h3>{convoObj?.user_username}</h3>
 
-            {user?.user_type == "admin" && (
-                <div className="admin-chat-choice">
+                {user?.user_type == "admin" && (
+                    <div className="admin-chat-choice">
 
-                    <FaTimes 
-                    style={{ color: "red"}}
-                    onClick={()=>{}}/>
+                        <FaTimes 
+                        style={{ color: "red"}}
+                        onClick={()=>{}}/>
 
-                    <TiTick 
-                    style={{ color: "green"}}
-                    onClick={() => {assign_chat()}} />
-                </div>
-            )}
+                        <TiTick 
+                        style={{ color: "green"}}
+                        onClick={() => {assign_chat()}} />
+                    </div>
+                )}
+
+            </div>
 
         </div>
 

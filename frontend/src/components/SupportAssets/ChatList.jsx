@@ -1,11 +1,12 @@
 
 import ChatSideBox from "./ChatSideBox"
 
+
 function ChatList(props){
 
     const allChats = props.all_Chats
     
-   // console.log(allChats)
+
 
     return (
         <div className="chat-selection-container">
@@ -16,6 +17,7 @@ function ChatList(props){
                     handleUserCreateChat={props.handleUserCreateChat}
                     getUserMessages={props.getUserMessages}
                     requestPermissionAndGetToken={props.requestPermissionAndGetToken}
+                    toggleChatVisibility={props.toggleChatVisibility}
                     />
             ) )}
         </div>

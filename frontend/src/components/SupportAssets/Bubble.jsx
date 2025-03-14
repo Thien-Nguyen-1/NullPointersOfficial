@@ -1,6 +1,8 @@
 
 
 
+<st></st>
+
 function Bubble(props) {
 
     const msg = props.message

@@ -577,9 +577,6 @@ class UserChatView(APIView):
 
             message_content = data["message"]
 
-            print("ADMIN TOKEN: ", admin.firebase_token)
-            print("USER TOKEN: ", user_.firebase_token)
-
                 
                 #Create a new message object
             Message.objects.create(
