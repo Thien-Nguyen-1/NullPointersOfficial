@@ -142,20 +142,20 @@ const InlineRichTextEditor = ({ initialContent, onSave, onCancel }) => {
                 className="dropdown-item" 
                 onClick={() => handleFormatting('insertUnorderedList')}
               >
-                Bullet List
+                <span className="item-icon bullet-list-icon"></span>
+                <span>Bullet List</span>
               </button>
               <button 
                 type="button" 
                 className="dropdown-item" 
                 onClick={() => handleFormatting('insertOrderedList')}
               >
-                Numbered List
+                <span className="item-icon numbered-list-icon"></span>
+                <span>Numbered List</span>
               </button>
             </div>
           )}
         </div>
-        
-        {/* Text alignment dropdown */}
         <div className="dropdown">
           <button 
             type="button" 
@@ -172,28 +172,32 @@ const InlineRichTextEditor = ({ initialContent, onSave, onCancel }) => {
                 className="dropdown-item" 
                 onClick={() => handleFormatting('justifyLeft')}
               >
-                ⟵ Left
+                <span className="item-icon align-left-icon"></span>
+                <span>Left</span>
               </button>
               <button 
                 type="button" 
                 className="dropdown-item" 
                 onClick={() => handleFormatting('justifyCenter')}
               >
-                ⟷ Center
+                <span className="item-icon align-center-icon"></span>
+                <span>Center</span>
               </button>
               <button 
                 type="button" 
                 className="dropdown-item" 
                 onClick={() => handleFormatting('justifyRight')}
               >
-                ⟶ Right
+                <span className="item-icon align-right-icon"></span>
+                <span>Right</span>
               </button>
               <button 
                 type="button" 
                 className="dropdown-item" 
                 onClick={() => handleFormatting('justifyFull')}
               >
-                ≡ Justify
+                <span className="item-icon align-justify-icon"></span>
+                <span>Justify</span>
               </button>
             </div>
           )}

@@ -1,4 +1,4 @@
-/* Rich Text Editor Styles with Dropdown Menus */
+/* Rich Text Editor Styles with Improved Icons */
 .inline-rich-text-editor {
   width: 100%;
   background-color: white;
@@ -72,11 +72,9 @@
   justify-content: center;
   min-width: 80px;
   height: 36px;
-  border: none;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  /* Change background color to white for better contrast */
   background-color: white;
-  /* Change text color to primary green for visibility */
   color: var(--primary-green);
   font-size: 14px;
   font-weight: 500;
@@ -85,18 +83,10 @@
   padding: 0 12px;
 }
 
-
 .dropdown-toggle:hover {
-  /* Light green background on hover */
   background-color: #f0f9f0;
 }
 
-/* subtle border */
-.dropdown-toggle {
-  border: 1px solid #ddd;
-}
-
-/* Style the dropdown carets */
 .dropdown-toggle::after {
   content: "▾";
   margin-left: 5px;
@@ -108,7 +98,7 @@
   top: 100%;
   left: 0;
   z-index: 1000;
-  min-width: 160px;
+  min-width: 180px;
   padding: 5px 0;
   margin-top: 2px;
   background-color: white;
@@ -118,11 +108,8 @@
 }
 
 .dropdown-item {
-  color: #333;
-}
-
-.dropdown-item {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   padding: 8px 16px;
   clear: both;
@@ -135,9 +122,184 @@
   transition: background-color 0.2s;
 }
 
+.dropdown-item {
+  color: black;
+}
+
 .dropdown-item:hover {
   background-color: var(--secondary-green);
   color: var(--primary-green);
+}
+
+.item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  margin-right: 8px;
+}
+
+/* Improved Bullet List Icon */
+.bullet-list-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+}
+
+.bullet-list-icon::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: -2px;
+  font-size: 16px;
+}
+
+.bullet-list-icon::after {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  font-size: 16px;
+}
+
+/* Improved Numbered List Icon */
+.numbered-list-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+}
+
+.numbered-list-icon::before {
+  content: '1';
+  position: absolute;
+  left: 0;
+  top: -4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.numbered-list-icon::after {
+  content: '2';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Improved Alignment Icons */
+/* Left align icon - longer lines on left */
+.align-left-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+}
+
+.align-left-icon::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 12px;
+  background-image: 
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333);
+  background-size: 
+    16px 2px,  /* full width line */
+    12px 2px,  /* shorter line */
+    14px 2px;  /* medium line */
+  background-position: 
+    0 2px,     /* top line */
+    0 6px,     /* middle line */
+    0 10px;    /* bottom line */
+  background-repeat: no-repeat;
+}
+
+/* Center align icon - lines centered */
+.align-center-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+}
+
+.align-center-icon::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 12px;
+  background-image: 
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333);
+  background-size: 
+    16px 2px,  /* full width line */
+    12px 2px,  /* shorter line */
+    14px 2px;  /* medium line */
+  background-position: 
+    0 2px,       /* top line */
+    center 6px,  /* middle line, centered */
+    center 10px; /* bottom line, centered */
+  background-repeat: no-repeat;
+}
+
+/* Right align icon - lines aligned to the right */
+.align-right-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+}
+
+.align-right-icon::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 12px;
+  background-image: 
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333);
+  background-size: 
+    16px 2px,  /* full width line */
+    12px 2px,  /* shorter line */
+    14px 2px;  /* medium line */
+  background-position: 
+    0 2px,                /* top line */
+    right 0px top 6px,    /* middle line, right aligned */
+    right 0px top 10px;   /* bottom line, right aligned */
+  background-repeat: no-repeat;
+}
+
+/* Justify align icon - all lines full width */
+.align-justify-icon {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+}
+
+.align-justify-icon::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 12px;
+  background-image: 
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333),
+    linear-gradient(#333, #333);
+  background-size: 
+    16px 2px,  /* full width line */
+    16px 2px,  /* full width line */
+    16px 2px;  /* full width line */
+  background-position: 
+    0 2px,    /* top line */
+    0 6px,    /* middle line */
+    0 10px;   /* bottom line */
+  background-repeat: no-repeat;
 }
 
 .separator {
@@ -196,10 +358,12 @@
 
 .editor-content ul li {
   list-style-type: disc;
+  margin-bottom: 0.3em;
 }
 
 .editor-content ol li {
   list-style-type: decimal;
+  margin-bottom: 0.3em;
 }
 
 /* Text alignment styling */
@@ -269,10 +433,12 @@
 
 .terms-preview ul li {
   list-style-type: disc;
+  margin-bottom: 0.3em;
 }
 
 .terms-preview ol li {
   list-style-type: decimal;
+  margin-bottom: 0.3em;
 }
 
 /* Make sure alignment is preserved in preview */
