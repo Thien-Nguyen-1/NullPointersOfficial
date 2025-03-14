@@ -133,15 +133,28 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
       throw new Error("Unauthorized access");
     }
 
+    console.log(`[DEBUG] About to delete admin with ID: ${userId}`)
+    console.log(`[DEBUG] ID type: ${typeof userId}`)
+
     try {
       await api.delete(`/api/admin-users/${userId}/`, {
         headers: { Authorization: `Token ${token}` }
       });
       
+      // console.log(`[DEBUG] Delete response:`, response)
+
       setAdminUsers(adminUsers.filter(admin => admin.id !== userId));
       return { success: true };
     } catch (err) {
       console.error("Error removing admin user:", err);
+      console.log(`[DEBUG] Request URL:`, `/api/admin-users/${userId}/`);
+
+      // if (err.response) {
+      //   console.log(`[DEBUG] Error status:`, err.response.status);
+      //   console.log(`[DEBUG] Error data:`, err.response.data);
+
+      // }
+
       throw new Error("Failed to remove admin user");
     }
   };
