@@ -36,6 +36,7 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
     
+    # Creates progress tracker entries
     def post(self, request):
         serializer = ProgressTrackerSerializer(data=request.data)
         if serializer.is_valid():
@@ -112,8 +113,6 @@ class PasswordResetView(APIView):
     def post(self,request,uidb64,token):
         request.data["uidb64"] = uidb64
         request.data["token"] = token
-        print("RECEIVED DATUM!!!! ")
-        print("BRO WHO ADDED THIS")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

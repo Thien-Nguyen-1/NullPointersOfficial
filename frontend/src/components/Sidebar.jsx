@@ -35,7 +35,7 @@ const Sidebar = ({ role }) => {
   // Admin-specific menu items
   const adminItems = [
     { path: "service-users", icon: <FaUsers size={24} />, label: "Manage Users" },
-    { path: "all-courses", icon: <PiBooksBold size={24} />, label: "Courses" },
+    { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
     { path: "all-courses/create-and-manage-module", icon: <PiColumnsPlusLeftFill size={24} />, label: "Create Module" }
 
   ];
