@@ -256,3 +256,72 @@ tr:hover {
   background-color: #f5c6cb;
   transition: background-color 0.2s;
 }
+
+/* Container for terms section */
+.settings-section {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Prevents container from changing size drastically */
+  min-height: 500px; 
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Terms container inside settings section */
+.terms-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  /* Gives it a minimum height regardless of content */
+  min-height: 350px;
+}
+
+/* Preview mode for terms */
+.terms-preview {
+  background-color: #f5f8f5;
+  padding: 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  /* Fixed height with scrolling */
+  height: 300px;
+  min-height: 300px; /* Ensures consistent height */
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Responsive settings */
+@media (max-width: 768px) {
+  .settings-section {
+    min-height: 450px;
+  }
+  
+  .terms-container {
+    min-height: 300px;
+  }
+  
+  .terms-preview {
+    height: 250px;
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-section {
+    min-height: 400px;
+    padding: 1rem;
+  }
+  
+  .terms-container {
+    min-height: 250px;
+  }
+  
+  .terms-preview {
+    height: 200px;
+    min-height: 200px;
+  }
+}

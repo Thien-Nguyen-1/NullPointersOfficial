@@ -77,6 +77,16 @@ function App() {
                     <ProtectedSuperAdminRoute>
                       <DashboardLayout>
                         <Routes>
+                            <Route path="home" element={<AdminDashboard />} />
+                          <Route path="settings" element={<Settings />} />
+                          <Route path="support" element={<Support />} />
+                          <Route path="courses" element={<Courses />} />
+                          <Route path="/service-users" element={<ServiceUsersPage />} />
+
+                          {/* to be deleted */}
+                          <Route path="all-courses" element={<CoursesList role="admin" />} />
+                          <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
+                          
                           <Route path="superadmin-settings" element={<SuperAdminSettings />} />
                         </Routes>
                       </DashboardLayout>
