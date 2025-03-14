@@ -908,17 +908,34 @@ class AdminUserDetailView(APIView):
     def delete(self, request, user_id):
         """Delete an admin user"""
         # Check if user is a superadmin
+
+        print(f"[DEBUG] Received delete request for user_id: {user_id}")
+        print(f"[DEBUG] Type of user_id: {type(user_id)}")
+
         if request.user.user_type != 'superadmin':
+            print(f"[DEBUG] Permission denied: User type is {request.user.user_type}")
             return Response({'error': 'Only superadmins can delete admin users'}, 
                            status=status.HTTP_403_FORBIDDEN)
         
         try:
+            print(f"[DEBUG] Looking for admin user with id={user_id}")
             admin = User.objects.get(id=user_id, user_type='admin')
+            print(f"[DEBUG] Found admin: {admin.username}")
             admin.delete()
+            print(f"[DEBUG] Admin user deleted successfully")
             return Response(status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
+            print(f"[DEBUG] Admin user not found with id={user_id}")
             return Response({'error': 'Admin user not found'}, 
                            status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            print(f"[DEBUG] Error deleting admin user: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response({'error': f'An error occurred: {str(e)}'}, 
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 class CheckSuperAdminView(APIView):
     """API view to check if the current user is a superadmin"""
