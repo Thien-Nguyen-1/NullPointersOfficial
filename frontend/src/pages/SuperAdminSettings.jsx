@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../services/AuthContext';
 import { useSuperAdmin } from '../services/SuperAdminContext';
+import InlineRichTextEditor from '../components/RichTextEditor';
 import '../styles/SuperAdminSettings.css';
 
 const SuperAdminSettings = () => {
@@ -21,6 +22,7 @@ const SuperAdminSettings = () => {
   const [termsContent, setTermsContent] = useState('');
   const [termsLastUpdated, setTermsLastUpdated] = useState(null);
   const [termsEditMode, setTermsEditMode] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   // Admin Management state
   const [newAdmin, setNewAdmin] = useState({ 
@@ -33,7 +35,6 @@ const SuperAdminSettings = () => {
   });
   const [showAddAdminForm, setShowAddAdminForm] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState('');
 
   // Load terms and conditions data
   useEffect(() => {
@@ -49,15 +50,19 @@ const SuperAdminSettings = () => {
     setTermsEditMode(true);
   };
 
-  const handleTermsSave = async () => {
+  const handleTermsSave = async (content) => {
     try {
-      await updateTermsAndConditions(termsContent);
+      // Make API call to update terms
+      await updateTermsAndConditions(content);
+      
+      // Update local state
+      setTermsContent(content);
       setTermsLastUpdated(new Date().toLocaleDateString());
       setTermsEditMode(false);
       setSuccessMessage('Terms and conditions updated successfully');
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Failed to update terms:', error);
+    } catch (err) {
+      console.error('Failed to update terms:', err);
     }
   };
 
@@ -124,9 +129,9 @@ const SuperAdminSettings = () => {
       setShowAddAdminForm(false);
       setSuccessMessage('Admin user added successfully');
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Failed to add admin:', error);
-      setValidationErrors({ form: error.message || 'Failed to add admin user' });
+    } catch (err) {
+      console.error('Failed to add admin:', err);
+      setValidationErrors({ form: err.message || 'Failed to add admin user' });
     }
   };
 
@@ -136,8 +141,8 @@ const SuperAdminSettings = () => {
         await removeAdminUser(adminId);
         setSuccessMessage('Admin user removed successfully');
         setTimeout(() => setSuccessMessage(''), 3000);
-      } catch (error) {
-        console.error('Failed to remove admin:', error);
+      } catch (err) {
+        console.error('Failed to remove admin:', err);
       }
     }
   };
@@ -181,27 +186,17 @@ const SuperAdminSettings = () => {
         
         <div className="terms-container">
           {termsEditMode ? (
-            <>
-              <textarea
-                className="terms-editor"
-                value={termsContent}
-                onChange={(e) => setTermsContent(e.target.value)}
-                rows={10}
-              />
-              <div className="button-group">
-                <button className="btn-secondary" onClick={handleTermsCancel}>
-                  Cancel
-                </button>
-                <button className="btn-primary" onClick={handleTermsSave}>
-                  Save Changes
-                </button>
-              </div>
-            </>
+            <InlineRichTextEditor 
+              initialContent={termsContent}
+              onSave={handleTermsSave}
+              onCancel={handleTermsCancel}
+            />
           ) : (
             <>
-              <div className="terms-preview">
-                {termsContent || 'No terms and conditions have been set.'}
-              </div>
+              <div 
+                className="terms-preview"
+                dangerouslySetInnerHTML={{ __html: termsContent || 'No terms and conditions have been set.' }}
+              />
               <button className="btn-primary" onClick={handleTermsEdit}>
                 Edit Terms & Conditions
               </button>
@@ -217,7 +212,7 @@ const SuperAdminSettings = () => {
         </div>
         
         <div className="admin-container">
-          {adminUsers.length > 0 ? (
+          {adminUsers && adminUsers.length > 0 ? (
             <div className="admin-list">
               <table>
                 <thead>

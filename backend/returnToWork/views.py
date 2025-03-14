@@ -822,15 +822,11 @@ class TaskPdfView(APIView):
 
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     def get(self, request):
         """Get the current terms and conditions"""
-        # Check if user is authenticated
-        if not request.user.is_authenticated:
-            return Response({'error': 'Authentication required'}, 
-                           status=status.HTTP_401_UNAUTHORIZED)
-        
         try:
             # Get the latest terms and conditions
             terms = TermsAndConditions.objects.latest('updated_at')
@@ -839,17 +835,22 @@ class TermsAndConditionsView(APIView):
                 'last_updated': terms.updated_at
             })
         except TermsAndConditions.DoesNotExist:
+            # Return default content if no terms exist yet
             return Response({
-                'content': '',
+                'content': 'Default terms and conditions. Please check back later for updated terms.',
                 'last_updated': None
             })
     
     def put(self, request):
         """Update the terms and conditions"""
-        # Check if user is a superadmin
+        # For PUT requests, still require authentication and superadmin role
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, 
+                          status=status.HTTP_401_UNAUTHORIZED)
+        
         if request.user.user_type != 'superadmin':
             return Response({'error': 'Only superadmins can update terms and conditions'}, 
-                           status=status.HTTP_403_FORBIDDEN)
+                          status=status.HTTP_403_FORBIDDEN)
         
         content = request.data.get('content')
         if not content:
@@ -945,3 +946,21 @@ class CheckSuperAdminView(APIView):
         """Check if current user is a superadmin"""
         is_superadmin = request.user.user_type == 'superadmin'
         return Response({'isSuperAdmin': is_superadmin})
+    
+
+
+class AcceptTermsView(APIView):
+    """API view for users to accept terms and conditions"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Mark the current user as having accepted the terms"""
+        user = request.user
+        
+        user.terms_accepted = True
+        user.save()
+        
+        return Response({
+            'message': 'Terms and conditions accepted',
+            'user': UserSerializer(user).data
+        })

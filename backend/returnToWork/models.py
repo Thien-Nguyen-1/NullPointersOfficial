@@ -166,6 +166,8 @@ class User(AbstractUser):
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
+    terms_accepted = models.BooleanField(default=False)
+
 
     class Meta:
         """Model options."""
