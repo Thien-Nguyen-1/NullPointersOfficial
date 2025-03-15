@@ -12,10 +12,8 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  // Assuming `initialQuestions` prop is passed to this component with data as seen in your debug output
   useEffect(() => {
     if (props.initialQuestions && props.initialQuestions.length > 0) {
-      // Format and load initial data from the `initialQuestions` prop
       const loadedQuestions = props.initialQuestions.map(q => ({
         ...q,
         id: q.id, 
@@ -58,19 +56,15 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
   };
 
   const handleRemoveEntry = async(id) => {
-    //setSubmittedData(submittedData.filter(entry => entry.id !== id));
     try {
-      // Call the deleteQuestion function to remove from backend
       const result = await QuizApiUtils.deleteQuestion(id);
       if (result) {
-        // If successful, update the local state to remove the question
         setSubmittedData(submittedData.filter(entry => entry.id !== id));
       }
     } catch (error) {
       console.log('Failed to delete question from backend:', submittedData.id);
 
       console.error('Failed to delete question from backend:', error);
-      // Optionally handle the error, e.g., show a notification to the user
     }
   };
 
