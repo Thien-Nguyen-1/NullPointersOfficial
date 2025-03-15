@@ -124,7 +124,10 @@ export const QuizApiUtils = {
   createQuestion: async (questionData) => {
     try {
       const response = await api.post('/api/quiz/questions/', questionData);
+      console.log('creating question:', questionData);
+      console.log('respons data:', response.data);
       return response.data;
+
     } catch (error) {
       console.error('Error creating question:', error);
       throw error;

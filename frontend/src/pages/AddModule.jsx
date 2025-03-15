@@ -325,7 +325,8 @@ const AddModule = () => {
                 currentQuestions = currentQuestions.map(q => ({
                   ...q,
                   question_text: q.text,
-                  hint_text: q.hint || ""
+                  hint_text: q.hint || "",
+                  answers: q.answers || []
                 }));
               }
             }
@@ -371,7 +372,8 @@ const AddModule = () => {
                 task_id: existingTask.contentID,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers: question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }
@@ -399,7 +401,8 @@ const AddModule = () => {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers:question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }
@@ -463,7 +466,8 @@ const AddModule = () => {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers: question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }

@@ -647,6 +647,7 @@ class QuizQuestionView(APIView):
                 question_text = request.data.get('question_text')
                 hint_text = request.data.get('hint_text', '')
                 order = request.data.get('order', 0)
+                answers = request.data.get('answers',[])
 
                 if not task_id or not question_text:
                     return Response(
@@ -668,13 +669,15 @@ class QuizQuestionView(APIView):
                 question.question_text = question_text
                 question.hint_text = hint_text
                 question.order = order
+                question.answers
                 question.save()
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers': question.answers
                 }, status=status.HTTP_200_OK)
 
             except QuizQuestion.DoesNotExist:
@@ -688,6 +691,8 @@ class QuizQuestionView(APIView):
             question_text = request.data.get('question_text')
             hint_text = request.data.get('hint_text', '')
             order = request.data.get('order', 0)
+            answers = request.data.get('answers',[])
+
 
             if not task_id or not question_text:
                 return Response(
@@ -703,14 +708,16 @@ class QuizQuestionView(APIView):
                     task=task,
                     question_text=question_text,
                     hint_text=hint_text,
-                    order=order
+                    order=order,
+                    answers=answers
                 )
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers':question.answers
                 }, status=status.HTTP_201_CREATED)
 
             except Task.DoesNotExist:
@@ -729,6 +736,7 @@ class QuizQuestionView(APIView):
                 'text': question.question_text,
                 'hint': question.hint_text,
                 'order': question.order,
+                'answers':question.answers,
                 'task_id': str(question.task.contentID)
             })
         else:
@@ -748,7 +756,8 @@ class QuizQuestionView(APIView):
                     'id': q.id,
                     'text': q.question_text,
                     'hint': q.hint_text,
-                    'order': q.order
+                    'order': q.order,
+                    'answers': q.answers
                 } for q in questions
             ])
 
