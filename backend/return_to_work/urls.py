@@ -20,6 +20,12 @@ from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet, AcceptTermsView
 from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView, TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
+
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
@@ -59,6 +65,10 @@ urlpatterns = [
     path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
     path('api/accept-terms/', AcceptTermsView.as_view(), name='accept-terms'),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
     # SuperAdmin API endpoints
     path('api/terms-and-conditions/', TermsAndConditionsView.as_view(), name='terms-and-conditions'),
