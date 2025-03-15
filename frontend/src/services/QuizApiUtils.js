@@ -174,7 +174,8 @@ export const QuizApiUtils = {
         task_id: questionData.task || questionData.task_id, // Use either task or task_id
         question_text: questionData.question_text || questionData.text || "",
         hint_text: questionData.hint_text || questionData.hint || "",
-        order: questionData.order || 0
+        order: questionData.order || 0,
+        answers:questionData.answers || []
       };
       
       console.log("[DEBUG] Sending to API:", apiData);
