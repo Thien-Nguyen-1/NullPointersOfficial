@@ -8,12 +8,12 @@ import '../App.css'
 import { FaCirclePlus } from "react-icons/fa6";
 import ChatList from "../components/SupportAssets/ChatList"
 import Chat from "../components/SupportAssets/Chat";
+import MessageBar from "../components/SupportAssets/MessageBar";
 import { GetConversations, CreateConversation, GetMessages, SendMessage } from "../services/api_chat";
 import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 
 import "../styles/SupportStyles/Messaging.css"
 
-import { IoSend } from "react-icons/io5";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -44,7 +44,12 @@ const messaging = getMessaging(app);
 
 function Messaging() {
 
+  const {user, updateUser, token} = useContext(AuthContext)
+
+
   const [fcmToken, setFcmToken] = useState(null);
+
+ 
   const [loading, setLoading] = useState(true);
   const [allConvos, setConvos] = useState([])
 
@@ -55,8 +60,6 @@ function Messaging() {
 
   const chatContainerRef = useRef(null)
 
-  const {user, updateUser, token} = useContext(AuthContext)
-  
 
   const [chatVisible, setChatVisible] = useState(false) 
 
@@ -82,6 +85,7 @@ function Messaging() {
       console.error("Error getting token:", error);
     } finally {
       setLoading(false);
+      
     }
   };
 
@@ -96,6 +100,8 @@ function Messaging() {
     }
   }
 
+
+ 
   async function saveFCMToken(){
 
     console.log("SAVING TOKEN")
@@ -104,6 +110,7 @@ function Messaging() {
       
 
       setLoading(true)
+      
       
       const updatedUser = {...user, "firebase_token": fcmToken}
 
@@ -132,7 +139,6 @@ function Messaging() {
    useEffect(() => {
 
       loadConversations()
-     
 
    }, [])
 
@@ -183,30 +189,11 @@ function Messaging() {
   }
 
 
-   async function sendMessage(e){
-      e.preventDefault()
-     
-      if(chatID){
-        await requestPermissionAndGetToken()
-        const messageObj = {"message": inputText}
-        const response = await SendMessage(token, chatID, messageObj)
-        await getUserMessages(chatID)
-        setInputText("")
-
-
-      }
-
-
-   }
-   
-   
-
 
    async function sendNewMessage(e){
       e.preventDefault()
 
       if(chatID){
-
         try{
 
             await requestPermissionAndGetToken()
@@ -216,21 +203,20 @@ function Messaging() {
 
             await getUserMessages(chatID)
 
-            
             setInputText("");
             
-
-
 
         }catch(error){
           console.error("Error sending message")
 
         }
 
-
       }
         
-      
+   }
+
+   async function updateInputText(msg=""){
+      setInputText(msg)
    }
 
    
@@ -248,7 +234,6 @@ function Messaging() {
     function toggleChatVisibility(isVisible=false) {
       
       setChatVisible(isVisible)
-
       loadConversations()
 
 
@@ -258,14 +243,10 @@ function Messaging() {
 
 
 
-
     return (
 
      
       <div className="support-main-container ">
-
-      
-        
 
         <section className={`create-chat-container  chat-visible-${!chatVisible}`}>
             <h2> Support Page </h2>
@@ -274,7 +255,6 @@ function Messaging() {
               <p> Create A New Chat</p>
 
               
-
               {user?.user_type =="service user" && (<FaCirclePlus 
                 onClick={()=>{handleUserCreateChat()}}
               />)}
@@ -294,7 +274,9 @@ function Messaging() {
 
 
 
-        <section className= {`view-chat-container chat-visible-${chatVisible}`}>
+        <section className= {`view-chat-container chat-visible-${chatVisible}  chat-hidden-${chatVisible}`}>
+
+               
                 
                 <header className="chat-header"> 
 
@@ -308,26 +290,19 @@ function Messaging() {
                     <Chat 
                    
                       allMessages={messages}
-                      sendMessage={sendMessage}
-                     
+                    
                       />
                 </div>
                 
                 <div className="user-interact-container">
-                  <form className="user-chat-form flex " onSubmit={(e) => {sendNewMessage(e)}}>
 
-                      <input 
-                        type="text"
-                        value={inputText}
-                        onChange={(e) => {setInputText(e.target.value)}}/>
-                        
+                  <MessageBar 
+                    sendNewMessage={sendNewMessage}
+                    currentText = {inputText}
+                    updateInputText={updateInputText}
+                    convObj = {allConvos?.filter((obj)=>obj.id===chatID)[0]}
+                    />
 
-                      <IoSend 
-                        className="send-message-button"
-                        onClick={()=>{}}/>
-                    
-
-                  </form>
                 </div>
 
         </section>

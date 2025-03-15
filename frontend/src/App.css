@@ -110,6 +110,12 @@ html, body {
 }
 
 
+/* ===== OPACITY ===== */
+.op-1 {opacity: 1;}
+.op-2 {opacity: 0.8;}
+.op-3 {opacity: 0.6;}
+
+
 /* Phone Resolution */
 @media screen and (min-width: 375px ){
 

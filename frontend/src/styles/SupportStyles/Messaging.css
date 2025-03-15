@@ -60,7 +60,21 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    visibility: none;
+
+    background-repeat: no repeat;
+    background-position: center;
+    background-size: cover;
+
+    background-image: url('../../assets/images/mountain_peaks.svg');
+
+  
+   
+
+    
 }
+
+
 
 .chat-header {
 
@@ -107,6 +121,9 @@
 .green {background-color: lime;}
 .grey {background-color: #e0deda;}
 
+.chat-hidden-false {
+    visibility: hidden;
+}
 
 
 
@@ -119,6 +136,8 @@
     white-space: pre-wrap;
     padding: 0.3rem;
     border-radius: 1rem;
+    
+    
 
     
     
@@ -127,7 +146,9 @@
 .mini-notif-container {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     font-size: 0.8rem;
+    color: red;
 }
 
 

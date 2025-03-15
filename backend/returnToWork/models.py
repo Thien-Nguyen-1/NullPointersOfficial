@@ -253,6 +253,7 @@ class Conversation(models.Model): #one-to-many relationship with Messages
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="user_conversation")
     admin = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="admin_conversation")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     hasEngaged = models.BooleanField(default=False)
 
     def __str__(self):

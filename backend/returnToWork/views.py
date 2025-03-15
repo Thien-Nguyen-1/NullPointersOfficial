@@ -465,6 +465,7 @@ class UserSupportView(APIView):
         try:
           
             info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+            info_chats = info_chats.order_by('-updated_at')
             
             serialized_info = ConversationSerializer(info_chats, many=True)
             
@@ -584,6 +585,8 @@ class UserChatView(APIView):
                 sender=user_,
                 text_content = message_content
             )
+
+            conv_Obj.save() 
 
             if token:
 

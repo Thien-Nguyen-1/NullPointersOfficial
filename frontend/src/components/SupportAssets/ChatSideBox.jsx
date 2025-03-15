@@ -16,7 +16,6 @@ function ChatSideBox(props){
     }
 
 
-    //console.log(convoObj)
 
 
     async function assign_chat(){
@@ -25,7 +24,7 @@ function ChatSideBox(props){
     }
 
     async function render_chat(){
-        console.log("CLICKING")
+     
         props.getUserMessages(convoObj.id)
         props.requestPermissionAndGetToken()
         props.toggleChatVisibility(true)
@@ -35,7 +34,7 @@ function ChatSideBox(props){
 
     return (
         <div className="chat-side-box" onClick={render_chat}>
-
+            {/* {console.log(convoObj)} */}
             <div className="chat-profile">
                  <FaUserCircle className="chat-profile-icon"/>
             </div>
@@ -44,7 +43,7 @@ function ChatSideBox(props){
             <div>
                 <h3>{convoObj?.user_username}</h3>
 
-                {user?.user_type == "admin" && (
+                {user?.user_type == "admin" && !convoObj.hasEngaged &&(
                     <div className="admin-chat-choice">
 
                         <FaTimes 
