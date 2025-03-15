@@ -6,7 +6,7 @@
 }
 
 
-.create-module-btn {
+.createModuleBtn {
   display: inline-block;
   margin-top: 10px;
   padding: 10px 15px;
@@ -18,61 +18,55 @@
   transition: background-color 0.3s;
 }
 
-.create-module-btn:hover {
-  background-color: var( --primary-green-dark) /* Slightly darker green */
+.createModuleBtn:hover {
+  background-color: var(--primary-green-dark) /* Slightly darker green */
 }
 
 
-.course-container {
+.courseContainer {
   display: flex;
   flex-direction: column;
   width: 100%;
   justify-items: center;
-  
-  
 }
 
-.course-container .tag-course-container {
+.courseContainer .tagCourseContainer {
   display: grid;
   gap: 0.6rem;
   grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
   justify-items: center;
   align-items: center;
-
 }
 
-.course-selection-container {
+.courseSelectionContainer {
   display: inherit;
   flex-direction: inherit;
   align-items: flex-start;
-
-
 }
 
 
 
 /* Phone Resolution */
 @media screen and (min-width: 375px ){
-  .course-container .tag-course-container {
+  .courseContainer .tagCourseContainer {
     grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
     
     p {
       font-size: 0.7em;
     }
   }
-
 }
+
 /* Tablet Resolution */
 @media screen and (min-width: 768px ){
-
-  .course-container .tag-course-container {
+  .courseContainer .tagCourseContainer {
     grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
     p {
       font-size: 1em;
     }
   }
-
 }
+
 /* Desktop Resolution */
 @media screen and (min-width: 1080px) {
 
@@ -81,10 +75,7 @@
 
 
 /* TO BE MOVED */
-
-
-.tag-course {
-  
+.tagCourse {
   width: 100%;
   height: auto;
   
@@ -101,26 +92,19 @@
   line-height: 2.2rem;     
   transition: all 0.3s ease;  
   cursor: pointer;  
-
-
 }
 
-
-.edit-button {
+.editButton {
   background-color: grey;
-
 }
 
-
-
-.tabs-filter {
+.tabsFilter {
   display: flex;
   gap: 0.3rem;
   justify-content: flex-start;
-
 }
 
-.tabs-filter button {
+.tabsFilter button {
   background-color: transparent;
   color: var(--text-subtle);
   border: none;
@@ -133,19 +117,18 @@
   min-width: 100px;
 
   font-size: clamp(0.6rem, 1vw, 1rem);
-  
 }
 
-.tabs-filter button:hover {
+.tabsFilter button:hover {
   background-color: var(--primary-green-light);
   transform: translateY(-2px);
 }
 
-.tabs-filter button.active {
+.tabsFilter button.active {
   background-color: var(--primary-green);
   color: white;
 }
 
-.tabs-filter button.active:hover {
+.tabsFilter button.active:hover {
   background-color: var(--primary-green-dark);
 }
