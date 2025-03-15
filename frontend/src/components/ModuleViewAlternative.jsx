@@ -41,82 +41,81 @@ const ModuleViewAlternative = () => {
         
         // Fetch tasks associated with this module
         const moduleTasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-        
         // ==== For demonstration, we'll create structured module content ==== //        
         // Create sections with different content types
-        const structuredContent = [
-          {
-            id: 'section-introduction',
-            type: 'section',
-            title: 'Introduction',
-            content: [
-              {
-                id: 'heading-intro',
-                type: 'heading',
-                level: 1,
-                text: 'Welcome to this Module (H1)'
-              },
-              {
-                id: 'paragraph-intro',
-                type: 'paragraph',
-                text: 'This module will guide you through important concepts and allow you to test your knowledge through various interactive elements. Take your time to go through each section carefully.'
-              },
-              {
-                id: 'image-1',
-                type: 'image',
-                title: 'Overview',
-                source: 'https://i.pinimg.com/736x/71/62/72/716272f31e9f3d286bf6a26fcf1ea8be.jpg',
-                caption: 'Visual overview of concepts covered in this module'
-              }
-            ]
-          },
-          {
-            id: 'section-concepts',
-            type: 'section',
-            title: 'Key Concepts',
-            content: [
-              {
-                id: 'heading-concepts',
-                type: 'heading',
-                level: 2,
-                text: 'Core Principles (H2)'
-              },
-              {
-                id: 'paragraph-concepts',
-                type: 'paragraph',
-                text: 'Understanding these core principles is essential before proceeding to more advanced topics.'
-              },
-              {
-                id: 'infosheet-1',
-                type: 'infosheet',
-                title: 'Important Information',
-                content: 'This infosheet explains the key concepts covered in this module. Make sure you understand these before proceeding to the assessment section.'
-              },
-              {
-                id: 'video-1',
-                type: 'video',
-                title: 'Concept Explanation',
-                source: 'https://www.example.com/video.mp4',
-                duration: '3:45',
-                thumbnail: 'https://via.placeholder.com/640x360?text=Video+Thumbnail'
-              }
-            ]
-          },
-          {
-            id: 'section-assessment',
-            type: 'section',
-            title: 'Assessment',
-            content: moduleTasks.map(task => ({
-              id: task.contentID,
-              type: 'quiz',
-              quiz_type: task.quiz_type,
-              title: QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
-              taskData: task
-            }))
-          }
-        ];
+        // const structuredContent = [
+        //   {
+        //     id: 'section-introduction',
+        //     type: 'section',
+        //     title: 'Introduction',
+        //     content: [
+        //       {
+        //         id: 'heading-intro',
+        //         type: 'heading',
+        //         level: 1,
+        //         text: 'Welcome to this Module (H1)'
+        //       },
+        //       {
+        //         id: 'paragraph-intro',
+        //         type: 'paragraph',
+        //         text: 'This module will guide you through important concepts and allow you to test your knowledge through various interactive elements. Take your time to go through each section carefully.'
+        //       },
+        //       {
+        //         id: 'image-1',
+        //         type: 'image',
+        //         title: 'Overview',
+        //         source: 'https://i.pinimg.com/736x/71/62/72/716272f31e9f3d286bf6a26fcf1ea8be.jpg',
+        //         caption: 'Visual overview of concepts covered in this module'
+        //       }
+        //     ]
+        //   },
+        //   {
+        //     id: 'section-concepts',
+        //     type: 'section',
+        //     title: 'Key Concepts',
+        //     content: [
+        //       {
+        //         id: generateUUID(),
+        //         type: 'heading',
+        //         level: 2,
+        //         text: 'Core Principles (H2)'
+        //       },
+        //       {
+        //         id: 'paragraph-concepts',
+        //         type: 'paragraph',
+        //         text: 'Understanding these core principles is essential before proceeding to more advanced topics.'
+        //       },
+        //       {
+        //         id: generateUUID(),
+        //         type: 'infosheet',
+        //         title: 'Important Information',
+        //         content: 'This infosheet explains the key concepts covered in this module. Make sure you understand these before proceeding to the assessment section.'
+        //       },
+        //       {
+        //         id: 'video-1',
+        //         type: 'video',
+        //         title: 'Concept Explanation',
+        //         source: 'https://www.example.com/video.mp4',
+        //         duration: '3:45',
+        //         thumbnail: 'https://via.placeholder.com/640x360?text=Video+Thumbnail'
+        //       }
+        //     ]
+        //   },
+        //   {
+        //     id: 'section-assessment',
+        //     type: 'section',
+        //     title: 'Assessment',
+        //     content: moduleTasks.map(task => ({
+        //       id: task.contentID,
+        //       type: 'quiz',
+        //       quiz_type: task.quiz_type,
+        //       title: QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
+        //       taskData: task
+        //     }))
+        //   }
+        // ];
         
-        setModuleContent(structuredContent);
+        setModuleContent(moduleTasks);
         
         // Fetch tags
         try {
