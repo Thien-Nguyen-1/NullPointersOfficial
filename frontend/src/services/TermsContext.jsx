@@ -50,9 +50,11 @@ export const TermsContextProvider = ({ children }) => {
     try {
       // Update user's terms acceptance status in the backend
       // This endpoint needs to be implemented on your backend
-      await api.post('/api/accept-terms/', {}, {
-        headers: { Authorization: `Token ${token}` }
-      });
+      // await api.post('/api/accept-terms/', {}, {
+      //   headers: { Authorization: `Token ${token}` }
+      // });
+
+      await api.post('/api/accept-terms/', {});
       
       // Update local user state
       if (updateUser && user) {

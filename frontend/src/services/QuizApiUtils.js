@@ -353,9 +353,10 @@ export const QuizApiUtils = {
       for (const submission of submissions) {
         const headers = token ? { 'Authorization': `Token ${token}` } : {};
         
-        const response = await api.post('/api/quiz/response/', submission, { 
-          headers 
-        });
+        const response = await api.post('/api/quiz/response/', submission);
+        // const response = await api.post('/api/quiz/response/', submission, { 
+        //   headers 
+        // });
         
         results.push(response.data);
         console.log(`Response saved for question ${submission.question_id}:`, response.data);

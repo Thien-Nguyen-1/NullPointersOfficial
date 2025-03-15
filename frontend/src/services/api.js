@@ -10,9 +10,80 @@ const baseURL =
 const api = axios.create({
   baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json', // headers property sets default http headers that will be included in all requests made by this api instance
+  }
 });
 
 //Anything affiliated with the model User, please make amendments to AuthContext.jsx
+
+const getAuthHeader = () => {
+  const token = localStorage.getItem('token');
+  // Check if it's a JWT token (usually they start with 'ey')
+  // A typical JWT token is a Base64-encoded string and commonly starts with 'ey'
+  if (token && token.startsWith('ey')) {
+    return `Bearer ${token}`; // JWTs are usually sent in an Authorization header as a "Bearer" token.
+  } else if (token) {
+    return `Token ${token}`; // If there's a token but it doesn't start with 'ey', it assumes it's some other type of token 
+  }
+  return null;
+};
+
+// A REQUEST interceptor to include the auth token in all requests 
+api.interceptors.request.use(
+  (config) => {
+    const authHeader = getAuthHeader();
+    if (authHeader) {
+      // If a token exists, it adds it to the Authorization header of the request.
+      config.headers.Authorization = authHeader;
+    }
+    return config;
+    // Ensures that all API requests automatically include authentication credentials.
+  },
+  (error) => Promise.reject(error)
+);
+
+// A RESPONSE interceptor to handle token refresh
+// This code automatically renews users access when possible. 
+// However, if the renewal fails, it logs users out and asks users to sign in again.
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // If the error is 401 and we haven't tried to refresh the token yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Try to refresh the token
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+            refresh: refreshToken
+          });
+          
+          // Store the new access token
+          localStorage.setItem('token', response.data.access);
+          
+          // Update the Authorization header
+          originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
+          
+          // Retry the original request
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        // If refresh fails, redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
 
 // Generic fetch function for users
 const fetchData = async (endpoint) => {
@@ -115,18 +186,21 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 export async function getUserSettings(){
   
   try{
-    const token = localStorage.getItem('token');
+    // const token = localStorage.getItem('token');
     
-    if (!token) {
-      throw new Error('No authentication token found');
+    // if (!token) {
+    //   throw new Error('No authentication token found');
 
-    }
+    // }
     
-    const response = await api.get(`/worker/settings/` , {
-      headers: {
-        'Authorization': `Token ${token}`
-      }
-    });
+    // const response = await api.get(`/worker/settings/` , {
+    //   headers: {
+    //     'Authorization': `Token ${token}`
+    //   }
+    // });
+
+    const response = await api.get(`/worker/settings/`);
+
     return response.data;
   }
   catch(error){
@@ -137,16 +211,18 @@ export async function getUserSettings(){
 
 export async function deleteUserSettings(){
   try{
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
+    // const token = localStorage.getItem('token');
+    // if (!token) {
+    //   throw new Error('No authentication token found');
 
-    }
-    const response = await api.delete(`/api/worker/settings/`, {
-      headers: {
-        'Authorization': `Token ${token}`
-      }
-    });
+    // }
+    // const response = await api.delete(`/api/worker/settings/`, {
+    //   headers: {
+    //     'Authorization': `Token ${token}`
+    //   }
+    // });
+
+    const response = await api.delete(`/api/worker/settings/`);
     return response.data;
   }
   catch(error){
@@ -160,15 +236,19 @@ export async function changeUserPassword(oldPassword, newPassword, confirmNewPas
   try{
     const token = localStorage.getItem("token");
     const response = await api.put(`/api/worker/password-change/`, {
-    old_password:  oldPassword,
-    new_password: newPassword,
-    confirm_new_password: confirmNewPassword,
+      old_password:  oldPassword,
+      new_password: newPassword,
+      confirm_new_password: confirmNewPassword});
+    // const response = await api.put(`/api/worker/password-change/`, {
+    // old_password:  oldPassword,
+    // new_password: newPassword,
+    // confirm_new_password: confirmNewPassword,
     
-    } , {
-      headers: {
-        'Authorization': `Token ${token}`
-      }
-    });
+    // } , {
+    //   headers: {
+    //     'Authorization': `Token ${token}`
+    //   }
+    // });
     return response.data;
   }
   catch(error){
@@ -233,13 +313,16 @@ export async function SaveProgressTracker(tracker, id){
 export async function GetUserModuleInteract(token){
   try {
    
-    const response = await api.get(`/api/user-interaction/`, {
-      params: {"filter": "user" },
-      headers: {
-        'Authorization': `Token ${token}`
-      }
+    // const response = await api.get(`/api/user-interaction/`, {
+    //   params: {"filter": "user" },
+    //   headers: {
+    //     'Authorization': `Token ${token}`
+    //   }
      
-    });
+    // });
+
+    const response = await api.get(`/api/user-interaction/`, {
+      params: {"filter": "user" }});
       
 
     if(response.error){
@@ -264,7 +347,8 @@ export async function SaveUserModuleInteract(modId, objInteract, token) {
  
   try {
     
-    const response = await api.post(`api/user-interaction/${modId}/`, objInteract, { headers: {'Authorization': `Token ${token}`}})
+    // const response = await api.post(`api/user-interaction/${modId}/`, objInteract, { headers: {'Authorization': `Token ${token}`}})
+    const response = await api.post(`api/user-interaction/${modId}/`, objInteract);
 
     if(response.error){
       throw new Error(response.error);
@@ -317,13 +401,15 @@ export const quizApi = {
 //get the task that needs downloading nd the authentication token
 export const downloadCompletedTask = async(taskId, token) => {
   try {
-    const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
-      headers:{
-        Authorization: `Token ${token}`,
-        Accept: "application/pdf",
-      },
-      responseType: "blob", //dowlaod pdf in blob format
-    });
+    // const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
+    //   headers:{
+    //     Authorization: `Token ${token}`,
+    //     Accept: "application/pdf",
+    //   },
+    //   responseType: "blob", //dowlaod pdf in blob format
+    // });
+
+    const response = await api.get('/api/download-completed-task/<uuid:task_id>/');
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -347,9 +433,11 @@ export const downloadCompletedTask = async(taskId, token) => {
    */
   export const GetUserProgressTrackers = async (token) => {
     try {
-        const response = await api.get('/api/progress-tracker/', {
-            headers: { Authorization: `Token ${token}` }
-        });
+        // const response = await api.get('/api/progress-tracker/', {
+        //     headers: { Authorization: `Token ${token}` }
+        // });
+
+        const response = await api.get('/api/progress-tracker/');
         return response.data;
     } catch (error) {
         console.error("Error fetching user progress trackers:", error);
@@ -366,9 +454,11 @@ export const downloadCompletedTask = async(taskId, token) => {
   */
   export const CheckModuleEnrollment = async (userId, moduleId, token) => {
     try {
-        const response = await api.get('/api/progress-tracker/', {
-            headers: { Authorization: `Token ${token}` }
-        });
+        // const response = await api.get('/api/progress-tracker/', {
+        //     headers: { Authorization: `Token ${token}` }
+        // });
+
+        const response = await api.get('/api/progress-tracker/');
         
         // Check if any progress tracker entry exists for this user and module
         return response.data.some(tracker => 

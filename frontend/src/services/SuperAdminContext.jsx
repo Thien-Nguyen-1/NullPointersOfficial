@@ -32,9 +32,12 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
       try {
         setIsLoading(true);
         setError(null);
-        const response = await api.get('/api/terms-and-conditions/', {
-          headers: { Authorization: `Token ${token}` }
-        });
+        // const response = await api.get('/api/terms-and-conditions/', {
+        //   headers: { Authorization: `Token ${token}` }
+        // });
+
+        const response = await api.get('/api/terms-and-conditions/');
+
         
         // if successful, set:
         setTermsAndConditions(response.data.content || '');
@@ -63,9 +66,11 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
       try {
         setIsLoading(true);
         setError(null);
-        const response = await api.get('/api/admin-users/', {
-          headers: { Authorization: `Token ${token}` }
-        });
+        // const response = await api.get('/api/admin-users/', {
+        //   headers: { Authorization: `Token ${token}` }
+        // });
+
+        const response = await api.get('/api/admin-users/');
         
         setAdminUsers(response.data || []);
         setIsLoading(false);
@@ -88,11 +93,13 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     }
 
     try {
-      const response = await api.put('/api/terms-and-conditions/', {
-        content
-      }, {
-        headers: { Authorization: `Token ${token}` }
-      });
+      // const response = await api.put('/api/terms-and-conditions/', {
+      //   content
+      // }, {
+      //   headers: { Authorization: `Token ${token}` }
+      // });
+
+      const response = await api.put('/api/terms-and-conditions/', {content});
       
       setTermsAndConditions(response.data.content);
       return { success: true, data: response.data };
@@ -115,9 +122,10 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
         user_type: 'admin'
       };
 
-      const response = await api.post('/api/admin-users/', adminData, {
-        headers: { Authorization: `Token ${token}` }
-      });
+      // const response = await api.post('/api/admin-users/', adminData, {
+      //   headers: { Authorization: `Token ${token}` }
+      // });
+      const response = await api.post('/api/admin-users/', adminData)
       
       setAdminUsers([...adminUsers, response.data]);
       return { success: true, data: response.data };
@@ -137,9 +145,10 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     console.log(`[DEBUG] ID type: ${typeof userId}`)
 
     try {
-      await api.delete(`/api/admin-users/${userId}/`, {
-        headers: { Authorization: `Token ${token}` }
-      });
+      // await api.delete(`/api/admin-users/${userId}/`, {
+      //   headers: { Authorization: `Token ${token}` }
+      // });
+      await api.delete(`/api/admin-users/${userId}/`);
       
       // console.log(`[DEBUG] Delete response:`, response)
 
