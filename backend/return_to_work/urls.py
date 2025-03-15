@@ -73,6 +73,8 @@ urlpatterns = [
 
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
+
 
     # Quiz question endpoints
      path('api/quiz/questions/', QuizQuestionView.as_view(), name='quiz_questions'),
@@ -82,4 +84,5 @@ urlpatterns = [
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
+
 ]

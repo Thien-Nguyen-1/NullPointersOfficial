@@ -6,7 +6,6 @@ import { useParams } from "react-router-dom";
 
 
 import AdminDashboard from "./pages/AdminDashboard";
-// import MedicalProfessionalDashboard from "./pages/MedicalProfessionalDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
@@ -20,15 +19,17 @@ import PasswordReset from './components/PasswordReset.jsx';
 import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
+import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
+
 import ServiceUsersPage from "./pages/ServiceUsersPage";
 import QuizContainer from './components/quizzes/QuizContainer';
-import VisualFlashcardEditor from './components/editors/VisualFlashcardEditor';
-import VisualFillTheFormEditor from './components/editors/VisualFillTheFormEditor';
-import VisualFlowChartQuiz from './components/editors/VisualFlowChartQuiz';
+
 import AddModule from './pages/AddModule';
 
 import "./App.css";
 import {AuthContextProvider} from './services/AuthContext.jsx'
+import { EnrollmentContextProvider } from './services/EnrollmentContext';
+
 
 
 function App() {
@@ -40,56 +41,74 @@ function App() {
   
   return (
     <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
-    <Router>
-      <Routes>
-        {/* Auth Routes (No Sidebar) */}
-        <Route path="/" element={<Welcome />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path = "/password-reset" element = {<RequestPasswordReset />} />
-        <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
-        <Route path="/tag" element={<Tag />} />
-        <Route path="/questionnaire" element={<Questionnaire />} />
-        <Route path="/settings" element={<Settings />} />
+      
+      {/* Wrapper that helps with user enrollment into the course */}
+      <EnrollmentContextProvider>
+      <Router>
+          <Routes>
+            {/* Auth Routes (No Sidebar) */}
+            <Route path="/" element={<Welcome />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path = "/password-reset" element = {<RequestPasswordReset />} />
+            <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
+            <Route path="/tag" element={<Tag />} />
+            <Route path="/questionnaire" element={<Questionnaire />} />
+            <Route path="/settings" element={<Settings />} />
 
-        {/* Temporary Quiz Route */}
-        <Route path="/quiz/:taskId" element={<QuizContainer />} />  
+            {/* Temporary Quiz Route */}
+            <Route path="/quiz/:taskId" element={<QuizContainer />} />  
 
-        {/* Protected Routes (With Sidebar) */}
-        <Route
-          path="/worker/*"
-          element={
-            <DashboardLayout>
-              <Routes>
-                <Route path="home" element={<WorkerDashboard />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="support" element={<Support />} />
-                <Route path="courses" element={<Courses/>} />
-                <Route path="all-courses" element={<CoursesList/>} />
-                <Route path="KnowValuesModule" element={<Module2/>} />
-              </Routes>
-            </DashboardLayout>
-          }
-        />
+            {/* ModuleView Route - Added at root level */}
+            <Route path="/modules/:moduleId" element={
+              <DashboardLayout>
+                <ModuleViewAlternative />
+              </DashboardLayout>
+            } />
 
-        <Route
-          path="/admin/*"
-          element={
-            <DashboardLayout>
-              <Routes>
-                <Route path="home" element={<AdminDashboard />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="support" element={<Support />} />
-                <Route path="courses" element={<Courses />} />
-                <Route path="all-courses" element={<CoursesList role="admin" />} />
-                <Route path="service-users" element={<ServiceUsersPage />} />
-                <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
-              </Routes>
-            </DashboardLayout>
-          }
-        />
-      </Routes>
-    </Router>
+            {/* Protected Routes (With Sidebar) */}
+            <Route
+              path="/worker/*"
+              element={
+                <DashboardLayout>
+                  <Routes>
+                    <Route path="home" element={<WorkerDashboard />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="support" element={<Support />} />
+                    <Route path="courses" element={<Courses/>} />
+                    
+                    {/* to be deleted */}
+                    <Route path="all-courses" element={<CoursesList/>} />
+                    <Route path="KnowValuesModule" element={<Module2/>} />
+
+                  </Routes>
+                </DashboardLayout>
+              }
+            />
+
+            <Route
+              path="/admin/*"
+              element={
+                <DashboardLayout>
+                  <Routes>
+                    <Route path="home" element={<AdminDashboard />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="support" element={<Support />} />
+                    <Route path="courses" element={<Courses />} />
+                    <Route path="/service-users" element={<ServiceUsersPage />} />
+
+                    {/* to be deleted */}
+                    <Route path="all-courses" element={<CoursesList role="admin" />} />
+                    <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
+
+                  </Routes>
+                </DashboardLayout>
+              }
+            />
+          </Routes>
+        </Router>
+      </EnrollmentContextProvider>
+    
     </AuthContextProvider>
   );
 }
