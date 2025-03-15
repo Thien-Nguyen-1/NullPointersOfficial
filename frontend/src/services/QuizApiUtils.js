@@ -374,34 +374,6 @@ export const QuizApiUtils = {
     }
   },
 
-
-  createQuestionAnswerFormTask: async(formData) =>{
-    try{
-      const data = {
-        ...formData
-      };
-      const response = await api.post('/api/question_answer_forms/',data);
-      return response.data;
-    }catch(error){
-      console.error('Error Question & Answer form task:', error);
-      throw error;
-    }
-
-  },
-
-  createMatchingQuestionsTask: async(pairData) =>{
-    try{
-      const data = {
-        ...pairData
-      };
-      const response = await api.post('/api/matching_questions/',data);
-      return response.data;
-    }catch(error){
-      console.error('Error matching questions task:', error);
-      throw error;
-    }
-
-  }
 };
 
 export default QuizApiUtils;
