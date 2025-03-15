@@ -507,30 +507,30 @@ const AddModule = () => {
       //   }
       // }
 
-      for (const module of modules) {
-        if (module.type === 'Matching Question Quiz') {
-          const editorRef = editorRefs.current[module.id];
-          const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
-          console.log(`[DEBUG] Saving Matching Question Pairs for Module ID: ${moduleId}`, matchingQuestionAnswers);
+      // for (const module of modules) {
+      //   if (module.type === 'Matching Question Quiz') {
+      //     const editorRef = editorRefs.current[module.id];
+      //     const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
+      //     console.log(`[DEBUG] Saving Matching Question Pairs for Module ID: ${moduleId}`, matchingQuestionAnswers);
 
-          for (const qa of matchingQuestionAnswers){
-          let pairData = {
-            title: `${module.type} for ${title}`,
-            description: `${module.type} content for ${title}`,
-            question:qa.question,
-            answer:qa.answer,
-            moduleID: moduleId,
-            author: authorId
-          };
-          try {
-            await QuizApiUtils.createMatchingQuestionsTask(pairData);
-            console.log('matching question pairs task created successfully');
-          } catch (error) {
-            console.error('Error creating matching question pairs task:', error);
-          }
-        }
-        }
-      }
+      //     for (const qa of matchingQuestionAnswers){
+      //     let pairData = {
+      //       title: `${module.type} for ${title}`,
+      //       description: `${module.type} content for ${title}`,
+      //       question:qa.question,
+      //       answer:qa.answer,
+      //       moduleID: moduleId,
+      //       author: authorId
+      //     };
+      //     try {
+      //       await QuizApiUtils.createMatchingQuestionsTask(pairData);
+      //       console.log('matching question pairs task created successfully');
+      //     } catch (error) {
+      //       console.error('Error creating matching question pairs task:', error);
+      //     }
+      //   }
+      //   }
+      // }
 
 
 

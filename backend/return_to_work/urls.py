@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView,QuizQuestionViewSet
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -31,8 +31,6 @@ router.register(r'inline-picture', InlinePictureViewSet, basename='inline-pictur
 router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
 router.register(r'document',DocumentViewSet , basename='document')
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
-router.register(r'question_answer_forms', QuestionAnswerFormViewSet)
-router.register(r'matching_questions', MatchingQuestionQuizViewSet)
 router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
 
 

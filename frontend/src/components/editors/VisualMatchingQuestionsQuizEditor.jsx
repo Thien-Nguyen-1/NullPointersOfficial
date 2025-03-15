@@ -14,7 +14,7 @@ const VisualMatchingQuestionsQuizEditor = forwardRef((props, ref) => {
             const loadedQuestions = props.initialQuestions.map(q => ({
                 ...q,
                 question_text: q.text,
-                answers: q.answers.join(', '), // Convert answers array back to string for editing
+                answers: q.answers, // Convert answers array back to string for editing
                 order: q.order
             }));
             setSubmittedPairs(loadedQuestions);
@@ -100,7 +100,7 @@ const VisualMatchingQuestionsQuizEditor = forwardRef((props, ref) => {
                 {submittedPairs.map((pair, index) => (
                     <div key={pair.id || index} className="pair-container">
                         <div className="pair-question"><strong>Question:</strong> {pair.question_text}</div>
-                        <div className="pair-answer"><strong>Answer:</strong> {pair.answers.join(', ')}</div>
+                        <div className="pair-answer"><strong>Answer:</strong> {pair.answers}</div>
                         <button onClick={() => handleEdit(index)} className="button">Edit</button>
                         <button onClick={() => handleRemove(pair.id)} className="button">Remove</button>
                     </div>
