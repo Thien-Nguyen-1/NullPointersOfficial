@@ -73,9 +73,16 @@ class LogInView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             login(request,user)
-            token, created = Token.objects.get_or_create(user=user)
+            # token, created = Token.objects.get_or_create(user=user)
 
-            return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
+            return Response({"message": "Login Successful", 
+                            "user": UserSerializer(user).data,
+                            "token": str(refresh.access_token),  # For backward compatibility
+                            "refreshToken": str(refresh)}) # refresh token to get new access
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LogOutView(APIView):
@@ -103,7 +110,15 @@ class SignUpView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             login(request,user)
-            return Response({"message":"User registered successfully","user":UserSerializer(user).data})
+
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
+            return Response({"message":"User registered successfully","user":UserSerializer(user).data, 
+                             "jwt": {
+                                 "access": str(refresh.access_token),
+                                 "refresh": str(refresh)
+                             }})
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
 class UserProfileView(APIView):
