@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,QuestionAnswerFormViewSet,MatchingQuestionQuizViewSet,TaskPdfView,QuizQuestionViewSet
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -33,6 +33,8 @@ router.register(r'document',DocumentViewSet , basename='document')
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
 router.register(r'question_answer_forms', QuestionAnswerFormViewSet)
 router.register(r'matching_questions', MatchingQuestionQuizViewSet)
+router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
+
 
 
 from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView, UserInteractionView, UserPasswordChangeView, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
@@ -75,8 +77,8 @@ urlpatterns = [
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
 
     # Quiz question endpoints
-    path('api/quiz/questions/', QuizQuestionView.as_view(), name='quiz_questions'),
-    path('api/quiz/questions/<int:question_id>/', QuizQuestionView.as_view(), name='quiz_question_detail'),
+     path('api/quiz/questions/', QuizQuestionView.as_view(), name='quiz_questions'),
+     path('api/quiz/questions/<int:question_id>/', QuizQuestionView.as_view(), name='quiz_question_detail'),
     # Quiz related URLs
     path('api/quiz/<uuid:task_id>/', QuizDetailView.as_view(), name='quiz_detail_api'),
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),

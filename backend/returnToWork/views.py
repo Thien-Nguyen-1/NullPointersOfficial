@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
@@ -772,7 +772,9 @@ class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
 class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
     queryset = MatchingQuestionQuiz.objects.all()
     serializer_class = MatchingQuestionQuizSerializer
-
+class QuizQuestionViewSet(viewsets.ModelViewSet):
+    queryset = QuizQuestion.objects.all()
+    serializer_class= QuizQuestionSerializer
 
 class TaskPdfView(APIView):
     permission_classes = [IsAuthenticated]
