@@ -2,22 +2,19 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import '../../styles/VisualMatchingQuestionsEditor.css';
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 
-
 const VisualMatchingQuestionsQuizEditor = forwardRef((props, ref) => {
-    const [currentPair, setCurrentPair] = useState({ question_text: '', answers: [], order: 0 });
+    const [currentPair, setCurrentPair] = useState({ question_text: '', answers: '', order: 0 });
     const [submittedPairs, setSubmittedPairs] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editIndex, setEditIndex] = useState(null);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        console.log('Initial questions updated:', props.initialQuestions);
-
         if (props.initialQuestions && props.initialQuestions.length > 0) {
             const loadedQuestions = props.initialQuestions.map(q => ({
                 ...q,
                 question_text: q.text,
-                answers: Array.isArray(q.answers) ? q.answers : [], // Ensure answers is always an array
+                answers: q.answers.join(', '), // Convert answers array back to string for editing
                 order: q.order
             }));
             setSubmittedPairs(loadedQuestions);
@@ -30,54 +27,46 @@ const VisualMatchingQuestionsQuizEditor = forwardRef((props, ref) => {
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        if (name === 'answers') {
-            // Assume comma-separated input for answers, split and trim spaces
-            setCurrentPair(prev => ({ ...prev, answers: value.split(',').map(answer => answer.trim()) }));
-        } else {
-            setCurrentPair(prev => ({ ...prev, [name]: value }));
-        }
+        setCurrentPair(prev => ({ ...prev, [name]: value }));
     };
 
     const handleAddOrUpdatePair = (event) => {
         event.preventDefault();
-        if (!currentPair.question_text || !currentPair.answers.length) {
+        if (!currentPair.question_text || !currentPair.answers.trim()) {
             setError("Both question and at least one answer must be filled.");
             return;
         }
 
+        // Split and trim answers when adding/updating the pair
+        const answersArray = currentPair.answers.split(',').map(answer => answer.trim());
+
         const updatedPairs = isEditing ?
-            submittedPairs.map((pair, idx) => idx === editIndex ? { ...pair, ...currentPair } : pair) :
-            [...submittedPairs, { ...currentPair, id: Date.now() }];
+            submittedPairs.map((pair, idx) => idx === editIndex ? { ...pair, question_text: currentPair.question_text, answers: answersArray } : pair) :
+            [...submittedPairs, { ...currentPair, answers: answersArray, id: Date.now() }];
 
         setSubmittedPairs(updatedPairs);
-        setCurrentPair({ question_text: '', answers: [], order: submittedPairs.length + 1 });
+        setCurrentPair({ question_text: '', answers: '', order: submittedPairs.length + 1 });
         setIsEditing(false);
         setError('');
         setEditIndex(null);
     };
 
     const handleEdit = (index) => {
-        setCurrentPair({
-            ...submittedPairs[index],
-            answers: Array.isArray(submittedPairs[index].answers) ? submittedPairs[index].answers.join(', ') : '' // Safely handle the join operation
-        });
+        setCurrentPair(submittedPairs[index]);
         setEditIndex(index);
         setIsEditing(true);
     };
 
     const handleRemove = async(id) => {
         try {
-              const result = await QuizApiUtils.deleteQuestion(id);
-
-              if (result) {
+            const result = await QuizApiUtils.deleteQuestion(id);
+            if (result) {
                 setSubmittedPairs(submittedPairs.filter(entry => entry.id !== id));
-
-
-              }
-            } catch (error) {
-              console.log('Failed to delete question from backend:', submittedPairs.id);        
-              console.error('Failed to delete question from backend:', error);
             }
+        } catch (error) {
+            console.log('Failed to delete question from backend:', id);        
+            console.error('Failed to delete question from backend:', error);
+        }
     };
 
     return (
