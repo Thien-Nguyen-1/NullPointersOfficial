@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import StatsCards from "../components/StatsCards";
 import LearningChart from "../components/LearningChart";
 import CoursesList from "../components/CoursesList";
+import api from "../services/api";
 import axios from "axios";
 
 export default function WorkerDashboard() {
@@ -18,20 +19,10 @@ export default function WorkerDashboard() {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        // Get token from localStorage instead of hardcoding it
-        const token = localStorage.getItem('token');
-        
-        // Check if token exists
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-        const response = await axios.get('/api/user/', {
-          headers: {
-            'Authorization': `Token ${token}`
-          }
-        });
+        const response = await api.get('/api/user/');
         
         setUserName(response.data.first_name || "User");
+        
         // Set module statistics
         setModuleStats({
           completed_modules: response.data.completed_modules || 0,
@@ -60,6 +51,7 @@ export default function WorkerDashboard() {
     
     fetchUserDetails();
   }, []);
+
 
   const learningHours = [
     { day: "Mon", hours: 2.0 },

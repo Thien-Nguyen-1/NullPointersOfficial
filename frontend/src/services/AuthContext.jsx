@@ -145,30 +145,30 @@ const AuthContextProvider = ({children}) => {
     //   }
 
     async function loginUser(username, password) {
-      try {
+      // try {
         // First try JWT endpoint
-        const jwtResponse = await api.post(`/api/token/`, {
-          username,
-          password,
-        });
+      //   const jwtResponse = await api.post(`/api/token/`, {
+      //     username,
+      //     password,
+      //   });
     
-        // If successful, store JWT tokens
-        localStorage.setItem('token', jwtResponse.data.access);
-        localStorage.setItem('refreshToken', jwtResponse.data.refresh);
+      //   // If successful, store JWT tokens
+      //   localStorage.setItem('token', jwtResponse.data.access);
+      //   localStorage.setItem('refreshToken', jwtResponse.data.refresh);
         
-        // Fetch user profile using JWT
-        const userResponse = await api.get('/api/profile/');
-        localStorage.setItem('user', JSON.stringify(userResponse.data));
+      //   // Fetch user profile using JWT
+      //   const userResponse = await api.get('/api/profile/');
+      //   localStorage.setItem('user', JSON.stringify(userResponse.data));
         
-        setUser(userResponse.data);
-        setToken(jwtResponse.data.access);
+      //   setUser(userResponse.data);
+      //   setToken(jwtResponse.data.access);
         
-        return {
-          user: userResponse.data,
-          token: jwtResponse.data.access
-        };
-      } catch (jwtError) {
-        console.log("JWT auth failed, trying legacy endpoint");
+      //   return {
+      //     user: userResponse.data,
+      //     token: jwtResponse.data.access
+      //   };
+      // } catch (jwtError) {
+      //   console.log("JWT auth failed, trying legacy endpoint");
         
         // Fall back to old login
         try {
@@ -178,16 +178,26 @@ const AuthContextProvider = ({children}) => {
           });
           
           localStorage.setItem('user', JSON.stringify(response.data.user));
-          localStorage.setItem('token', response.data.token);
+          // localStorage.setItem('token', response.data.token);
+
+          // Check if we received a JWT token or refreshToken
+          if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+          }
+
+          if (response.data.refreshToken) {
+            localStorage.setItem('refreshToken', response.data.refreshToken);
+          }
+              
           
           setUser(response.data.user);
-          setToken(response.data.token);
+          // setToken(response.data.token);
           
           return response.data;
         } catch (error) {
           throw new Error("Login failed: " + (error.response?.data?.detail || "Unknown error"));
         }
-      }
+      // }
     }
     
 
