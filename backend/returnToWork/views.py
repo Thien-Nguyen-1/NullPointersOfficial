@@ -618,5 +618,21 @@ class UserChatView(APIView):
             return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
 
 
+    def delete(self, request):
+        user_ = request.user
+        data = request.data
 
+
+        try:
+             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
+
+             if conversation_:
+                conversation_.delete()
+
+                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+        
 

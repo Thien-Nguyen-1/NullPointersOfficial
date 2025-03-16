@@ -9,7 +9,8 @@ import { FaCirclePlus } from "react-icons/fa6";
 import ChatList from "../components/SupportAssets/ChatList"
 import Chat from "../components/SupportAssets/Chat";
 import MessageBar from "../components/SupportAssets/MessageBar";
-import { GetConversations, CreateConversation, GetMessages, SendMessage } from "../services/api_chat";
+import ChatHeaderBar from "../components/SupportAssets/HeaderBar";
+import { GetConversations, CreateConversation, GetMessages, SendMessage, DeleteConversation } from "../services/api_chat";
 import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 
 import "../styles/SupportStyles/Messaging.css"
@@ -49,22 +50,19 @@ function Messaging() {
 
   const [fcmToken, setFcmToken] = useState(null);
 
- 
-  const [loading, setLoading] = useState(true);
   const [allConvos, setConvos] = useState([])
+  const[messages, setMessages] = useState([])
 
   const[inputText, setInputText] = useState("");
 
-  const[messages, setMessages] = useState([])
+  
   const [chatID, setChatId] = useState(null)
-
-  const chatContainerRef = useRef(null)
-
-
   const [chatVisible, setChatVisible] = useState(false) 
 
-  const messaging = getMessaging()
 
+
+
+  const chatContainerRef = useRef(null)
 
 
 
@@ -74,19 +72,16 @@ function Messaging() {
  
     try {
       const permission = await Notification.requestPermission();
-      if (permission === "granted") {
+      if (permission === "granted" ) {
         const token = await getToken(messaging, {
           vapidKey: "BGGckvvLfnXH8p6-uj-oP14iIpF3KzayWAn1rx55QdIWTVQxx0tv87koLnCXyS-nuMO0DJZcXeFV4rnJS7Z4ASQ"
         });
         setFcmToken(token);
-        await saveFCMToken()
+        await saveFCMToken(token)
       }
     } catch (error) {
       console.error("Error getting token:", error);
-    } finally {
-      setLoading(false);
-      
-    }
+     }  
   };
 
   async function loadConversations() {
@@ -102,32 +97,21 @@ function Messaging() {
 
 
  
-  async function saveFCMToken(){
+  async function saveFCMToken(token_in){
 
-    console.log("SAVING TOKEN")
-    console.log("loading status is", loading)
-    if(user){
+    if(user && token_in){
       
-
-      setLoading(true)
-      
-      
-      const updatedUser = {...user, "firebase_token": fcmToken}
+      const updatedUser = {...user, "firebase_token": token_in}
 
       try{
         await updateUser(updatedUser)
 
         console.log("SAVED USER")
-        
 
 
       } catch(error){
-
-      } finally {
-        setLoading(false)
-        
-      }
-            
+       
+       }  
     } else {
       console.log("THAT SUCKS")
     }
@@ -140,13 +124,15 @@ function Messaging() {
 
       loadConversations()
 
+
+
    }, [])
 
 
    onMessage(messaging, (payload) => {
 
     console.log('Message received ', payload)
-
+    console.log('ID IS ',  chatID)
     getUserMessages(chatID)
 
   })
@@ -158,7 +144,7 @@ function Messaging() {
 
 
    async function handleUserCreateChat(objConvoReq = {}) {
-
+    console.log("ACCEPTING")
     try{
       const response = await CreateConversation(token, objConvoReq)
       
@@ -171,10 +157,23 @@ function Messaging() {
 
   }
 
+  async function handleDeleteChat(id){
+    try{
+      const response = await DeleteConversation(token, id)
+
+      await loadConversations()
+      setChatVisible(false)
+      setChatId(null)
+
+    }catch(error){
+      return error
+    }
+  }
+
 
 
   async function getUserMessages(id){
-
+  
     try { 
       const response = await GetMessages(token, id)
 
@@ -193,11 +192,12 @@ function Messaging() {
    async function sendNewMessage(e){
       e.preventDefault()
 
+
       if(chatID){
         try{
 
-            await requestPermissionAndGetToken()
-
+            // await requestPermissionAndGetToken()
+        
             const messageObj = {"message": inputText}
             await SendMessage(token, chatID, messageObj)
 
@@ -211,6 +211,8 @@ function Messaging() {
 
         }
 
+      } else {
+        console.log("NO CHAT ID SET")
       }
         
    }
@@ -263,8 +265,8 @@ function Messaging() {
 
             <ChatList 
               all_Chats={allConvos} 
-              handleUserCreateChat={handleUserCreateChat}
               getUserMessages= {getUserMessages}
+              
               requestPermissionAndGetToken={requestPermissionAndGetToken}
               toggleChatVisibility={toggleChatVisibility}
               />
@@ -276,14 +278,20 @@ function Messaging() {
 
         <section className= {`view-chat-container chat-visible-${chatVisible}  chat-hidden-${chatVisible}`}>
 
-               
+                {/* { console.log("OUR FCM TOKEN IS ", fcmToken)} */}
                 
                 <header className="chat-header"> 
+                  
+                  <ChatHeaderBar 
 
-                    <button onClick={()=>{toggleChatVisibility(false)}}> {'<'} Back </button>
+                    convObj = {allConvos?.filter((obj)=>obj.id===chatID)[0]}
+                    toggleChatVisibility={toggleChatVisibility}
+                    handleUserCreateChat={handleUserCreateChat}
+                    handleDeleteChat = {handleDeleteChat}
 
-                    <h2> Send Message</h2>
-                        
+                  />
+
+               
                 </header> 
 
                 <div className="chat-container" ref={chatContainerRef}>

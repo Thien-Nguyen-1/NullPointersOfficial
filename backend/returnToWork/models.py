@@ -255,6 +255,7 @@ class Conversation(models.Model): #one-to-many relationship with Messages
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     hasEngaged = models.BooleanField(default=False)
+    lastMessage = models.TextField(default="")
 
     def __str__(self):
         return f"Conversation created for: {self.user} and {self.admin}"

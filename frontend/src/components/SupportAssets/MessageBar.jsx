@@ -24,7 +24,7 @@ function MessageBar(props) {
                     type="text"
                     value={props.currentText}
                     onChange={(e) => {props.updateInputText(e.target.value)}}/>
-                    {console.log(user)}
+                    
 
                     <IoSend 
                         className="send-message-button"

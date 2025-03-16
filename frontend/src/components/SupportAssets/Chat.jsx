@@ -24,14 +24,23 @@ function Chat(props){
             
             if(user?.id == msg.sender){
                 return (
-                    <div key={msg.id} className="bubble-container bubble-right mr-1">
-                        <Bubble
-                            message={ProfanityFilter.filterText(msg.text_content)}
-                            background_color="green"
+                    <div key={`msg-container-${msg.id}`} style={{'marginRight': '1rem'}}>
+                        <div key={msg.id} className="bubble-container bubble-right ">
+                            <Bubble
+                                message={ProfanityFilter.filterText(msg.text_content)}
+                                background_color="green"
 
+                            />
+                            
+                            
+                        </div>
 
-                        />
-
+                        {ProfanityFilter.hasBadWord(msg.text_content) && 
+                            <WarningBox 
+                        
+                            key={`warning-${msg.id}`}
+                            message={"Obscene Language Flagged"}/>
+                        }
                     </div>
                 )
             } else{

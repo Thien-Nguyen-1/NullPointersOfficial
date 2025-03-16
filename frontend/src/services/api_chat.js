@@ -71,3 +71,28 @@ export async function SendMessage(token, id=-10, objMessage = {"message": ""}){
         return response.error
     }
 }
+
+export async function DeleteConversation(token, id){
+
+ 
+
+    try {
+        const response = await api.delete(`api/support/chat-details/`, {
+            headers: {
+                'Authorization': `Token ${token}`
+            },
+            data: {
+                "conversation_id": id
+            }
+        })
+        
+        
+
+        return response.data
+
+    }catch(error){
+        return response.error
+    }
+}
+
+
