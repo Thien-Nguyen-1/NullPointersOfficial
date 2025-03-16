@@ -2,8 +2,8 @@ import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
@@ -646,6 +646,7 @@ class QuizQuestionView(APIView):
                 question_text = request.data.get('question_text')
                 hint_text = request.data.get('hint_text', '')
                 order = request.data.get('order', 0)
+                answers = request.data.get('answers',[])
 
                 if not task_id or not question_text:
                     return Response(
@@ -667,13 +668,15 @@ class QuizQuestionView(APIView):
                 question.question_text = question_text
                 question.hint_text = hint_text
                 question.order = order
+                question.answers
                 question.save()
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers': question.answers
                 }, status=status.HTTP_200_OK)
 
             except QuizQuestion.DoesNotExist:
@@ -687,6 +690,8 @@ class QuizQuestionView(APIView):
             question_text = request.data.get('question_text')
             hint_text = request.data.get('hint_text', '')
             order = request.data.get('order', 0)
+            answers = request.data.get('answers',[])
+
 
             if not task_id or not question_text:
                 return Response(
@@ -702,14 +707,16 @@ class QuizQuestionView(APIView):
                     task=task,
                     question_text=question_text,
                     hint_text=hint_text,
-                    order=order
+                    order=order,
+                    answers=answers
                 )
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers':question.answers
                 }, status=status.HTTP_201_CREATED)
 
             except Task.DoesNotExist:
@@ -728,6 +735,7 @@ class QuizQuestionView(APIView):
                 'text': question.question_text,
                 'hint': question.hint_text,
                 'order': question.order,
+                'answers':question.answers,
                 'task_id': str(question.task.contentID)
             })
         else:
@@ -747,7 +755,8 @@ class QuizQuestionView(APIView):
                     'id': q.id,
                     'text': q.question_text,
                     'hint': q.hint_text,
-                    'order': q.order
+                    'order': q.order,
+                    'answers': q.answers
                 } for q in questions
             ])
 
@@ -764,14 +773,9 @@ class QuizQuestionView(APIView):
             )
 
     
-class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
-    queryset = QuestionAnswerForm.objects.all()
-    serializer_class = QuestionAnswerFormSerializer    
-
-class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
-    queryset = MatchingQuestionQuiz.objects.all()
-    serializer_class = MatchingQuestionQuizSerializer
-
+class QuizQuestionViewSet(viewsets.ModelViewSet):
+    queryset = QuizQuestion.objects.all()
+    serializer_class= QuizQuestionSerializer
 
 class TaskPdfView(APIView):
     permission_classes = [IsAuthenticated]
