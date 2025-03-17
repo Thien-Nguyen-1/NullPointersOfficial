@@ -5,7 +5,9 @@ from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-
+from django.core.cache import cache  
+from django.conf import settings
+import uuid
 
 User = get_user_model()
 
@@ -51,7 +53,11 @@ class LogInSerializer(serializers.Serializer):
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
-
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    user_type = serializers.CharField()
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password','email']
@@ -64,8 +70,43 @@ class SignUpSerializer(serializers.ModelSerializer):
     
     def create(self,validated_data):
         validated_data.pop("confirm_password")
-        user = User.objects.create_user(**validated_data)
-        return user
+        # user = User.objects.create_user(**validated_data)
+        # user.save()
+
+        # uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        # token = default_token_generator.make_token(user)
+
+        verification_token = str(uuid.uuid4())
+        cache.set(verification_token, validated_data, timeout=86400)
+        verification_url = f"http://localhost:5173/verify-email/{verification_token}/"
+
+        send_mail(
+            subject= "Verify email",
+            message = f"Dear {validated_data['username']}, Thank you for signing up! Please verify your email by clicking the following link: {verification_url}",
+            from_email = "readiness.to.return.to.work@gmail.com",
+            recipient_list=[validated_data['email']],
+            fail_silently=False,
+        )
+        
+        return validated_data
+    
+class verifySignUpSerializer(serializers.Serializer):
+    uidb64 = serializers.CharField()
+    token = serializers.CharField()
+    def validate(self, data):
+        try:
+            uid = urlsafe_base64_decode(data.get("uidb64")).decode()
+            user = User.objects.get(pk=uid)
+
+            if not default_token_generator.check_token(user, data.get("token")):
+                raise serializers.ValidationError({"token": "Invalid or expired token."})
+
+        except (User.DoesNotExist, ValueError):
+            raise serializers.ValidationError({"user": "Invalid user or token"})
+
+        return {"user": user}
+
+        
 
 
 class PasswordResetSerializer(serializers.Serializer):

@@ -29,6 +29,7 @@ import AddModule from './pages/AddModule';
 
 import "./App.css";
 import {AuthContextProvider} from './services/AuthContext.jsx'
+import VerifyEmail from './components/VerifyEmail.jsx';
 
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path = "/password-reset" element = {<RequestPasswordReset />} />
         <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
         <Route path="/tag" element={<Tag />} />

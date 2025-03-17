@@ -108,10 +108,11 @@ const handleDelete = async () => {
       localStorage.removeItem("token");
 
       navigate("/signup");
-    } else {
-      alert("Failed to delete account. Please try again.");
-    }
-  } catch (error) {
+    // } else {
+    //   alert("Failed to delete account. Please try again.");
+    // }
+  } 
+  catch (error) {
     alert("Failed to delete account.");
   }
 };

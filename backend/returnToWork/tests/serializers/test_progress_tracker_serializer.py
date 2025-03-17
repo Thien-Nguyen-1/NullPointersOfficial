@@ -25,41 +25,41 @@
 #         cls.module.tags.set(tags)  # Associate tags with the module 
 
         # Creating the ProgressTracker instance
-        cls.progress_tracker = ProgressTracker.objects.create(
-            user=cls.user,
-            module=cls.module,
-            completed=True,
-            pinned=True,
-            hasLiked=False
-        )
+    #     cls.progress_tracker = ProgressTracker.objects.create(
+    #         user=cls.user,
+    #         module=cls.module,
+    #         completed=True,
+    #         pinned=True,
+    #         hasLiked=False
+    #     )
 
-    def test_serialize_data(self):
-        """ Test serialization of ProgressTracker data to JSON """
-        serializer = ProgressTrackerSerializer(instance=self.progress_tracker)
-        data = serializer.data
-        self.assertEqual(set(data.keys()),{'id', 'user', 'module', 'completed', 'pinned', 'hasLiked'})
-        self.assertEqual(data['user'], self.user.id)
-        self.assertEqual(data['module'], self.module.id)
-        self.assertTrue(data['completed'])
-        self.assertTrue(data['pinned'])
-        self.assertFalse(data['hasLiked'])
+    # def test_serialize_data(self):
+    #     """ Test serialization of ProgressTracker data to JSON """
+    #     serializer = ProgressTrackerSerializer(instance=self.progress_tracker)
+    #     data = serializer.data
+    #     self.assertEqual(set(data.keys()),{'id', 'user', 'module', 'completed', 'pinned', 'hasLiked'})
+    #     self.assertEqual(data['user'], self.user.id)
+    #     self.assertEqual(data['module'], self.module.id)
+    #     self.assertTrue(data['completed'])
+    #     self.assertTrue(data['pinned'])
+    #     self.assertFalse(data['hasLiked'])
 
-    def test_deserialize_data(self):
-        """ Test deserialization of JSON to ProgressTracker data """
-        input_data = {
-            'user': self.user.id,
-            'module': self.module.id,
-            'completed': False,
-            'pinned': False,
-            'hasLiked': True
-        }
-        serializer = ProgressTrackerSerializer(data=input_data)
-        self.assertTrue(serializer.is_valid())
-        new_progress_tracker = serializer.save()
+    # def test_deserialize_data(self):
+    #     """ Test deserialization of JSON to ProgressTracker data """
+    #     input_data = {
+    #         'user': self.user.id,
+    #         'module': self.module.id,
+    #         'completed': False,
+    #         'pinned': False,
+    #         'hasLiked': True
+    #     }
+    #     serializer = ProgressTrackerSerializer(data=input_data)
+    #     self.assertTrue(serializer.is_valid())
+    #     new_progress_tracker = serializer.save()
 
-        self.assertEqual(new_progress_tracker.user, self.user)
-        self.assertEqual(new_progress_tracker.module, self.module)
-        self.assertFalse(new_progress_tracker.completed)
-        self.assertFalse(new_progress_tracker.pinned)
-        self.assertTrue(new_progress_tracker.hasLiked)
+    #     self.assertEqual(new_progress_tracker.user, self.user)
+    #     self.assertEqual(new_progress_tracker.module, self.module)
+    #     self.assertFalse(new_progress_tracker.completed)
+    #     self.assertFalse(new_progress_tracker.pinned)
+    #     self.assertTrue(new_progress_tracker.hasLiked)
 

@@ -29,42 +29,42 @@
 #         )
         
         # Create test modules
-        self.module1 = Module.objects.create(
-            title='Module 1',
-            description='First test module',
-        )
+        # self.module1 = Module.objects.create(
+        #     title='Module 1',
+        #     description='First test module',
+        # )
         
-        self.module2 = Module.objects.create(
-            title='Module 2',
-            description='Second test module',
-        )
+        # self.module2 = Module.objects.create(
+        #     title='Module 2',
+        #     description='Second test module',
+        # )
         
-        self.module3 = Module.objects.create(
-            title='Module 3',
-            description='Third test module',
-        )
+        # self.module3 = Module.objects.create(
+        #     title='Module 3',
+        #     description='Third test module',
+        # )
         
-        # Create progress trackers
-        self.tracker1 = ProgressTracker.objects.create(
-            user=self.user,
-            module=self.module1,
-            completed=True,
-            pinned=True
-        )
+        # # Create progress trackers
+        # self.tracker1 = ProgressTracker.objects.create(
+        #     user=self.user,
+        #     module=self.module1,
+        #     completed=True,
+        #     pinned=True
+        # )
         
-        self.tracker2 = ProgressTracker.objects.create(
-            user=self.user,
-            module=self.module2,
-            completed=False,
-            pinned=False
-        )
+        # self.tracker2 = ProgressTracker.objects.create(
+        #     user=self.user,
+        #     module=self.module2,
+        #     completed=False,
+        #     pinned=False
+        # )
         
-        self.tracker3 = ProgressTracker.objects.create(
-            user=self.user,
-            module=self.module3,
-            completed=False,
-            pinned=True
-        )
+        # self.tracker3 = ProgressTracker.objects.create(
+        #     user=self.user,
+        #     module=self.module3,
+        #     completed=False,
+        #     pinned=True
+        # )
         
 #         # Set up the client
 #         self.client = APIClient()

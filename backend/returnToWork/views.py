@@ -4,7 +4,7 @@ from rest_framework import viewsets, status, generics
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, verifySignUpSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer
 from django.contrib.auth import login, logout
@@ -26,6 +26,7 @@ from django.contrib.auth.tokens import default_token_generator
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from django.core.cache import cache
 
 class ProgressTrackerView(APIView):
 
@@ -95,10 +96,21 @@ class SignUpView(APIView):
     def post(self,request):
         serializer =SignUpSerializer(data = request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            login(request,user)
-            return Response({"message":"User registered successfully","user":UserSerializer(user).data})
+            serializer.save()
+            # login(request,user)
+            return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    
+class VerifyEmailView(APIView):
+    def get(self,request,token):
+        print("🔍 Verification View Called!")
+        user_data = cache.get(token)
+        if not user_data:
+            return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(**user_data)
+        cache.delete(token)
+        print("🎉 User created:", user.username)
+        return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
     
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -117,7 +129,6 @@ class PasswordResetView(APIView):
     def post(self,request,uidb64,token):
         request.data["uidb64"] = uidb64
         request.data["token"] = token
-        print("RECEIVED DATUM!!!!")
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
