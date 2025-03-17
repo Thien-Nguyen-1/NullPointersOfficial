@@ -99,9 +99,9 @@ const handleDelete = async () => {
     return;
   }
   try {
-    const response = await deleteUserSettings();
-    if (response) {
-      alert("Account deleted successfully.");
+    await deleteUserSettings();
+    
+      alert("Account deleted successfully. A confirmation email has been sent to your registered email.");
       
       updateUser(null);
       localStorage.removeItem("user");

@@ -324,6 +324,14 @@ class DeleteServiceUserView(generics.DestroyAPIView):
     def delete(self, request, username):
         try:
             user = User.objects.get(username=username)
+            user_email = user.email
+            send_mail(
+            subject= "Account deletion",
+            message = f"Dear {username}, Your account has been deleted by the admin",
+            from_email = "readiness.to.return.to.work@gmail.com",
+            recipient_list=[user_email],
+            fail_silently=False,
+            )
             user.delete()
             return Response({"message": f"User with username \"{username}\" has been deleted."}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
@@ -347,9 +355,23 @@ class UserSettingsView(APIView):
         
     def delete(self,request):
         user = request.user
+        user_email = user.email
+        username = user.username
+
         user.delete()
-        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
-    
+
+        if not User.objects.filter(username = username).exists():
+            send_mail(
+                subject= "Account deletion",
+                message = f"Dear {username}, Your account has been successfully deleted.",
+                from_email = "readiness.to.return.to.work@gmail.com",
+                recipient_list=[user_email],
+                fail_silently=False,
+                )
+            return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"error":"User account not deleted"},status=status.HTTP_400_BAD_REQUEST)
+
 class UserPasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
 
