@@ -1,10 +1,10 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
+# from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer
-from .models import ProgressTracker,Tags,Module, Questionnaire
+# from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
 from rest_framework.response import Response
@@ -819,5 +819,8 @@ class TaskPdfView(APIView):
         response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
         return response
 
+# class UserResponseViewSet(viewsets.ModelViewSet):
+#     queryset = UserResponse.objects.all()
+#     serializer_class = UserResponseSerializer
 
         
