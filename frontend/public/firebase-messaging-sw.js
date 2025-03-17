@@ -3,6 +3,9 @@ importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/8.2.0/firebase-messaging.js");
 
 // Firebase Configuration
+
+// TO DO: MUST MOVE THIS TO ENVIRONMENTAL VARIABLE BEFORE DPELOYMENT
+
 const firebaseConfig = {
     apiKey: "AIzaSyDQb9cx05Rm34vwBtrqnywzIa5LYWHhjes",
     authDomain: "readytowork-8cf2f.firebaseapp.com",
@@ -13,9 +16,11 @@ const firebaseConfig = {
     measurementId: "G-64C4KL7XTF"
 };
 
-// Initialize Firebase
+
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
+
+
 
 
 // FOR GENERAL BROWSERS (except Safari)

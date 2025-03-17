@@ -164,7 +164,7 @@ class UserPasswordChangeSerializer(serializers.Serializer):
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = ['id', 'user', 'admin', 'created_at', 'hasEngaged', 'lastMessage']
+        fields = ['id', 'user', 'admin', 'created_at', 'hasEngaged', 'updated_at','lastMessage']
 
 
 class MessageSerializer(serializers.ModelSerializer):

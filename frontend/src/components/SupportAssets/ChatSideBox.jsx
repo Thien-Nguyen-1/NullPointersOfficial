@@ -16,6 +16,9 @@ function ChatSideBox(props){
     }
 
 
+    const updateDate = convoObj?.updated_at.split('T')[0]
+    const updateTime = convoObj?.updated_at.split('T')[1].split('.')[0].slice(0, -3)
+    
 
 
     async function assign_chat(){
@@ -33,8 +36,8 @@ function ChatSideBox(props){
 
 
     return (
-        <div className="chat-side-box" onClick={render_chat}>
-            {/* {console.log(convoObj)} */}
+        <div className="chat-side-box" onClick={render_chat} style={{'backgroundColor': (!convoObj?.hasEngaged && user?.user_type === "admin" ? "#f2edb8" : "")}}>
+       
             <div className="chat-profile">
                  <FaUserCircle className="chat-profile-icon"/>
             </div>
@@ -42,19 +45,9 @@ function ChatSideBox(props){
             
             <div>
                 <h3>{convoObj?.user_username}</h3>
+                
+                <p style={{'fontSize' : '0.7rem', 'fontWeight' : "bold"}}> {updateDate}  |  {updateTime} </p>
 
-                {user?.user_type == "admin" && !convoObj.hasEngaged &&(
-                    <div className="admin-chat-choice">
-
-                        <FaTimes 
-                        style={{ color: "red"}}
-                        onClick={()=>{}}/>
-
-                        <TiTick 
-                        style={{ color: "green"}}
-                        onClick={() => {assign_chat()}} />
-                    </div>
-                )}
 
             </div>
 

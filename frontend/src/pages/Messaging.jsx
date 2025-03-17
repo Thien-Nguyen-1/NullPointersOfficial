@@ -125,7 +125,6 @@ function Messaging() {
       loadConversations()
 
 
-
    }, [])
 
 
@@ -136,7 +135,6 @@ function Messaging() {
     getUserMessages(chatID)
 
   })
-
 
 
 
@@ -189,21 +187,16 @@ function Messaging() {
 
 
 
-   async function sendNewMessage(e){
-      e.preventDefault()
-
+   async function sendNewMessage(objMessage){
+      
 
       if(chatID){
         try{
 
-            // await requestPermissionAndGetToken()
-        
-            const messageObj = {"message": inputText}
-            await SendMessage(token, chatID, messageObj)
+            await SendMessage(token, chatID, objMessage)
 
             await getUserMessages(chatID)
 
-            setInputText("");
             
 
         }catch(error){
@@ -280,7 +273,7 @@ function Messaging() {
 
                 {/* { console.log("OUR FCM TOKEN IS ", fcmToken)} */}
                 
-                <header className="chat-header"> 
+                <header > 
                   
                   <ChatHeaderBar 
 

@@ -1,6 +1,7 @@
 
 
 
+
 /* MAIN CONTENT */
 .support-main-container {
     display: flex;
@@ -58,6 +59,7 @@
 .view-chat-container {
 
     height: 100%;
+   
     display: flex;
     flex-direction: column;
     visibility: none;
@@ -80,12 +82,17 @@
 
    flex-grow: 0;
 }
+.chat-header-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
 
 .chat-container {
-    flex: 0 0 50vh;
+  
     overflow-y: auto;
 
-    height: 50vh;
+    height: 80%;
     /* flex-grow: 1; Let it take remaining space
     overflow-y: auto;
     min-height: 0; Ensures the child can shrink properly */
@@ -102,6 +109,7 @@
     align-items: center;
 
     background-color: #e3e2e1;
+    animation: notif-flash 2s 2;
  
 }
 
@@ -138,9 +146,6 @@
     border-radius: 1rem;
     
     
-
-    
-    
 }
 
 .mini-notif-container {
@@ -157,6 +162,8 @@
 .user-interact-container{
     display: flex;
     justify-content: center;
+    margin-top: 1rem;
+
 
 
     /* padding-bottom: env(safe-area-inset-bottom);  */
@@ -193,6 +200,25 @@
 
  
 
+ /* ANIMATIONS  */
+
+ @keyframes notif-flash {
+    0% {
+        background-color: "#f2edb8";
+    }
+    50% {
+        background-color: #e3e2e1;
+    }
+    100% {
+        background-color: "#f2edb8";
+    }
+ }
+
+
+
+
+
+
 
 /* Phone Resolution */
 @media screen and (min-width: 375px ){
@@ -203,6 +229,7 @@
    .view-chat-container{flex-grow: 1;}
    
    .chat-visible-false { display: none !important;}
+   .back-chat-button{display: block;}
 
  }
  
@@ -213,6 +240,7 @@
     
    
     .chat-visible-false{display: block !important;}
+    .back-chat-button{display: none;}
 
  }
  

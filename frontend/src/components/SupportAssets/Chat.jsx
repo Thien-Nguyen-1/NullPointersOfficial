@@ -16,12 +16,9 @@ function Chat(props){
     return (
         <>
         
-       
           {messages?.map( (msg) => {
 
 
-
-            
             if(user?.id == msg.sender){
                 return (
                     <div key={`msg-container-${msg.id}`} style={{'marginRight': '1rem'}}>
@@ -31,7 +28,6 @@ function Chat(props){
                                 background_color="green"
 
                             />
-                            
                             
                         </div>
 
@@ -50,21 +46,20 @@ function Chat(props){
                         message={ProfanityFilter.filterText(msg.text_content)}
                         background_color="grey"
                         
-
                     />
                  </div>
                )
             }
           })}
 
-          { messages?.filter( (msg) => msg.sender != user?.id ).length == 0 && messages.length == 1 && user.role == "service user" &&
+
+          { messages?.filter( (msg) => msg.sender != user?.id ).length == 0 && messages.length == 1 && user.user_type == "service user" &&
                
                <WarningBox 
                 message={"Administrator will respond within 3 working days"}/>
               
           }
 
-        
         </>
     )
 

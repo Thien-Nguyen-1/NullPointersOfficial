@@ -19,6 +19,7 @@ import ChangePassword from './components/ChangePassword';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
+import DropZoneTest from './pages/DropZone.jsx';
 
 import "./App.css";
 import {AuthContextProvider} from './services/AuthContext.jsx'
@@ -49,6 +50,8 @@ function App() {
                 <Route path="courses" element={<Courses/>} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="KnowValuesModule" element={<Module2/>} />
+
+                <Route path="drop-zone-test" element={<DropZoneTest />} />
               </Routes>
             </DashboardLayout>
           }
