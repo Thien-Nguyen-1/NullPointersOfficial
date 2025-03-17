@@ -1,0 +1,45 @@
+/* MatchingQuestionsQuiz.css */
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.question-answer-pair {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.question {
+    flex: 1 1 50%; /* Adjust the width as necessary */
+    margin-right: 20px;
+    padding: 10px;
+    background-color: #eef;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+.answers {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.answer {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #a1c2da;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+.answer:last-child {
+    margin-bottom: 0;
+}

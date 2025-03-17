@@ -32,6 +32,8 @@ router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
 router.register(r'document',DocumentViewSet , basename='document')
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
 router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
+# router.register(r'user_response', UserResponseViewSet,basename='userResponse')
+
 
 
 

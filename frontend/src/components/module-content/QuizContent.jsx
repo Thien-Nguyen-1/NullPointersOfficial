@@ -3,7 +3,7 @@ import FlashcardQuiz from "../quizzes/FlashcardQuiz";
 import FillInTheBlanksQuiz from "../quizzes/FillInTheBlanksQuiz";
 import FlowchartQuiz from "../quizzes/FlowchartQuiz";
 import QuestionAndAnswerForm from "../quizzes/QuestionAndAnswerForm";
-
+import MatchingQuestionsQuiz from "../quizzes/MatchingQuestionsQuiz";
 /**
  * Component for rendering quiz content in the module
  * 
@@ -35,8 +35,14 @@ const QuizContent = ({ quizData, completedContentIds, onComplete }) => {
         onComplete={(results) => onComplete(quizData.id, results)}
       />;
       break;
-    case 'question_answer_form':
+    case 'question_input':
       quizComponent = <QuestionAndAnswerForm
+        taskId={quizData.taskData.contentID} 
+        onComplete={(results) => onComplete(quizData.id, results)}
+      />;
+      break;
+    case 'pair_input':
+      quizComponent = <MatchingQuestionsQuiz
         taskId={quizData.taskData.contentID} 
         onComplete={(results) => onComplete(quizData.id, results)}
       />;

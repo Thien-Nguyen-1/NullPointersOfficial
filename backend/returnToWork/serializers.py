@@ -323,4 +323,9 @@ class RequestPasswordResetSerializer(serializers.Serializer):
             )
         
             return user
+    
+    class UserResponseSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UserResponse
+            fields = '__all__'
 

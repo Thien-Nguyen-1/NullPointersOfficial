@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
 import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
 import { useParams } from "react-router-dom";
-
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import AdminDashboard from "./pages/AdminDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
@@ -62,7 +63,10 @@ function App() {
             {/* ModuleView Route - Added at root level */}
             <Route path="/modules/:moduleId" element={
               <DashboardLayout>
+                        <DndProvider backend={HTML5Backend}>
+
                 <ModuleViewAlternative />
+                </DndProvider>
               </DashboardLayout>
             } />
 
