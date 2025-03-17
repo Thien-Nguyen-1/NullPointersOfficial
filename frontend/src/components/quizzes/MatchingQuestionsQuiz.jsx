@@ -86,9 +86,20 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
 
     if (quizCompleted) {
         return (
-            <div className="quiz-completed">
-                <h3>Quiz completed successfully!</h3>
-                <button onClick={resetQuiz} className="restart-button">Try Again</button>
+            <div className="container">
+                <h2>Quiz completed successfully!</h2>
+                <h3>Your chosen pair below</h3>
+
+                <ul>
+                    {pairs.map(pair => (
+                        <li key={pair.id} className='question-answer-pair'>
+                           <div  className='question'>{pair.text}</div>
+                            <br />
+                            <div  className='answer'>{userAnswers[pair.id]}</div>
+                        </li>
+                    ))}
+                </ul>
+                <button onClick={resetQuiz} className="restart-button">Restart Quiz</button>
             </div>
         );
     }
@@ -97,7 +108,7 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
         <div className="container">
             <h1>Drag and Drop Question to Answer</h1>
             <ul>
-                {pairs.map((pair) => (
+                {pairs.map(pair => (
                     <li key={pair.id} className={`question-answer-pair ${validationErrors[pair.id] ? 'error' : ''}`}>
                         <Question text={pair.text} id={pair.id} />
                         <div className="answers">

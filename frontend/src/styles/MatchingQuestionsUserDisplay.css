@@ -13,7 +13,7 @@
     padding: 15px;
     border: none; /* Remove standard border */
     border-radius: 12px; /* More pronounced rounded corners */
-    background: linear-gradient(145deg, #a1c2da, #5ca579);
+    background: linear-gradient(145deg, #e2eaef, #92cca9);
     box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
     transform: rotate(-1deg); /* Slight tilt */
     transition: transform 0.3s ease-out;
