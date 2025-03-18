@@ -19,6 +19,10 @@ from django.urls import path,include
 from rest_framework.routers import DefaultRouter
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, UserSupportView, UserChatView
 
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path
+
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
@@ -62,4 +66,4 @@ urlpatterns = [
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
     path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

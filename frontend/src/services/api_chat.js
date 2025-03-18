@@ -47,6 +47,7 @@ export async function CreateConversation(token, objConvoReq = {}) {
 
 export async function GetMessages(token, id=-10){
     try{
+
         const response = await api.get(`api/support/chat-room/${id}/`, 
         {
             headers: {'Authorization': `Token ${token}`}
@@ -59,14 +60,27 @@ export async function GetMessages(token, id=-10){
 }
 
 
-export async function SendMessage(token, id=-10, objMessage = {"message": ""}){
+export async function SendMessage(token, id=-10, objMessage = {"message": "", "file": null}){
     try {
-        const response = await api.post(`api/support/chat-room/${id}/`, objMessage,
+
+        const formData = new FormData(); //in order to send both data and text
+        formData.append("message", objMessage.message)
+
+        if(objMessage.file){
+            formData.append("file", objMessage.file)
+        }
+
+
+        const response = await api.post(`api/support/chat-room/${id}/`, formData,
         {
-            headers:  {'Authorization': `Token ${token}`}
+            headers:  {'Authorization': `Token ${token}`,
+                        "Content-Type": "multipart/form-data"}
         }
         
         )
+
+        
+
     } catch(error){
         return response.error
     }

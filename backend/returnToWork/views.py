@@ -514,6 +514,25 @@ class UserSupportView(APIView):
             return Response({"message": "Maximum Support Room Limit (5) Reached"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         
         return Response({"message": "success"}, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request):
+        user_ = request.user
+        data = request.data
+
+
+        try:
+             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
+
+             if conversation_:
+                conversation_.delete()
+
+                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+        
 
 
 
@@ -545,13 +564,14 @@ class UserChatView(APIView):
     def get(self, request, room_id):
         user_ = request.user
         data = request.data
-
+       
         conv_Obj = Conversation.objects.get(id = room_id)
 
         if conv_Obj:
             
             all_Messages = Message.objects.filter(conversation=conv_Obj)
             
+
             serialized_messages = MessageSerializer(all_Messages, many=True)
            
             return Response(serialized_messages.data, status=status.HTTP_200_OK)
@@ -563,7 +583,7 @@ class UserChatView(APIView):
             
 
 
-    def post(self,request, room_id):
+    def post(self,request, room_id, *args, **kwargs):
         user_ = request.user
         data = request.data
 
@@ -577,13 +597,15 @@ class UserChatView(APIView):
             admin = conv_Obj.admin
 
             message_content = data["message"]
+            uploaded_file = data.get("file", None)
 
-                
+            
                 #Create a new message object
             Message.objects.create(
                 conversation=conv_Obj,
                 sender=user_,
-                text_content = message_content
+                text_content = message_content,
+                file = uploaded_file
             )
 
             conv_Obj.save() 
@@ -594,13 +616,14 @@ class UserChatView(APIView):
                      notification=messaging.Notification(
                          title="Test title",
                          body = message_content,
+                        
                      ),
                      token=token
                  )
                 
                 try:
                     response = messaging.send(message)
-                    print('Successfully sent message:', response)
+                   
                 except:
                     pass
 
@@ -618,21 +641,5 @@ class UserChatView(APIView):
             return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
 
 
-    def delete(self, request):
-        user_ = request.user
-        data = request.data
-
-
-        try:
-             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
-
-             if conversation_:
-                conversation_.delete()
-
-                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
-        except:
-            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
-
-       
-        
+    
 

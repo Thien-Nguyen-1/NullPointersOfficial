@@ -168,6 +168,9 @@ class ConversationSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
+
+    file = serializers.FileField(read_only=True) #obtain the url only
+
     class Meta:
         model = Message
-        fields = ['id', 'conversation', 'sender', 'text_content', 'timestamp']
+        fields = ['id', 'conversation', 'sender', 'text_content', 'timestamp', 'file']

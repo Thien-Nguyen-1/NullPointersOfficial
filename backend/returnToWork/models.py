@@ -266,6 +266,7 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     text_content = models.TextField()
     timestamp =  models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="message-files/", null=True)
 
     def __str__(self):
         return f"Text sent: {self.text_content}"

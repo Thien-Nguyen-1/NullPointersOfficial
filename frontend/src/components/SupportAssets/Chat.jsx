@@ -1,11 +1,10 @@
 import { useContext, useState } from "react"
 
 import { AuthContext } from "../../services/AuthContext"
-import Bubble from "./Bubble"
 import { PiWarningCircle } from "react-icons/pi";
 import WarningBox from "./WarningMessage";
 import { ProfanityFilter } from "../../services/profanity_filter";
-
+import { FileBubble, Bubble } from "./Bubble";
 
 function Chat(props){
 
@@ -18,16 +17,26 @@ function Chat(props){
         
           {messages?.map( (msg) => {
 
+           // console.log(msg)
+
+
 
             if(user?.id == msg.sender){
+
+                
                 return (
                     <div key={`msg-container-${msg.id}`} style={{'marginRight': '1rem'}}>
                         <div key={msg.id} className="bubble-container bubble-right ">
+
+                            {msg.file ? <FileBubble file_url={msg.file} background_color="green"/> :
+
                             <Bubble
                                 message={ProfanityFilter.filterText(msg.text_content)}
                                 background_color="green"
 
                             />
+
+                            }
                             
                         </div>
 
@@ -42,11 +51,14 @@ function Chat(props){
             } else{
                return (
                  <div key={msg.id} className="bubble-container bubble-left ml-1">
+
+                    {msg.file ? <FileBubble file_url={msg.file} background_color="grey"/> :
                     <Bubble 
                         message={ProfanityFilter.filterText(msg.text_content)}
                         background_color="grey"
                         
                     />
+                    }
                  </div>
                )
             }

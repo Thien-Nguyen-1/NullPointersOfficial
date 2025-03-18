@@ -1,17 +1,17 @@
 
-import { useState, useCallback } from "react"
+import { useState, useCallback} from "react"
 import {useDropzone} from 'react-dropzone'
+import { FaUpload } from "react-icons/fa";
 
 
-function FileUploader(){
+function FileUploader(props){
 
 
-    const onDrop = (acceptedFile) => {
-        //save the file
+    const onDrop = (acceptedFiles) => {
+        props.setFileState(acceptedFiles[0])
+       
     }
-
-
-    //check for heic 
+    
 
     const {getRootProps, getInputProps, acceptedFiles, fileRejections} = useDropzone({
         onDrop,
@@ -26,35 +26,18 @@ function FileUploader(){
     })
 
 
-   
-    const files = acceptedFiles.map((file) => (
-        <li key={file.path}>
-            {file.path}
-        </li>
-    ))
-    
-  
-    
-
     return (
-        <div>
+        
 
-            <div {...getRootProps({className:"dropzone"})}>
+            <div  {...getRootProps({className:"dropzone"})}>
                 <input className="input-zone" {...getInputProps()} />
 
-                <p> Click to Upload</p>
 
+                <button type="button" style={{'height':'2rem', 'width':'4rem'}}> <FaUpload /></button>
 
 
             </div>
 
-            <ul> {files}</ul>
-            
-
-            
-
-
-        </div>
     )
 }
 

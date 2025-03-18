@@ -53,7 +53,7 @@ function Messaging() {
   const [allConvos, setConvos] = useState([])
   const[messages, setMessages] = useState([])
 
-  const[inputText, setInputText] = useState("");
+
 
   
   const [chatID, setChatId] = useState(null)
@@ -210,9 +210,7 @@ function Messaging() {
         
    }
 
-   async function updateInputText(msg=""){
-      setInputText(msg)
-   }
+   
 
    
   
@@ -234,8 +232,6 @@ function Messaging() {
 
     }
 
-    
-
 
 
     return (
@@ -246,7 +242,7 @@ function Messaging() {
         <section className={`create-chat-container  chat-visible-${!chatVisible}`}>
             <h2> Support Page </h2>
             
-            <div className="flex">
+            <div className="flex" style={{'alignItems':'center', 'gap':'1rem'}}>
               <p> Create A New Chat</p>
 
               
@@ -299,8 +295,6 @@ function Messaging() {
 
                   <MessageBar 
                     sendNewMessage={sendNewMessage}
-                    currentText = {inputText}
-                    updateInputText={updateInputText}
                     convObj = {allConvos?.filter((obj)=>obj.id===chatID)[0]}
                     />
 
