@@ -589,6 +589,7 @@ class UserChatView(APIView):
 
         conv_Obj = Conversation.objects.get(id = room_id)
         
+    
   
         if conv_Obj:
             
@@ -614,7 +615,7 @@ class UserChatView(APIView):
 
                 message = messaging.Message(
                      notification=messaging.Notification(
-                         title="Test title",
+                         title= user_.username ,
                          body = message_content,
                         
                      ),

@@ -17,9 +17,6 @@ function Chat(props){
         
           {messages?.map( (msg) => {
 
-           // console.log(msg)
-
-
 
             if(user?.id == msg.sender){
 

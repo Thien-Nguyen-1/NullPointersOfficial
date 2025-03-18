@@ -88,9 +88,7 @@ const AuthContextProvider = ({children}) => {
           
           setUser(response.data.user)
           
-          console.log("USER LOADED IN")
-
-
+          
           return response.data;
         }
         
