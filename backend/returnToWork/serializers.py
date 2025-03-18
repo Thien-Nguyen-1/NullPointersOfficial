@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -323,14 +323,9 @@ class RequestPasswordResetSerializer(serializers.Serializer):
             )
         
             return user
-
-class QuestionAnswerFormSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = QuestionAnswerForm
-        fields = '__all__'
-
-class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MatchingQuestionQuiz
-        fields = '__all__'
+    
+    class UserResponseSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UserResponse
+            fields = '__all__'
 

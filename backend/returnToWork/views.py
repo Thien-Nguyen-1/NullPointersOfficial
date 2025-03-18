@@ -1,8 +1,9 @@
 import json
 import random
-from io import BytesIO
 import uuid
+from io import BytesIO
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
@@ -24,50 +25,17 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from .models import (
-    Content, 
-    InfoSheet, 
-    MatchingQuestionQuiz, 
-    Module, 
-    ProgressTracker,
-    QuestionAnswerForm, 
-    Questionnaire, 
-    QuizQuestion, 
-    RankingQuestion, 
-    Tags, 
-    Task, 
-    User, 
-    UserModuleInteraction, 
-    UserResponse,
-    AudioClip,
-    Document,
-    EmbeddedVideo,
-    InlinePicture,
-    ContentProgress,
-    Video
+    Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
+    RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
+    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video
 )
 from .serializers import (
-    AudioClipSerializer,
-    ContentPublishSerializer,
-    DocumentSerializer,
-    EmbeddedVideoSerializer,
-    InfoSheetSerializer,
-    InlinePictureSerializer,
-    LogInSerializer,
-    MatchingQuestionQuizSerializer,
-    ModuleSerializer,
-    PasswordResetSerializer,
-    ProgressTrackerSerializer,
-    QuestionnaireSerializer,
-    RankingQuestionSerializer,
-    RequestPasswordResetSerializer,
-    SignUpSerializer,
-    TagSerializer,
-    TaskSerializer,
-    UserModuleInteractSerializer,
-    UserPasswordChangeSerializer,
-    UserSerializer,
-    UserSettingSerializer,
-    QuestionAnswerFormSerializer,
+    AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
+    EmbeddedVideoSerializer, InfoSheetSerializer, InlinePictureSerializer,
+    LogInSerializer, ModuleSerializer, PasswordResetSerializer, ProgressTrackerSerializer, 
+    QuestionnaireSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
+    SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
+    UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
     VideoSerializer
 )
 
@@ -696,6 +664,7 @@ class QuizQuestionView(APIView):
                 question_text = request.data.get('question_text')
                 hint_text = request.data.get('hint_text', '')
                 order = request.data.get('order', 0)
+                answers = request.data.get('answers',[])
 
                 if not task_id or not question_text:
                     return Response(
@@ -717,13 +686,15 @@ class QuizQuestionView(APIView):
                 question.question_text = question_text
                 question.hint_text = hint_text
                 question.order = order
+                question.answers
                 question.save()
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers': question.answers
                 }, status=status.HTTP_200_OK)
 
             except QuizQuestion.DoesNotExist:
@@ -737,6 +708,8 @@ class QuizQuestionView(APIView):
             question_text = request.data.get('question_text')
             hint_text = request.data.get('hint_text', '')
             order = request.data.get('order', 0)
+            answers = request.data.get('answers',[])
+
 
             if not task_id or not question_text:
                 return Response(
@@ -752,14 +725,16 @@ class QuizQuestionView(APIView):
                     task=task,
                     question_text=question_text,
                     hint_text=hint_text,
-                    order=order
+                    order=order,
+                    answers=answers
                 )
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers':question.answers
                 }, status=status.HTTP_201_CREATED)
 
             except Task.DoesNotExist:
@@ -778,6 +753,7 @@ class QuizQuestionView(APIView):
                 'text': question.question_text,
                 'hint': question.hint_text,
                 'order': question.order,
+                'answers':question.answers,
                 'task_id': str(question.task.contentID)
             })
         else:
@@ -797,7 +773,8 @@ class QuizQuestionView(APIView):
                     'id': q.id,
                     'text': q.question_text,
                     'hint': q.hint_text,
-                    'order': q.order
+                    'order': q.order,
+                    'answers': q.answers
                 } for q in questions
             ])
 
@@ -814,14 +791,9 @@ class QuizQuestionView(APIView):
             )
 
     
-class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
-    queryset = QuestionAnswerForm.objects.all()
-    serializer_class = QuestionAnswerFormSerializer    
-
-class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
-    queryset = MatchingQuestionQuiz.objects.all()
-    serializer_class = MatchingQuestionQuizSerializer
-
+class QuizQuestionViewSet(viewsets.ModelViewSet):
+    queryset = QuizQuestion.objects.all()
+    serializer_class= QuizQuestionSerializer
 
 class TaskPdfView(APIView):
     permission_classes = [IsAuthenticated]
@@ -865,7 +837,9 @@ class TaskPdfView(APIView):
         response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
         return response
 
-
+# class UserResponseViewSet(viewsets.ModelViewSet):
+#     queryset = UserResponse.objects.all()
+#     serializer_class = UserResponseSerializer
 class MarkContentViewedView(APIView):
     """
     API view to mark content as viewed/completed.
