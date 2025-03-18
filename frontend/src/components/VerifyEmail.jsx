@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import '../styles/Signup.css';
 
 const VerifyEmail = () => {
   const { token } = useParams();  
@@ -16,7 +17,7 @@ const VerifyEmail = () => {
           setMessage("Email verified successfully! Redirecting...");
           setTimeout(() => navigate("/login"), 3000);  
         } else {
-          setMessage(data.error || "Invalid or expired verification link.");
+          setMessage( "Loading log in page...");
         }
       } catch (error) {
         setMessage("An error occurred. Please try again.");
@@ -28,7 +29,7 @@ const VerifyEmail = () => {
 
   return (
     <div>
-      <h2>Email Verification</h2>
+      <h3>Email Verification</h3>
       <p>{message}</p>
     </div>
   );

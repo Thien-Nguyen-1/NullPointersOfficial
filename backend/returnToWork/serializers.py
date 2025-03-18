@@ -70,12 +70,6 @@ class SignUpSerializer(serializers.ModelSerializer):
     
     def create(self,validated_data):
         validated_data.pop("confirm_password")
-        # user = User.objects.create_user(**validated_data)
-        # user.save()
-
-        # uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-        # token = default_token_generator.make_token(user)
-
         verification_token = str(uuid.uuid4())
         cache.set(verification_token, validated_data, timeout=86400)
         verification_url = f"http://localhost:5173/verify-email/{verification_token}/"
@@ -87,27 +81,7 @@ class SignUpSerializer(serializers.ModelSerializer):
             recipient_list=[validated_data['email']],
             fail_silently=False,
         )
-        
         return validated_data
-    
-class verifySignUpSerializer(serializers.Serializer):
-    uidb64 = serializers.CharField()
-    token = serializers.CharField()
-    def validate(self, data):
-        try:
-            uid = urlsafe_base64_decode(data.get("uidb64")).decode()
-            user = User.objects.get(pk=uid)
-
-            if not default_token_generator.check_token(user, data.get("token")):
-                raise serializers.ValidationError({"token": "Invalid or expired token."})
-
-        except (User.DoesNotExist, ValueError):
-            raise serializers.ValidationError({"user": "Invalid user or token"})
-
-        return {"user": user}
-
-        
-
 
 class PasswordResetSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)

@@ -37,12 +37,7 @@ export const deleteServiceUser = async (username) => {
     }
 };
 
-// export async function loginUser(username, password){
-//   try {
-//     const response = await api.post(`/login/`, {
-//       username,
-//       password,
-//     });
+
 export async function loginUser(username, password){
   try {
     const response = await api.post(`/api/login/`, {
