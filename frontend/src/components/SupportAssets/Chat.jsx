@@ -66,9 +66,11 @@ function Chat(props){
 
 
           { messages?.filter( (msg) => msg.sender != user?.id ).length == 0 && messages.length == 1 && user.user_type == "service user" &&
-               
-               <WarningBox 
-                message={"Administrator will respond within 3 working days"}/>
+               <div className="mr-1">
+                    <WarningBox 
+                        message={"Administrator will respond within 3 working days"}/>
+
+              </div>
               
           }
 

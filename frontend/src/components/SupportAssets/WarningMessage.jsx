@@ -5,7 +5,7 @@ function WarningBox(props) {
 
     return (
 
-        <p className="mini-notif-container "> <PiWarningCircle /> {props.message} </p>
+        <p className="mini-notif-container"> <PiWarningCircle /> {props.message} </p>
     )
 }
 

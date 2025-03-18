@@ -11,7 +11,7 @@ function FileUploader(props){
         props.setFileState(acceptedFiles[0])
        
     }
-    
+        
 
     const {getRootProps, getInputProps, acceptedFiles, fileRejections} = useDropzone({
         onDrop,

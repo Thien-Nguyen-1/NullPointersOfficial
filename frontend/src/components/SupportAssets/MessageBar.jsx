@@ -64,7 +64,6 @@ function MessageBar(props) {
     }
 
     
-    
  
 
     return(
