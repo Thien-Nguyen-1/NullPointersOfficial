@@ -14,7 +14,6 @@ class SignUpViewTest(APITestCase):
             email = "jane@example.org",
             user_type = "service user",
             password ="password123",
-            # confirm_password = "password123"
         )
         self.login_url = reverse("signup")
 
@@ -31,9 +30,7 @@ class SignUpViewTest(APITestCase):
         response = self.client.post(self.login_url,data,format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("message", response.data)
-        self.assertEqual(response.data["message"], "User registered successfully")
-        self.assertIn("user", response.data)
-        self.assertEqual(response.data["user"]["username"], "@zaki1357680")
+        self.assertEqual(response.data["message"], "User registered successfully. Please verify your email to activate your account")
 
     def test_wrong_password(self):
         data = {
