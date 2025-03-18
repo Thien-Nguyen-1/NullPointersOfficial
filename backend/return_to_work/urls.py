@@ -17,9 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import CompletedContentView, MarkContentViewedView, ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet
-
+from returnToWork.views import (
+    CompletedContentView, MarkContentViewedView, ProgressTrackerView,
+    TagViewSet, ModuleViewSet, InfoSheetViewSet, VideoViewSet, TaskViewSet,
+    UserInteractionView, LogInView, LogOutView, SignUpView, UserProfileView,
+    PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView,
+    DeleteServiceUserView, UserSettingsView, UserPasswordChangeView,
+    CheckUsernameView, RequestPasswordResetView, ContentPublishView,
+    RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet,
+    DocumentViewSet, EmbeddedVideoViewSet, QuizDataView, QuizDetailView,
+    QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
+    TaskPdfView, QuizQuestionViewSet
+)
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
@@ -36,8 +45,6 @@ router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
 
 
 
-
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView, UserInteractionView, UserPasswordChangeView, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
 urlpatterns = [
      path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),

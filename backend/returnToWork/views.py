@@ -33,7 +33,7 @@ from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
     EmbeddedVideoSerializer, InfoSheetSerializer, InlinePictureSerializer,
     LogInSerializer, ModuleSerializer, PasswordResetSerializer, ProgressTrackerSerializer, 
-    QuestionnaireSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
+    QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
     VideoSerializer

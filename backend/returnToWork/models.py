@@ -203,7 +203,7 @@ class ProgressTracker(models.Model):
     def update_progress(self):
         """Recalculate progress for this module"""
         # Get ContentType for each model
-        content_models = [InfoSheet, Video, Task, QuestionAnswerForm, MatchingQuestionQuiz]
+        content_models = [InfoSheet, Video, Task]
         content_types = [ContentType.objects.get_for_model(model) for model in content_models]
         
         # Count total contents
