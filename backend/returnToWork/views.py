@@ -1,3 +1,14 @@
+# views.py - Main views file for backward compatibility
+# This file imports all views from the modular structure
+
+from .views.auth import *
+from .views.user import *
+from .views.modules import *
+from .views.progress import *
+from .views.content import *
+from .views.quizzes import *
+from .views.admin import *
+
 import json
 import random
 import uuid

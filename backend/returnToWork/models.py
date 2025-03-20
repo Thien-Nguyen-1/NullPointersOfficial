@@ -1,3 +1,13 @@
+# models.py - Main models file
+# This file is kept for backward compatibility and redirects to the organized model structure
+
+# Import all models from the models directory
+# This preserves the existing API so any code already using imports like:
+# from returnToWork.models import User
+# will continue to work without changes
+
+from .models import *
+
 from datetime import timezone
 from django.core.validators import RegexValidator , EmailValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
