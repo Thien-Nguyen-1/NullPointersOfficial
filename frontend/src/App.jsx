@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useContext, useEffect, useRef }from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
 import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
+import { useSessionTimeout } from "./hooks-custom/useSessionTimeout";
+import { SessionManager } from "./hooks-custom/useSessionManager";
 import { useParams } from "react-router-dom";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -28,15 +30,15 @@ import QuizContainer from './components/quizzes/QuizContainer';
 import AddModule from './pages/AddModule';
 
 import "./App.css";
-import {AuthContextProvider} from './services/AuthContext.jsx'
+import { AuthContext, AuthContextProvider } from './services/AuthContext.jsx'
 import { EnrollmentContextProvider } from './services/EnrollmentContext';
 
 
 
 function App() {
+
   const QuizEditorSelector = () => {
     const { quizType } = useParams();
-    
     return quizType === "flashcard" ? <VisualFlashcardEditor /> : <VisualStatementSequenceEditor />;
   };
   
@@ -46,6 +48,7 @@ function App() {
       {/* Wrapper that helps with user enrollment into the course */}
       <EnrollmentContextProvider>
       <Router>
+          <SessionManager /> {/* Add the session manager here */}
           <Routes>
             {/* Auth Routes (No Sidebar) */}
             <Route path="/" element={<Welcome />} />
@@ -112,7 +115,6 @@ function App() {
           </Routes>
         </Router>
       </EnrollmentContextProvider>
-    
     </AuthContextProvider>
   );
 }
