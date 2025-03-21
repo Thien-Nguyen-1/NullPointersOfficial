@@ -46,7 +46,7 @@ const AuthContextProvider = ({children}) => {
 
     // ===== UPADING USER ===== //
     async function updateUser(newUserObj){ //parameter must be a copy of the user 
-     
+     console.log(newUserObj)
       try {
         
         const response = await api.put('/api/user/', newUserObj, {
@@ -88,9 +88,7 @@ const AuthContextProvider = ({children}) => {
           
           setUser(response.data.user)
           
-          console.log("USER LOADED IN")
-
-
+          
           return response.data;
         }
         

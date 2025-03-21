@@ -166,6 +166,11 @@ class User(AbstractUser):
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
+    firebase_token = models.TextField(
+        default="",
+        blank=False,
+        null=False,
+    )
 
     class Meta:
         """Model options."""
@@ -319,6 +324,30 @@ class UserResponse(models.Model):
 
     def __str__(self):
         return f"Response by {self.user.username} for {self.question}"
+
+
+class Conversation(models.Model): #one-to-many relationship with Messages
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="user_conversation")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="admin_conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    hasEngaged = models.BooleanField(default=False)
+    lastMessage = models.TextField(default="")
+
+    def __str__(self):
+        return f"Conversation created for: {self.user} and {self.admin}"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    text_content = models.TextField()
+    timestamp =  models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="message-files/", null=True)
+
+    def __str__(self):
+        return f"Text sent: {self.text_content}"
+            
 
 
 
