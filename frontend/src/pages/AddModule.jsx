@@ -52,8 +52,8 @@ const AddModule = () => {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
-    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'},
-    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'text_input'}
+    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'question_input'},
+    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'pair_input'}
   };
 
   const headings = [
@@ -106,13 +106,15 @@ const AddModule = () => {
       setIsLoading(true);
       
       const moduleData = await QuizApiUtils.getModule(moduleId);
+      console.log("[DEBUG] Fetched Module Data:",moduleData);
       setTitle(moduleData.title);
       setDescription(moduleData.description || "");
       setTags(moduleData.tags || []);
       
       // Use the new module-specific task function
       const tasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-      
+      console.log("[DEBUG] Fetched Tasks for Module :",tasks);
+
 
       // Reset the initialQuestionsRef to avoid any stale data
       initialQuestionsRef.current = {};
@@ -122,7 +124,8 @@ const AddModule = () => {
 
         try {
           const questions = await QuizApiUtils.getQuestions(task.contentID);
-          
+          console.log(`[DEBUG] Fetched Questions for Task ID (${task.contentID}) - Type: ${task.quiz_type}:`, questions);
+
           // Store initial questions in the ref using task.contentID as the key
           initialQuestionsRef.current[task.contentID] = questions;
           
@@ -148,6 +151,8 @@ const AddModule = () => {
       }));
 
       setModules(moduleTemplates);
+      console.log("[DEBUG] Final Module Templates :",moduleTemplates);
+
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching module data:", err);
@@ -341,7 +346,8 @@ const AddModule = () => {
                 currentQuestions = currentQuestions.map(q => ({
                   ...q,
                   question_text: q.text,
-                  hint_text: q.hint || ""
+                  hint_text: q.hint || "",
+                  answers: q.answers || []
                 }));
               }
             }
@@ -394,7 +400,8 @@ const AddModule = () => {
                 task: existingTask.contentID,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers: question.answers || []
               };
 
               console.log("[DEBUG] Formatted question data for API:", questionData);
@@ -431,7 +438,8 @@ const AddModule = () => {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers:question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }
@@ -495,7 +503,8 @@ const AddModule = () => {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers: question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }
@@ -512,51 +521,53 @@ const AddModule = () => {
         }
       } catch (verifyErr) {
       }
-      for (const module of modules) {
-        if (module.type === 'Question and Answer Form') {
-          const editorRef = editorRefs.current[module.id];
-          const questionAnswers = editorRef?.getSubmittedData?.() || [];
-          for (const qa of questionAnswers){
-          let formData = {
-            title: `${module.type} for ${title}`,
-            description: `${module.type} content for ${title}`,
-            question:qa.question,
-            answer:qa.answer,
-            moduleID: moduleId,
-            author: authorId
-          };
-          try {
-            await QuizApiUtils.createQuestionAnswerFormTask(formData);
-            console.log('Question Answer Form task created successfully');
-          } catch (error) {
-            console.error('Error creating Question Answer Form task:', error);
-          }
-        }
-        }
-      }
+      // for (const module of modules) {
+      //   if (module.type === 'Question and Answer Form') {
+      //     const editorRef = editorRefs.current[module.id];
+      //     const questionAnswers = editorRef?.getSubmittedData?.() || [];
+      //     for (const qa of questionAnswers){
+      //     let formData = {
+      //       title: `${module.type} for ${title}`,
+      //       description: `${module.type} content for ${title}`,
+      //       question:qa.question,
+      //       answer:qa.answer,
+      //       moduleID: moduleId,
+      //       author: authorId
+      //     };
+      //     try {
+      //       await QuizApiUtils.createQuestionAnswerFormTask(formData);
+      //       console.log('Question Answer Form task created successfully');
+      //     } catch (error) {
+      //       console.error('Error creating Question Answer Form task:', error);
+      //     }
+      //   }
+      //   }
+      // }
 
-      for (const module of modules) {
-        if (module.type === 'Matching Question Quiz') {
-          const editorRef = editorRefs.current[module.id];
-          const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
-          for (const qa of matchingQuestionAnswers){
-          let pairData = {
-            title: `${module.type} for ${title}`,
-            description: `${module.type} content for ${title}`,
-            question:qa.question,
-            answer:qa.answer,
-            moduleID: moduleId,
-            author: authorId
-          };
-          try {
-            await QuizApiUtils.createMatchingQuestionsTask(pairData);
-            console.log('matching question pairs task created successfully');
-          } catch (error) {
-            console.error('Error creating matching question pairs task:', error);
-          }
-        }
-        }
-      }
+      // for (const module of modules) {
+      //   if (module.type === 'Matching Question Quiz') {
+      //     const editorRef = editorRefs.current[module.id];
+      //     const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
+      //     console.log(`[DEBUG] Saving Matching Question Pairs for Module ID: ${moduleId}`, matchingQuestionAnswers);
+
+      //     for (const qa of matchingQuestionAnswers){
+      //     let pairData = {
+      //       title: `${module.type} for ${title}`,
+      //       description: `${module.type} content for ${title}`,
+      //       question:qa.question,
+      //       answer:qa.answer,
+      //       moduleID: moduleId,
+      //       author: authorId
+      //     };
+      //     try {
+      //       await QuizApiUtils.createMatchingQuestionsTask(pairData);
+      //       console.log('matching question pairs task created successfully');
+      //     } catch (error) {
+      //       console.error('Error creating matching question pairs task:', error);
+      //     }
+      //   }
+      //   }
+      // }
 
 
 

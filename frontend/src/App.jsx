@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
 import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
 import { useParams } from "react-router-dom";
-
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import AdminDashboard from "./pages/AdminDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
@@ -20,8 +21,9 @@ import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
-
+import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
+import DropZoneTest from './pages/DropZone.jsx';
 import QuizContainer from './components/quizzes/QuizContainer';
 
 import AddModule from './pages/AddModule';
@@ -62,7 +64,10 @@ function App() {
             {/* ModuleView Route - Added at root level */}
             <Route path="/modules/:moduleId" element={
               <DashboardLayout>
+                        <DndProvider backend={HTML5Backend}>
+
                 <ModuleViewAlternative />
+                </DndProvider>
               </DashboardLayout>
             } />
 
@@ -74,14 +79,16 @@ function App() {
                   <Routes>
                     <Route path="home" element={<WorkerDashboard />} />
                     <Route path="settings" element={<Settings />} />
-                    <Route path="support" element={<Support />} />
+                    <Route path="support" element={<Messaging />} />
                     <Route path="courses" element={<Courses/>} />
                     
                     {/* to be deleted */}
                     <Route path="all-courses" element={<CoursesList/>} />
                     <Route path="KnowValuesModule" element={<Module2/>} />
 
-                  </Routes>
+    
+                
+              </Routes>
                 </DashboardLayout>
               }
             />
@@ -93,7 +100,7 @@ function App() {
                   <Routes>
                     <Route path="home" element={<AdminDashboard />} />
                     <Route path="settings" element={<Settings />} />
-                    <Route path="support" element={<Support />} />
+                    <Route path="support" element={<Messaging />} />
                     <Route path="courses" element={<Courses />} />
                     <Route path="/service-users" element={<ServiceUsersPage />} />
 

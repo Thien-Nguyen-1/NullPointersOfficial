@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 import uuid
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.db.models import JSONField
 
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
@@ -165,6 +166,11 @@ class User(AbstractUser):
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
+    firebase_token = models.TextField(
+        default="",
+        blank=False,
+        null=False,
+    )
 
     class Meta:
         """Model options."""
@@ -268,8 +274,8 @@ class Task(Content):
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
-        ('question_answer_form', 'Question Answer Form'),
-        ('matching_questions', 'Matching Question Quiz')
+        ('question_input', 'Question Answer Form'),
+        ('pair_input', 'Matching Question Quiz')
     ]
 
     quiz_type = models.CharField(
@@ -291,7 +297,7 @@ class QuizQuestion(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='questions')
     question_text = models.TextField()
     order = models.PositiveIntegerField(default=0)  # For ordering questions in sequence
-
+    answers = JSONField(blank=True, null=True)
     # For flashcard quiz type - optional text shown on the back of the card
     hint_text = models.TextField(blank=True, null=True)
 
@@ -320,18 +326,28 @@ class UserResponse(models.Model):
         return f"Response by {self.user.username} for {self.question}"
 
 
-
-class QuestionAnswerForm(Content):
-    question = models.TextField()
-    answer = models.TextField()
-
-    def __str__(self):
-        return self.question[:50]
-    
-class MatchingQuestionQuiz(Content):
-
-    question = models.TextField()
-    answer = models.TextField()
+class Conversation(models.Model): #one-to-many relationship with Messages
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="user_conversation")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="admin_conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    hasEngaged = models.BooleanField(default=False)
+    lastMessage = models.TextField(default="")
 
     def __str__(self):
-        return self.question[:50]
+        return f"Conversation created for: {self.user} and {self.admin}"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    text_content = models.TextField()
+    timestamp =  models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="message-files/", null=True)
+
+    def __str__(self):
+        return f"Text sent: {self.text_content}"
+            
+
+
+

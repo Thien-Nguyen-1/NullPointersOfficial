@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -39,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags', 'firebase_token']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -181,7 +181,7 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
-
+    
 class RankingQuestionSerializer(ContentSerializer):
     class Meta:
         model = RankingQuestion
@@ -323,14 +323,23 @@ class RequestPasswordResetSerializer(serializers.Serializer):
             )
         
             return user
+    
+    class UserResponseSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UserResponse
+            fields = '__all__'
 
-class QuestionAnswerFormSerializer(serializers.ModelSerializer):
+            
+class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = QuestionAnswerForm
-        fields = '__all__'
+        model = Conversation
+        fields = ['id', 'user', 'admin', 'created_at', 'hasEngaged', 'updated_at','lastMessage']
 
-class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
+
+class MessageSerializer(serializers.ModelSerializer):
+
+    file = serializers.FileField(read_only=True) #obtain the url only
+
     class Meta:
-        model = MatchingQuestionQuiz
-        fields = '__all__'
-
+        model = Message
+        fields = ['id', 'conversation', 'sender', 'text_content', 'timestamp', 'file']

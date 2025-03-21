@@ -1,10 +1,10 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer
-from .models import ProgressTracker,Tags,Module, Questionnaire
+# from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, Conversation, Message
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer, MessageSerializer, ConversationSerializer
+# from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
 from rest_framework.response import Response
@@ -26,6 +26,11 @@ from django.contrib.auth.tokens import default_token_generator
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+
+from django.db.models import Q
+from firebase_admin import messaging
+
+
 
 class ProgressTrackerView(APIView):
 
@@ -282,12 +287,16 @@ class UserDetail(APIView):
             user_in.user_type = user.user_type
 
             tag_data = data['tags']
-
+            fire_token = data.get('firebase_token')
             mod_data = data['module']
 
 
             tags = []
             modules = []
+
+            if(fire_token):
+                user_in.firebase_token = fire_token
+            
 
 
             for tag_obj in tag_data:
@@ -646,6 +655,7 @@ class QuizQuestionView(APIView):
                 question_text = request.data.get('question_text')
                 hint_text = request.data.get('hint_text', '')
                 order = request.data.get('order', 0)
+                answers = request.data.get('answers',[])
 
                 if not task_id or not question_text:
                     return Response(
@@ -667,13 +677,15 @@ class QuizQuestionView(APIView):
                 question.question_text = question_text
                 question.hint_text = hint_text
                 question.order = order
+                question.answers
                 question.save()
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers': question.answers
                 }, status=status.HTTP_200_OK)
 
             except QuizQuestion.DoesNotExist:
@@ -687,6 +699,8 @@ class QuizQuestionView(APIView):
             question_text = request.data.get('question_text')
             hint_text = request.data.get('hint_text', '')
             order = request.data.get('order', 0)
+            answers = request.data.get('answers',[])
+
 
             if not task_id or not question_text:
                 return Response(
@@ -702,14 +716,16 @@ class QuizQuestionView(APIView):
                     task=task,
                     question_text=question_text,
                     hint_text=hint_text,
-                    order=order
+                    order=order,
+                    answers=answers
                 )
 
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers':question.answers
                 }, status=status.HTTP_201_CREATED)
 
             except Task.DoesNotExist:
@@ -728,6 +744,7 @@ class QuizQuestionView(APIView):
                 'text': question.question_text,
                 'hint': question.hint_text,
                 'order': question.order,
+                'answers':question.answers,
                 'task_id': str(question.task.contentID)
             })
         else:
@@ -747,7 +764,8 @@ class QuizQuestionView(APIView):
                     'id': q.id,
                     'text': q.question_text,
                     'hint': q.hint_text,
-                    'order': q.order
+                    'order': q.order,
+                    'answers': q.answers
                 } for q in questions
             ])
 
@@ -764,14 +782,9 @@ class QuizQuestionView(APIView):
             )
 
     
-class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
-    queryset = QuestionAnswerForm.objects.all()
-    serializer_class = QuestionAnswerFormSerializer    
-
-class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
-    queryset = MatchingQuestionQuiz.objects.all()
-    serializer_class = MatchingQuestionQuizSerializer
-
+class QuizQuestionViewSet(viewsets.ModelViewSet):
+    queryset = QuizQuestion.objects.all()
+    serializer_class= QuizQuestionSerializer
 
 class TaskPdfView(APIView):
     permission_classes = [IsAuthenticated]
@@ -815,5 +828,212 @@ class TaskPdfView(APIView):
         response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
         return response
 
+# class UserResponseViewSet(viewsets.ModelViewSet):
+#     queryset = UserResponse.objects.all()
+#     serializer_class = UserResponseSerializer
 
         
+    
+
+
+
+
+
+
+
+
+
+
+class UserSupportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    MAX_LIMIT = 5
+
+    def get(self, request):
+        user_ = request.user
+        data = request.data
+
+        
+
+        try:
+          
+            info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+            info_chats = info_chats.order_by('-updated_at')
+            
+            serialized_info = ConversationSerializer(info_chats, many=True)
+            
+            
+            updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
+            
+
+            return Response(updated_data, status=status.HTTP_200_OK)
+
+        except:
+            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+    
+        
+
+    def post(self, request):
+        user_ = request.user
+        data = request.data
+
+        currentNo = Conversation.objects.filter(user = user_).count()
+
+        if( (user_.user_type == "service user") and ( currentNo < self.MAX_LIMIT )):
+            Conversation.objects.create(user=user_)
+
+
+        elif((user_.user_type == "admin") and data):
+         
+            conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+
+            if conversation_:
+                if not conversation_.hasEngaged:
+
+                    conversation_.hasEngaged = True
+                    conversation_.admin = user_
+
+                    conversation_.save()
+                    
+                else:
+                    return Response({"message": "Conversation already occupied"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            else:
+                return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+    
+        else:
+            return Response({"message": "Maximum Support Room Limit (5) Reached"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        return Response({"message": "success"}, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request):
+        user_ = request.user
+        data = request.data
+
+
+        try:
+             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
+
+             if conversation_:
+                conversation_.delete()
+
+                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+        
+
+
+
+
+
+
+
+
+
+class UserChatView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def getFcmToken(self, usr_type, conv_Obj):
+      
+        if usr_type == "service user": # user -> admin
+           
+            if getattr(conv_Obj.admin, "firebase_token", False):
+                return conv_Obj.admin.firebase_token
+               
+        elif usr_type == "admin":  # admin -> user
+            if getattr(conv_Obj.user, "firebase_token", False):
+                return conv_Obj.user.firebase_token
+
+        
+        return None
+
+        
+    def get(self, request, room_id):
+        user_ = request.user
+        data = request.data
+       
+        conv_Obj = Conversation.objects.get(id = room_id)
+
+        if conv_Obj:
+            
+            all_Messages = Message.objects.filter(conversation=conv_Obj)
+            
+
+            serialized_messages = MessageSerializer(all_Messages, many=True)
+           
+            return Response(serialized_messages.data, status=status.HTTP_200_OK)
+
+        
+        else:
+            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+
+    def post(self,request, room_id, *args, **kwargs):
+        user_ = request.user
+        data = request.data
+
+        conv_Obj = Conversation.objects.get(id = room_id)
+        
+    
+  
+        if conv_Obj:
+            
+            token = self.getFcmToken(user_.user_type, conv_Obj)
+
+            admin = conv_Obj.admin
+
+            message_content = data["message"]
+            uploaded_file = data.get("file", None)
+
+            
+                #Create a new message object
+            Message.objects.create(
+                conversation=conv_Obj,
+                sender=user_,
+                text_content = message_content,
+                file = uploaded_file
+            )
+
+            conv_Obj.save() 
+
+            if token:
+
+                message = messaging.Message(
+                     notification=messaging.Notification(
+                         title= user_.username ,
+                         body = message_content,
+                        
+                     ),
+                     token=token
+                 )
+                
+                try:
+                    response = messaging.send(message)
+                   
+                except:
+                    pass
+
+                
+ 
+            else:
+                return Response({"message": "token unlocated"}, status=status.HTTP_200_OK)
+
+
+
+            return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
+
+
+        else:
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
+
+
+    
+
