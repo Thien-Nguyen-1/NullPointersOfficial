@@ -17,10 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView
 from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, UserSupportView, UserChatView
 
+#for media url access
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
@@ -73,11 +73,6 @@ urlpatterns = [
 
 
 
-
-
-
-
-
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
@@ -92,8 +87,8 @@ urlpatterns = [
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
 
-]
+
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
     path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

@@ -69,28 +69,28 @@ function MessageBar(props) {
     return(
 
        
-        <form className="user-chat-form flex " onSubmit={(e) => {e.preventDefault(); sendMessage(e)}}>
+        <form className="user-chat-form  " onSubmit={(e) => {e.preventDefault(); sendMessage(e)}}>
 
+            <div className="user-message-container">
           
-            { (user?.user_type === "service user" || user?.user_type === "admin"  && user?.id === convObj?.admin) && 
-                <div>
-                    <input 
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => {setInputText(e.target.value)}}/>
-                    
+                { (user?.user_type === "service user" || user?.user_type === "admin"  && user?.id === convObj?.admin) && 
+                
+                        <input 
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => {setInputText(e.target.value)}}/>
+                        
 
-                </div>
-            }
+                }
+
+                
+                <FileUploader
+                    setFileState={setFileState}
+                    sendFile={sendFile} />
 
             
-            <FileUploader
-                setFileState={setFileState}
-                sendFile={sendFile} />
-
             
-            
-                    
+            </div>
 
         </form>
     )

@@ -16,12 +16,8 @@ import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 import "../styles/SupportStyles/Messaging.css"
 
 
+//TODO: Move to Environmental Variable for non-exposure
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDQb9cx05Rm34vwBtrqnywzIa5LYWHhjes",
   authDomain: "readytowork-8cf2f.firebaseapp.com",
@@ -130,8 +126,6 @@ function Messaging() {
 
    onMessage(messaging, (payload) => {
 
-    console.log('Message received ', payload)
-    console.log('ID IS ',  chatID)
     getUserMessages(chatID)
 
   })
@@ -142,7 +136,7 @@ function Messaging() {
 
 
    async function handleUserCreateChat(objConvoReq = {}) {
-    console.log("ACCEPTING")
+
     try{
       const response = await CreateConversation(token, objConvoReq)
       

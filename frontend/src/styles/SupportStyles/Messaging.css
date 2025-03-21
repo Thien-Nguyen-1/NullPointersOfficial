@@ -182,6 +182,8 @@
 }
 
 
+
+
 /* USER INTERACTION STYLING */
 
 .user-interact-container{
@@ -189,8 +191,6 @@
     justify-content: center;
     margin-top: 1rem;
 
-    /* padding-bottom: env(safe-area-inset-bottom);  */
-  
     input {
         height: 2rem;
     }
@@ -198,11 +198,13 @@
   
 }
 
-.user-chat-form {
+
+.user-message-container {
     display: flex;
     gap: 1rem;
     
 }
+
 
 
 

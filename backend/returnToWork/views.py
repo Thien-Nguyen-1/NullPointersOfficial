@@ -2,13 +2,9 @@ import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 # from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, Conversation, Message
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer, MessageSerializer, ConversationSerializer
 # from .models import ProgressTracker,Tags,Module, Questionnaire
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction, Conversation, Message
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, MessageSerializer
-from .models import ProgressTracker,Tags,Module, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, ConversationSerializer
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
 from rest_framework.response import Response
@@ -291,7 +287,7 @@ class UserDetail(APIView):
             user_in.user_type = user.user_type
 
             tag_data = data['tags']
-
+            fire_token = data.get('firebase_token')
             mod_data = data['module']
 
 
