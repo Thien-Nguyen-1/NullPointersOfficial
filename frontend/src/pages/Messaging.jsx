@@ -50,7 +50,6 @@ function Messaging() {
   const[messages, setMessages] = useState([])
 
 
-
   
   const [chatID, setChatId] = useState(null)
   const [chatVisible, setChatVisible] = useState(false) 
@@ -261,8 +260,7 @@ function Messaging() {
 
         <section className= {`view-chat-container chat-visible-${chatVisible}  chat-hidden-${chatVisible}`}>
 
-                {/* { console.log("OUR FCM TOKEN IS ", fcmToken)} */}
-                
+      
                 <header > 
                   
                   <ChatHeaderBar 
