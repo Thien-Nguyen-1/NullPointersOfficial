@@ -1,19 +1,35 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
+# from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer
+# from .models import ProgressTracker,Tags,Module, Questionnaire
 from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction, Conversation, Message
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, MessageSerializer
 from .models import ProgressTracker,Tags,Module, Questionnaire
 from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, ConversationSerializer
 from django.contrib.auth import login, logout
-
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from returnToWork.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from rest_framework.authentication import TokenAuthentication
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+import json
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 from django.db.models import Q
 from firebase_admin import messaging
@@ -22,14 +38,14 @@ from firebase_admin import messaging
 
 class ProgressTrackerView(APIView):
 
-
     def get(self, request):
 
         
-        progressTrackerObjects = ProgressTracker.objects.all()
+        progressTrackerObjects = ProgressTracker.objects.all() #(filter user request and commpleted = true)
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
     
+    # Creates progress tracker entries
     def post(self, request):
         serializer = ProgressTrackerSerializer(data=request.data)
         if serializer.is_valid():
@@ -38,7 +54,6 @@ class ProgressTrackerView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
-        print(request.data)
         try:
             progress_tracker = ProgressTracker.objects.get(pk=pk)
         except ProgressTracker.DoesNotExist:
@@ -47,15 +62,12 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
         if serializer.is_valid():
             serializer.save()
-
-        
-
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         try:
-            progress_tracker = ProgressTracker.objects.get(pk=pk)
+            progress_tracker = ProgressTracker.objects.get(pk=pk)  
         except ProgressTracker.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         progress_tracker.delete()
@@ -67,22 +79,21 @@ class LogInView(APIView):
         serializer = LogInSerializer(data = request.data)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
-
-            
-
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
 
-            print(UserSerializer(user).data)
             return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LogOutView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
+        user=request.user
+        Token.objects.filter(user=user).delete()
         logout(request)
-        if hasattr(request.user, 'auth_token'):
-            request.user.auth_token.delete()
+
+        # if hasattr(request.user, 'auth_token'):
+        #     request.user.auth_token.delete()
         return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
     
 class SignUpView(APIView):
@@ -108,32 +119,25 @@ class UserProfileView(APIView):
     
 class PasswordResetView(APIView):
     permission_classes = []
-    def post(self,request):
-        print("RECEIVED DATUM!!!!")
+    def post(self,request,uidb64,token):
+        request.data["uidb64"] = uidb64
+        request.data["token"] = token
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            serializer.save()
             return Response({"message":"Password reset successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class TagViewSet(viewsets.ModelViewSet):
-    
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
 
-
 class ModuleViewSet(viewsets.ModelViewSet):
-    
-
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
 
-
-
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
-    
-    
     # permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         """Fetch the first question or a specific question"""
@@ -158,7 +162,6 @@ class QuestionnaireView(APIView):
 
     def post(self, request, *args, **kwargs):
         """Get next question based on user's answer"""
-        # print("Received Data:", request.data)
 
         question_id = request.data.get("question_id")
         answer = request.data.get("answer")  # Expected: "yes" or "no"
@@ -197,7 +200,42 @@ class VideoViewSet(viewsets.ModelViewSet):
  
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-    serializer_class = TaskSerializer  
+    serializer_class = TaskSerializer
+
+class RankingQuestionViewSet(viewsets.ModelViewSet):
+    queryset = RankingQuestion.objects.all()
+    serializer_class = RankingQuestionSerializer
+    def perform_create(self, serializer): # Automatically set the authenticated user as the author when a new ranking question is created
+        serializer.save(author=self.request.user)
+
+class InlinePictureViewSet(viewsets.ModelViewSet):
+    queryset = InlinePicture.objects.all()
+    serializer_class = InlinePictureSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class AudioClipViewSet(viewsets.ModelViewSet):
+    queryset = AudioClip.objects.all()
+    serializer_class = AudioClipSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class EmbeddedVideoViewSet(viewsets.ModelViewSet):
+    queryset = EmbeddedVideo.objects.all()
+    serializer_class = EmbeddedVideoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]  
@@ -221,7 +259,7 @@ class UserDetail(APIView):
                 'id': tracker.module.id,
                 'title': tracker.module.title,
                 'completed': tracker.completed,
-               # 'pinned': tracker.module.pinned,
+                'pinned': tracker.pinned,
                 'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
             })
 
@@ -235,33 +273,27 @@ class UserDetail(APIView):
         })
 
         return Response(response_data)
-    
+
     def put(self,request):
 
         # Works but Need To Use Seralizer - TO DO
-       
+
         try:
             user = request.user
-
-            print("USERRR ISSSS")
-            print(user)
-
             user_serializer = UserSerializer(user)
 
             data = request.data
-        
+
             user_in = User.objects.filter(user_id = data['user_id']).first()
             user_in.username = user.username
             user_in.first_name = user.first_name
             user_in.last_name = user.last_name
             user_in.user_type = user.user_type
-            
-            tag_data = data.get('tags')
-            
-            mod_data = data.get('module')
-            
-            fire_token = data.get('firebase_token')
-            
+
+            tag_data = data['tags']
+
+            mod_data = data['module']
+
 
             tags = []
             modules = []
@@ -272,7 +304,7 @@ class UserDetail(APIView):
 
 
             for tag_obj in tag_data:
-                    
+
                     if tag_obj['id']:
                         tag_instance = Tags.objects.filter(tag=tag_obj['tag']).first()
                         if tag_instance:
@@ -291,7 +323,7 @@ class UserDetail(APIView):
 
                         modules.append(mod_instance)
                     else:
-                        return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND) 
+                        return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND)
                 else:
                     return Response({"detail": "Module ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -301,13 +333,13 @@ class UserDetail(APIView):
             user_in.save()
 
         except:
-            
+
             return Response({"detail": "Unable to locate user"}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+
 
         return Response({"message": "Login Successful", "user": UserSerializer(user).data})
-    
+
 class ServiceUserListView(generics.ListAPIView):
     """API view to get all service users"""
     serializer_class = UserSerializer
@@ -332,6 +364,25 @@ class DeleteServiceUserView(generics.DestroyAPIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+class ContentPublishView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        # If the user is not authenticated, assign the default user
+        user = request.user if request.user.is_authenticated else User.objects.get(username="default_user")
+        serializer = ContentPublishSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            module = serializer.save()
+            return Response({
+                'message': 'Module published successfully',
+                'module_id': module.id
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -339,7 +390,7 @@ class UserSettingsView(APIView):
         user = request.user
         serializer = UserSettingSerializer(user)
         return Response(serializer.data)
-        
+
     def put(self,request):
         user = request.user
         serializer = UserSettingSerializer(user,data = request.data, partial =True)
@@ -347,46 +398,158 @@ class UserSettingsView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        
+
     def delete(self,request):
         user = request.user
         user.delete()
         return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
-    
+
 class UserPasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
         serializer = UserPasswordChangeSerializer(data=request.data, context={"request": request})
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password uUpdated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    
 
 
 
+# API View to fetch quiz details and handle quiz responses
+class QuizDetailView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        """Fetch quiz details"""
+        task = get_object_or_404(Task, contentID=task_id)
+        questions = task.questions.all().order_by('order')
+
+        response_data = {
+            'task': {
+                'id': str(task.contentID),
+                'title': task.title,
+                'description': task.description,
+                'quiz_type': task.quiz_type,
+            },
+            'questions': [
+                {
+                    'id': q.id,
+                    'text': q.question_text,
+                    'order': q.order,
+                    'hint': q.hint_text,
+                } for q in questions
+            ]
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class QuizResponseView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Save user's response to a quiz question"""
+        data = request.data
+        question_id = data.get('question_id')
+        response_text = data.get('response_text')
+
+        if not question_id or response_text is None:
+            return Response({'status': 'error', 'message': 'Missing required data'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            question = QuizQuestion.objects.get(id=question_id)
+
+            # Check if a response already exists
+            existing_response = UserResponse.objects.filter(
+                user=request.user,
+                question=question
+            ).first()
+
+            if existing_response:
+                # Update existing response
+                existing_response.response_text = response_text
+                existing_response.save()
+                response_id = existing_response.id
+            else:
+                # Create new response
+                new_response = UserResponse.objects.create(
+                    user=request.user,
+                    question=question,
+                    response_text=response_text
+                )
+                response_id = new_response.id
+
+            return Response({
+                'status': 'success',
+                'response_id': response_id
+            }, status=status.HTTP_200_OK)
+
+        except QuizQuestion.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Question not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class QuizDataView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        """Get quiz data with user's previous responses"""
+        task = get_object_or_404(Task, contentID=task_id)
+        questions = task.questions.all().order_by('order')
+
+        # Get user's previous responses if any
+        user_responses = {}
+        for question in questions:
+            response = UserResponse.objects.filter(
+                user=request.user,
+                question=question
+            ).first()
+
+            if response:
+                user_responses[question.id] = response.response_text
+
+        # Prepare data for JSON response
+        quiz_data = {
+            'task_id': str(task.contentID),
+            'title': task.title,
+            'description': task.description,
+            'quiz_type': task.quiz_type,
+            'questions': [
+                {
+                    'id': q.id,
+                    'text': q.question_text,
+                    'order': q.order,
+                    'hint': q.hint_text,
+                    'user_response': user_responses.get(q.id, '')
+                } for q in questions
+            ]
+        }
+
+        return Response(quiz_data, status=status.HTTP_200_OK)
+class CheckUsernameView(APIView):
+    def get(self,request):
+        username = request.query_params.get('username',None)
+        if not username:
+            return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exists = User.objects.filter(username=username).exists()
+        return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class RequestPasswordResetView(APIView):
+    def post(self,request):
+        serialzer = RequestPasswordResetSerializer(data = request.data)
+        if serialzer.is_valid():
+            serialzer.save()
+            return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
+        return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 
 class UserInteractionView(APIView):
@@ -395,7 +558,7 @@ class UserInteractionView(APIView):
 
     def get(self, request):
         user = request.user
-      
+
         option = request.query_params.get("filter")
 
         allInteracts = UserModuleInteraction.objects.filter(user=user) if option == "user" else UserModuleInteraction.objects.all()
@@ -406,26 +569,25 @@ class UserInteractionView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializedInf.data, status=status.HTTP_200_OK)
-       
+
 
 
     def post(self, request, module_id):
         user = request.user
         data = request.data
-        print(data)
         module = Module.objects.get(id = module_id)
-        
+
         if module:
-            
+
             try:
                 interactObj, hasCreated = UserModuleInteraction.objects.get_or_create(user=user, module=module)
-                
+
 
                 if( (data["hasLiked"]) and (((not hasCreated)  and ( not interactObj.hasLiked)) or (hasCreated))):
                     module.upvote()
                 elif( (not data["hasLiked"]) and (not hasCreated ) and (interactObj.hasLiked)):
                     module.downvote()
-                    
+
 
                 interactObj.hasPinned = data["hasPinned"]
                 interactObj.hasLiked = data["hasLiked"]
@@ -438,8 +600,243 @@ class UserInteractionView(APIView):
 
         else:
             return Response({"message": "Module Not Found Mate"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)
+class AdminQuizResponsesView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        """Admin view to see all responses for a task"""
+        # Check if user is admin
+        if request.user.user_type != 'admin':
+            return Response({"error": "You do not have permission to access this resource"},
+                          status=status.HTTP_403_FORBIDDEN)
+
+        task = get_object_or_404(Task, contentID=task_id)
+        questions = task.questions.all().order_by('order')
+
+        # Collect all responses for this task
+        responses_data = []
+
+        for question in questions:
+            responses = UserResponse.objects.filter(
+                question=question
+            ).select_related('user')
+
+            question_data = {
+                'question_id': question.id,
+                'question_text': question.question_text,
+                'responses': [
+                    {
+                        'user_id': response.user.user_id,
+                        'username': response.user.username,
+                        'user_full_name': response.user.full_name(),
+                        'response_text': response.response_text,
+                        'submitted_at': response.submitted_at
+                    } for response in responses
+                ]
+            }
+            responses_data.append(question_data)
+
+        return Response({
+            'task_id': str(task.contentID),
+            'task_title': task.title,
+            'responses': responses_data
+        }, status=status.HTTP_200_OK)
+
+class QuizQuestionView(APIView):
+    """API endpoint for creating and managing quiz questions"""
+
+    def post(self, request, question_id=None):
+        """Create a new quiz question or update an existing one if question_id is provided"""
+        # If question_id is provided, update existing question
+        if question_id:
+            try:
+                question = QuizQuestion.objects.get(id=question_id)
+
+                # Update fields
+                task_id = request.data.get('task_id')
+                question_text = request.data.get('question_text')
+                hint_text = request.data.get('hint_text', '')
+                order = request.data.get('order', 0)
+                answers = request.data.get('answers',[])
+
+                if not task_id or not question_text:
+                    return Response(
+                        {'error': 'Task ID and question text are required'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Update the task reference if it changed
+                try:
+                    task = Task.objects.get(contentID=task_id)
+                    question.task = task
+                except Task.DoesNotExist:
+                    return Response(
+                        {'error': 'Task not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+
+                # Update other fields
+                question.question_text = question_text
+                question.hint_text = hint_text
+                question.order = order
+                question.answers
+                question.save()
+
+                return Response({
+                    'id': question.id,
+                    'text': question.question_text,
+                    'hint': question.hint_text,
+                    'order': question.order,
+                    'answers': question.answers
+                }, status=status.HTTP_200_OK)
+
+            except QuizQuestion.DoesNotExist:
+                return Response(
+                    {'error': 'Question not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            # Handle creating a new question (existing code)
+            task_id = request.data.get('task_id')
+            question_text = request.data.get('question_text')
+            hint_text = request.data.get('hint_text', '')
+            order = request.data.get('order', 0)
+            answers = request.data.get('answers',[])
+
+
+            if not task_id or not question_text:
+                return Response(
+                    {'error': 'Task ID and question text are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                task = Task.objects.get(contentID=task_id)
+
+                # Create the new question
+                question = QuizQuestion.objects.create(
+                    task=task,
+                    question_text=question_text,
+                    hint_text=hint_text,
+                    order=order,
+                    answers=answers
+                )
+
+                return Response({
+                    'id': question.id,
+                    'text': question.question_text,
+                    'hint': question.hint_text,
+                    'order': question.order,
+                    'answers':question.answers
+                }, status=status.HTTP_201_CREATED)
+
+            except Task.DoesNotExist:
+                return Response(
+                    {'error': 'Task not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+    def get(self, request, question_id=None):
+        """Get a specific question or list all questions for a task"""
+        if question_id:
+            # Get specific question
+            question = get_object_or_404(QuizQuestion, id=question_id)
+            return Response({
+                'id': question.id,
+                'text': question.question_text,
+                'hint': question.hint_text,
+                'order': question.order,
+                'answers':question.answers,
+                'task_id': str(question.task.contentID)
+            })
+        else:
+            # List questions for a task
+            task_id = request.query_params.get('task_id')
+            if not task_id:
+                return Response(
+                    {'error': 'task_id parameter is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            task = get_object_or_404(Task, contentID=task_id)
+            questions = QuizQuestion.objects.filter(task=task).order_by('order')
+
+            return Response([
+                {
+                    'id': q.id,
+                    'text': q.question_text,
+                    'hint': q.hint_text,
+                    'order': q.order,
+                    'answers': q.answers
+                } for q in questions
+            ])
+
+    def delete(self, request, question_id):
+        """Delete a specific quiz question"""
+        try:
+            question = QuizQuestion.objects.get(id=question_id)
+            question.delete()
+            return Response({"status": "success", "message": "Question deleted"}, status=status.HTTP_204_NO_CONTENT)
+        except QuizQuestion.DoesNotExist:
+            return Response(
+                {'error': 'Question not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    
+class QuizQuestionViewSet(viewsets.ModelViewSet):
+    queryset = QuizQuestion.objects.all()
+    serializer_class= QuizQuestionSerializer
+
+class TaskPdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        user = request.user
+        # get task details
+        try:
+            task = Task.objects.get(contentID = task_id)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # get related questions 
+        questions = QuizQuestion.objects.filter(task = task)
+        
+        if not questions.exists():
+            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+        pdf.drawString(100,800,f"Task:{task.title}")
+
+        y_position = 780
+        # get related response and create the pdf
+        for question in questions:
+            try:
+                response = UserResponse.objects.filter(user=user, question=question).first()
+                answer_text = response.response_text
+
+            except UserResponse.DoesNotExist:
+                answer_text = "No response provided"
+
+            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            y_position -=20
+            pdf.drawString(120, y_position, f"A: {answer_text}")
+            y_position -=30
+
+        pdf.save()
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        return response
+
+# class UserResponseViewSet(viewsets.ModelViewSet):
+#     queryset = UserResponse.objects.all()
+#     serializer_class = UserResponseSerializer
+
+        
     
 
 

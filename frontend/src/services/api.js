@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const baseURL =
-  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+  import.meta.env && import.meta.env.VITE_API_URL 
     ? import.meta.env.VITE_API_URL
     : 'http://localhost:8000'; 
 
@@ -37,19 +37,24 @@ export const deleteServiceUser = async (username) => {
     }
 };
 
+// export async function loginUser(username, password){
+//   try {
+//     const response = await api.post(`/login/`, {
+//       username,
+//       password,
+//     });
 export async function loginUser(username, password){
   try {
-    const response = await api.post(`/login/`, {
+    const response = await api.post(`/api/login/`, {
       username,
       password,
-    });
+    })
+  
         
     // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
     localStorage.setItem('token', response.data.token);
   
-    return response.data;
-
     if(response.data){
       localStorage.setItem("user_type",response.data.user_type);
       return response.data;
@@ -114,6 +119,7 @@ export async function getUserSettings(){
     
     if (!token) {
       throw new Error('No authentication token found');
+
     }
     
     const response = await api.get(`/worker/settings/` , {
@@ -128,10 +134,15 @@ export async function getUserSettings(){
   }
 }
 
+
 export async function deleteUserSettings(){
   try{
     const token = localStorage.getItem('token');
-    const response = await api.delete(`/worker/settings/`, {
+    if (!token) {
+      throw new Error('No authentication token found');
+
+    }
+    const response = await api.delete(`/api/worker/settings/`, {
       headers: {
         'Authorization': `Token ${token}`
       }
@@ -148,7 +159,7 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`worker/password-change/`, {
+    const response = await api.put(`/api/worker/password-change/`, {
     old_password:  oldPassword,
     new_password: newPassword,
     confirm_new_password: confirmNewPassword,
@@ -267,5 +278,107 @@ export async function SaveUserModuleInteract(modId, objInteract, token) {
 }
 
 
+// Module related functions
+export const moduleApi = {
+  getAll: () => api.get('/api/modules/'),
+  getById: (id) => api.get(`/api/modules/${id}/`),
+  create: (data) => api.post('/api/modules/', data),
+  update: (id, data) => api.put(`/api/modules/${id}/`, data),
+  delete: (id) => api.delete(`/api/modules/${id}/`)
+};
 
-export default api 
+// Tag related functions
+export const tagApi = {
+  getAll: () => api.get('/api/tags/'),
+  getById: (id) => api.get(`/api/tags/${id}/`),
+  create: (data) => api.post('/api/tags/', data)
+};
+
+// Task related functions
+export const taskApi = {
+  getAll: (moduleId) => api.get('/api/tasks/', { params: { moduleID: moduleId } }),
+  getById: (id) => api.get(`/api/tasks/${id}/`),
+  create: (data) => api.post('/api/tasks/', data),
+  update: (id, data) => api.put(`/api/tasks/${id}/`, data),
+  delete: (id) => api.delete(`/api/tasks/${id}/`)
+};
+
+// Quiz question related functions
+export const quizApi = {
+  getQuestions: (taskId) => api.get('/api/quiz/questions/', { params: { task_id: taskId } }),
+  getQuestion: (id) => api.get(`/api/quiz/questions/${id}/`),
+  createQuestion: (data) => api.post('/api/quiz/questions/', data),
+  updateQuestion: (id, data) => api.put(`/api/quiz/questions/${id}/`, data),
+  deleteQuestion: (id) => api.delete(`/api/quiz/questions/${id}/`),
+  getQuizDetails: (taskId) => api.get(`/api/quiz/${taskId}/`),
+  submitResponse: (data) => api.post('/api/quiz/response/', data)
+};
+
+//get the task that needs downloading nd the authentication token
+export const downloadCompletedTask = async(taskId, token) => {
+  try {
+    const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
+      headers:{
+        Authorization: `Token ${token}`,
+        Accept: "application/pdf",
+      },
+      responseType: "blob", //dowlaod pdf in blob format
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Task_${taskId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    console.log("PDF download started.");
+  } 
+  catch (error) {
+    console.error("Error downloading PDF:", error.response?.data || error.message);
+    throw error;
+  }
+
+  };
+
+  /**
+   * Get all progress tracker entries for the current user
+   * @param {string} token - Authentication token
+   * @returns {Promise<Array>} Array of progress tracker entries
+   */
+  export const GetUserProgressTrackers = async (token) => {
+    try {
+        const response = await api.get('/api/progress-tracker/', {
+            headers: { Authorization: `Token ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user progress trackers:", error);
+        return [];
+    }
+  };
+
+  /**
+  * Check if a user is enrolled in a specific module
+  * @param {number} userId - User ID
+  * @param {number} moduleId - Module ID
+  * @param {string} token - Authentication token
+  * @returns {Promise<boolean>} True if enrolled, false otherwise
+  */
+  export const CheckModuleEnrollment = async (userId, moduleId, token) => {
+    try {
+        const response = await api.get('/api/progress-tracker/', {
+            headers: { Authorization: `Token ${token}` }
+        });
+        
+        // Check if any progress tracker entry exists for this user and module
+        return response.data.some(tracker => 
+            tracker.user === userId && tracker.module === moduleId
+        );
+    } catch (error) {
+        console.error("Error checking module enrollment:", error);
+        return false;
+    }
+  };
+
+  
+export default api;

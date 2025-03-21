@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ['*'] # Allow frontend (React) to access the backend
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -156,3 +156,13 @@ REST_FRAMEWORK = {
     ),
 
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  
+EMAIL_HOST_USER = 'readiness.to.return.to.work@gmail.com'  
+EMAIL_HOST_PASSWORD = 'lujx sgqs wypy uxsc'  
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  
+
+

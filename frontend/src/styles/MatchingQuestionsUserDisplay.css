@@ -1,0 +1,86 @@
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    font-family: 'Comic Sans MS', cursive, sans-serif; /* More playful font */
+}
+
+.question-answer-pair {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Align items in the center for better vertical alignment */
+    margin-bottom: 20px;
+    padding: 15px;
+    border: none; /* Remove standard border */
+    border-radius: 12px; /* More pronounced rounded corners */
+    background: linear-gradient(145deg, #e2eaef, #92cca9);
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+    transform: rotate(-1deg); /* Slight tilt */
+    transition: transform 0.3s ease-out;
+    overflow: hidden; /* Prevents content from overflowing */
+}
+
+.question-answer-pair:hover {
+    transform: rotate(1deg); /* Interactive effect on hover */
+}
+
+.question {
+    flex: 1 1 50%; 
+    margin-right: 20px;
+    padding: 10px;
+    background-color: rgb(174, 217, 241);
+    border-radius: 50%; /* Circular shape */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-wrap: break-word; /* Ensures text does not overflow */
+}
+
+.question:hover {
+    background-color: #ccd; /* Light interaction on hover */
+}
+
+.answers {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center-aligns the answers vertically */
+}
+
+.answer {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #dec1e7; /* Bright color */
+    border-radius: 30px; /* Pill shape */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s, transform 0.3s;
+    word-wrap: break-word; /* Ensures text wraps within the button */
+    text-align: center; /* Centers text horizontally */
+}
+
+.answer:hover {
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+    transform: scale(1.05); /* Pop out effect */
+}
+
+.answer:last-child {
+    margin-bottom: 0;
+}
+
+.restart-button {
+    background-color: #2f5536; /* Vibrant green */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.restart-button:hover {
+    background-color: #cc5a62; /* Darker shade for hover */
+}

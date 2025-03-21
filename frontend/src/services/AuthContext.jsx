@@ -104,7 +104,7 @@ const AuthContextProvider = ({children}) => {
 
      // ===== SIGNING IN ===== //
     //  Please complete this //
-    async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword){
+    async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword,email){
         try {
           const response = await api.post(`/api/signup/`, {
             username,
@@ -113,10 +113,16 @@ const AuthContextProvider = ({children}) => {
             user_type: userType,
             password,
             confirm_password: confirmPassword,
+            email,
           });
 
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          localStorage.setItem('token', response.data.token);
           
-
+          
+          setUser(response.data.user)
+          
+          console.log("USER SIGNED UP AND LOGGED IN")
 
 
       
@@ -133,10 +139,9 @@ const AuthContextProvider = ({children}) => {
 
     // ===== RESET PASSWORD ===== //
 
-    async function ResetPassword(username, new_password , confirm_new_password){
+    async function ResetPassword(new_password , confirm_new_password,uidb64,token){
         try {
-          const response = await api.post(`/api/change-password`, {
-            username,
+          const response = await api.post(`/api/password-reset/${uidb64}/${token}/`, {
             new_password,
             confirm_new_password
           });
@@ -149,6 +154,16 @@ const AuthContextProvider = ({children}) => {
       
         }
       }
+
+    async function RequestPasswordReset(email) {
+      try{
+        const response = await api.post ('/api/password-reset/', {email});
+        return response.data;
+      }
+      catch(error) {
+        throw new Error ("Password reset request failed" + error.response?.data?.detail || "Unkown error" );
+      }
+    }
     
 
 
@@ -198,7 +213,7 @@ const AuthContextProvider = ({children}) => {
                     
     return (
         // DONNOT let setUser be globally accessible, it should be done via updateUser
-        <AuthContext.Provider value={{user, token, loginUser, logoutUser, updateUser, SignUpUser}}>
+        <AuthContext.Provider value={{user, token, loginUser, logoutUser, updateUser, SignUpUser, RequestPasswordReset, ResetPassword}}>
             {children}
         </AuthContext.Provider>
     )
