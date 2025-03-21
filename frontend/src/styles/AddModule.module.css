@@ -12,7 +12,8 @@
   align-items: center;
   gap: 10px; /* Space between input and dropdown */
   width: 100%;
-  max-width: 600px;
+  flex-wrap: wrap;
+  /* max-width: 600px; */
 }
 
 .required-message {
@@ -25,6 +26,7 @@
   border: none;
   font-weight: bold;
   margin-bottom: 0;
+  flex-wrap: wrap;
 }
 
 .description-input {
@@ -58,7 +60,16 @@
   border: 10px solid #D3D3D380;
   margin: 20px auto;
   padding: 20px;
+  scroll-padding: 5px;
+  overflow-y: auto;
 }
+
+.module-creator-container::-webkit-scrollbar {
+  display: none;
+}
+
+
+
 
 
 /* Tags Section */
@@ -165,15 +176,6 @@
     margin-top: 20px;
   }
 
-  .heading-input {
-    border: none;
-    outline: none;
-    background: transparent;
-    /*font-size: 30px;*/
-    font-weight: bold;
-    width: 100%;
-    color: #3a6f50;
-  }
     
   
   /* Rounded Buttons */
@@ -231,7 +233,7 @@
   min-width: auto;
   max-height: 200px;  
   overflow-y: scroll;
-  margin-top: 10px;
+  margin-top: 20px;
 }
 
 .dropdown-menu::-webkit-scrollbar { /* Hide for Chrome, safari and Edge */
@@ -242,30 +244,34 @@
   scrollbar-width: none;
   -ms-overflow-style: none; /* Internet Explorer and Miscrosoft Edge */
 }
+
+.dropdown-wrapper {
+  position: relative;
+}
   
-  .dropdown-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: white;
-  }
-  
-  .dropdown-options {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .dropdown-item {
-    padding: 2px;
-    padding-left: 45px;
-    cursor: pointer;
-    /* border-bottom: 1px solid #ddd; */
-    color: white;
-  }
-  
-  .dropdown-item:hover {
-    background-color: #f0f0f0;
-  }
+.dropdown-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: white;
+}
+
+.dropdown-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-item {
+  padding: 2px;
+  padding-left: 45px;
+  cursor: pointer;
+  /* border-bottom: 1px solid #ddd; */
+  color: white;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
   
   /* Exit Preview Button */
   .preview-container {
@@ -294,12 +300,17 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  
 
 .heading-input {
+    border: none;
+    outline: none;
     flex: 2; /* Allows the input to take up more space */
     padding: 10px;
     font-size: 20px;
+    background: transparent;
+    font-weight: bold;
+    width: 100%;
+    color: #3a6f50;
 }
 
 .heading-dropdown {
@@ -312,16 +323,16 @@
     cursor: pointer;
 }
 
-.heading-input.heading1 {
+.heading1 {
   font-size: 30px;
 }
 
 /* Bigger size for Heading 2 */
-.heading-input.heading2 {
+.heading2 {
   font-size: 40px; 
 }
 
 /* Even bigger size for Heading 3 */
-.heading-input.heading3 {
+.heading3 {
   font-size: 50px; 
 }

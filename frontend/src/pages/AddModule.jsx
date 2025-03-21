@@ -5,6 +5,7 @@ import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEdit
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
 import AudioQuestionEditor from "../components/editors/AudioQuestionEditor";
 import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
+import HeadingsComponent from "../components/editors/Headings";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
@@ -56,9 +57,9 @@ const AddModule = () => {
   };
 
   const headings = [
-    ("heading1", "Heading 1"),
-    ("heading2", "Heading 2"),
-    ("heading3", "Heading 3")
+    {name:"Heading 1", size: "heading1"},
+    {name:"Heading 2", size: "heading2"},
+    {name:"Heading 3", size: "heading3"}
   ];
 
   // For development, use a prototype author
@@ -171,24 +172,30 @@ const AddModule = () => {
 
   // Add a module to the list
   const addModule = (moduleType, componentType) => {
-
-    if (componentType == headingSize) {
-      const newHeading = {
-        id: Date.now(), // unique
-        componentType: componentType,
-        text: "New Heading"
-      }
-    }
     const newModuleId = `new-${Date.now()}`;
+
+    if (componentType == "heading") {
+      const newHeading = {
+        id: newModuleId,
+        componentType: componentType,
+        size: moduleType.size,
+      }
+
+      setModules([...modules, newHeading]);
+    } else if (componentType === "template") {
+      
+      
+      const newModule = { 
+        id: newModuleId,
+        type: moduleType,
+        componentType: componentType, 
+        quizType: QuizApiUtils.getQuizTypeValue(moduleType),
+      };
+
+      setModules([...modules, newModule]);
+    }
     
-    const newModule = { 
-      id: newModuleId,
-      type: moduleType, 
-      quizType: QuizApiUtils.getQuizTypeValue(moduleType),
-    };
-  
     
-    setModules([...modules, newModule]);
 
     // Initialize empty questions for this module
     initialQuestionsRef.current[newModuleId] = [];
@@ -575,18 +582,6 @@ const AddModule = () => {
       <div className={styles["module-creator-container"]}>
         {/* Module Title */}
         <div className={styles["module-title-container"]}>
-          {/* <input
-            type="text"
-            placeholder="Module Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={`module-input heading-input  ${headingSize}`}
-          />
-          <select className="heading-dropdown" onChange={handleHeadingChange} value={headingSize}>
-            <option value="heading1">Heading 1</option>
-            <option value="heading2">Heading 2</option>
-            <option value="heading3">Heading 3</option>
-          </select> */}
           <input
             type="text"
             placeholder="Title"
@@ -631,8 +626,13 @@ const AddModule = () => {
         {/* Modules List */}
         <div className={styles["modules-list"]}>
           {modules.map((module) => {
-            const EditorComponent = moduleOptions[module.type]?.component;
-            
+            let EditorComponent = null;
+            if (module.componentType === "template") {
+              EditorComponent = moduleOptions[module.type]?.component
+            } else if (module.componentType === "heading") {
+              EditorComponent = HeadingsComponent;
+            }
+
             // Skip if no component is found for this type
             if (!EditorComponent) {
               console.error(`[ERROR] No editor component found for type: ${module.type}`);
@@ -641,6 +641,18 @@ const AddModule = () => {
                   <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
                 </div>
               );
+            } 
+            
+            if (module.componentType === "heading") {
+              return (
+                <div key={module.id} className={styles["module-item"]}>
+                    <EditorComponent
+                      headingSize={module.size}
+                      key={`editor-${module.id}`}
+                    />  
+                    <button onClick={() => removeModule(module.id)} className={styles["remove-module-btn"]}>Remove</button>
+                </div>
+              )
             }
             
             return (
@@ -662,41 +674,43 @@ const AddModule = () => {
         </div>
 
         {/* Add Module Templates Button */}
-        <div className={styles["templates-button-wrapper"]}>
-          <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className={styles["plus-button"]}>+</button>
-          <span className={styles["templates-label"]}>Add Template</span>
-        </div>
-
-        {/* Templates Dropdown */}
-        {showDropdown && (
-          <div className={styles["dropdown-menu"]} style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
-            <h4 className={styles["dropdown-title"]}>Headings</h4>
-            <div className={styles["dropdown-options"]}>
-              {headings.map((heading, index) => (
-                <div
-                  key={index}
-                  className={styles["dropdown-item"]}
-                  onClick={() => addModule(heading[0], "heading")}
-                >
-                  {heading[1]}
-                </div> 
-              ))}
-            </div>           
-            <h4 className={styles["dropdown-title"]}>Basic Blocks</h4>
-            <div className={styles["dropdown-options"]}>
-              {Object.keys(moduleOptions).map((moduleType, index) => (
-                <div
-                  key={index}
-                  value={index}
-                  className={styles["dropdown-item"]}
-                  onClick={() => addModule(moduleType, "block")}
-                >
-                  {moduleType}
-                </div>
-              ))}
-            </div>
+        <div className={styles["dropdown-wrapper"]}>
+          <div className={styles["templates-button-wrapper"]}>
+            <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className={styles["plus-button"]}>+</button>
+            <span className={styles["templates-label"]}>Add Template</span>
           </div>
-        )}
+
+          {/* Templates Dropdown */}
+          {showDropdown && (
+            <div className={styles["dropdown-menu"]} style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
+              <h4 className={styles["dropdown-title"]}>Headings</h4>
+              <div className={styles["dropdown-options"]}>
+                {headings.map((heading, index) => (
+                  <div
+                    key={index}
+                    className={styles["dropdown-item"]}
+                    onClick={() => addModule(heading, "heading")}
+                  >
+                    {heading.name}
+                  </div> 
+                ))}
+              </div>           
+              <h4 className={styles["dropdown-title"]}>Basic Blocks</h4>
+              <div className={styles["dropdown-options"]}>
+                {Object.keys(moduleOptions).map((moduleType, index) => (
+                  <div
+                    key={index}
+                    value={index}
+                    className={styles["dropdown-item"]}
+                    onClick={() => addModule(moduleType, "template")}
+                  >
+                    {moduleType}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       {/* Action Buttons */}
       {!isPreview && (

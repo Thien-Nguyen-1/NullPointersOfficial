@@ -24,7 +24,7 @@
 
 
 .course-container {
-  display: flex;
+  display: flex;  
   flex-direction: column;
   width: 100%;
   justify-items: center;
