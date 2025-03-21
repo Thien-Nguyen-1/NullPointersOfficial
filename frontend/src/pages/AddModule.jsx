@@ -9,7 +9,7 @@ import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
 
-import "../styles/AddModule.css";
+import styles from "../styles/AddModule.module.css";
 import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
 
 const AddModule = () => {
@@ -43,7 +43,7 @@ const AddModule = () => {
 //to change size of heading for title
   const handleHeadingChange = (event) => {
     setHeadingSize(event.target.value);
-};
+  };
 
 
   // Module types and their corresponding components
@@ -54,6 +54,12 @@ const AddModule = () => {
     'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'},
     'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'text_input'}
   };
+
+  const headings = [
+    ("heading1", "Heading 1"),
+    ("heading2", "Heading 2"),
+    ("heading3", "Heading 3")
+  ];
 
   // For development, use a prototype author
   // useEffect(() => {
@@ -164,7 +170,15 @@ const AddModule = () => {
   }, [location, fetchModuleData, fetchTags]);
 
   // Add a module to the list
-  const addModule = (moduleType) => {
+  const addModule = (moduleType, componentType) => {
+
+    if (componentType == headingSize) {
+      const newHeading = {
+        id: Date.now(), // unique
+        componentType: componentType,
+        text: "New Heading"
+      }
+    }
     const newModuleId = `new-${Date.now()}`;
     
     const newModule = { 
@@ -552,145 +566,170 @@ const AddModule = () => {
   };
 
   return (
-    <div className="module-editor-container">
-      <h1 className="page-title">{isEditing ? "Edit Module" : "Add Module"}</h1>
+    <div className={styles["module-editor-container"]}>
+      <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
       
       {isLoading && <div className="loading-overlay">Loading...</div>}
       
-      {/* Module Title */}
-      <div className="module-title-container">
-      <input
-        type="text"
-        placeholder="Module Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className={`module-input heading-input  ${headingSize}`}
-      />
-      <select className="heading-dropdown" onChange={handleHeadingChange} value={headingSize}>
-    <option value="heading1">Heading 1</option>
-    <option value="heading2">Heading 2</option>
-    <option value="heading3">Heading 3</option>
-  </select>
-      </div>
-      {/* Module Description */}
-      <textarea
-        placeholder="Module Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="module-input description-input"
-      />
 
-      {/* Tags */}
-      <div className="tags-container">
-        {tags.map((tagId) => {
-          const tagObj = availableTags.find(t => t.id === tagId);
-          return tagObj ? (
-            <span key={tagId} className="tag">
-              {tagObj.tag} <button onClick={() => removeTag(tagId)}>x</button>
-            </span>
-          ) : null;
-        })}
-        <div className="tag-button-wrapper">
-          <button className="plus-button tag-button" onClick={addTag}>+</button>
-          <span className="tag-label">Add module tags</span>
+      <div className={styles["module-creator-container"]}>
+        {/* Module Title */}
+        <div className={styles["module-title-container"]}>
+          {/* <input
+            type="text"
+            placeholder="Module Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={`module-input heading-input  ${headingSize}`}
+          />
+          <select className="heading-dropdown" onChange={handleHeadingChange} value={headingSize}>
+            <option value="heading1">Heading 1</option>
+            <option value="heading2">Heading 2</option>
+            <option value="heading3">Heading 3</option>
+          </select> */}
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={styles["module-title-input"]}
+          />
+
         </div>
-      </div>
+        {/* Module Description */}
+        <input
+          placeholder="Module Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className={styles["description-input"]}
+        />
 
-      {/* Error Display */}
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>×</button>
-        </div>
-      )}
-
-      {/* Modules List */}
-      <div className="modules-list">
-        {modules.map((module) => {
-          const EditorComponent = moduleOptions[module.type]?.component;
-          
-          // Skip if no component is found for this type
-          if (!EditorComponent) {
-            console.error(`[ERROR] No editor component found for type: ${module.type}`);
-            return (
-              <div key={module.id} className="module-item error">
-                <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
-              </div>
-            );
-          }
-          
-          return (
-            <div key={module.id} className="module-item">
-              <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
-              <EditorComponent
-                ref={(el) => { 
-                  editorRefs.current[module.id] = el;
-                }}
-                moduleId={module.id}
-                quizType={module.quizType}
-                initialQuestions={initialQuestionsRef.current[module.id] || []}
-                key={`editor-${module.id}`} // Add a key to force re-render when questions change
-              />
-              <button onClick={() => removeModule(module.id)} className="remove-module-btn">Remove</button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Add Module Templates Button */}
-      <div className="add-module templates-button-wrapper">
-        <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className="plus-button">+</button>
-        <span className="templates-label">Add Templates</span>
-      </div>
-
-      {/* Templates Dropdown */}
-      {showDropdown && (
-        <div className="dropdown-menu" style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
-          <h4 className="dropdown-title">Add Templates</h4>
-          <div className="dropdown-options">
-            {Object.keys(moduleOptions).map((moduleType, index) => (
-              <div
-                key={index}
-                className="dropdown-item"
-                onClick={() => addModule(moduleType)}
-              >
-                {moduleType}
-              </div>
-            ))}
+        {/* Tags */}
+        <div className={styles["tags-container"]}>
+          {tags.map((tagId) => {
+            const tagObj = availableTags.find(t => t.id === tagId);
+            return tagObj ? (
+              <span key={tagId} className={styles["tag"]}>
+                {tagObj.tag} <button className={styles["remove-tag-btn"]} onClick={() => removeTag(tagId)}>x</button>
+              </span>
+            ) : null;
+          })}
+          <div className={styles["tag-button-wrapper"]}>
+            <button className={styles["plus-button"]} onClick={addTag}>+</button>
+            <span className={styles["tag-label"]}>Add module tags</span>
           </div>
         </div>
-      )}
 
+        {/* Error Display */}
+        {error && (
+          <div className={styles["error-message"]}>
+            <p>{error}</p>
+            <button onClick={() => setError(null)}>×</button>
+          </div>
+        )}
+
+        {/* Modules List */}
+        <div className={styles["modules-list"]}>
+          {modules.map((module) => {
+            const EditorComponent = moduleOptions[module.type]?.component;
+            
+            // Skip if no component is found for this type
+            if (!EditorComponent) {
+              console.error(`[ERROR] No editor component found for type: ${module.type}`);
+              return (
+                <div key={module.id} className={`${styles["module-item"]} ${styles["error"]}`}>
+                  <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
+                </div>
+              );
+            }
+            
+            return (
+              <div key={module.id} className={styles["module-item"]}>
+                <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
+                <EditorComponent
+                  ref={(el) => { 
+                    editorRefs.current[module.id] = el;
+                  }}
+                  moduleId={module.id}
+                  quizType={module.quizType}
+                  initialQuestions={initialQuestionsRef.current[module.id] || []}
+                  key={`editor-${module.id}`} // Add a key to force re-render when questions change
+                />
+                <button onClick={() => removeModule(module.id)} className={styles["remove-module-btn"]}>Remove</button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Add Module Templates Button */}
+        <div className={styles["templates-button-wrapper"]}>
+          <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className={styles["plus-button"]}>+</button>
+          <span className={styles["templates-label"]}>Add Template</span>
+        </div>
+
+        {/* Templates Dropdown */}
+        {showDropdown && (
+          <div className={styles["dropdown-menu"]} style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
+            <h4 className={styles["dropdown-title"]}>Headings</h4>
+            <div className={styles["dropdown-options"]}>
+              {headings.map((heading, index) => (
+                <div
+                  key={index}
+                  className={styles["dropdown-item"]}
+                  onClick={() => addModule(heading[0], "heading")}
+                >
+                  {heading[1]}
+                </div> 
+              ))}
+            </div>           
+            <h4 className={styles["dropdown-title"]}>Basic Blocks</h4>
+            <div className={styles["dropdown-options"]}>
+              {Object.keys(moduleOptions).map((moduleType, index) => (
+                <div
+                  key={index}
+                  value={index}
+                  className={styles["dropdown-item"]}
+                  onClick={() => addModule(moduleType, "block")}
+                >
+                  {moduleType}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
       {/* Action Buttons */}
       {!isPreview && (
-        <div className="button-container">
-          <button className="preview-btn" onClick={() => setIsPreview(true)} disabled={isLoading}>
-            Preview
-          </button>
-          <button className="publish-btn" onClick={publishModule} disabled={isLoading}>
+        <div className={styles["button-container"]}>
+          <div className={styles["preview-container"]}>
+            <button className={styles["preview-btn"]} onClick={() => setIsPreview(true)} disabled={isLoading}>
+              Preview
+            </button>
+          </div>
+          <button className={styles["publish-btn"]} onClick={publishModule} disabled={isLoading}>
             {isLoading ? 
               (isEditing ? "Updating..." : "Publishing...") : 
               (isEditing ? "Update" : "Publish")
             }
           </button>
-          {!isEditing && <button className="edit-btn">Edit</button>}
+          {!isEditing && <button className={styles["edit-btn"]}>Edit</button>}
         </div>
       )}
 
       {/* Preview Mode */}
       {isPreview && (
-        <div className="preview-container">
+        <div className={styles["preview-container"]}>
           <h2>{title}</h2>
           <p>{description}</p>
-          <div className="preview-tags">
+          <div className={styles["preview-tags"]}>
             {tags.map((tagId) => {
               const tagObj = availableTags.find(t => t.id === tagId);
               return tagObj ? (
-                <span key={tagId} className="preview-tag">{tagObj.tag}</span>
+                <span key={tagId} className={styles["preview-tag"]}>{tagObj.tag}</span>
               ) : null;
             })}
           </div>
-          <div className="preview-modules">
+          <div className={styles["preview-modules"]}>
             {modules.map((module, index) => {
               // For preview, try to get current question count if possible
               let questionCount = 0;
@@ -703,14 +742,14 @@ const AddModule = () => {
               }
               
               return (
-                <div key={module.id} className="preview-module">
+                <div key={module.id} className={styles["preview-module"]}>
                   <h3>{module.type} {index + 1}</h3>
                   <p>Questions: {questionCount}</p>
                 </div>
               );
             })}
           </div>
-          <button className="exit-preview-btn" onClick={() => setIsPreview(false)}>
+          <button className={styles["exit-preview-btn"]} onClick={() => setIsPreview(false)}>
             Exit Preview
           </button>
         </div>
