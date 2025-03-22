@@ -48,7 +48,6 @@ function App() {
       {/* Wrapper that helps with user enrollment into the course */}
       <EnrollmentContextProvider>
       <Router>
-          <SessionManager /> {/* Add the session manager here */}
           <Routes>
             {/* Auth Routes (No Sidebar) */}
             <Route path="/" element={<Welcome />} />
@@ -78,6 +77,7 @@ function App() {
               path="/worker/*"
               element={
                 <DashboardLayout>
+                  <SessionManager />
                   <Routes>
                     <Route path="home" element={<WorkerDashboard />} />
                     <Route path="settings" element={<Settings />} />
@@ -97,6 +97,7 @@ function App() {
               path="/admin/*"
               element={
                 <DashboardLayout>
+                  <SessionManager />
                   <Routes>
                     <Route path="home" element={<AdminDashboard />} />
                     <Route path="settings" element={<Settings />} />

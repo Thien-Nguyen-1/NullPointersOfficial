@@ -1,14 +1,61 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { AuthContext } from '../services/AuthContext';
 import { useSessionTimeout } from './useSessionTimeout';
+import { SESSION_CONFIG } from '../config/sessionConfig';
 
-export function SessionManager({ timeoutMinutes = 3, warningSeconds = 60 }) {
+export function SessionManager(props) {
+  // Default to the config values but allow override through props
+  const timeoutMinutes = props.timeoutMinutes || SESSION_CONFIG.timeoutMinutes;
+  const warningSeconds = props.warningSeconds || SESSION_CONFIG.warningSeconds;
+
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(warningSeconds);
   const { logoutUser } = useContext(AuthContext);
-  const timerRef = useRef(null);
 
-  // Effect to handle the countdown
+  const timerRef = useRef(null); // Stores the countdown interval ID
+  const sessionTimeoutRef = useRef(null); // Stores the session timeout manager
+
+  // When the session times out
+  const handleTimeout = async () => {
+    // Clear any running timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    // Set countdown to 0 for visual consistency
+    setCountdown(0);
+
+    // Small delay to ensure the 0 is displayed
+    setTimeout(async () => {
+      try {
+        await logoutUser();
+      } catch (error) {
+        console.error("Error during timeout logout:", error);
+        // Fallback logout
+        sessionStorage.clear();
+        localStorage.removeItem('authToken');
+        window.location.href = '/';
+      }
+    }, 100);
+  };
+
+  // Get a reference to the session timeout
+  const sessionTimeout = useSessionTimeout({
+    timeoutMinutes: timeoutMinutes,
+    warningSeconds: warningSeconds,
+    onWarning: () => {
+      console.log("Warning callback triggered!");
+      setShowWarning(true);
+    },
+    onTimeout: handleTimeout
+  });
+
+  // Store the session timeout in a ref so it persists between renders
+  useEffect(() => {
+    sessionTimeoutRef.current = sessionTimeout;
+  }, [sessionTimeout]);
+
+  // Handle the countdown timer when warning is shown
   useEffect(() => {
     if (showWarning) {
       // Reset countdown when warning appears
@@ -35,7 +82,7 @@ export function SessionManager({ timeoutMinutes = 3, warningSeconds = 60 }) {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
-      // Reset countdown
+      // Reset countdown for next time
       setCountdown(warningSeconds);
     }
 
@@ -47,36 +94,16 @@ export function SessionManager({ timeoutMinutes = 3, warningSeconds = 60 }) {
     };
   }, [showWarning, warningSeconds]);
 
-  // Custom timeout handler to sync with our countdown
-  const handleTimeout = async () => {
-    // Clear any running timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+  // Add a function to extend the session
+  const extendSession = () => {
+    console.log("Extend session button clicked!");
+    if (sessionTimeoutRef.current) {
+      sessionTimeoutRef.current.resetSession(); // Reset the session timers
+    } else {
+      console.log("sessionTimeoutRef.current is null!");
     }
-
-    // Set countdown to 0 for visual consistency
-    setCountdown(0);
-
-    // Small delay to ensure the 0 is displayed
-    setTimeout(async () => {
-      try {
-        await logoutUser();
-      } catch (error) {
-        console.error("Error during timeout logout:", error);
-        // Fallback logout
-        sessionStorage.clear();
-        localStorage.removeItem('authToken');
-        window.location.href = '/login';
-      }
-    }, 100);
+    setShowWarning(false);
   };
-
-  useSessionTimeout({
-    timeoutMinutes: timeoutMinutes,
-    warningSeconds: warningSeconds,
-    onWarning: () => setShowWarning(true),
-    onTimeout: handleTimeout
-  });
 
   return (
     <>
@@ -85,7 +112,8 @@ export function SessionManager({ timeoutMinutes = 3, warningSeconds = 60 }) {
           <div className="timeout-warning-content">
             <h3>Session Timeout Warning</h3>
             <p>Your session will expire due to inactivity in <strong>{countdown}</strong> seconds.</p>
-            <button onClick={() => setShowWarning(false)}>Keep Session Active</button>
+            <p>You will be redirected to login page.</p>
+            <button onClick={extendSession}>Keep Session Active</button>
           </div>
         </div>
       )}
