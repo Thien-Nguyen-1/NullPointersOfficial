@@ -934,7 +934,6 @@ class AdminUserDetailView(APIView):
     def delete(self, request, user_id):
         """Delete an admin user"""
         # Check if user is a superadmin
-
         print(f"[DEBUG] Received delete request for user_id: {user_id}")
         print(f"[DEBUG] Type of user_id: {type(user_id)}")
 
@@ -945,11 +944,154 @@ class AdminUserDetailView(APIView):
         
         try:
             print(f"[DEBUG] Looking for admin user with id={user_id}")
-            admin = User.objects.get(id=user_id, user_type='admin')
-            print(f"[DEBUG] Found admin: {admin.username}")
-            admin.delete()
-            print(f"[DEBUG] Admin user deleted successfully")
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            admin_to_delete = User.objects.get(id=user_id, user_type='admin')
+            print(f"[DEBUG] Found admin: {admin_to_delete.username}")
+
+            # Identify the superadmin (current user) 
+            superadmin = request.user
+
+            # find all content authored by this admin
+            # check all content types that have author relationship
+            from django.db import transaction
+        
+            # Use a transaction to ensure all operations are atomic
+            with transaction.atomic():
+                # 1. Check if the admin user is associated with any modules
+                # If using a many-to-many relationship
+                module_count = 0
+                if hasattr(admin_to_delete, 'module'):
+                    module_count = admin_to_delete.module.count()
+                    print(f"[DEBUG] Admin has {module_count} modules in many-to-many relationship")
+                    # For many-to-many relationships, we just need to ensure the superadmin
+                    # also has these modules associated, not necessarily transfer ownership
+                    
+                    if module_count > 0:
+                        # Add the modules to the superadmin's list if not already there
+                        for module in admin_to_delete.module.all():
+                            if not superadmin.module.filter(id=module.id).exists():
+                                superadmin.module.add(module)
+                        print(f"[DEBUG] Ensured all modules are associated with superadmin")
+                
+                # 2. Transfer authorship for each content type
+                # For each content type that has an author field, update it
+                
+                # Transfer ownership of Task content
+                tasks = Task.objects.filter(author=admin_to_delete)
+                task_count = tasks.count()
+                if task_count > 0:
+                    print(f"[DEBUG] Transferring {task_count} Task items from {admin_to_delete.username} to {superadmin.username}")
+                    tasks.update(author=superadmin)
+                
+                # Transfer ownership of RankingQuestion content
+                ranking_questions = RankingQuestion.objects.filter(author=admin_to_delete)
+                rq_count = ranking_questions.count()
+                if rq_count > 0:
+                    print(f"[DEBUG] Transferring {rq_count} RankingQuestion items")
+                    ranking_questions.update(author=superadmin)
+                
+                # Transfer ownership of InlinePicture content
+                inline_pictures = InlinePicture.objects.filter(author=admin_to_delete)
+                ip_count = inline_pictures.count()
+                if ip_count > 0:
+                    print(f"[DEBUG] Transferring {ip_count} InlinePicture items")
+                    inline_pictures.update(author=superadmin)
+                
+                # Transfer ownership of AudioClip content
+                audio_clips = AudioClip.objects.filter(author=admin_to_delete)
+                ac_count = audio_clips.count()
+                if ac_count > 0:
+                    print(f"[DEBUG] Transferring {ac_count} AudioClip items")
+                    audio_clips.update(author=superadmin)
+                
+                # Transfer ownership of Document content
+                documents = Document.objects.filter(author=admin_to_delete)
+                doc_count = documents.count()
+                if doc_count > 0:
+                    print(f"[DEBUG] Transferring {doc_count} Document items")
+                    documents.update(author=superadmin)
+                
+                # Transfer ownership of EmbeddedVideo content
+                videos = EmbeddedVideo.objects.filter(author=admin_to_delete)
+                video_count = videos.count()
+                if video_count > 0:
+                    print(f"[DEBUG] Transferring {video_count} EmbeddedVideo items")
+                    videos.update(author=superadmin)
+                
+                # Transfer ownership of InfoSheet content
+                infosheets = InfoSheet.objects.filter(author=admin_to_delete)
+                infosheet_count = infosheets.count()
+                if infosheet_count > 0:
+                    print(f"[DEBUG] Transferring {infosheet_count} InfoSheet items")
+                    infosheets.update(author=superadmin)
+                
+                # Transfer ownership of Video content
+                video_content = Video.objects.filter(author=admin_to_delete)
+                video_content_count = video_content.count()
+                if video_content_count > 0:
+                    print(f"[DEBUG] Transferring {video_content_count} Video items")
+                    video_content.update(author=superadmin)
+                
+                # Update any terms and conditions created by this admin_to_delete
+                terms = TermsAndConditions.objects.filter(created_by=admin_to_delete)
+                terms_count = terms.count()
+                if terms_count > 0:
+                    print(f"[DEBUG] Transferring {terms_count} TermsAndConditions items")
+                    terms.update(created_by=superadmin)
+                
+                # 3. Check for UserModuleInteraction and ProgressTracker 
+                user_interactions = UserModuleInteraction.objects.filter(user=admin_to_delete)
+                ui_count = user_interactions.count()
+                if ui_count > 0:
+                    print(f"[DEBUG] Deleting {ui_count} UserModuleInteraction items")
+                    # For user interactions, it's probably better to delete them
+                    # since these are personal interactions not ownership
+                    user_interactions.delete()
+                
+                progress_trackers = ProgressTracker.objects.filter(user=admin_to_delete)
+                pt_count = progress_trackers.count()
+                if pt_count > 0:
+                    print(f"[DEBUG] Deleting {pt_count} ProgressTracker items")
+                    # For progress trackers, also better to delete
+                    progress_trackers.delete()
+                
+                # 4. Check for UserResponse records
+                user_responses = UserResponse.objects.filter(user=admin_to_delete)
+                ur_count = user_responses.count()
+                if ur_count > 0:
+                    print(f"[DEBUG] Deleting {ur_count} UserResponse items")
+                    user_responses.delete()
+                
+                # Store admin_to_delete name for the response message
+                admin_name = f"{admin_to_delete.first_name} {admin_to_delete.last_name}"
+                admin_username = admin_to_delete.username
+                
+                # Finally, delete the admin_to_delete user after transferring all content
+                admin_to_delete.delete()
+                print(f"[DEBUG] Admin user deleted successfully after content transfer")
+                
+                # Return a 200 OK with detailed information instead of 204 No Content
+                # This allows the frontend to display more informative feedback
+                return Response({
+                    'status': 'success', 
+                    'message': f'Admin user {admin_name} ({admin_username}) deleted successfully. All content transferred to your account.',
+                    'transferred_items': {
+                        'modules': module_count,
+                        'tasks': task_count,
+                        'ranking_questions': rq_count,
+                        'inline_pictures': ip_count,
+                        'audio_clips': ac_count,
+                        'documents': doc_count,
+                        'videos': video_count + video_content_count,
+                        'infosheets': infosheet_count,
+                        'terms': terms_count
+                    },
+                    'deleted_items': {
+                        'user_interactions': ui_count,
+                        'progress_trackers': pt_count,
+                        'user_responses': ur_count
+                    }
+                }, status=status.HTTP_200_OK)
+                
         except User.DoesNotExist:
             print(f"[DEBUG] Admin user not found with id={user_id}")
             return Response({'error': 'Admin user not found'}, 
@@ -961,7 +1103,9 @@ class AdminUserDetailView(APIView):
             traceback.print_exc()
             return Response({'error': f'An error occurred: {str(e)}'}, 
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
+            
 
 class CheckSuperAdminView(APIView):
     """API view to check if the current user is a superadmin"""
