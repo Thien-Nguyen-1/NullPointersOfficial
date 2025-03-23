@@ -66,10 +66,6 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
       try {
         setIsLoading(true);
         setError(null);
-        // const response = await api.get('/api/admin-users/', {
-        //   headers: { Authorization: `Token ${token}` }
-        // });
-
         const response = await api.get('/api/admin-users/');
         
         setAdminUsers(response.data || []);
@@ -93,11 +89,7 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     }
 
     try {
-      // const response = await api.put('/api/terms-and-conditions/', {
-      //   content
-      // }, {
-      //   headers: { Authorization: `Token ${token}` }
-      // });
+
 
       const response = await api.put('/api/terms-and-conditions/', {content});
       
@@ -109,22 +101,19 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     }
   };
 
-  // Add a new admin user
+  // add a new admin user
   const addAdminUser = async (userData) => {
     if (!token || !isSuperAdmin) {
       throw new Error("Unauthorized access");
     }
 
     try {
-      // Adding user_type as admin
+      // adding user_type as admin
       const adminData = {
         ...userData,
         user_type: 'admin'
       };
 
-      // const response = await api.post('/api/admin-users/', adminData, {
-      //   headers: { Authorization: `Token ${token}` }
-      // });
       const response = await api.post('/api/admin-users/', adminData)
       
       setAdminUsers([...adminUsers, response.data]);
@@ -145,26 +134,29 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     console.log(`[DEBUG] ID type: ${typeof userId}`)
 
     try {
-      // await api.delete(`/api/admin-users/${userId}/`, {
-      //   headers: { Authorization: `Token ${token}` }
-      // });
-      await api.delete(`/api/admin-users/${userId}/`);
+      // Make the API call and capture the response
+      const response = await api.delete(`/api/admin-users/${userId}/`);
       
-      // console.log(`[DEBUG] Delete response:`, response)
-
+      // Update the admin users list
       setAdminUsers(adminUsers.filter(admin => admin.id !== userId));
-      return { success: true };
+      
+      // Return success with any data from the response
+      return { 
+        success: true,
+        message: response.data?.message || "Admin user removed successfully",
+        transferDetails: response.data?.transferred_items
+      };
     } catch (err) {
       console.error("Error removing admin user:", err);
       console.log(`[DEBUG] Request URL:`, `/api/admin-users/${userId}/`);
 
-      // if (err.response) {
-      //   console.log(`[DEBUG] Error status:`, err.response.status);
-      //   console.log(`[DEBUG] Error data:`, err.response.data);
+      // Log error details if available
+      if (err.response) {
+        console.log(`[DEBUG] Error status:`, err.response.status);
+        console.log(`[DEBUG] Error data:`, err.response.data);
+      }
 
-      // }
-
-      throw new Error("Failed to remove admin user");
+      throw new Error(err.response?.data?.error || "Failed to remove admin user");
     }
   };
 
