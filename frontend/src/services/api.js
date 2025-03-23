@@ -375,5 +375,44 @@ export const downloadCompletedTask = async(taskId, token) => {
     }
   };
 
-  
+/**
+ * Mark content as viewed/completed
+ * @param {string} contentId - The ID of the content
+ * @param {string} contentType - The type of content (infosheet, video, quiz)
+ * @param {string} token - The user's auth token
+ * @returns {Promise} - The response from the API
+ */
+export const markContentAsViewed = async (contentId, contentType, token) => {
+  try {
+    console.log("Request payload:", {
+      content_id: contentId,
+      content_type: contentType
+    });
+    
+    
+    const response = await fetch('/api/content-progress/mark-viewed/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${token}`
+      },
+      body: JSON.stringify({
+        content_id: contentId,
+        content_type: contentType
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Error ${response.status}: ${response.statusText}`, errorText);
+      throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to mark content as viewed:", error);
+    throw error;
+  }
+};
+
 export default api;
