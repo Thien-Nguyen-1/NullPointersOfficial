@@ -3,16 +3,11 @@ import "../styles/CoursesList.css";
 
 export default function CoursesList({ courses }) {
   const [activeTab, setActiveTab] = useState("In Progress");
-  // At the beginning of your CoursesList component
-  console.log("Courses received:", courses);
 
-  // In your filter function, add logging
   var filteredCourses = courses.filter(course => {
-    console.log("Course:", course, "ActiveTab:", activeTab);
     
     if (activeTab === "In Progress") {
       const result = course.progress_percentage < 100.0 && !course.completed;
-      console.log(`Course ${course.title} progress: ${course.progress_percentage}, completed: ${course.completed}, shows in In Progress: ${result}`);
       return result;
     } else if (activeTab === "Completed") {
       return course.progress_percentage === 100.0;
@@ -21,9 +16,6 @@ export default function CoursesList({ courses }) {
     }
     return false;
   });
-
-  console.log("Filtered courses:", filteredCourses);
-
 
   // Handle tab click
   const handleTabClick = (tabName) => {

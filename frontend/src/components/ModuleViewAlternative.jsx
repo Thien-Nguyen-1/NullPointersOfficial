@@ -136,18 +136,12 @@ useEffect(() => {
         updatedInteraction.hasLiked = !userInteraction.hasLiked;
       } else if (action === 'pin') {
         updatedInteraction.pinned = !userInteraction.pinned;
-        console.log('Pin action triggered:');
-        console.log('Previous pin state:', userInteraction.pinned);
-        console.log('New pin state:', updatedInteraction.pinned);
       }
       
       // Save updated interaction
-      console.log('Sending to backend:', updatedInteraction);
       const response = await SaveUserModuleInteract(moduleId, updatedInteraction, token);
-      console.log('Backend response:', response);
       
       if (response) {
-        console.log('Setting new userInteraction state:', updatedInteraction);
         setUserInteraction(updatedInteraction);
         
         // Update module upvotes in UI immediately for better UX
@@ -173,14 +167,11 @@ useEffect(() => {
   // Handle content completion
   
 // Handle content completion
-const handleContentComplete = async (contentId, results) => {
-    console.log(`Content completed: ${contentId}`);
-    
+const handleContentComplete = async (contentId, results) => {    
     // Add this content to completed set
     setCompletedContentIds(prev => {
       const updated = new Set(prev);
       updated.add(contentId);
-      console.log("Updated completed IDs:", Array.from(updated));
       return updated;
     });
     
@@ -191,16 +182,13 @@ const handleContentComplete = async (contentId, results) => {
     
     // If this is a quiz, submit the answers to the backend
     if (completedContent && completedContent.type === 'quiz' && completedContent.taskData) {
-      try {
-        console.log("Saving quiz responses to backend:", results);
-        
+      try {        
         if (user && token) {
           const saveResult = await QuizApiUtils.submitQuizAnswers(
             completedContent.taskData.contentID, 
             results,
             token
           );
-          console.log("Quiz answers saved successfully:", saveResult);
         } else {
           console.warn("User not logged in - quiz answers will not be saved to backend");
         }
@@ -225,26 +213,21 @@ const handleContentComplete = async (contentId, results) => {
       }
     });
     
-    console.log("All content IDs:", allContentIds);
     
     const updatedCompletedSet = new Set([...completedContentIds, contentId]);
-    console.log("Current completion set:", Array.from(updatedCompletedSet));
     
     // Check if all content is completed
     const isComplete = allContentIds.length === updatedCompletedSet.size && 
                        allContentIds.every(id => updatedCompletedSet.has(id));
-    console.log("Is module complete?", isComplete);
     
     // If all content items are completed, mark the module as completed
     if (isComplete) {
-      console.log("Setting module as completed!");
       setModuleCompleted(true);
     }
   };
   
   // Monitor module completion state
   useEffect(() => {
-    console.log("Module completed state changed:", moduleCompleted);
   }, [moduleCompleted]);
 
   

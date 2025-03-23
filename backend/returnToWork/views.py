@@ -276,10 +276,7 @@ class UserDetail(APIView):
 
         # Prepare module details with random progress
         module_details = []
-        print("Progress Trackers:", progress_trackers.count())
         for tracker in progress_trackers:
-            print(f"Tracker for module {tracker.module.id}: completed={tracker.completed}, progress_percentage={getattr(tracker, 'progress_percentage', 'N/A')}")
-
             module_details.append({
                 'id': tracker.module.id,
                 'title': tracker.module.title,
