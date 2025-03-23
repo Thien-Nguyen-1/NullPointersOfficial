@@ -195,6 +195,7 @@ const SuperAdminSettings = () => {
             <>
               <div 
                 className="terms-preview"
+                data-placeholder="Enter terms and conditions..."
                 dangerouslySetInnerHTML={{ __html: termsContent || 'No terms and conditions have been set.' }}
               />
               <button className="btn-primary" onClick={handleTermsEdit}>

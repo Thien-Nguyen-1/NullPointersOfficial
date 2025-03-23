@@ -174,7 +174,8 @@ export const QuizApiUtils = {
         task_id: questionData.task || questionData.task_id, // Use either task or task_id
         question_text: questionData.question_text || questionData.text || "",
         hint_text: questionData.hint_text || questionData.hint || "",
-        order: questionData.order || 0
+        order: questionData.order || 0,
+        answers:questionData.answers || []
       };
       
       console.log("[DEBUG] Sending to API:", apiData);
@@ -182,6 +183,7 @@ export const QuizApiUtils = {
       // Make the API call
       const response = await api.post('/api/quiz/questions/', apiData);
       return response.data;
+
     } catch (error) {
       // Enhanced error logging
       console.error("Error creating question:", error);
@@ -218,8 +220,8 @@ export const QuizApiUtils = {
       'Flashcard Quiz': 'flashcard',
       'Fill in the Blanks': 'text_input',
       'Flowchart Quiz': 'statement_sequence',
-      'Question and Answer Form': 'question_answer_form',
-      'Matching Question Quiz': 'matching_questions'
+      'Question and Answer Form': 'question_input',
+      'Matching Question Quiz': 'pair_input'
 
     };
     return typeMap[uiType] || 'text_input';
@@ -231,8 +233,8 @@ export const QuizApiUtils = {
       'flashcard': 'Flashcard Quiz',
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
-      'question_answer_form':'Question and Answer Form',
-      'matching_questions':'Matching Question Quiz'
+      'question_input':'Question and Answer Form',
+      'pair_input':'Matching Question Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
@@ -373,34 +375,6 @@ export const QuizApiUtils = {
     }
   },
 
-
-  createQuestionAnswerFormTask: async(formData) =>{
-    try{
-      const data = {
-        ...formData
-      };
-      const response = await api.post('/api/question_answer_forms/',data);
-      return response.data;
-    }catch(error){
-      console.error('Error Question & Answer form task:', error);
-      throw error;
-    }
-
-  },
-
-  createMatchingQuestionsTask: async(pairData) =>{
-    try{
-      const data = {
-        ...pairData
-      };
-      const response = await api.post('/api/matching_questions/',data);
-      return response.data;
-    }catch(error){
-      console.error('Error matching questions task:', error);
-      throw error;
-    }
-
-  }
 };
 
 export default QuizApiUtils;

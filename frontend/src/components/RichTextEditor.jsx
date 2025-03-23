@@ -224,7 +224,8 @@ const InlineRichTextEditor = ({ initialContent, onSave, onCancel }) => {
       
       <div 
         ref={editorRef}
-        className="editor-content" 
+        className="editor-content"
+        data-placeholder="Enter terms and conditions..."
         contentEditable={true}
         onInput={handleInput}
       />

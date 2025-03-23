@@ -1,4 +1,4 @@
-import "../styles/ServiceUsersPage.css"
+import styles from "../styles/ServiceUsersPage.module.css"
 import React, { useEffect, useState } from "react";
 import { fetchServiceUsers, deleteServiceUser } from "../services/api";
 import { FaTrash, FaSearch, FaTimes } from "react-icons/fa";
@@ -49,36 +49,36 @@ const ServiceUsersPage = () => {
     };
 
     if (loading) return (
-        <div className="loading-container">
-            <div className="loading-spinner"></div>
+        <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}></div>
             <p>Loading users...</p>
         </div>
     );
     
     if (error) return (
-        <div className="error-container">
+        <div className={styles.errorContainer}>
             <p>Error: {error}</p>
         </div>
     );
 
     if (users.length === 0) {
         return (
-            <div className="empty-state">
+            <div className={styles.emptyState}>
                 <p>No service users registered yet.</p>
             </div>
         );
     }
 
     return (
-        <div className="users-page">
-            <h1 className="page-title">Service User Directory</h1>
+        <div className={styles.usersPage}>
+            <h1 className={styles.pageTitle}>Service User Directory</h1>
 
             {successMessage && (
-                <div className="success-message">
+                <div className={styles.successMessage}>
                     {successMessage}
                     <button 
                         onClick={() => setSuccessMessage("")} 
-                        className="close-button"
+                        className={styles.closeButton}
                         aria-label="Close notification"
                     >
                         <FaTimes />
@@ -86,9 +86,9 @@ const ServiceUsersPage = () => {
                 </div>
             )}
 
-            <div className="search-container">
-                <div className="search-input-wrapper">
-                    <div className="search-icon-container">
+            <div className={styles.searchContainer}>
+                <div className={styles.searchInputWrapper}>
+                    <div className={styles.searchIconContainer}>
                         <FaSearch size={16} />
                     </div>
                     <input
@@ -96,14 +96,14 @@ const ServiceUsersPage = () => {
                         placeholder="Search by username..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="search-input"
+                        className={styles.searchInput}
                         autoComplete="off"
                     />
                     {searchQuery && (
-                        <div className="clear-button-container">
+                        <div className={styles.clearButtonContainer}>
                             <button 
                                 onClick={() => setSearchQuery("")} 
-                                className="clear-search"
+                                className={styles.clearSearch}
                                 aria-label="Clear search"
                                 type="button"
                             >
@@ -115,12 +115,12 @@ const ServiceUsersPage = () => {
             </div>
 
             {filteredUsers.length === 0 ? (
-                <div className="no-results">
+                <div className={styles.noResults}>
                     <p>All {users.length} records of service users searched: None found with username "{searchQuery}"</p>
                 </div>
             ) : (
-                <div className="table-container">
-                    <table className="users-table">
+                <div className={styles.tableContainer}>
+                    <table className={styles.table}>
                         <thead>
                             <tr>
                                 <th>Username</th>
@@ -137,19 +137,19 @@ const ServiceUsersPage = () => {
                                     <td>{user.first_name}</td>
                                     <td>{user.last_name}</td>
                                     <td>
-                                        <div className="tags-container">
+                                        <div className={styles.tagsContainer}>
                                             {user.tags && user.tags.length > 0 ? 
                                                 user.tags.map((tag, index) => (
-                                                    <span key={index} className="tag">{tag}</span>
+                                                    <span key={index} className={styles.tag}>{tag}</span>
                                                 )) : 
-                                                <span className="no-tags">No tags</span>
+                                                <span className={styles.noTags}>No tags</span>
                                             }
                                         </div>
                                     </td>
                                     <td>
                                         <button
                                             onClick={() => handleDelete(user.username)}
-                                            className="delete-button"
+                                            className={styles.deleteButton}
                                             aria-label={`Delete user ${user.username}`}
                                         >
                                             <FaTrash />

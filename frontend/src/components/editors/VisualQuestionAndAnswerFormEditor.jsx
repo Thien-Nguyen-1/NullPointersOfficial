@@ -1,16 +1,32 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import '../../styles/VisualQuestionAndAnswerFormEditor.css';
+import { QuizApiUtils } from "../../services/QuizApiUtils";
 
 const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
   const [questionData, setQuestionData] = useState({
-    question: '',
-    answer: ''
+    question_text: '',
+    hint_text: '',
+    order: 0
   });
   const [submittedData, setSubmittedData] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
 
-  // Expose component's data to parent via ref
+  useEffect(() => {
+    if (props.initialQuestions && props.initialQuestions.length > 0) {
+      const loadedQuestions = props.initialQuestions.map(q => ({
+        ...q,
+        id: q.id, 
+        question_text: q.text, 
+        hint_text: q.hint, 
+        order: q.order 
+      }));
+      setSubmittedData(loadedQuestions);
+    }
+  }, [props.initialQuestions]);
+
   useImperativeHandle(ref, () => ({
-    getSubmittedData: () => submittedData
+    getQuestions: () => submittedData
   }));
 
   const handleQuestionChange = (event) => {
@@ -20,12 +36,36 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setSubmittedData([...submittedData, {...questionData, id: Date.now()}]); // Add a unique ID for key and delete reference
-    setQuestionData({ question: '', answer: '' }); // Reset form after submission
+    const newQuestions = isEditing ? 
+      submittedData.map(q => q.id === editId ? { ...q, ...questionData } : q) : 
+      [...submittedData, { ...questionData, id: Date.now() }];
+    setSubmittedData(newQuestions);
+    setIsEditing(false);
+    setQuestionData({ question_text: '', hint_text: '', order: newQuestions.length });
   };
 
-  const handleRemoveEntry = (id) => {
-    setSubmittedData(submittedData.filter(entry => entry.id !== id));
+  const handleEdit = (id) => {
+    const question = submittedData.find(q => q.id === id);
+    setQuestionData({
+      question_text: question.question_text, 
+      hint_text: question.hint_text, 
+      order: question.order
+    });
+    setEditId(id);
+    setIsEditing(true);
+  };
+
+  const handleRemoveEntry = async(id) => {
+    try {
+      const result = await QuizApiUtils.deleteQuestion(id);
+      if (result) {
+        setSubmittedData(submittedData.filter(entry => entry.id !== id));
+      }
+    } catch (error) {
+      console.log('Failed to delete question from backend:', submittedData.id);
+
+      console.error('Failed to delete question from backend:', error);
+    }
   };
 
   return (
@@ -34,8 +74,8 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
         <div className="form-group">
           <label className="label">Question</label>
           <input
-            name="question"
-            value={questionData.question}
+            name="question_text"
+            value={questionData.question_text}
             onChange={handleQuestionChange}
             placeholder="Enter your question"
             required
@@ -43,27 +83,29 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
           />
         </div>
         <div className="form-group">
-          <label className="label">Answer</label>
+          <label className="label">Hint</label>
           <input
-            name="answer"
-            value={questionData.answer}
+            name="hint_text"
+            value={questionData.hint_text}
             onChange={handleQuestionChange}
-            placeholder="Enter your answer"
-            required
+            placeholder="Enter a hint (optional)"
             className="input-field"
           />
         </div>
-        <button type="submit" className="button submit-button">Submit</button>
+        <button type="submit" className="button submit-button">{isEditing ? 'Update Question' : 'Add Question'}</button>
       </form>
       {submittedData.map((data, index) => (
-        <div key={index} className="qa-entry">
+        <div key={data.id} className="qa-entry">
           <div className="question-answer-container">
-            Question: {data.question}
+            <strong>Question:</strong> {data.question_text}
           </div>
           <div className="question-answer-container">
-            Answer: {data.answer}
+            <strong>Hint:</strong> {data.hint_text}
           </div>
-          <button onClick={() => handleRemoveEntry(data.id)} className="button delete-button">Delete</button>
+          <div>
+            <button onClick={() => handleEdit(data.id)} className="button">Edit</button>
+            <button onClick={() => handleRemoveEntry(data.id)} className="button delete-button">Delete</button>
+          </div>
         </div>
       ))}
     </div>
@@ -71,6 +113,8 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
 });
 
 export default VisualQuestionAndAnswerFormEditor;
+
+
 
 
 

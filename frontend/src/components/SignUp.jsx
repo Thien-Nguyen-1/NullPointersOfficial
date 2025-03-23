@@ -86,9 +86,9 @@ const Signup = () => {
     try{
       const data = await SignUpUser(username, firstName, lastName, userType, password, confirmPassword, email);
       console.log("Sign Up successful:", data);
-      alert("Sign up worked " + username);
+      alert("Sign up succesfull " + username + "Please check your email for verification.");
 
-      navigate("/login")
+      // navigate("/login")
     }
     catch(err){
       setError(err.message);

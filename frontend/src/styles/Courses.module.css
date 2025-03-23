@@ -23,8 +23,8 @@
 }
 
 
-.courseContainer {
-  display: flex;
+.course-container {
+  display: flex;  
   flex-direction: column;
   width: 100%;
   justify-items: center;

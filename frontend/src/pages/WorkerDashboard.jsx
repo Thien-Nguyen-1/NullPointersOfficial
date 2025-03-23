@@ -34,11 +34,10 @@ export default function WorkerDashboard() {
         const transformedCourses = response.data.modules.map(module => ({
           id: module.id,
           title: module.title,
-          progress: module.progress_percentage,
-          
-          action: "View Course"
+          progress_percentage: module.progress_percentage,
+          pinned: module.pinned,
+          completed: module.completed
         }));
-        
         setCourses(transformedCourses);
       } catch (error) {
         console.error('Error fetching user details:', error);
@@ -65,7 +64,7 @@ export default function WorkerDashboard() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
-
+  console.log(courses)
   return (
     <div className="dashboard-container">
       <div className="top-row">

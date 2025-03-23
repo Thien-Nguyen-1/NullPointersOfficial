@@ -6,4 +6,5 @@ djangorestframework-simplejwt==5.5.0
 sqlparse==0.5.3
 coverage==7.6.11
 Pillow>=9.5.0
+firebase-admin
 reportlab==4.1.0

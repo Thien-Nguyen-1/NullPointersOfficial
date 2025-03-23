@@ -2,13 +2,15 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,QuestionAnswerForm,MatchingQuestionQuiz,UserResponse
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-
+from django.core.cache import cache  
+from django.conf import settings
+import uuid
 
 User = get_user_model()
 
@@ -39,7 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags', 'terms_accepted']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags', 'firebase_token', 'terms_accepted']
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -54,7 +56,11 @@ class LogInSerializer(serializers.Serializer):
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
-
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    user_type = serializers.CharField()
     class Meta:
         model = User
         fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password','email']
@@ -67,9 +73,18 @@ class SignUpSerializer(serializers.ModelSerializer):
     
     def create(self,validated_data):
         validated_data.pop("confirm_password")
-        user = User.objects.create_user(**validated_data)
-        return user
+        verification_token = str(uuid.uuid4())
+        cache.set(verification_token, validated_data, timeout=86400)
+        verification_url = f"http://localhost:5173/verify-email/{verification_token}/"
 
+        send_mail(
+            subject= "Verify email",
+            message = f"Dear {validated_data['username']}, Thank you for signing up! Please verify your email by clicking the following link: {verification_url}",
+            from_email = "readiness.to.return.to.work@gmail.com",
+            recipient_list=[validated_data['email']],
+            fail_silently=False,
+        )
+        return validated_data
 
 class PasswordResetSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)
@@ -106,9 +121,9 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked']
-
-
+        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked', 
+                 'contents_completed', 'total_contents', 'progress_percentage']
+        
 class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questionnaire
@@ -181,7 +196,7 @@ class UserPasswordChangeSerializer(serializers.Serializer):
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
-
+    
 class RankingQuestionSerializer(ContentSerializer):
     class Meta:
         model = RankingQuestion
@@ -323,14 +338,23 @@ class RequestPasswordResetSerializer(serializers.Serializer):
             )
         
             return user
+    
+    class UserResponseSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UserResponse
+            fields = '__all__'
 
-class QuestionAnswerFormSerializer(serializers.ModelSerializer):
+            
+class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = QuestionAnswerForm
-        fields = '__all__'
+        model = Conversation
+        fields = ['id', 'user', 'admin', 'created_at', 'hasEngaged', 'updated_at','lastMessage']
 
-class MatchingQuestionQuizSerializer(serializers.ModelSerializer):
+
+class MessageSerializer(serializers.ModelSerializer):
+
+    file = serializers.FileField(read_only=True) #obtain the url only
+
     class Meta:
-        model = MatchingQuestionQuiz
-        fields = '__all__'
-
+        model = Message
+        fields = ['id', 'conversation', 'sender', 'text_content', 'timestamp', 'file']
