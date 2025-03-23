@@ -1,12 +1,10 @@
 import random
 from django.shortcuts import render
 from rest_framework import viewsets, status, generics
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,QuestionAnswerForm,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse,MatchingQuestionQuiz
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,QuestionAnswerFormSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer,MatchingQuestionQuizSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,ContentSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer
-from .models import ProgressTracker,Tags,Module, Questionnaire
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer, QuestionnaireSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer
+# from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
+from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, Conversation, Message
+from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer, MessageSerializer, ConversationSerializer
+# from .models import ProgressTracker,Tags,Module, Questionnaire
 from django.contrib.auth import login, logout
 from django.http import HttpResponse
 from rest_framework.response import Response
@@ -15,6 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from returnToWork.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -28,8 +28,12 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from django.core.cache import cache
 
-class ProgressTrackerView(APIView):
+from django.db.models import Q
+from firebase_admin import messaging
 
+
+
+class ProgressTrackerView(APIView):
 
     def get(self, request):
 
@@ -38,6 +42,7 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
     
+    # Creates progress tracker entries
     def post(self, request):
         serializer = ProgressTrackerSerializer(data=request.data)
         if serializer.is_valid():
@@ -54,9 +59,6 @@ class ProgressTrackerView(APIView):
         serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
         if serializer.is_valid():
             serializer.save()
-
-        
-
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -74,7 +76,6 @@ class LogInView(APIView):
         serializer = LogInSerializer(data = request.data)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
-
             login(request,user)
             token, created = Token.objects.get_or_create(user=user)
 
@@ -134,23 +135,15 @@ class PasswordResetView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class TagViewSet(viewsets.ModelViewSet):
-    
     queryset = Tags.objects.all()
     serializer_class = TagSerializer
 
-
 class ModuleViewSet(viewsets.ModelViewSet):
-    
-
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
 
-
-
 class QuestionnaireView(APIView):
     """API to fetch questions dynamically based on answers"""
-    
-    
     # permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         """Fetch the first question or a specific question"""
@@ -213,7 +206,42 @@ class VideoViewSet(viewsets.ModelViewSet):
  
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-    serializer_class = TaskSerializer  
+    serializer_class = TaskSerializer
+
+class RankingQuestionViewSet(viewsets.ModelViewSet):
+    queryset = RankingQuestion.objects.all()
+    serializer_class = RankingQuestionSerializer
+    def perform_create(self, serializer): # Automatically set the authenticated user as the author when a new ranking question is created
+        serializer.save(author=self.request.user)
+
+class InlinePictureViewSet(viewsets.ModelViewSet):
+    queryset = InlinePicture.objects.all()
+    serializer_class = InlinePictureSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class AudioClipViewSet(viewsets.ModelViewSet):
+    queryset = AudioClip.objects.all()
+    serializer_class = AudioClipSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+class EmbeddedVideoViewSet(viewsets.ModelViewSet):
+    queryset = EmbeddedVideo.objects.all()
+    serializer_class = EmbeddedVideoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]  
@@ -251,34 +279,38 @@ class UserDetail(APIView):
         })
 
         return Response(response_data)
-    
+
     def put(self,request):
 
         # Works but Need To Use Seralizer - TO DO
-       
+
         try:
             user = request.user
             user_serializer = UserSerializer(user)
 
             data = request.data
-        
+
             user_in = User.objects.filter(user_id = data['user_id']).first()
             user_in.username = user.username
             user_in.first_name = user.first_name
             user_in.last_name = user.last_name
             user_in.user_type = user.user_type
-            
+
             tag_data = data['tags']
-            
+            fire_token = data.get('firebase_token')
             mod_data = data['module']
-            
+
 
             tags = []
             modules = []
 
+            if(fire_token):
+                user_in.firebase_token = fire_token
+            
+
 
             for tag_obj in tag_data:
-                    
+
                     if tag_obj['id']:
                         tag_instance = Tags.objects.filter(tag=tag_obj['tag']).first()
                         if tag_instance:
@@ -297,7 +329,7 @@ class UserDetail(APIView):
 
                         modules.append(mod_instance)
                     else:
-                        return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND) 
+                        return Response({"detail": f"Module ID not found."}, status=status.HTTP_404_NOT_FOUND)
                 else:
                     return Response({"detail": "Module ID is missing."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -307,13 +339,13 @@ class UserDetail(APIView):
             user_in.save()
 
         except:
-            
+
             return Response({"detail": "Unable to locate user"}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+
 
         return Response({"message": "Login Successful", "user": UserSerializer(user).data})
-    
+
 class ServiceUserListView(generics.ListAPIView):
     """API view to get all service users"""
     serializer_class = UserSerializer
@@ -346,6 +378,25 @@ class DeleteServiceUserView(generics.DestroyAPIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+class ContentPublishView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        # If the user is not authenticated, assign the default user
+        user = request.user if request.user.is_authenticated else User.objects.get(username="default_user")
+        serializer = ContentPublishSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            module = serializer.save()
+            return Response({
+                'message': 'Module published successfully',
+                'module_id': module.id
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -353,7 +404,7 @@ class UserSettingsView(APIView):
         user = request.user
         serializer = UserSettingSerializer(user)
         return Response(serializer.data)
-        
+
     def put(self,request):
         user = request.user
         serializer = UserSettingSerializer(user,data = request.data, partial =True)
@@ -361,13 +412,15 @@ class UserSettingsView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        
+
     def delete(self,request):
         user = request.user
         user_email = user.email
         username = user.username
 
         user.delete()
+        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+
 
         if not User.objects.filter(username = username).exists():
             send_mail(
@@ -386,25 +439,25 @@ class UserPasswordChangeView(APIView):
 
     def put(self, request):
         serializer = UserPasswordChangeSerializer(data=request.data, context={"request": request})
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password uUpdated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    
 
-        
+
+
 # API View to fetch quiz details and handle quiz responses
 class QuizDetailView(APIView):
     # permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, task_id):
         """Fetch quiz details"""
         task = get_object_or_404(Task, contentID=task_id)
         questions = task.questions.all().order_by('order')
-        
+
         response_data = {
             'task': {
                 'id': str(task.contentID),
@@ -427,26 +480,26 @@ class QuizDetailView(APIView):
 
 class QuizResponseView(APIView):
     # permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         """Save user's response to a quiz question"""
         data = request.data
         question_id = data.get('question_id')
         response_text = data.get('response_text')
-        
+
         if not question_id or response_text is None:
-            return Response({'status': 'error', 'message': 'Missing required data'}, 
+            return Response({'status': 'error', 'message': 'Missing required data'},
                             status=status.HTTP_400_BAD_REQUEST)
-            
+
         try:
             question = QuizQuestion.objects.get(id=question_id)
-            
+
             # Check if a response already exists
             existing_response = UserResponse.objects.filter(
                 user=request.user,
                 question=question
             ).first()
-            
+
             if existing_response:
                 # Update existing response
                 existing_response.response_text = response_text
@@ -460,12 +513,12 @@ class QuizResponseView(APIView):
                     response_text=response_text
                 )
                 response_id = new_response.id
-                
+
             return Response({
                 'status': 'success',
                 'response_id': response_id
             }, status=status.HTTP_200_OK)
-            
+
         except QuizQuestion.DoesNotExist:
             return Response({
                 'status': 'error',
@@ -474,12 +527,12 @@ class QuizResponseView(APIView):
 
 class QuizDataView(APIView):
     # permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, task_id):
         """Get quiz data with user's previous responses"""
         task = get_object_or_404(Task, contentID=task_id)
         questions = task.questions.all().order_by('order')
-        
+
         # Get user's previous responses if any
         user_responses = {}
         for question in questions:
@@ -487,10 +540,10 @@ class QuizDataView(APIView):
                 user=request.user,
                 question=question
             ).first()
-            
+
             if response:
                 user_responses[question.id] = response.response_text
-        
+
         # Prepare data for JSON response
         quiz_data = {
             'task_id': str(task.contentID),
@@ -507,7 +560,7 @@ class QuizDataView(APIView):
                 } for q in questions
             ]
         }
-        
+
         return Response(quiz_data, status=status.HTTP_200_OK)
 class CheckUsernameView(APIView):
     def get(self,request):
@@ -535,7 +588,7 @@ class UserInteractionView(APIView):
 
     def get(self, request):
         user = request.user
-      
+
         option = request.query_params.get("filter")
 
         allInteracts = UserModuleInteraction.objects.filter(user=user) if option == "user" else UserModuleInteraction.objects.all()
@@ -546,25 +599,25 @@ class UserInteractionView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         return Response(serializedInf.data, status=status.HTTP_200_OK)
-       
+
 
 
     def post(self, request, module_id):
         user = request.user
         data = request.data
         module = Module.objects.get(id = module_id)
-        
+
         if module:
-            
+
             try:
                 interactObj, hasCreated = UserModuleInteraction.objects.get_or_create(user=user, module=module)
-                
+
 
                 if( (data["hasLiked"]) and (((not hasCreated)  and ( not interactObj.hasLiked)) or (hasCreated))):
                     module.upvote()
                 elif( (not data["hasLiked"]) and (not hasCreated ) and (interactObj.hasLiked)):
                     module.downvote()
-                    
+
 
                 interactObj.hasPinned = data["hasPinned"]
                 interactObj.hasLiked = data["hasLiked"]
@@ -577,29 +630,29 @@ class UserInteractionView(APIView):
 
         else:
             return Response({"message": "Module Not Found Mate"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)
 class AdminQuizResponsesView(APIView):
     # permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, task_id):
         """Admin view to see all responses for a task"""
         # Check if user is admin
         if request.user.user_type != 'admin':
             return Response({"error": "You do not have permission to access this resource"},
                           status=status.HTTP_403_FORBIDDEN)
-            
+
         task = get_object_or_404(Task, contentID=task_id)
         questions = task.questions.all().order_by('order')
-        
+
         # Collect all responses for this task
         responses_data = []
-        
+
         for question in questions:
             responses = UserResponse.objects.filter(
                 question=question
             ).select_related('user')
-            
+
             question_data = {
                 'question_id': question.id,
                 'question_text': question.question_text,
@@ -614,35 +667,36 @@ class AdminQuizResponsesView(APIView):
                 ]
             }
             responses_data.append(question_data)
-        
+
         return Response({
             'task_id': str(task.contentID),
             'task_title': task.title,
             'responses': responses_data
         }, status=status.HTTP_200_OK)
-    
+
 class QuizQuestionView(APIView):
     """API endpoint for creating and managing quiz questions"""
-    
+
     def post(self, request, question_id=None):
         """Create a new quiz question or update an existing one if question_id is provided"""
         # If question_id is provided, update existing question
         if question_id:
             try:
                 question = QuizQuestion.objects.get(id=question_id)
-                
+
                 # Update fields
                 task_id = request.data.get('task_id')
                 question_text = request.data.get('question_text')
                 hint_text = request.data.get('hint_text', '')
                 order = request.data.get('order', 0)
-                
+                answers = request.data.get('answers',[])
+
                 if not task_id or not question_text:
                     return Response(
                         {'error': 'Task ID and question text are required'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                
+
                 # Update the task reference if it changed
                 try:
                     task = Task.objects.get(contentID=task_id)
@@ -652,20 +706,22 @@ class QuizQuestionView(APIView):
                         {'error': 'Task not found'},
                         status=status.HTTP_404_NOT_FOUND
                     )
-                
+
                 # Update other fields
                 question.question_text = question_text
                 question.hint_text = hint_text
                 question.order = order
+                question.answers
                 question.save()
-                
+
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers': question.answers
                 }, status=status.HTTP_200_OK)
-                
+
             except QuizQuestion.DoesNotExist:
                 return Response(
                     {'error': 'Question not found'},
@@ -677,37 +733,41 @@ class QuizQuestionView(APIView):
             question_text = request.data.get('question_text')
             hint_text = request.data.get('hint_text', '')
             order = request.data.get('order', 0)
-            
+            answers = request.data.get('answers',[])
+
+
             if not task_id or not question_text:
                 return Response(
                     {'error': 'Task ID and question text are required'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             try:
                 task = Task.objects.get(contentID=task_id)
-                
+
                 # Create the new question
                 question = QuizQuestion.objects.create(
                     task=task,
                     question_text=question_text,
                     hint_text=hint_text,
-                    order=order
+                    order=order,
+                    answers=answers
                 )
-                
+
                 return Response({
                     'id': question.id,
                     'text': question.question_text,
                     'hint': question.hint_text,
-                    'order': question.order
+                    'order': question.order,
+                    'answers':question.answers
                 }, status=status.HTTP_201_CREATED)
-                
+
             except Task.DoesNotExist:
                 return Response(
                     {'error': 'Task not found'},
                     status=status.HTTP_404_NOT_FOUND
                 )
-            
+
     def get(self, request, question_id=None):
         """Get a specific question or list all questions for a task"""
         if question_id:
@@ -718,6 +778,7 @@ class QuizQuestionView(APIView):
                 'text': question.question_text,
                 'hint': question.hint_text,
                 'order': question.order,
+                'answers':question.answers,
                 'task_id': str(question.task.contentID)
             })
         else:
@@ -728,19 +789,20 @@ class QuizQuestionView(APIView):
                     {'error': 'task_id parameter is required'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-                
+
             task = get_object_or_404(Task, contentID=task_id)
             questions = QuizQuestion.objects.filter(task=task).order_by('order')
-            
+
             return Response([
                 {
                     'id': q.id,
                     'text': q.question_text,
                     'hint': q.hint_text,
-                    'order': q.order
+                    'order': q.order,
+                    'answers': q.answers
                 } for q in questions
             ])
-        
+
     def delete(self, request, question_id):
         """Delete a specific quiz question"""
         try:
@@ -754,14 +816,9 @@ class QuizQuestionView(APIView):
             )
 
     
-class QuestionAnswerFormViewSet(viewsets.ModelViewSet):
-    queryset = QuestionAnswerForm.objects.all()
-    serializer_class = QuestionAnswerFormSerializer    
-
-class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
-    queryset = MatchingQuestionQuiz.objects.all()
-    serializer_class = MatchingQuestionQuizSerializer
-
+class QuizQuestionViewSet(viewsets.ModelViewSet):
+    queryset = QuizQuestion.objects.all()
+    serializer_class= QuizQuestionSerializer
 
 class TaskPdfView(APIView):
     permission_classes = [IsAuthenticated]
@@ -805,5 +862,212 @@ class TaskPdfView(APIView):
         response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
         return response
 
+# class UserResponseViewSet(viewsets.ModelViewSet):
+#     queryset = UserResponse.objects.all()
+#     serializer_class = UserResponseSerializer
 
         
+    
+
+
+
+
+
+
+
+
+
+
+class UserSupportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    MAX_LIMIT = 5
+
+    def get(self, request):
+        user_ = request.user
+        data = request.data
+
+        
+
+        try:
+          
+            info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+            info_chats = info_chats.order_by('-updated_at')
+            
+            serialized_info = ConversationSerializer(info_chats, many=True)
+            
+            
+            updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
+            
+
+            return Response(updated_data, status=status.HTTP_200_OK)
+
+        except:
+            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+    
+        
+
+    def post(self, request):
+        user_ = request.user
+        data = request.data
+
+        currentNo = Conversation.objects.filter(user = user_).count()
+
+        if( (user_.user_type == "service user") and ( currentNo < self.MAX_LIMIT )):
+            Conversation.objects.create(user=user_)
+
+
+        elif((user_.user_type == "admin") and data):
+         
+            conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+
+            if conversation_:
+                if not conversation_.hasEngaged:
+
+                    conversation_.hasEngaged = True
+                    conversation_.admin = user_
+
+                    conversation_.save()
+                    
+                else:
+                    return Response({"message": "Conversation already occupied"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            else:
+                return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+    
+        else:
+            return Response({"message": "Maximum Support Room Limit (5) Reached"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        return Response({"message": "success"}, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request):
+        user_ = request.user
+        data = request.data
+
+
+        try:
+             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
+
+             if conversation_:
+                conversation_.delete()
+
+                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+        
+
+
+
+
+
+
+
+
+
+class UserChatView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def getFcmToken(self, usr_type, conv_Obj):
+      
+        if usr_type == "service user": # user -> admin
+           
+            if getattr(conv_Obj.admin, "firebase_token", False):
+                return conv_Obj.admin.firebase_token
+               
+        elif usr_type == "admin":  # admin -> user
+            if getattr(conv_Obj.user, "firebase_token", False):
+                return conv_Obj.user.firebase_token
+
+        
+        return None
+
+        
+    def get(self, request, room_id):
+        user_ = request.user
+        data = request.data
+       
+        conv_Obj = Conversation.objects.get(id = room_id)
+
+        if conv_Obj:
+            
+            all_Messages = Message.objects.filter(conversation=conv_Obj)
+            
+
+            serialized_messages = MessageSerializer(all_Messages, many=True)
+           
+            return Response(serialized_messages.data, status=status.HTTP_200_OK)
+
+        
+        else:
+            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+
+    def post(self,request, room_id, *args, **kwargs):
+        user_ = request.user
+        data = request.data
+
+        conv_Obj = Conversation.objects.get(id = room_id)
+        
+    
+  
+        if conv_Obj:
+            
+            token = self.getFcmToken(user_.user_type, conv_Obj)
+
+            admin = conv_Obj.admin
+
+            message_content = data["message"]
+            uploaded_file = data.get("file", None)
+
+            
+                #Create a new message object
+            Message.objects.create(
+                conversation=conv_Obj,
+                sender=user_,
+                text_content = message_content,
+                file = uploaded_file
+            )
+
+            conv_Obj.save() 
+
+            if token:
+
+                message = messaging.Message(
+                     notification=messaging.Notification(
+                         title= user_.username ,
+                         body = message_content,
+                        
+                     ),
+                     token=token
+                 )
+                
+                try:
+                    response = messaging.send(message)
+                   
+                except:
+                    pass
+
+                
+ 
+            else:
+                return Response({"message": "token unlocated"}, status=status.HTTP_200_OK)
+
+
+
+            return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
+
+
+        else:
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
+
+
+    
+

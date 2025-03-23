@@ -3,12 +3,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
+import AudioQuestionEditor from "../components/editors/AudioQuestionEditor";
 import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
+import HeadingsComponent from "../components/editors/Headings";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
 
-import "../styles/AddModule.css";
+import styles from "../styles/AddModule.module.css";
 import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
 
 const AddModule = () => {
@@ -42,7 +44,7 @@ const AddModule = () => {
 //to change size of heading for title
   const handleHeadingChange = (event) => {
     setHeadingSize(event.target.value);
-};
+  };
 
 
   // Module types and their corresponding components
@@ -50,9 +52,15 @@ const AddModule = () => {
     "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
     "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
     "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
-    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'text_input'},
-    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'text_input'}
+    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'question_input'},
+    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'pair_input'}
   };
+
+  const headings = [
+    {name:"Heading 1", size: "heading1"},
+    {name:"Heading 2", size: "heading2"},
+    {name:"Heading 3", size: "heading3"}
+  ];
 
   // For development, use a prototype author
   // useEffect(() => {
@@ -98,13 +106,15 @@ const AddModule = () => {
       setIsLoading(true);
       
       const moduleData = await QuizApiUtils.getModule(moduleId);
+      console.log("[DEBUG] Fetched Module Data:",moduleData);
       setTitle(moduleData.title);
       setDescription(moduleData.description || "");
       setTags(moduleData.tags || []);
       
       // Use the new module-specific task function
       const tasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-      
+      console.log("[DEBUG] Fetched Tasks for Module :",tasks);
+
 
       // Reset the initialQuestionsRef to avoid any stale data
       initialQuestionsRef.current = {};
@@ -114,7 +124,8 @@ const AddModule = () => {
 
         try {
           const questions = await QuizApiUtils.getQuestions(task.contentID);
-          
+          console.log(`[DEBUG] Fetched Questions for Task ID (${task.contentID}) - Type: ${task.quiz_type}:`, questions);
+
           // Store initial questions in the ref using task.contentID as the key
           initialQuestionsRef.current[task.contentID] = questions;
           
@@ -140,6 +151,8 @@ const AddModule = () => {
       }));
 
       setModules(moduleTemplates);
+      console.log("[DEBUG] Final Module Templates :",moduleTemplates);
+
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching module data:", err);
@@ -163,17 +176,31 @@ const AddModule = () => {
   }, [location, fetchModuleData, fetchTags]);
 
   // Add a module to the list
-  const addModule = (moduleType) => {
+  const addModule = (moduleType, componentType) => {
     const newModuleId = `new-${Date.now()}`;
+
+    if (componentType == "heading") {
+      const newHeading = {
+        id: newModuleId,
+        componentType: componentType,
+        size: moduleType.size,
+      }
+
+      setModules([...modules, newHeading]);
+    } else if (componentType === "template") {
+      
+      
+      const newModule = { 
+        id: newModuleId,
+        type: moduleType,
+        componentType: componentType, 
+        quizType: QuizApiUtils.getQuizTypeValue(moduleType),
+      };
+
+      setModules([...modules, newModule]);
+    }
     
-    const newModule = { 
-      id: newModuleId,
-      type: moduleType, 
-      quizType: QuizApiUtils.getQuizTypeValue(moduleType),
-    };
-  
     
-    setModules([...modules, newModule]);
 
     // Initialize empty questions for this module
     initialQuestionsRef.current[newModuleId] = [];
@@ -319,7 +346,8 @@ const AddModule = () => {
                 currentQuestions = currentQuestions.map(q => ({
                   ...q,
                   question_text: q.text,
-                  hint_text: q.hint || ""
+                  hint_text: q.hint || "",
+                  answers: q.answers || []
                 }));
               }
             }
@@ -358,16 +386,33 @@ const AddModule = () => {
               await QuizApiUtils.deleteQuestion(question.id);
             }
             
+            // Inside the for loop where you process currentQuestions
+            console.log("[DEBUG] Processing questions for task:", existingTask.contentID);
+            console.log("[DEBUG] Current questions:", currentQuestions);
+
             // Create new questions
             for (let i = 0; i < currentQuestions.length; i++) {
               const question = currentQuestions[i];
+              console.log("[DEBUG] Creating question:", i + 1);
+              console.log("[DEBUG] Question data:", question);
+
               const questionData = {
-                task_id: existingTask.contentID,
+                task: existingTask.contentID,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers: question.answers || []
               };
-              await QuizApiUtils.createQuestion(questionData);
+
+              console.log("[DEBUG] Formatted question data for API:", questionData);
+
+              try {
+                await QuizApiUtils.createQuestion(questionData);
+              } catch (questionError) {
+                console.error(`Error creating question ${i+1}:`, questionError);
+              }
+
+
             }
           } else {
             // Create new task
@@ -393,7 +438,8 @@ const AddModule = () => {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers:question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }
@@ -457,7 +503,8 @@ const AddModule = () => {
                 task_id: taskId,
                 question_text: question.question_text || question.text || "",
                 hint_text: question.hint_text || question.hint || "",
-                order: i
+                order: i,
+                answers: question.answers || []
               };
               await QuizApiUtils.createQuestion(questionData);
             }
@@ -474,51 +521,53 @@ const AddModule = () => {
         }
       } catch (verifyErr) {
       }
-      for (const module of modules) {
-        if (module.type === 'Question and Answer Form') {
-          const editorRef = editorRefs.current[module.id];
-          const questionAnswers = editorRef?.getSubmittedData?.() || [];
-          for (const qa of questionAnswers){
-          let formData = {
-            title: `${module.type} for ${title}`,
-            description: `${module.type} content for ${title}`,
-            question:qa.question,
-            answer:qa.answer,
-            moduleID: moduleId,
-            author: authorId
-          };
-          try {
-            await QuizApiUtils.createQuestionAnswerFormTask(formData);
-            console.log('Question Answer Form task created successfully');
-          } catch (error) {
-            console.error('Error creating Question Answer Form task:', error);
-          }
-        }
-        }
-      }
+      // for (const module of modules) {
+      //   if (module.type === 'Question and Answer Form') {
+      //     const editorRef = editorRefs.current[module.id];
+      //     const questionAnswers = editorRef?.getSubmittedData?.() || [];
+      //     for (const qa of questionAnswers){
+      //     let formData = {
+      //       title: `${module.type} for ${title}`,
+      //       description: `${module.type} content for ${title}`,
+      //       question:qa.question,
+      //       answer:qa.answer,
+      //       moduleID: moduleId,
+      //       author: authorId
+      //     };
+      //     try {
+      //       await QuizApiUtils.createQuestionAnswerFormTask(formData);
+      //       console.log('Question Answer Form task created successfully');
+      //     } catch (error) {
+      //       console.error('Error creating Question Answer Form task:', error);
+      //     }
+      //   }
+      //   }
+      // }
 
-      for (const module of modules) {
-        if (module.type === 'Matching Question Quiz') {
-          const editorRef = editorRefs.current[module.id];
-          const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
-          for (const qa of matchingQuestionAnswers){
-          let pairData = {
-            title: `${module.type} for ${title}`,
-            description: `${module.type} content for ${title}`,
-            question:qa.question,
-            answer:qa.answer,
-            moduleID: moduleId,
-            author: authorId
-          };
-          try {
-            await QuizApiUtils.createMatchingQuestionsTask(pairData);
-            console.log('matching question pairs task created successfully');
-          } catch (error) {
-            console.error('Error creating matching question pairs task:', error);
-          }
-        }
-        }
-      }
+      // for (const module of modules) {
+      //   if (module.type === 'Matching Question Quiz') {
+      //     const editorRef = editorRefs.current[module.id];
+      //     const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
+      //     console.log(`[DEBUG] Saving Matching Question Pairs for Module ID: ${moduleId}`, matchingQuestionAnswers);
+
+      //     for (const qa of matchingQuestionAnswers){
+      //     let pairData = {
+      //       title: `${module.type} for ${title}`,
+      //       description: `${module.type} content for ${title}`,
+      //       question:qa.question,
+      //       answer:qa.answer,
+      //       moduleID: moduleId,
+      //       author: authorId
+      //     };
+      //     try {
+      //       await QuizApiUtils.createMatchingQuestionsTask(pairData);
+      //       console.log('matching question pairs task created successfully');
+      //     } catch (error) {
+      //       console.error('Error creating matching question pairs task:', error);
+      //     }
+      //   }
+      //   }
+      // }
 
 
 
@@ -535,145 +584,177 @@ const AddModule = () => {
   };
 
   return (
-    <div className="module-editor-container">
-      <h1 className="page-title">{isEditing ? "Edit Module" : "Add Module"}</h1>
+    <div className={styles["module-editor-container"]}>
+      <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
       
       {isLoading && <div className="loading-overlay">Loading...</div>}
       
-      {/* Module Title */}
-      <div className="module-title-container">
-      <input
-        type="text"
-        placeholder="Module Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className={`module-input heading-input  ${headingSize}`}
-      />
-      <select className="heading-dropdown" onChange={handleHeadingChange} value={headingSize}>
-    <option value="heading1">Heading 1</option>
-    <option value="heading2">Heading 2</option>
-    <option value="heading3">Heading 3</option>
-  </select>
-      </div>
-      {/* Module Description */}
-      <textarea
-        placeholder="Module Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="module-input description-input"
-      />
 
-      {/* Tags */}
-      <div className="tags-container">
-        {tags.map((tagId) => {
-          const tagObj = availableTags.find(t => t.id === tagId);
-          return tagObj ? (
-            <span key={tagId} className="tag">
-              {tagObj.tag} <button onClick={() => removeTag(tagId)}>x</button>
-            </span>
-          ) : null;
-        })}
-        <div className="tag-button-wrapper">
-          <button className="plus-button tag-button" onClick={addTag}>+</button>
-          <span className="tag-label">Add module tags</span>
+      <div className={styles["module-creator-container"]}>
+        {/* Module Title */}
+        <div className={styles["module-title-container"]}>
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={styles["module-title-input"]}
+          />
+
         </div>
-      </div>
+        {/* Module Description */}
+        <input
+          placeholder="Module Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className={styles["description-input"]}
+        />
 
-      {/* Error Display */}
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>×</button>
-        </div>
-      )}
-
-      {/* Modules List */}
-      <div className="modules-list">
-        {modules.map((module) => {
-          const EditorComponent = moduleOptions[module.type]?.component;
-          
-          // Skip if no component is found for this type
-          if (!EditorComponent) {
-            console.error(`[ERROR] No editor component found for type: ${module.type}`);
-            return (
-              <div key={module.id} className="module-item error">
-                <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
-              </div>
-            );
-          }
-          
-          return (
-            <div key={module.id} className="module-item">
-              <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
-              <EditorComponent
-                ref={(el) => { 
-                  editorRefs.current[module.id] = el;
-                }}
-                moduleId={module.id}
-                quizType={module.quizType}
-                initialQuestions={initialQuestionsRef.current[module.id] || []}
-                key={`editor-${module.id}`} // Add a key to force re-render when questions change
-              />
-              <button onClick={() => removeModule(module.id)} className="remove-module-btn">Remove</button>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Add Module Templates Button */}
-      <div className="add-module templates-button-wrapper">
-        <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className="plus-button">+</button>
-        <span className="templates-label">Add Templates</span>
-      </div>
-
-      {/* Templates Dropdown */}
-      {showDropdown && (
-        <div className="dropdown-menu" style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
-          <h4 className="dropdown-title">Add Templates</h4>
-          <div className="dropdown-options">
-            {Object.keys(moduleOptions).map((moduleType, index) => (
-              <div
-                key={index}
-                className="dropdown-item"
-                onClick={() => addModule(moduleType)}
-              >
-                {moduleType}
-              </div>
-            ))}
+        {/* Tags */}
+        <div className={styles["tags-container"]}>
+          {tags.map((tagId) => {
+            const tagObj = availableTags.find(t => t.id === tagId);
+            return tagObj ? (
+              <span key={tagId} className={styles["tag"]}>
+                {tagObj.tag} <button className={styles["remove-tag-btn"]} onClick={() => removeTag(tagId)}>x</button>
+              </span>
+            ) : null;
+          })}
+          <div className={styles["tag-button-wrapper"]}>
+            <button className={styles["plus-button"]} onClick={addTag}>+</button>
+            <span className={styles["tag-label"]}>Add module tags</span>
           </div>
         </div>
-      )}
 
+        {/* Error Display */}
+        {error && (
+          <div className={styles["error-message"]}>
+            <p>{error}</p>
+            <button onClick={() => setError(null)}>×</button>
+          </div>
+        )}
+
+        {/* Modules List */}
+        <div className={styles["modules-list"]}>
+          {modules.map((module) => {
+            let EditorComponent = null;
+            if (module.componentType === "template") {
+              EditorComponent = moduleOptions[module.type]?.component
+            } else if (module.componentType === "heading") {
+              EditorComponent = HeadingsComponent;
+            }
+
+            // Skip if no component is found for this type
+            if (!EditorComponent) {
+              console.error(`[ERROR] No editor component found for type: ${module.type}`);
+              return (
+                <div key={module.id} className={`${styles["module-item"]} ${styles["error"]}`}>
+                  <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
+                </div>
+              );
+            } 
+            
+            if (module.componentType === "heading") {
+              return (
+                <div key={module.id} className={styles["module-item"]}>
+                    <EditorComponent
+                      headingSize={module.size}
+                      key={`editor-${module.id}`}
+                    />  
+                    <button onClick={() => removeModule(module.id)} className={styles["remove-module-btn"]}>Remove</button>
+                </div>
+              )
+            }
+            
+            return (
+              <div key={module.id} className={styles["module-item"]}>
+                <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
+                <EditorComponent
+                  ref={(el) => { 
+                    editorRefs.current[module.id] = el;
+                  }}
+                  moduleId={module.id}
+                  quizType={module.quizType}
+                  initialQuestions={initialQuestionsRef.current[module.id] || []}
+                  key={`editor-${module.id}`} // Add a key to force re-render when questions change
+                />
+                <button onClick={() => removeModule(module.id)} className={styles["remove-module-btn"]}>Remove</button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Add Module Templates Button */}
+        <div className={styles["dropdown-wrapper"]}>
+          <div className={styles["templates-button-wrapper"]}>
+            <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className={styles["plus-button"]}>+</button>
+            <span className={styles["templates-label"]}>Add Template</span>
+          </div>
+
+          {/* Templates Dropdown */}
+          {showDropdown && (
+            <div className={styles["dropdown-menu"]} style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
+              <h4 className={styles["dropdown-title"]}>Headings</h4>
+              <div className={styles["dropdown-options"]}>
+                {headings.map((heading, index) => (
+                  <div
+                    key={index}
+                    className={styles["dropdown-item"]}
+                    onClick={() => addModule(heading, "heading")}
+                  >
+                    {heading.name}
+                  </div> 
+                ))}
+              </div>           
+              <h4 className={styles["dropdown-title"]}>Basic Blocks</h4>
+              <div className={styles["dropdown-options"]}>
+                {Object.keys(moduleOptions).map((moduleType, index) => (
+                  <div
+                    key={index}
+                    value={index}
+                    className={styles["dropdown-item"]}
+                    onClick={() => addModule(moduleType, "template")}
+                  >
+                    {moduleType}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       {/* Action Buttons */}
       {!isPreview && (
-        <div className="button-container">
-          <button className="preview-btn" onClick={() => setIsPreview(true)} disabled={isLoading}>
-            Preview
-          </button>
-          <button className="publish-btn" onClick={publishModule} disabled={isLoading}>
+        <div className={styles["button-container"]}>
+          <div className={styles["preview-container"]}>
+            <button className={styles["preview-btn"]} onClick={() => setIsPreview(true)} disabled={isLoading}>
+              Preview
+            </button>
+          </div>
+          <button className={styles["publish-btn"]} onClick={publishModule} disabled={isLoading}>
             {isLoading ? 
               (isEditing ? "Updating..." : "Publishing...") : 
               (isEditing ? "Update" : "Publish")
             }
           </button>
-          {!isEditing && <button className="edit-btn">Edit</button>}
+          {!isEditing && <button className={styles["edit-btn"]}>Edit</button>}
         </div>
       )}
 
       {/* Preview Mode */}
       {isPreview && (
-        <div className="preview-container">
+        <div className={styles["preview-container"]}>
           <h2>{title}</h2>
           <p>{description}</p>
-          <div className="preview-tags">
+          <div className={styles["preview-tags"]}>
             {tags.map((tagId) => {
               const tagObj = availableTags.find(t => t.id === tagId);
               return tagObj ? (
-                <span key={tagId} className="preview-tag">{tagObj.tag}</span>
+                <span key={tagId} className={styles["preview-tag"]}>{tagObj.tag}</span>
               ) : null;
             })}
           </div>
-          <div className="preview-modules">
+          <div className={styles["preview-modules"]}>
             {modules.map((module, index) => {
               // For preview, try to get current question count if possible
               let questionCount = 0;
@@ -686,14 +767,14 @@ const AddModule = () => {
               }
               
               return (
-                <div key={module.id} className="preview-module">
+                <div key={module.id} className={styles["preview-module"]}>
                   <h3>{module.type} {index + 1}</h3>
                   <p>Questions: {questionCount}</p>
                 </div>
               );
             })}
           </div>
-          <button className="exit-preview-btn" onClick={() => setIsPreview(false)}>
+          <button className={styles["exit-preview-btn"]} onClick={() => setIsPreview(false)}>
             Exit Preview
           </button>
         </div>

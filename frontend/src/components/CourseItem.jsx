@@ -1,27 +1,94 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { FaSearch } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt , MdBookmark, MdBookmarkBorder, MdOutlineUnsubscribe} from "react-icons/md";
 import { AuthContext } from "../services/AuthContext";
-
-
+import { useEnrollment } from "../services/EnrollmentContext";
+import api from "../services/api";
+import EnrollmentModal from "./EnrollmentModal";
 import "../styles/CourseItem.css"
 
 function CourseItem(props){
 
+    const navigate = useNavigate();
     const module = props.module
     const userInteractTarget  = props.userInteractTarget
+    const role = props.role || "worker"; // Default to worker if role not provided
 
 
-    const {user, updateUser} = useContext(AuthContext) //to pre-load user's liked + favourite
+    const {user, token} = useContext(AuthContext) //to pre-load user's liked + favourite
 
     const userTracker = useRef(null)
+    const {isEnrolled, enrollInModule} = useEnrollment(); // to check if the user has enrolled to the module 
+
     const [totalLikes, addLike] = useState(module.upvotes || 0)
-    
+
 
     const [status, setStatus] = useState({
         hasLiked: false,
         hasPinned: false,
     })
+
+    // State for the enrollment modal/popup
+    const [enrollmentModal, setEnrollmentModal] = useState({
+        isOpen: false,
+        selectedCourse: null
+    });
+
+
+    // Check if the service user or worker has enrolled into the module
+    // useEffect(() => {
+    //     const checkEnrollment = async () => {
+    //         if (user && token) {
+    //             try {
+    //                 const response = api.post('/api/progress-tracker/', {
+    //                     headers: {Authorization: `Token ${token}`}
+    //                 });
+
+    //                 // Check if if any progress tracker entry exists for this user & this specific module
+    //                 const hasEnrolled = response.data.some(tracker => 
+    //                     tracker.user === user.id && tracker.module === module.id
+    //                 )
+
+    //                 setIsEnrolled(enrolled);
+    //             }  catch (err) {
+    //                 console.error("Error checking enrollment status:", err);
+    //             }
+    //         }
+
+    //     };
+    //     checkEnrollment();
+    // }, [user, token, module.id])
+
+    // Handle course enrollment before client view the module
+    const handleEnroll = async (courseId) => {
+        try {
+            // Use the context function to enroll
+            await enrollInModule(courseId);
+
+    
+            // Close modal
+            setEnrollmentModal({isOpen: false, selectedCourse: null});
+            // To navigate to the module view
+            navigate(`/modules/${courseId}`);
+        } catch (err) {
+            console.error("Error enrolling in course:", err);
+            alert("Failed to enroll in course. Please try again later.");
+        }
+
+    };
+
+    const handleViewCourse = (course) => {
+        if (role === "admin" || isEnrolled(course.id)) {
+            navigate(`/modules/${course.id}`);
+        } else {
+            // Only users who havent enrolled could see the enrollment popup
+            setEnrollmentModal({
+                isOpen: true,
+                selectedCourse: module
+            });
+        }
+    };
 
 
     useEffect(() => {
@@ -84,19 +151,24 @@ function CourseItem(props){
             </button>
            
             <div className="view-container">        
-                <button>
-                    <p> View Course </p>
+                <button onClick={() => handleViewCourse(module)}>
+                    <p>{isEnrolled(module.id) ? "Continue Learning" : "View Course"}</p>
                 </button>
 
             </div>
             
-
+            {/* Enrollment Modal */}
+            <EnrollmentModal
+                isOpen={enrollmentModal.isOpen}
+                onClose={() => setEnrollmentModal({ isOpen: false, selectedCourse: null })}
+                module={enrollmentModal.selectedCourse}
+                onEnroll={handleEnroll}
+                isEnrolled={module?.id ? isEnrolled(module.id) : false} // safeguard against potential undefined values
+            />
 
         </div>
     )
-
-
-    
+  
 }
 
 export default CourseItem

@@ -1217,6 +1217,11 @@ to ensure the flashcards render correctly
   font-size: 16px;
 }
 
+.with-placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
 /* Client Instructions */
 .client-instructions {
   background-color: #f8f9fa;

@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 import uuid
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.db.models import JSONField
 
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
@@ -71,13 +72,11 @@ class Questionnaire(models.Model):
 
 
 class Module(models.Model):
-
     title = models.CharField(max_length=255)
     description = models.TextField()
     id = models.AutoField(primary_key=True)  
     tags = models.ManyToManyField('Tags', related_name='modules_for_tag', blank=True)
-
-    upvotes = models.PositiveIntegerField(default=0)  
+    upvotes = models.PositiveIntegerField(default=0) 
 
     def upvote(self):
         self.upvotes += 1
@@ -167,61 +166,53 @@ class User(AbstractUser):
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
+    firebase_token = models.TextField(
+        default="",
+        blank=False,
+        null=False,
+    )
 
     class Meta:
         """Model options."""
         ordering = ['first_name', 'last_name']
 
-
     def full_name(self):
         """Return a string containing the user's full name."""
 
         return f'{self.first_name} {self.last_name}'
-    
 
     def __str__(self):
-
         return f"{self.full_name()} - {self.username} - {self.user_id}"
     
 
 #task has a module id - but 
 
 class ProgressTracker(models.Model):
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
-
-    pinned = models.BooleanField(default=False)  
+    pinned = models.BooleanField(default=False)
     hasLiked = models.BooleanField(default=False)
-
     
     def __str__(self):
         return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
-
 
 class UserModuleInteraction(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
 
-    hasPinned = models.BooleanField(default=False)  
+    hasPinned = models.BooleanField(default=False)
     hasLiked = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} - {self.module.title} - Pinned: {self.hasPinned} - Liked: {self.hasLiked}"
 
-
-
 # Model for Content
 # Parent class for ALL Content Types
-    
 class Content(models.Model):
-    # Primary Key
-    # generate a unique identifier, cannot be manually changed, must be unique
-
-    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=255)
+    contentID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, auto_created=True)
+    title = models.CharField(max_length=255, null=True)
     moduleID = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="%(class)s_contents")  # Link to Module (later)
     author= models.ForeignKey(User, on_delete=models.CASCADE, related_name="%(class)s_author_contents")
     description = models.TextField(blank=True, null=True)
@@ -229,44 +220,70 @@ class Content(models.Model):
     updated_at=models.DateTimeField(auto_now=True)
     is_published= models.BooleanField(default=False)
 
-    
-
     class Meta:
         abstract = True  # No separate table for Content Model, only the subclasses will have database tables
 
     def __str__(self):
         return self.title
 
+class RankingQuestion(Content):
+    """Model for Ranking Question content type"""
+    tiers = models.JSONField()
+
+class InlinePicture(Content):
+    """Model for Inline Picture content type"""
+    image_file = models.ImageField(upload_to="inline_pictures/")
+
+class AudioClip(Content):
+    """Model for Audio Clip content type"""
+    question_text = models.TextField(null=True, blank=True)
+    audio_file = models.FileField(upload_to="audio_clips/")
+    user_response = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Audio Clip : {self.question_test}"
+
+class Document(Content):
+    """Model for Attach PDF/Documents/Infosheet content type"""
+    documents = models.JSONField()  # Stores document metadata as JSON
+    # Each document will have: name, title, url, fileType
+
+class EmbeddedVideo(Content):
+    """Model for Embedded Video content type"""
+    video_url = models.URLField()
+
 # Extend Content class
 class InfoSheet(Content):
-    infosheet_file= models.FileField(upload_to="infosheets/")
+    infosheet_file = models.FileField(upload_to="infosheets/")
     infosheet_content = models.TextField(blank=True, null=True)
+
 
 class Video(Content):
     # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    video_file= models.FileField(upload_to="videos/")
-    duration= models.PositiveBigIntegerField()
+    video_file = models.FileField(upload_to="videos/")
+    duration = models.PositiveBigIntegerField()
     thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
+
 
 # This model defines the overall interactive quiz properties
 class Task(Content):
     text_content = models.TextField()
-    
+
     # Quiz type choices
     QUIZ_TYPE_CHOICES = [
         ('flashcard', 'Flashcard Quiz'),
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
-        ('question_answer_form', 'Question Answer Form'),
-        ('matching_questions', 'Matching Question Quiz')
+        ('question_input', 'Question Answer Form'),
+        ('pair_input', 'Matching Question Quiz')
     ]
-    
+
     quiz_type = models.CharField(
         max_length=30,
         choices=QUIZ_TYPE_CHOICES,
         default='text_input',
     )
-    
+
     def __str__(self):
         return f"{self.title} ({self.get_quiz_type_display()})"
 
@@ -280,17 +297,18 @@ class QuizQuestion(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='questions')
     question_text = models.TextField()
     order = models.PositiveIntegerField(default=0)  # For ordering questions in sequence
-    
+    answers = JSONField(blank=True, null=True)
     # For flashcard quiz type - optional text shown on the back of the card
     hint_text = models.TextField(blank=True, null=True)
-    
+
     class Meta:
         ordering = ['order']
-        
+
     def __str__(self):
         return f"{self.question_text[:30]}..."
 
-#UserResponse captures only the user interaction data
+
+# UserResponse captures only the user interaction data
 class UserResponse(models.Model):
     """
     Model to store user responses to quiz questions.
@@ -300,26 +318,36 @@ class UserResponse(models.Model):
     question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name='responses')
     response_text = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['-submitted_at']
-        
+
     def __str__(self):
         return f"Response by {self.user.username} for {self.question}"
 
 
-
-class QuestionAnswerForm(Content):
-    question = models.TextField()
-    answer = models.TextField()
-
-    def __str__(self):
-        return self.question[:50]
-    
-class MatchingQuestionQuiz(Content):
-
-    question = models.TextField()
-    answer = models.TextField()
+class Conversation(models.Model): #one-to-many relationship with Messages
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="user_conversation")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="admin_conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    hasEngaged = models.BooleanField(default=False)
+    lastMessage = models.TextField(default="")
 
     def __str__(self):
-        return self.question[:50]
+        return f"Conversation created for: {self.user} and {self.admin}"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    text_content = models.TextField()
+    timestamp =  models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="message-files/", null=True)
+
+    def __str__(self):
+        return f"Text sent: {self.text_content}"
+            
+
+
+

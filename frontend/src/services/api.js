@@ -335,5 +335,45 @@ export const downloadCompletedTask = async(taskId, token) => {
 
   };
 
+  /**
+   * Get all progress tracker entries for the current user
+   * @param {string} token - Authentication token
+   * @returns {Promise<Array>} Array of progress tracker entries
+   */
+  export const GetUserProgressTrackers = async (token) => {
+    try {
+        const response = await api.get('/api/progress-tracker/', {
+            headers: { Authorization: `Token ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching user progress trackers:", error);
+        return [];
+    }
+  };
+
+  /**
+  * Check if a user is enrolled in a specific module
+  * @param {number} userId - User ID
+  * @param {number} moduleId - Module ID
+  * @param {string} token - Authentication token
+  * @returns {Promise<boolean>} True if enrolled, false otherwise
+  */
+  export const CheckModuleEnrollment = async (userId, moduleId, token) => {
+    try {
+        const response = await api.get('/api/progress-tracker/', {
+            headers: { Authorization: `Token ${token}` }
+        });
+        
+        // Check if any progress tracker entry exists for this user and module
+        return response.data.some(tracker => 
+            tracker.user === userId && tracker.module === moduleId
+        );
+    } catch (error) {
+        console.error("Error checking module enrollment:", error);
+        return false;
+    }
+  };
+
   
 export default api;
