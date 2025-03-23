@@ -10,7 +10,7 @@ html, body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    overflow: hidden;
+    /* overflow: hidden; <-- This would disable us from scrolling down and view the whole content for the page. so hopefully no one uses this */ 
     margin: 0;
     padding: 0;
 }

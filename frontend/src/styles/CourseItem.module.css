@@ -1,6 +1,4 @@
-
-
-.course-opt-container {
+.courseOptContainer {
     display: flex;
     align-items: center;
     width: 80vw;
@@ -26,7 +24,7 @@
     
 }
 
-.course-opt-container .like-container {
+.courseOptContainer .likeContainer {
     display: inherit;
     align-items: center;
     gap: 0.3rem;
@@ -37,19 +35,19 @@
    
 }
 
-.course-opt-container .view-container {
+.courseOptContainer .viewContainer {
     display: inherit;
     justify-content: center;
 }
 
-.course-opt-container button {
+.courseOptContainer button {
     display: inline-block;
     background: none;
     border: none;
    
 }
 
-.icon-container {
+.iconContainer {
     padding: 0.5rem;
     border-radius: inherit;
     background-color: var(--primary-green-dark);
@@ -57,7 +55,7 @@
     svg {color: white;}
 }
 
-.view-container {
+.viewContainer {
     padding: 0.5rem;
     border-radius: inherit;
     background-color: var(--primary-green-dark);
@@ -67,5 +65,3 @@
     }
     
 }
-
-
