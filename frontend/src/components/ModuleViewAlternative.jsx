@@ -23,142 +23,104 @@ const ModuleViewAlternative = () => {
   const [availableTags, setAvailableTags] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userInteraction, setUserInteraction] = useState({ hasLiked: false, hasPinned: false });
+  const [userInteraction, setUserInteraction] = useState({ hasLiked: false, pinned: false });
   const [completedContentIds, setCompletedContentIds] = useState(new Set());
   const [moduleCompleted, setModuleCompleted] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
 
-  // Fetch module data when component mounts
-  useEffect(() => {
-    const fetchModuleData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Fetch module details
-        const moduleData = await QuizApiUtils.getModule(moduleId);
-        setModule(moduleData);
-        
-        // Fetch tasks associated with this module
-        const moduleTasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-        // ==== For demonstration, we'll create structured module content ==== //        
-        // Create sections with different content types
-        // const structuredContent = [
-        //   {
-        //     id: 'section-introduction',
-        //     type: 'section',
-        //     title: 'Introduction',
-        //     content: [
-        //       {
-        //         id: 'heading-intro',
-        //         type: 'heading',
-        //         level: 1,
-        //         text: 'Welcome to this Module (H1)'
-        //       },
-        //       {
-        //         id: 'paragraph-intro',
-        //         type: 'paragraph',
-        //         text: 'This module will guide you through important concepts and allow you to test your knowledge through various interactive elements. Take your time to go through each section carefully.'
-        //       },
-        //       {
-        //         id: 'image-1',
-        //         type: 'image',
-        //         title: 'Overview',
-        //         source: 'https://i.pinimg.com/736x/71/62/72/716272f31e9f3d286bf6a26fcf1ea8be.jpg',
-        //         caption: 'Visual overview of concepts covered in this module'
-        //       }
-        //     ]
-        //   },
-        //   {
-        //     id: 'section-concepts',
-        //     type: 'section',
-        //     title: 'Key Concepts',
-        //     content: [
-        //       {
-        //         id: generateUUID(),
-        //         type: 'heading',
-        //         level: 2,
-        //         text: 'Core Principles (H2)'
-        //       },
-        //       {
-        //         id: 'paragraph-concepts',
-        //         type: 'paragraph',
-        //         text: 'Understanding these core principles is essential before proceeding to more advanced topics.'
-        //       },
-        //       {
-        //         id: generateUUID(),
-        //         type: 'infosheet',
-        //         title: 'Important Information',
-        //         content: 'This infosheet explains the key concepts covered in this module. Make sure you understand these before proceeding to the assessment section.'
-        //       },
-        //       {
-        //         id: 'video-1',
-        //         type: 'video',
-        //         title: 'Concept Explanation',
-        //         source: 'https://www.example.com/video.mp4',
-        //         duration: '3:45',
-        //         thumbnail: 'https://via.placeholder.com/640x360?text=Video+Thumbnail'
-        //       }
-        //     ]
-        //   },
-        //   {
-        //     id: 'section-assessment',
-        //     type: 'section',
-        //     title: 'Assessment',
-        //     content: moduleTasks.map(task => ({
-        //       id: task.contentID,
-        //       type: 'quiz',
-        //       quiz_type: task.quiz_type,
-        //       title: QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
-        //       taskData: task
-        //     }))
-        //   }
-        // ];
-        
-        setModuleContent(moduleTasks);
-        
-        // Fetch tags
-        try {
-          const tagsResponse = await fetch('/api/tags/');
-          const tagsData = await tagsResponse.json();
-          setAvailableTags(tagsData);
-        } catch (tagsError) {
-          console.warn("Could not fetch tags:", tagsError);
-        }
-        
-        // Fetch user interaction data if the user is logged in
-        if (user && token) {
-          try {
-            const interactionsData = await GetUserModuleInteract(token);
-            
-            // Find the interaction for this specific module
-            const moduleInteraction = interactionsData.find(
-              interaction => interaction.module === parseInt(moduleId)
-            );
-            
-            if (moduleInteraction) {
-              setUserInteraction({
-                hasLiked: moduleInteraction.hasLiked,
-                hasPinned: moduleInteraction.hasPinned
-              });
+// Fetch module data when component mounts
+useEffect(() => {
+  const fetchModuleData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Fetch module details
+      const moduleData = await QuizApiUtils.getModule(moduleId);
+      setModule(moduleData);
+      
+      // Fetch tasks associated with this module
+      const moduleTasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
+      
+      // Create a structured content from the tasks
+      // This transforms flat task data into sections with content
+      const structuredContent = [
+        {
+          id: 'section-introduction',
+          type: 'section',
+          title: 'Introduction',
+          content: [
+            {
+              id: 'heading-intro',
+              type: 'heading',
+              level: 1,
+              text: moduleData.title
+            },
+            {
+              id: 'paragraph-intro',
+              type: 'paragraph',
+              text: moduleData.description
             }
-          } catch (interactionError) {
-            console.warn("Could not fetch user interaction data:", interactionError);
-          }
+          ]
+        },
+        {
+          id: 'section-assessment',
+          type: 'section',
+          title: 'Assessment',
+          content: moduleTasks.map(task => ({
+            id: task.contentID,
+            type: 'quiz',
+            quiz_type: task.quiz_type,
+            title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
+            taskData: task
+          }))
         }
-        
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Error fetching module data:", err);
-        setError("Failed to load module data. Please try again later.");
-        setIsLoading(false);
+      ];
+      
+      setModuleContent(structuredContent);
+      
+      // Fetch tags
+      try {
+        const tagsResponse = await fetch('/api/tags/');
+        const tagsData = await tagsResponse.json();
+        setAvailableTags(tagsData);
+      } catch (tagsError) {
+        console.warn("Could not fetch tags:", tagsError);
       }
-    };
-    
-    if (moduleId) {
-      fetchModuleData();
+      
+      // Fetch user interaction data if the user is logged in
+      if (user && token) {
+        try {
+          const interactionsData = await GetUserModuleInteract(token);
+          
+          // Find the interaction for this specific module
+          const moduleInteraction = interactionsData.find(
+            interaction => interaction.module === parseInt(moduleId)
+          );
+          
+          if (moduleInteraction) {
+            setUserInteraction({
+              hasLiked: moduleInteraction.hasLiked,
+              pinned: moduleInteraction.pinned
+            });
+          }
+        } catch (interactionError) {
+          console.warn("Could not fetch user interaction data:", interactionError);
+        }
+      }
+      
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error fetching module data:", err);
+      setError("Failed to load module data. Please try again later.");
+      setIsLoading(false);
     }
-  }, [moduleId, user, token]);
+  };
+  
+  if (moduleId) {
+    fetchModuleData();
+  }
+}, [moduleId, user, token]);
 
   // Handle liking/pinning the module
   const handleInteraction = async (action) => {
@@ -170,17 +132,22 @@ const ModuleViewAlternative = () => {
     
     try {
       const updatedInteraction = { ...userInteraction };
-      
       if (action === 'like') {
         updatedInteraction.hasLiked = !userInteraction.hasLiked;
       } else if (action === 'pin') {
-        updatedInteraction.hasPinned = !userInteraction.hasPinned;
+        updatedInteraction.pinned = !userInteraction.pinned;
+        console.log('Pin action triggered:');
+        console.log('Previous pin state:', userInteraction.pinned);
+        console.log('New pin state:', updatedInteraction.pinned);
       }
       
       // Save updated interaction
+      console.log('Sending to backend:', updatedInteraction);
       const response = await SaveUserModuleInteract(moduleId, updatedInteraction, token);
+      console.log('Backend response:', response);
       
       if (response) {
+        console.log('Setting new userInteraction state:', updatedInteraction);
         setUserInteraction(updatedInteraction);
         
         // Update module upvotes in UI immediately for better UX
@@ -280,7 +247,6 @@ const handleContentComplete = async (contentId, results) => {
     console.log("Module completed state changed:", moduleCompleted);
   }, [moduleCompleted]);
 
-
   
 
   if (isLoading) {
@@ -321,10 +287,10 @@ const handleContentComplete = async (contentId, results) => {
           </button>
           
           <button 
-            className={`alt-pin-button ${userInteraction.hasPinned ? 'active' : ''}`}
+            className={`alt-pin-button ${userInteraction.pinned ? 'active' : ''}`}
             onClick={() => handleInteraction('pin')}
           >
-            {userInteraction.hasPinned ? <MdBookmark /> : <MdBookmarkBorder />}
+            {userInteraction.pinned ? <MdBookmark /> : <MdBookmarkBorder />}
           </button>
         </div>
       </div>
