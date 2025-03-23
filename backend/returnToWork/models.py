@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.core.validators import RegexValidator , EmailValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
@@ -6,6 +7,9 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db.models import JSONField
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 
 class Questionnaire(models.Model):
     """Decision Tree like model to hold all the Yes/No questions in the questionnaire"""
@@ -188,12 +192,62 @@ class User(AbstractUser):
 #task has a module id - but 
 
 class ProgressTracker(models.Model):
+    """Track overall module progress"""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
     pinned = models.BooleanField(default=False)
     hasLiked = models.BooleanField(default=False)
+    contents_completed = models.PositiveIntegerField(default=0)
+    total_contents = models.PositiveIntegerField(default=0)
+    progress_percentage = models.FloatField(default=0.0)
     
+    class Meta:
+        unique_together = ('user', 'module')
+    
+    def update_progress(self):
+        """Recalculate progress for this module"""
+        # Get ContentType for each model
+        content_models = [InfoSheet, Video, Task]
+        content_types = [ContentType.objects.get_for_model(model) for model in content_models]
+        
+        # Count total contents
+        total_count = 0
+        for model in content_models:
+            total_count += model.objects.filter(moduleID=self.module).count()
+        
+        self.total_contents = total_count
+
+        # Count viewed contents
+        viewed_count = 0
+        for model, content_type in zip(content_models, content_types):
+            # Get all IDs of this content type in this module
+            content_ids = model.objects.filter(moduleID=self.module).values_list('contentID', flat=True)
+            
+            # Count viewed contents
+            if content_ids:
+                viewed = ContentProgress.objects.filter(
+                    user=self.user,
+                    content_type=content_type,
+                    object_id__in=content_ids,
+                    viewed=True
+                ).count()
+                viewed_count += viewed
+
+        self.contents_completed = viewed_count
+
+        # Calculate percentage
+        if self.total_contents > 0:
+            self.progress_percentage = (self.contents_completed / self.total_contents) * 100
+        else:
+            self.progress_percentage = 0
+
+        # Mark as completed if all items are viewed
+        if self.contents_completed == self.total_contents and self.total_contents > 0:
+            self.completed = True
+        
+        self.save()
+
     def __str__(self):
         return f"{self.user.username} - {self.module.title} - {'Completed' if self.completed else 'Incomplete'}"
 
@@ -351,3 +405,108 @@ class Message(models.Model):
 
 
 
+    
+ # Simplified ContentProgress for tracking viewed status only (no time tracking)
+class ContentProgress(models.Model):
+    """Track individual content completion status"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='content_viewed_progress')
+    
+    # Using Django's ContentType framework
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()  # Using UUID for your Content subclasses
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    # Progress tracking
+    viewed = models.BooleanField(default=False)
+    viewed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('user', 'content_type', 'object_id')
+    
+    def mark_as_viewed(self):
+        self.viewed = True
+        self.viewed_at = timezone.now()
+        self.save()
+        
+        # Update the module progress after marking content as viewed
+        module = self.content_object.moduleID
+        progress, created = ProgressTracker.objects.get_or_create(
+            user=self.user,
+            module=module
+        )
+        progress.update_progress()
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.content_type} - {self.content_id}"
+
+
+class LearningTimeLog(models.Model):
+    " Aggregating dayily learning time data "
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='learning_time_logs')
+    date = models.DateField()
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    time_seconds = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'date', 'module')
+
+    @property
+    def time_minutes(self):
+        return self.time_seconds // 60
+    
+    @classmethod
+    def update_from_session(cls, user_content_progress):
+        """Update daily learning time from a content view session"""
+        today = timezone.now().date()
+        module = user_content_progress.content_object.moduleID
+        
+        learning_time, created = cls.objects.get_or_create(
+            user=user_content_progress.user,
+            date=today,
+            module=module
+        )
+        
+        learning_time.time_seconds += user_content_progress.total_time_seconds
+        learning_time.save()
+        
+        return learning_time
+
+
+# New model for page-level session tracking
+class PageViewSession(models.Model):
+    """Track user sessions at the page/module level"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='page_sessions')
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now_add=True)
+    total_time_seconds = models.PositiveIntegerField(default=0)
+    ended = models.BooleanField(default=False)
+    
+    def update_activity(self):
+        now = timezone.now()
+        if self.last_activity:
+            # Only count time if less than 5 minutes since last activity
+            time_diff = (now - self.last_activity).total_seconds()
+            if time_diff < 300:  # 5 minutes in seconds
+                self.total_time_seconds += int(time_diff)
+        self.last_activity = now
+        self.save()
+    
+    def end_session(self):
+        self.update_activity()
+        self.ended = True
+        self.save()
+        
+        # Update learning time log
+        today = timezone.now().date()
+        learning_time, created = LearningTimeLog.objects.get_or_create(
+            user=self.user,
+            date=today,
+            module=self.module
+        )
+        learning_time.time_seconds += self.total_time_seconds
+        learning_time.save()
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.module.title} Session"

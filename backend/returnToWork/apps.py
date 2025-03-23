@@ -8,4 +8,3 @@ class ReturntoworkConfig(AppConfig):
 
     def ready(self):
         from . import firebase_config
-        print("Start up!")

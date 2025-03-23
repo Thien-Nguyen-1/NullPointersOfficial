@@ -1,36 +1,52 @@
+import json
 import random
-from django.shortcuts import render
-from rest_framework import viewsets, status, generics
-# from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Content,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse
-from .models import ProgressTracker,Tags,Module,InfoSheet,Video,Task, Questionnaire, User, UserModuleInteraction,  QuizQuestion, UserResponse, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, Conversation, Message
-from .serializers import ProgressTrackerSerializer, LogInSerializer,SignUpSerializer,UserSerializer,PasswordResetSerializer,TagSerializer,ModuleSerializer,InfoSheetSerializer,VideoSerializer,TaskSerializer, QuestionnaireSerializer, UserModuleInteractSerializer, UserSettingSerializer, UserPasswordChangeSerializer, RequestPasswordResetSerializer, RankingQuestionSerializer, ContentPublishSerializer, EmbeddedVideoSerializer, DocumentSerializer, AudioClipSerializer, InlinePictureSerializer,QuizQuestionSerializer, MessageSerializer, ConversationSerializer
-# from .models import ProgressTracker,Tags,Module, Questionnaire
-from django.contrib.auth import login, logout
+import uuid
+from io import BytesIO
+
+from django.contrib import admin
+from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.contenttypes.models import ContentType
+from django.core.mail import send_mail
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+
+from rest_framework import generics, status, viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
-from returnToWork.models import User
-from django.contrib.auth import get_user_model
-User = get_user_model()
-from rest_framework.authentication import TokenAuthentication
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-import json
-from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from io import BytesIO
-from reportlab.pdfgen import canvas
+
 from reportlab.lib.pagesizes import letter
 from django.core.cache import cache
 
 from django.db.models import Q
 from firebase_admin import messaging
 
+
+from reportlab.pdfgen import canvas
+
+from .models import (
+    Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
+    RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
+    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
+    Conversation, Message
+)
+from .serializers import (
+    AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
+    EmbeddedVideoSerializer, InfoSheetSerializer, InlinePictureSerializer,
+    LogInSerializer, ModuleSerializer, PasswordResetSerializer, ProgressTrackerSerializer, 
+    QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
+    SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
+    UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
+    VideoSerializer, MessageSerializer, ConversationSerializer
+)
+
+User = get_user_model()
 
 
 class ProgressTrackerView(APIView):
@@ -268,7 +284,7 @@ class UserDetail(APIView):
                 'title': tracker.module.title,
                 'completed': tracker.completed,
                 'pinned': tracker.pinned,
-                'progress_percentage': random.randint(0, 99) if not tracker.completed else 100
+                'progress_percentage': tracker.progress_percentage
             })
 
         # Combine user data with progress information
@@ -583,7 +599,6 @@ class RequestPasswordResetView(APIView):
             return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
         return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-
 class UserInteractionView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -593,10 +608,10 @@ class UserInteractionView(APIView):
 
         option = request.query_params.get("filter")
 
-        allInteracts = UserModuleInteraction.objects.filter(user=user) if option == "user" else UserModuleInteraction.objects.all()
+        allInteracts = ProgressTracker.objects.filter(user=user) if option == "user" else ProgressTracker.objects.all()
 
         if allInteracts:
-             serializedInf = UserModuleInteractSerializer(allInteracts,many=True)
+             serializedInf = ProgressTrackerSerializer(allInteracts,many=True)
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -612,18 +627,24 @@ class UserInteractionView(APIView):
         if module:
 
             try:
-                interactObj, hasCreated = UserModuleInteraction.objects.get_or_create(user=user, module=module)
-
-
-                if( (data["hasLiked"]) and (((not hasCreated)  and ( not interactObj.hasLiked)) or (hasCreated))):
+                tracker, created = ProgressTracker.objects.get_or_create(
+                                user=user, 
+                                module=module,
+                                defaults={
+                                    'hasLiked': False,
+                                    'pinned': False
+                                }
+                            )
+                # Handle upvote/downvote logic
+                if( (data["hasLiked"]) and (((not created)  and ( not tracker.hasLiked)) or (created))):
                     module.upvote()
-                elif( (not data["hasLiked"]) and (not hasCreated ) and (interactObj.hasLiked)):
+                elif( (not data["hasLiked"]) and (not created ) and (tracker.hasLiked)):
                     module.downvote()
 
 
-                interactObj.hasPinned = data["hasPinned"]
-                interactObj.hasLiked = data["hasLiked"]
-                interactObj.save()
+                tracker.pinned = data["pinned"]
+                tracker.hasLiked = data["hasLiked"]
+                tracker.save()
 
                 module.save()
 
@@ -1073,3 +1094,117 @@ class UserChatView(APIView):
 
     
 
+
+class MarkContentViewedView(APIView):
+    """
+    API view to mark content as viewed/completed.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        content_id = request.data.get('content_id')
+        content_type_name = request.data.get('content_type')
+        
+        if not content_id or not content_type_name:
+            return Response(
+                {"error": "content_id and content_type are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Map content_type_name to model
+        content_type_map = {
+            'infosheet': InfoSheet,
+            'video': Video,
+            'quiz': Task,  # Assuming quizzes are stored in Task model
+        }
+        
+        if content_type_name not in content_type_map:
+            return Response(
+                {"error": f"Invalid content_type: {content_type_name}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        model = content_type_map[content_type_name]
+        content_type = ContentType.objects.get_for_model(model)
+        
+        # Try to convert string ID to UUID
+        try:
+            # If content_id is already a UUID string, this will work
+            content_id_uuid = uuid.UUID(content_id)
+        except ValueError:
+            # If it's not a valid UUID string (like "infosheet-1")
+            return Response(
+                {"error": f"Content ID must be a valid UUID, got: {content_id}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get the content object using the UUID
+        try:
+            content_object = model.objects.get(contentID=content_id_uuid)
+        except model.DoesNotExist:
+            return Response(
+                {"error": f"Content not found with ID: {content_id}"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Create or update progress
+        progress, created = ContentProgress.objects.get_or_create(
+            user=request.user,
+            content_type=content_type,
+            object_id=content_id,
+            defaults={'viewed': True, 'viewed_at': timezone.now()}
+        )
+        
+        if not created and not progress.viewed:
+            progress.mark_as_viewed()
+        
+        # Update module progress tracker
+        module = content_object.moduleID
+        module_progress, _ = ProgressTracker.objects.get_or_create(
+            user=request.user,
+            module=module
+        )
+        module_progress.update_progress()
+        
+        # Return success response
+        return Response({
+            "success": True,
+            "message": f"Content {content_id} marked as viewed",
+            "module_progress": {
+                "completed": module_progress.completed,
+                "contents_completed": module_progress.contents_completed,
+                "total_contents": module_progress.total_contents,
+                "progress_percentage": module_progress.progress_percentage
+            }
+        })
+
+
+class CompletedContentView(APIView):
+    """
+    API view to get all completed content IDs for a module.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, module_id):
+        module = get_object_or_404(Module, pk=module_id)
+        
+        # Get content types for all content models
+        content_models = [InfoSheet, Video, Task]
+        content_types = [ContentType.objects.get_for_model(model) for model in content_models]
+        
+        # Get content IDs for this module
+        module_content_ids = []
+        for model in content_models:
+            module_content_ids.extend(
+                model.objects.filter(moduleID=module).values_list('contentID', flat=True)
+            )
+        
+        # Get viewed content
+        viewed_content = ContentProgress.objects.filter(
+            user=request.user,
+            content_type__in=content_types,
+            object_id__in=module_content_ids,
+            viewed=True
+        ).values_list('object_id', flat=True)
+        
+        return Response(list(viewed_content))

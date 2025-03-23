@@ -1,7 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
-import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import DashboardLayout from "./components/DashboardLayout"; 
 import { useParams } from "react-router-dom";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -25,30 +24,34 @@ import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
 import DropZoneTest from './pages/DropZone.jsx';
 import QuizContainer from './components/quizzes/QuizContainer';
-
 import AddModule from './pages/AddModule';
-
-import "./App.css";
-import {AuthContextProvider} from './services/AuthContext.jsx'
-import { EnrollmentContextProvider } from './services/EnrollmentContext';
-
 import VerifyEmail from './components/VerifyEmail.jsx';
 
+import "./App.css";
+import { AuthContextProvider } from './services/AuthContext.jsx';
+import { EnrollmentContextProvider } from './services/EnrollmentContext';
 
 function App() {
   const QuizEditorSelector = () => {
     const { quizType } = useParams();
-    
     return quizType === "flashcard" ? <VisualFlashcardEditor /> : <VisualStatementSequenceEditor />;
   };
-  
+
   return (
-    <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
-      
-      {/* Wrapper that helps with user enrollment into the course */}
+    <AuthContextProvider> 
       <EnrollmentContextProvider>
-      <Router>
+        <Router>
           <Routes>
+            {/* Auth Routes (No Sidebar) */}
+            <Route path="/" element={<Welcome />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/verify-email/:token" element={<VerifyEmail />} />
+            <Route path="/password-reset" element={<RequestPasswordReset />} />
+            <Route path="/password-reset/:uidb64/:token" element={<PasswordReset />} />
+            <Route path="/tag" element={<Tag />} />
+            <Route path="/questionnaire" element={<Questionnaire />} />
+            <Route path="/settings" element={<Settings />} />
         {/* Auth Routes (No Sidebar) */}
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
@@ -60,64 +63,49 @@ function App() {
         <Route path="/questionnaire" element={<Questionnaire />} />
         <Route path="/settings" element={<Settings />} />
 
-            {/* Temporary Quiz Route */}
-            <Route path="/quiz/:taskId" element={<QuizContainer />} />  
+            {/* Quiz Route */}
+            <Route path="/quiz/:taskId" element={<QuizContainer />} />
 
-            {/* ModuleView Route - Added at root level */}
+            {/* Module View Route */}
             <Route path="/modules/:moduleId" element={
               <DashboardLayout>
-                        <DndProvider backend={HTML5Backend}>
-
-                <ModuleViewAlternative />
+                <DndProvider backend={HTML5Backend}>
+                  <ModuleViewAlternative />
                 </DndProvider>
               </DashboardLayout>
             } />
 
-            {/* Protected Routes (With Sidebar) */}
-            <Route
-              path="/worker/*"
-              element={
-                <DashboardLayout>
-                  <Routes>
-                    <Route path="home" element={<WorkerDashboard />} />
-                    <Route path="settings" element={<Settings />} />
-                    <Route path="support" element={<Messaging />} />
-                    <Route path="courses" element={<Courses/>} />
-                    
-                    {/* to be deleted */}
-                    <Route path="all-courses" element={<CoursesList/>} />
-                    <Route path="KnowValuesModule" element={<Module2/>} />
+            {/* Worker Dashboard Routes (With Sidebar) */}
+            <Route path="/worker/*" element={
+              <DashboardLayout>
+                <Routes>
+                  <Route path="home" element={<WorkerDashboard />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="support" element={<Messaging />} />
+                  <Route path="courses" element={<Courses />} />
+                  <Route path="all-courses" element={<CoursesList />} />
+                  <Route path="KnowValuesModule" element={<Module2 />} />
+                </Routes>
+              </DashboardLayout>
+            } />
 
-    
-                
-              </Routes>
-                </DashboardLayout>
-              }
-            />
-
-            <Route
-              path="/admin/*"
-              element={
-                <DashboardLayout>
-                  <Routes>
-                    <Route path="home" element={<AdminDashboard />} />
-                    <Route path="settings" element={<Settings />} />
-                    <Route path="support" element={<Messaging />} />
-                    <Route path="courses" element={<Courses />} />
-                    <Route path="/service-users" element={<ServiceUsersPage />} />
-
-                    {/* to be deleted */}
-                    <Route path="all-courses" element={<CoursesList role="admin" />} />
-                    <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
-
-                  </Routes>
-                </DashboardLayout>
-              }
-            />
+            {/* Admin Dashboard Routes (With Sidebar) */}
+            <Route path="/admin/*" element={
+              <DashboardLayout>
+                <Routes>
+                  <Route path="home" element={<AdminDashboard />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="support" element={<Messaging />} />
+                  <Route path="courses" element={<Courses />} />
+                  <Route path="service-users" element={<ServiceUsersPage />} />
+                  <Route path="all-courses" element={<CoursesList role="admin" />} />
+                  <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
+                </Routes>
+              </DashboardLayout>
+            } />
           </Routes>
         </Router>
       </EnrollmentContextProvider>
-    
     </AuthContextProvider>
   );
 }
