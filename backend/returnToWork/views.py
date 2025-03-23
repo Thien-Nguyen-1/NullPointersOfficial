@@ -107,6 +107,8 @@ class VerifyEmailView(APIView):
         user_data = cache.get(token)
         if not user_data:
             return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=user_data.get("email")).exists():
+            return Response({"message": "This email is already verified. You can log in"}, status=status.HTTP_200_OK)
         user = User.objects.create_user(**user_data)
         cache.delete(token)
         return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)

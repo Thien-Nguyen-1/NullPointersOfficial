@@ -49,17 +49,6 @@ function App() {
       <EnrollmentContextProvider>
       <Router>
           <Routes>
-            {/* Auth Routes (No Sidebar) */}
-            <Route path="/" element={<Welcome />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path = "/password-reset" element = {<RequestPasswordReset />} />
-            <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
-            <Route path="/tag" element={<Tag />} />
-            <Route path="/questionnaire" element={<Questionnaire />} />
-            <Route path="/settings" element={<Settings />} />
-    <Router>
-      <Routes>
         {/* Auth Routes (No Sidebar) */}
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
