@@ -17,8 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet
+from returnToWork.views import (
+    CompletedContentView, MarkContentViewedView, ProgressTrackerView,
+    TagViewSet, ModuleViewSet, InfoSheetViewSet, VideoViewSet, TaskViewSet,
+    UserInteractionView, LogInView, LogOutView, SignUpView, UserProfileView,
+    PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView,
+    DeleteServiceUserView, UserSettingsView, UserPasswordChangeView,
+    CheckUsernameView, RequestPasswordResetView, ContentPublishView,
+    RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet,
+    DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
+    QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
+    TaskPdfView, QuizQuestionViewSet, VerifyEmailView
+)
+#for media url access
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
@@ -36,8 +50,6 @@ router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
 
 
 
-
-from returnToWork.views import LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView, UserInteractionView, UserPasswordChangeView, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView
 urlpatterns = [
      path('admin/', admin.site.urls),
     path('api/login/', LogInView.as_view(), name= 'login'),
@@ -60,18 +72,9 @@ urlpatterns = [
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
     path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
-
-
-
-
-
-
-
-
-
-
-
-
+    path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
+    path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
+    path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),
 
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
@@ -87,4 +90,8 @@ urlpatterns = [
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
 
-]
+
+    path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
+    path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

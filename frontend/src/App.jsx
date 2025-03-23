@@ -23,17 +23,17 @@ import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
 import Module2 from './pages/KnowValuesModule';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
-
+import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
+import DropZoneTest from './pages/DropZone.jsx';
 import QuizContainer from './components/quizzes/QuizContainer';
-
 import AddModule from './pages/AddModule';
+import VerifyEmail from './components/VerifyEmail.jsx';
 
 import "./App.css";
+
 import { AuthContext, AuthContextProvider } from './services/AuthContext.jsx'
 import { EnrollmentContextProvider } from './services/EnrollmentContext';
-
-
 
 function App() {
 
@@ -41,36 +41,35 @@ function App() {
     const { quizType } = useParams();
     return quizType === "flashcard" ? <VisualFlashcardEditor /> : <VisualStatementSequenceEditor />;
   };
-  
+
   return (
-    <AuthContextProvider> {/* User Context means no need to prop drill values in components - user data is accessible across all components*/}
-      
-      {/* Wrapper that helps with user enrollment into the course */}
+    <AuthContextProvider> 
       <EnrollmentContextProvider>
-      <Router>
+        <Router>
           <Routes>
             {/* Auth Routes (No Sidebar) */}
             <Route path="/" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path = "/password-reset" element = {<RequestPasswordReset />} />
-            <Route path = "/password-reset/:uidb64/:token" element = {<PasswordReset />} />
+            <Route path="/verify-email/:token" element={<VerifyEmail />} />
+            <Route path="/password-reset" element={<RequestPasswordReset />} />
+            <Route path="/password-reset/:uidb64/:token" element={<PasswordReset />} />
             <Route path="/tag" element={<Tag />} />
             <Route path="/questionnaire" element={<Questionnaire />} />
             <Route path="/settings" element={<Settings />} />
 
-            {/* Temporary Quiz Route */}
-            <Route path="/quiz/:taskId" element={<QuizContainer />} />  
+            {/* Quiz Route */}
+            <Route path="/quiz/:taskId" element={<QuizContainer />} />
 
-            {/* ModuleView Route - Added at root level */}
+            {/* Module View Route */}
             <Route path="/modules/:moduleId" element={
               <DashboardLayout>
-                        <DndProvider backend={HTML5Backend}>
-
-                <ModuleViewAlternative />
+                <DndProvider backend={HTML5Backend}>
+                  <ModuleViewAlternative />
                 </DndProvider>
               </DashboardLayout>
             } />
+
 
             {/* Protected Routes (With Sidebar) */}
             <Route
@@ -108,11 +107,9 @@ function App() {
                     {/* to be deleted */}
                     <Route path="all-courses" element={<CoursesList role="admin" />} />
                     <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
-
-                  </Routes>
-                </DashboardLayout>
-              }
-            />
+                </Routes>
+              </DashboardLayout>
+            } />
           </Routes>
         </Router>
       </EnrollmentContextProvider>

@@ -3,22 +3,19 @@ import "../styles/CoursesList.css";
 
 export default function CoursesList({ courses }) {
   const [activeTab, setActiveTab] = useState("In Progress");
-  
-  // Filter courses based on active tab
+
   var filteredCourses = courses.filter(course => {
-    console.log(course)
+    
     if (activeTab === "In Progress") {
-      return course.progress > 0 && course.progress < 100;
+      const result = course.progress_percentage < 100.0 && !course.completed;
+      return result;
     } else if (activeTab === "Completed") {
-      return course.progress === 100;
+      return course.progress_percentage === 100.0;
     } else if (activeTab === "Saved Courses") {
       return course.pinned === true;
     }
     return false;
   });
-
-  var filteredCourses = courses;
-  
 
   // Handle tab click
   const handleTabClick = (tabName) => {
@@ -74,12 +71,12 @@ export default function CoursesList({ courses }) {
                       fill="none"
                       stroke="#426751"
                       strokeWidth="3"
-                      strokeDasharray={`${course.progress}, 100`}
+                      strokeDasharray={`${course.progress_percentage}, 100`}
                     />
                   </svg>
-                  <span className="progress-text">{course.progress}%</span>
+                  <span className="progress-text">{Math.round(course.progress_percentage)}%</span>
                 </div>
-                <button onClick={() => window.location.href = `/worker/${course.title}`}>
+                <button onClick={() => window.location.href = `/modules/${course.id}`}>
                   View Course
                 </button>
               </div>
