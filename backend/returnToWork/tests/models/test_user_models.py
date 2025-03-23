@@ -21,6 +21,7 @@ class UserModelTestCase(TestCase):
             email = 'jackdoe@example.org',
             password = 'SecurePass123',
             user_type ='admin',
+            firebase_token='test_token_123',
         )
 
     def test_valid_user(self):
