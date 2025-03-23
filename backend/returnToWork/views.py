@@ -956,26 +956,25 @@ class AdminUserDetailView(APIView):
         
             # Use a transaction to ensure all operations are atomic
             with transaction.atomic():
-                # 1. Check if the admin user is associated with any modules
-                # If using a many-to-many relationship
+                # 1. Check if the ADMIN user is associated with any modules
+                # if using a many-to-many relationship
                 module_count = 0
                 if hasattr(admin_to_delete, 'module'):
                     module_count = admin_to_delete.module.count()
                     print(f"[DEBUG] Admin has {module_count} modules in many-to-many relationship")
-                    # For many-to-many relationships, we just need to ensure the superadmin
+                    # for many-to-many relationships, just need to ensure the superadmin
                     # also has these modules associated, not necessarily transfer ownership
-                    
                     if module_count > 0:
-                        # Add the modules to the superadmin's list if not already there
+                        # add the modules to the superadmin's list if not already there
                         for module in admin_to_delete.module.all():
                             if not superadmin.module.filter(id=module.id).exists():
                                 superadmin.module.add(module)
                         print(f"[DEBUG] Ensured all modules are associated with superadmin")
                 
                 # 2. Transfer authorship for each content type
-                # For each content type that has an author field, update it
+                # for each content type that has an author field, update it
                 
-                # Transfer ownership of Task content
+                # trasfer ownership of Task content
                 tasks = Task.objects.filter(author=admin_to_delete)
                 task_count = tasks.count()
                 if task_count > 0:
