@@ -1,6 +1,9 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import DashboardLayout from "./components/DashboardLayout"; 
+import React, { useState, useContext, useEffect, useRef }from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import DashboardLayout from "./components/DashboardLayout"; // Layout for authenticated pages
+import Sidebar from "./components/Sidebar"; // Sidebar is applied only to dashboard pages
+import { useSessionTimeout } from "./hooks-custom/useSessionTimeout";
+import { SessionManager } from "./hooks-custom/useSessionManager";
 import { useParams } from "react-router-dom";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -28,10 +31,12 @@ import AddModule from './pages/AddModule';
 import VerifyEmail from './components/VerifyEmail.jsx';
 
 import "./App.css";
-import { AuthContextProvider } from './services/AuthContext.jsx';
+
+import { AuthContext, AuthContextProvider } from './services/AuthContext.jsx'
 import { EnrollmentContextProvider } from './services/EnrollmentContext';
 
 function App() {
+
   const QuizEditorSelector = () => {
     const { quizType } = useParams();
     return quizType === "flashcard" ? <VisualFlashcardEditor /> : <VisualStatementSequenceEditor />;
@@ -65,31 +70,43 @@ function App() {
               </DashboardLayout>
             } />
 
-            {/* Worker Dashboard Routes (With Sidebar) */}
-            <Route path="/worker/*" element={
-              <DashboardLayout>
-                <Routes>
-                  <Route path="home" element={<WorkerDashboard />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="support" element={<Messaging />} />
-                  <Route path="courses" element={<Courses />} />
-                  <Route path="all-courses" element={<CoursesList />} />
-                  <Route path="KnowValuesModule" element={<Module2 />} />
-                </Routes>
-              </DashboardLayout>
-            } />
 
-            {/* Admin Dashboard Routes (With Sidebar) */}
-            <Route path="/admin/*" element={
-              <DashboardLayout>
-                <Routes>
-                  <Route path="home" element={<AdminDashboard />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="support" element={<Messaging />} />
-                  <Route path="courses" element={<Courses />} />
-                  <Route path="service-users" element={<ServiceUsersPage />} />
-                  <Route path="all-courses" element={<CoursesList role="admin" />} />
-                  <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
+            {/* Protected Routes (With Sidebar) */}
+            <Route
+              path="/worker/*"
+              element={
+                <DashboardLayout>
+                  <SessionManager />
+                  <Routes>
+                    <Route path="home" element={<WorkerDashboard />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="support" element={<Support />} />
+                    <Route path="courses" element={<Courses/>} />
+                    
+                    {/* to be deleted */}
+                    <Route path="all-courses" element={<CoursesList/>} />
+                    <Route path="KnowValuesModule" element={<Module2/>} />
+
+                  </Routes>
+                </DashboardLayout>
+              }
+            />
+
+            <Route
+              path="/admin/*"
+              element={
+                <DashboardLayout>
+                  <SessionManager />
+                  <Routes>
+                    <Route path="home" element={<AdminDashboard />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="support" element={<Support />} />
+                    <Route path="courses" element={<Courses />} />
+                    <Route path="/service-users" element={<ServiceUsersPage />} />
+
+                    {/* to be deleted */}
+                    <Route path="all-courses" element={<CoursesList role="admin" />} />
+                    <Route path="all-courses/create-and-manage-module" element={<AddModule />} />
                 </Routes>
               </DashboardLayout>
             } />

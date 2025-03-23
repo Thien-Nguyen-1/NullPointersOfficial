@@ -188,7 +188,7 @@ const AuthContextProvider = ({children}) => {
           
           if (token) {
             // Call backend logout endpoint
-            await api.post('/logout/', {}, {
+            await api.post('/api/logout/', {}, {
               headers: {
                 'Authorization': `Token ${token}`
               }
