@@ -557,78 +557,6 @@ class RequestPasswordResetView(APIView):
         return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 class UserInteractionView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        user = request.user
-        option = request.query_params.get("filter")
-        allInteracts = ProgressTracker.objects.filter(user=user) if option == "user" else ProgressTracker.objects.all()
-        
-        if allInteracts:
-            serializedInf = ProgressTrackerSerializer(allInteracts, many=True)
-            return Response(serializedInf.data, status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    def post(self, request, module_id):
-        user = request.user
-        data = request.data
-        
-        try:
-            module = Module.objects.get(id=module_id)
-            
-            # Get or create progress tracker for this user and module
-            tracker, created = ProgressTracker.objects.get_or_create(
-                user=user, 
-                module=module,
-                defaults={
-                    'hasLiked': False,
-                    'pinned': False
-                }
-            )
-            
-            # Debug logging to identify issues
-            print(f"Received data: {data}")
-            print(f"Tracker before update: pinned={tracker.pinned}, hasLiked={tracker.hasLiked}")
-            
-            # Handle upvote/downvote logic
-            if data.get("hasLiked") and ((not created and not tracker.hasLiked) or created):
-                module.upvote()
-            elif not data.get("hasLiked") and not created and tracker.hasLiked:
-                module.downvote()
-            
-            # Update tracker properties
-            # Explicitly check if hasPinned key exists in data to handle unpinning
-            if "pinned" in data:
-                tracker.pinned = data["pinned"]
-                print(f"Setting pinned to {data['pinned']}")
-                
-            # Same for hasLiked to handle unlikes
-            if "hasLiked" in data:
-                tracker.hasLiked = data["hasLiked"]
-                print(f"Setting hasLiked to {data['hasLiked']}")
-                
-            print(f"Tracker after update: pinned={tracker.pinned}, hasLiked={tracker.hasLiked}")
-            
-            # Save changes
-            tracker.save()
-            module.save()
-            
-            # Update progress if needed
-            tracker.update_progress()
-            
-            return Response({
-                "message": "Successfully updated",
-                "progress": tracker.progress_percentage
-            }, status=status.HTTP_200_OK)
-            
-        except Module.DoesNotExist:
-            return Response({"message": "Module Not Found"}, status=status.HTTP_404_NOT_FOUND)
-        except KeyError:
-            return Response({"message": "Data formatted incorrectly"}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-class UserInteractionView(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -640,7 +568,7 @@ class UserInteractionView(APIView):
         allInteracts = ProgressTracker.objects.filter(user=user) if option == "user" else ProgressTracker.objects.all()
 
         if allInteracts:
-             serializedInf = ProgressTracker(allInteracts,many=True)
+             serializedInf = ProgressTrackerSerializer(allInteracts,many=True)
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
