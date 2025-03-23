@@ -46,7 +46,7 @@ const AuthContextProvider = ({children}) => {
 
     // ===== UPADING USER ===== //
     async function updateUser(newUserObj){ //parameter must be a copy of the user 
-     
+     console.log(newUserObj)
       try {
         
         const response = await api.put('/api/user/', newUserObj, {
@@ -88,9 +88,7 @@ const AuthContextProvider = ({children}) => {
           
           setUser(response.data.user)
           
-          console.log("USER LOADED IN")
-
-
+          
           return response.data;
         }
         
@@ -118,13 +116,13 @@ const AuthContextProvider = ({children}) => {
             email,
           });
 
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          localStorage.setItem('token', response.data.token);
+          // localStorage.setItem('user', JSON.stringify(response.data.user));
+          // localStorage.setItem('token', response.data.token);
           
           
-          setUser(response.data.user)
+          // setUser(response.data.user)
           
-          console.log("USER SIGNED UP AND LOGGED IN")
+          console.log("USER SIGNED UP AND LOGGED IN, pls check email")
 
 
       
@@ -135,6 +133,18 @@ const AuthContextProvider = ({children}) => {
           console.error("Sign Up error:", error.response?.data || error.message);
           throw new Error("Sign Up failed:" + error.response?.data?.detail || "Unkown error");
          }
+    }
+
+    async function VerifyEmail(token){
+      try{
+        const response = await api.get('/api/verify-email/${token}/');
+        console.log(response.data.message);
+        return response.data
+      }
+      catch(error) {
+        console.error("email verification error:", error.response?.data || error.message);
+        throw new Error("email verification failed:" + error.response?.data?.detail || "Unkown error");
+       }
     }
 
   
@@ -215,7 +225,7 @@ const AuthContextProvider = ({children}) => {
                     
     return (
         // DONNOT let setUser be globally accessible, it should be done via updateUser
-        <AuthContext.Provider value={{user, token, loginUser, logoutUser, updateUser, SignUpUser, RequestPasswordReset, ResetPassword}}>
+        <AuthContext.Provider value={{user, token, loginUser, logoutUser, updateUser, SignUpUser, RequestPasswordReset, ResetPassword, VerifyEmail}}>
             {children}
         </AuthContext.Provider>
     )

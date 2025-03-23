@@ -25,10 +25,15 @@ from returnToWork.views import (
     DeleteServiceUserView, UserSettingsView, UserPasswordChangeView,
     CheckUsernameView, RequestPasswordResetView, ContentPublishView,
     RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet,
-    DocumentViewSet, EmbeddedVideoViewSet, QuizDataView, QuizDetailView,
+    DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
     TaskPdfView, QuizQuestionViewSet
 )
+#for media url access
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path
+
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet,basename='module')
 router.register(r'tags', TagViewSet,basename='tag')
@@ -84,4 +89,8 @@ urlpatterns = [
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
 
-]
+
+    path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
+    path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

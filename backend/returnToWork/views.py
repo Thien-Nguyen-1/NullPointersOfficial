@@ -22,12 +22,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from reportlab.lib.pagesizes import letter
+from django.core.cache import cache
+
+from django.db.models import Q
+from firebase_admin import messaging
+
+
 from reportlab.pdfgen import canvas
 
 from .models import (
     Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
     RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
-    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video
+    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
+    Conversation, Message
 )
 from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
@@ -36,7 +43,7 @@ from .serializers import (
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    VideoSerializer
+    VideoSerializer, MessageSerializer, ConversationSerializer
 )
 
 User = get_user_model()
@@ -106,10 +113,19 @@ class SignUpView(APIView):
     def post(self,request):
         serializer =SignUpSerializer(data = request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            login(request,user)
-            return Response({"message":"User registered successfully","user":UserSerializer(user).data})
+            serializer.save()
+            # login(request,user)
+            return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    
+class VerifyEmailView(APIView):
+    def get(self,request,token):
+        user_data = cache.get(token)
+        if not user_data:
+            return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(**user_data)
+        cache.delete(token)
+        return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
     
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -300,12 +316,16 @@ class UserDetail(APIView):
             user_in.user_type = user.user_type
 
             tag_data = data['tags']
-
+            fire_token = data.get('firebase_token')
             mod_data = data['module']
 
 
             tags = []
             modules = []
+
+            if(fire_token):
+                user_in.firebase_token = fire_token
+            
 
 
             for tag_obj in tag_data:
@@ -364,6 +384,14 @@ class DeleteServiceUserView(generics.DestroyAPIView):
     def delete(self, request, username):
         try:
             user = User.objects.get(username=username)
+            user_email = user.email
+            send_mail(
+            subject= "Account deletion",
+            message = f"Dear {username}, Your account has been deleted by the admin",
+            from_email = "readiness.to.return.to.work@gmail.com",
+            recipient_list=[user_email],
+            fail_silently=False,
+            )
             user.delete()
             return Response({"message": f"User with username \"{username}\" has been deleted."}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
@@ -406,8 +434,24 @@ class UserSettingsView(APIView):
 
     def delete(self,request):
         user = request.user
+        user_email = user.email
+        username = user.username
+
         user.delete()
         return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+
+
+        if not User.objects.filter(username = username).exists():
+            send_mail(
+                subject= "Account deletion",
+                message = f"Dear {username}, Your account has been successfully deleted.",
+                from_email = "readiness.to.return.to.work@gmail.com",
+                recipient_list=[user_email],
+                fail_silently=False,
+                )
+            return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"error":"User account not deleted"},status=status.HTTP_400_BAD_REQUEST)
 
 class UserPasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -845,6 +889,213 @@ class TaskPdfView(APIView):
 # class UserResponseViewSet(viewsets.ModelViewSet):
 #     queryset = UserResponse.objects.all()
 #     serializer_class = UserResponseSerializer
+
+        
+    
+
+
+
+
+
+
+
+
+
+
+class UserSupportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    MAX_LIMIT = 5
+
+    def get(self, request):
+        user_ = request.user
+        data = request.data
+
+        
+
+        try:
+          
+            info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+            info_chats = info_chats.order_by('-updated_at')
+            
+            serialized_info = ConversationSerializer(info_chats, many=True)
+            
+            
+            updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
+            
+
+            return Response(updated_data, status=status.HTTP_200_OK)
+
+        except:
+            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+    
+        
+
+    def post(self, request):
+        user_ = request.user
+        data = request.data
+
+        currentNo = Conversation.objects.filter(user = user_).count()
+
+        if( (user_.user_type == "service user") and ( currentNo < self.MAX_LIMIT )):
+            Conversation.objects.create(user=user_)
+
+
+        elif((user_.user_type == "admin") and data):
+         
+            conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+
+            if conversation_:
+                if not conversation_.hasEngaged:
+
+                    conversation_.hasEngaged = True
+                    conversation_.admin = user_
+
+                    conversation_.save()
+                    
+                else:
+                    return Response({"message": "Conversation already occupied"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            else:
+                return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+    
+        else:
+            return Response({"message": "Maximum Support Room Limit (5) Reached"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        return Response({"message": "success"}, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request):
+        user_ = request.user
+        data = request.data
+
+
+        try:
+             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
+
+             if conversation_:
+                conversation_.delete()
+
+                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+        
+
+
+
+
+
+
+
+
+
+class UserChatView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def getFcmToken(self, usr_type, conv_Obj):
+      
+        if usr_type == "service user": # user -> admin
+           
+            if getattr(conv_Obj.admin, "firebase_token", False):
+                return conv_Obj.admin.firebase_token
+               
+        elif usr_type == "admin":  # admin -> user
+            if getattr(conv_Obj.user, "firebase_token", False):
+                return conv_Obj.user.firebase_token
+
+        
+        return None
+
+        
+    def get(self, request, room_id):
+        user_ = request.user
+        data = request.data
+       
+        conv_Obj = Conversation.objects.get(id = room_id)
+
+        if conv_Obj:
+            
+            all_Messages = Message.objects.filter(conversation=conv_Obj)
+            
+
+            serialized_messages = MessageSerializer(all_Messages, many=True)
+           
+            return Response(serialized_messages.data, status=status.HTTP_200_OK)
+
+        
+        else:
+            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+
+    def post(self,request, room_id, *args, **kwargs):
+        user_ = request.user
+        data = request.data
+
+        conv_Obj = Conversation.objects.get(id = room_id)
+        
+    
+  
+        if conv_Obj:
+            
+            token = self.getFcmToken(user_.user_type, conv_Obj)
+
+            admin = conv_Obj.admin
+
+            message_content = data["message"]
+            uploaded_file = data.get("file", None)
+
+            
+                #Create a new message object
+            Message.objects.create(
+                conversation=conv_Obj,
+                sender=user_,
+                text_content = message_content,
+                file = uploaded_file
+            )
+
+            conv_Obj.save() 
+
+            if token:
+
+                message = messaging.Message(
+                     notification=messaging.Notification(
+                         title= user_.username ,
+                         body = message_content,
+                        
+                     ),
+                     token=token
+                 )
+                
+                try:
+                    response = messaging.send(message)
+                   
+                except:
+                    pass
+
+                
+ 
+            else:
+                return Response({"message": "token unlocated"}, status=status.HTTP_200_OK)
+
+
+
+            return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
+
+
+        else:
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
+
+
+    
+
+
 class MarkContentViewedView(APIView):
     """
     API view to mark content as viewed/completed.
