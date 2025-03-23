@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('returnToWork', '0002_progresstracker_contents_completed_and_more'),
-        ('returnToWork', '0004_remove_questionanswerform_author_and_more'),
+       
     ]
 
     operations = [
