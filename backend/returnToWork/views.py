@@ -763,47 +763,47 @@ class MatchingQuestionQuizViewSet(viewsets.ModelViewSet):
     serializer_class = MatchingQuestionQuizSerializer
 
 
-# class TaskPdfView(APIView):
-#     permission_classes = [IsAuthenticated]
+class TaskPdfView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     def get(self, request, task_id):
-#         user = request.user
-#         # get task details
-#         try:
-#             task = Task.objects.get(contentID = task_id)
-#         except Task.DoesNotExist:
-#             return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, task_id):
+        user = request.user
+        # get task details
+        try:
+            task = Task.objects.get(contentID = task_id)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
         
-#         # get related questions 
-#         questions = QuizQuestion.objects.filter(task = task)
+        # get related questions 
+        questions = QuizQuestion.objects.filter(task = task)
         
-#         if not questions.exists():
-#             return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
+        if not questions.exists():
+            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
 
-#         buffer = BytesIO()
-#         pdf = canvas.Canvas(buffer)
-#         pdf.drawString(100,800,f"Task:{task.title}")
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+        pdf.drawString(100,800,f"Task:{task.title}")
 
-#         y_position = 780
-#         # get related response and create the pdf
-#         for question in questions:
-#             try:
-#                 response = UserResponse.objects.filter(user=user, question=question).first()
-#                 answer_text = response.response_text
+        y_position = 780
+        # get related response and create the pdf
+        for question in questions:
+            try:
+                response = UserResponse.objects.filter(user=user, question=question).first()
+                answer_text = response.response_text
 
-#             except UserResponse.DoesNotExist:
-#                 answer_text = "No response provided"
+            except UserResponse.DoesNotExist:
+                answer_text = "No response provided"
 
-#             pdf.drawString(100, y_position, f"Q: {question.question_text}")
-#             y_position -=20
-#             pdf.drawString(120, y_position, f"A: {answer_text}")
-#             y_position -=30
+            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            y_position -=20
+            pdf.drawString(120, y_position, f"A: {answer_text}")
+            y_position -=30
 
-#         pdf.save()
-#         buffer.seek(0)
-#         response = HttpResponse(buffer, content_type="application/pdf")
-#         response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
-#         return response
+        pdf.save()
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        return response
 
 
         
