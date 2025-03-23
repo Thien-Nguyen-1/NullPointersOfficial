@@ -27,7 +27,7 @@ from returnToWork.views import (
     RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet,
     DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
-    TaskPdfView, QuizQuestionViewSet
+    TaskPdfView, QuizQuestionViewSet, VerifyEmailView
 )
 #for media url access
 from django.conf import settings
@@ -72,6 +72,7 @@ urlpatterns = [
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
     path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
+    path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
     path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
     path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),
 
