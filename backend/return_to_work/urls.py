@@ -17,6 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from rest_framework.routers import DefaultRouter
+
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 from returnToWork.views import (
     CompletedContentView, MarkContentViewedView, ProgressTrackerView,
     TagViewSet, ModuleViewSet, InfoSheetViewSet, VideoViewSet, TaskViewSet,
@@ -27,7 +33,8 @@ from returnToWork.views import (
     RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet,
     DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
-    TaskPdfView, QuizQuestionViewSet, VerifyEmailView
+    TaskPdfView, QuizQuestionViewSet, VerifyEmailView, 
+    TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView
 )
 #for media url access
 from django.conf import settings
@@ -72,6 +79,17 @@ urlpatterns = [
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name= "user-password-change"),
     path("api/check-username/", CheckUsernameView.as_view(), name= "check-username"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
+    path('api/accept-terms/', AcceptTermsView.as_view(), name='accept-terms'),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+
+    # SuperAdmin API endpoints
+    path('api/terms-and-conditions/', TermsAndConditionsView.as_view(), name='terms-and-conditions'),
+    path('api/admin-users/', AdminUsersView.as_view(), name='admin-users'),
+    path('api/admin-users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
+    path('api/check-superadmin/', CheckSuperAdminView.as_view(), name='check-superadmin'),
     path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
     path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
     path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),

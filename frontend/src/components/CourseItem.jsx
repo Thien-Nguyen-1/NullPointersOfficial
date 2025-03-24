@@ -6,7 +6,8 @@ import { AuthContext } from "../services/AuthContext";
 import { useEnrollment } from "../services/EnrollmentContext";
 import api from "../services/api";
 import EnrollmentModal from "./EnrollmentModal";
-import "../styles/CourseItem.css"
+import styles from "../styles/CourseItem.module.css";
+
 
 function CourseItem(props){
 
@@ -125,32 +126,29 @@ function CourseItem(props){
 
     return (
 
-        <div className="course-opt-container ">
+        <div className={styles.courseOptContainer}>
             
-            <div className="icon-container">
+            <div className={styles.iconContainer}>
                 <FaSearch />
             </div>
             
 
             <p> {module.title}</p>
 
-            <div className="like-container">
-                <button onClick={ () => {toggleLike()}}>
-                    { status.hasLiked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt /> }
-                    
-                
+            <div className={styles.likeContainer}>
+                <button onClick={() => {toggleLike()}}>
+                    {status.hasLiked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt />}
                 </button>
 
                 <p> {totalLikes}</p>
 
             </div>
 
-            <button onClick={ () => {toggleFavourite()}}>  
-                    { status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
-                  
+            <button onClick={() => {toggleFavourite()}}>  
+                {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
             </button>
            
-            <div className="view-container">        
+            <div className={styles.viewContainer}>        
                 <button onClick={() => handleViewCourse(module)}>
                     <p>{isEnrolled(module.id) ? "Continue Learning" : "View Course"}</p>
                 </button>
