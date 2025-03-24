@@ -6,10 +6,8 @@ import { AuthContext } from "../services/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
-import EnrollmentModal from "../components/EnrollmentModal";
-import { GetModule, GetAllProgressTracker, SaveProgressTracker , SaveUserModuleInteract, GetUserModuleInteract} from "../services/api";
-import { IoMdArrowDropupCircle } from "react-icons/io";
-import { MdOutlineUnsubscribe } from "react-icons/md";
+import { GetModule, SaveUserModuleInteract, GetUserModuleInteract} from "../services/api";
+
 
 
 
