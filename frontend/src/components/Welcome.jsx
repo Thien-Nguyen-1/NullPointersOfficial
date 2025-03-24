@@ -9,6 +9,7 @@ const Welcome = () => {
     <div className="welcome-page">
       <div className="welcome-container">
         <h1>Empower</h1>
+        <h2>Readiness to work</h2>
         <p>Please sign up or log in to continue.</p>
         <div className="welcome-button-container">
           <button onClick={() => navigate("/signup")}>

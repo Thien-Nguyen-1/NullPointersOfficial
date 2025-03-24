@@ -7,7 +7,6 @@ class ProgressTrackerModelTest(TestCase):
         self.module = Module.objects.create(
             title="Handling work anxiety",
             description="This is a test module.",
-            pinned=True,
             upvotes=9
         )
         self.user = User.objects.create_user(
@@ -38,7 +37,12 @@ class ProgressTrackerModelTest(TestCase):
         self.assertEqual(self.progressTracker.module, self.module)
 
     def test_default_values(self):
-        new_tracker = ProgressTracker.objects.create(user=self.user, module=self.module)
+        new_module = Module.objects.create(
+        title="New Module",
+        description="Another test module.",
+        upvotes=5
+        )
+        new_tracker = ProgressTracker.objects.create(user=self.user, module=new_module)
         self.assertFalse(new_tracker.completed)
 
     def test_string_representation(self):

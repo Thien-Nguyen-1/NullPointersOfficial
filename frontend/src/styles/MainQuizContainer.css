@@ -517,7 +517,6 @@
   }
 
 /* 
-Add these styles to your MainQuizContainer.css file 
 to ensure the flashcards render correctly
 */
 
@@ -1218,6 +1217,11 @@ to ensure the flashcards render correctly
   font-size: 16px;
 }
 
+.with-placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
 /* Client Instructions */
 .client-instructions {
   background-color: #f8f9fa;
@@ -1538,7 +1542,8 @@ to ensure the flashcards render correctly
   color: #333;
 }
 
-.icon-container {
+.editor-icon-container {
+  background: none;
   display: flex;
   gap: 10px;
 }
@@ -1808,6 +1813,8 @@ to ensure the flashcards render correctly
   right: 20px;
   top: 10px;
 }
+
+
 
 
 

@@ -6,9 +6,9 @@ export default defineConfig({
   plugins: [react()],
 
   server: {
-    proxy: {
-      "/api": "http://127.0.0.1:8000",
-    },
+    // proxy: {
+    //   "/api": "http://127.0.0.1:8000",
+    // },
     port: 5173,  // Can hange this if needed (only use during development)
     open: true,   // Help to open browser automatically
     proxy: {

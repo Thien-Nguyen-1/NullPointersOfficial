@@ -1,20 +1,29 @@
-import React, { useState } from "react";
-import { loginUser, redirectBasedOnUserType } from "../services/api";
+import React, { useState, useContext } from "react";
+//import { loginUser, redirectBasedOnUserType } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Login.css';
+
+import { AuthContext } from "../services/AuthContext";
+import {redirectBasedOnUserType } from "../services/api";
+
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const {loginUser} = useContext(AuthContext) 
   
   const handleLogin = async(e) => {
     e.preventDefault();
     try {
+    //  const data = await loginUser(username, password);
       const data = await loginUser(username, password);
       redirectBasedOnUserType(data);
+
     } catch(err) {
+      
       setError("Invalid username or password");
     }
   }
@@ -31,6 +40,7 @@ const Login = () => {
             placeholder="Username"
             required
           />
+
           <input
             type="password"
             value={password}
@@ -38,6 +48,7 @@ const Login = () => {
             placeholder="Password"
             required
           />
+          
           <button type="submit">Login</button>
         </form>
         {error && <p className="error">{error}</p>}
@@ -45,7 +56,7 @@ const Login = () => {
           <button onClick={() => navigate("/")}>
             Back
           </button>
-          <button onClick={() => navigate("/change-password")}>
+          <button onClick={() => navigate("/password-reset")}>
             Forgot password
           </button>
           <button onClick={() => navigate("/signup")}>

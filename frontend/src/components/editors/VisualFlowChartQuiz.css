@@ -1,0 +1,292 @@
+/* VisualFlowChartQuiz.css */
+
+.visual-sequence-editor {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f9fafb;
+    border-radius: 10px;
+  }
+  
+  /* Sequence Flow Styles */
+  .sequence-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  /* Sequence Item Styles */
+  .sequence-item {
+    width: 200px;
+    height: 200px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  
+  .sequence-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sequence-item.selected {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 8px rgba(66, 103, 81, 0.3);
+  }
+  
+  .sequence-item.even-editor {
+    background-color: var(--primary-green-light);
+    border-color: var(--primary-green);
+  }
+  
+  .sequence-item.odd-editor {
+    background-color: var(--secondary-green);
+    border-color: var(--primary-green);
+  }
+  
+  .statement-content-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .statement-content {
+    text-align: center;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .statement-content:empty:before {
+    content: "New statement - click to edit";
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  
+  /* Delete Button */
+  .delete-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: transparent;
+    color: var(--primary-green-dark);
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    transition: color 0.2s, transform 0.2s;
+  }
+  
+  .delete-button:hover {
+    color: white;
+    transform: scale(1.2);
+  }
+  
+  /* Sequence Arrows */
+  .sequence-arrow {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .even-arrow {
+    color: var(--primary-green);
+  }
+  
+  .odd-arrow {
+    color: var(--primary-green-dark);
+  }
+  
+  /* Add Statement Button */
+  .add-statement-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .add-statement-button {
+    background-color: var(--primary-green);
+    border: none;
+    border-radius: 50px;
+    width: 70px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  
+  .add-statement-button:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+  
+  .plus-icon {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .add-statement-text {
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-subtle);
+    margin-top: 5px;
+    text-align: center;
+  }
+  
+  /* No Statements Message */
+  .no-statements-message {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  
+  /* Statement Editor Form */
+  .statement-editor-form {
+    background-color: #fff9e1;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+    border-left: 5px solid var(--primary-green);
+  }
+  
+  .statement-editor-form.even-editor {
+    background-color: var(--primary-green-light);
+  }
+  
+  .statement-editor-form.odd-editor {
+    background-color: var(--secondary-green);
+  }
+  
+  .statement-editor-form h3 {
+    color: var(--primary-green-dark);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+  
+  /* Form Groups and Inputs */
+  .required-field {
+    position: relative;
+    margin-bottom: 15px;
+  }
+  
+  .form-group {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--primary-green-light);
+    border-radius: 4px;
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  input.form-group[readonly] {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  input::placeholder {
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  
+  .validation-error {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 5px;
+  }
+  
+  /* Button Styles */
+  .button-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .large-grey-btn {
+    background-color: var(--primary-green);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+  }
+  
+  .large-grey-btn:hover:not(:disabled) {
+    background-color: var(--primary-green-dark);
+  }
+  
+  .large-grey-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .trash-button {
+    background-color: transparent;
+    color: var(--primary-green-dark);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .trash-button:hover:not(:disabled) {
+    color: white;
+  }
+  
+  .trash-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Loading State */
+  .loading-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-subtle);
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .sequence-flow {
+      flex-direction: column;
+    }
+    
+    .sequence-item {
+      width: 100%;
+      max-width: 300px;
+    }
+    
+    .statement-editor-form {
+      padding: 15px;
+    }
+  }

@@ -78,12 +78,35 @@ export const QuizApiUtils = {
     }
   },
 
+  // updateTask: async (taskId, taskData) => {
+  //   try {
+  //     const response = await api.put(`/api/tasks/${taskId}/`, taskData);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error updating task:', error);
+  //     throw error;
+  //   }
+  // },
+
   updateTask: async (taskId, taskData) => {
     try {
+      console.log("Updating task with ID:", taskId);
+      console.log("Task data:", taskData);
+      
+      // Ensure moduleID is properly formatted
+      if (taskData.moduleID) {
+        // Make sure moduleID is a number if it should be
+        if (typeof taskData.moduleID === 'string') {
+          taskData.moduleID = parseInt(taskData.moduleID, 10);
+        }
+      }
+      
       const response = await api.put(`/api/tasks/${taskId}/`, taskData);
+      console.log("Task update response:", response.data);
       return response.data;
     } catch (error) {
       console.error('Error updating task:', error);
+      console.error('Error response data:', error.response?.data);
       throw error;
     }
   },
@@ -121,12 +144,52 @@ export const QuizApiUtils = {
     }
   },
 
+  // createQuestion: async (questionData) => {
+  //   try {
+  //     const response = await api.post('/api/quiz/questions/', questionData);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error creating question:', error);
+  //     throw error;
+  //   }
+  // },
+
   createQuestion: async (questionData) => {
     try {
-      const response = await api.post('/api/quiz/questions/', questionData);
+      console.log("[DEBUG] Creating question with original data:", questionData);
+      
+      // Validate required fields
+      if (!questionData.task_id && !questionData.task) {
+        console.error("Error: Both task_id and task are missing");
+        throw new Error("Task ID is required");
+      }
+      
+      if (!questionData.question_text && !questionData.text) {
+        console.error("Error: Both question_text and text are missing");
+        throw new Error("Question text is required");
+      }
+      
+      // Prepare data in the format expected by the API
+      const apiData = {
+        task_id: questionData.task || questionData.task_id, // Use either task or task_id
+        question_text: questionData.question_text || questionData.text || "",
+        hint_text: questionData.hint_text || questionData.hint || "",
+        order: questionData.order || 0,
+        answers:questionData.answers || []
+      };
+      
+      console.log("[DEBUG] Sending to API:", apiData);
+      
+      // Make the API call
+      const response = await api.post('/api/quiz/questions/', apiData);
       return response.data;
+
     } catch (error) {
-      console.error('Error creating question:', error);
+      // Enhanced error logging
+      console.error("Error creating question:", error);
+      console.error("Error response data:", error.response?.data);
+      
+      // Rethrow the error for the caller to handle
       throw error;
     }
   },
@@ -151,22 +214,27 @@ export const QuizApiUtils = {
     }
   },
 
-  // Quiz type helper
+  // Quiz type helper - maps frontend quiz names to their database type
   getQuizTypeValue: (uiType) => {
     const typeMap = {
       'Flashcard Quiz': 'flashcard',
       'Fill in the Blanks': 'text_input',
-      'Flowchart Quiz': 'statement_sequence'
+      'Flowchart Quiz': 'statement_sequence',
+      'Question and Answer Form': 'question_input',
+      'Matching Question Quiz': 'pair_input'
+
     };
     return typeMap[uiType] || 'text_input';
   },
 
-  // Get UI type from API type
+  // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
   getUITypeFromAPIType: (apiType) => {
     const typeMap = {
       'flashcard': 'Flashcard Quiz',
       'text_input': 'Fill in the Blanks',
-      'statement_sequence': 'Flowchart Quiz'
+      'statement_sequence': 'Flowchart Quiz',
+      'question_input':'Question and Answer Form',
+      'pair_input':'Matching Question Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
@@ -194,18 +262,41 @@ export const QuizApiUtils = {
   },
 
   // Also add a function to create the module-task relationship in the backend
+  // createModuleTask: async (moduleId, taskData) => {
+  //   try {
+  //     // Ensure the moduleID is explicitly set to this module
+  //     const data = {
+  //       ...taskData,
+  //       moduleID: moduleId
+  //     };
+      
+  //     const response = await api.post('/api/tasks/', data);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error creating module task:', error);
+  //     throw error;
+  //   }
+  // },
+
   createModuleTask: async (moduleId, taskData) => {
     try {
-      // Ensure the moduleID is explicitly set to this module
+      console.log("Creating task for module ID:", moduleId);
+      console.log("Task data:", taskData);
+      
+      // Ensure the moduleID is properly set
       const data = {
         ...taskData,
-        moduleID: moduleId
+        moduleID: parseInt(moduleId, 10) // Ensure moduleID is a number
       };
       
+      console.log("Prepared task data:", data);
+      
       const response = await api.post('/api/tasks/', data);
+      console.log("Task creation response:", response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating module task:', error);
+      console.error('Error response data:', error.response?.data);
       throw error;
     }
   },
@@ -231,8 +322,62 @@ export const QuizApiUtils = {
       console.error('Error cleaning up orphaned tasks:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Submit a set of answers for a quiz
+   * @param {string} taskId - The task/quiz ID
+   * @param {Object} answers - Object mapping question IDs to answers
+   * @param {string} token - Auth token
+   * @returns {Promise} - API response
+   */
+  submitQuizAnswers: async (taskId, answers, token) => {
+    try {
+      console.log("Submitting answers for quiz:", taskId);
+      
+      // Convert the answers object to an array of submissions
+      const submissions = [];
+      
+      // Process each answer
+      for (const [questionId, answer] of Object.entries(answers)) {
+        // Handle both single string answers and array answers (for fill-in-the-blanks)
+        const answerText = Array.isArray(answer) ? answer.join(' | ') : answer;
+        
+        // Add to submissions
+        submissions.push({
+          question_id: questionId,
+          response_text: answerText
+        });
+      }
+      
+      // Make separate API calls for each answer (matching your backend structure)
+      const results = [];
+      for (const submission of submissions) {
+        const headers = token ? { 'Authorization': `Token ${token}` } : {};
+        
+        const response = await api.post('/api/quiz/response/', submission);
+        // const response = await api.post('/api/quiz/response/', submission, { 
+        //   headers 
+        // });
+        
+        results.push(response.data);
+        console.log(`Response saved for question ${submission.question_id}:`, response.data);
+      }
+      
+      return {
+        status: 'success',
+        message: `Saved ${results.length} responses`,
+        results
+      };
+    } catch (error) {
+      console.error('Error submitting quiz answers:', error);
+      throw error;
+    }
+  },
 
 };
 
 export default QuizApiUtils;
+if (typeof window !== 'undefined') {
+  window.QuizApiUtils = QuizApiUtils;
+}

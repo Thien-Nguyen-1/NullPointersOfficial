@@ -1,8 +1,8 @@
-// WorkerDashboard.jsx
 import React, { useEffect, useState } from "react";
 import StatsCards from "../components/StatsCards";
 import LearningChart from "../components/LearningChart";
 import CoursesList from "../components/CoursesList";
+import api from "../services/api";
 import axios from "axios";
 
 export default function WorkerDashboard() {
@@ -19,21 +19,10 @@ export default function WorkerDashboard() {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        // Get token from localStorage instead of hardcoding it
-        const token = localStorage.getItem('token');
-        
-        // Check if token exists
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-  
-        const response = await axios.get('/api/user/', {
-          headers: {
-            'Authorization': `Token ${token}`
-          }
-        });
+        const response = await api.get('/api/user/');
         
         setUserName(response.data.first_name || "User");
+        
         // Set module statistics
         setModuleStats({
           completed_modules: response.data.completed_modules || 0,
@@ -45,11 +34,10 @@ export default function WorkerDashboard() {
         const transformedCourses = response.data.modules.map(module => ({
           id: module.id,
           title: module.title,
-          progress: module.progress_percentage,
+          progress_percentage: module.progress_percentage,
           pinned: module.pinned,
-          action: "View Course"
+          completed: module.completed
         }));
-        
         setCourses(transformedCourses);
       } catch (error) {
         console.error('Error fetching user details:', error);
@@ -63,6 +51,7 @@ export default function WorkerDashboard() {
     fetchUserDetails();
   }, []);
 
+
   const learningHours = [
     { day: "Mon", hours: 2.0 },
     { day: "Tue", hours: 3.7 },
@@ -75,7 +64,7 @@ export default function WorkerDashboard() {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
-
+  console.log(courses)
   return (
     <div className="dashboard-container">
       <div className="top-row">
