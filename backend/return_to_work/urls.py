@@ -30,7 +30,7 @@ from returnToWork.views import (
     TaskPdfView, QuizQuestionViewSet, VerifyEmailView
 )
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView
 
 #for media url access
 from django.conf import settings
@@ -79,6 +79,7 @@ urlpatterns = [
     path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
     path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),
     path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
+    path('api/completed-interactive-content/', CompletedInteractiveContentView.as_view(), name = 'completed-interactive-content'),
 
 
 

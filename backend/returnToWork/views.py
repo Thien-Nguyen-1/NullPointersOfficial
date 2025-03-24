@@ -437,8 +437,6 @@ class UserSettingsView(APIView):
         username = user.username
 
         user.delete()
-        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
-
 
         if not User.objects.filter(username = username).exists():
             send_mail(
@@ -874,15 +872,16 @@ class TaskPdfView(APIView):
             except UserResponse.DoesNotExist:
                 answer_text = "No response provided"
 
-            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            pdf.drawString(100, y_position, f"Question: {question.question_text}")
             y_position -=20
-            pdf.drawString(120, y_position, f"A: {answer_text}")
+            pdf.drawString(120, y_position, f"Answer: {answer_text}")
             y_position -=30
 
         pdf.save()
         buffer.seek(0)
         response = HttpResponse(buffer, content_type="application/pdf")
-        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
+
         return response
 
 # class UserResponseViewSet(viewsets.ModelViewSet):
@@ -1208,3 +1207,37 @@ class CompletedContentView(APIView):
         ).values_list('object_id', flat=True)
         
         return Response(list(viewed_content))
+    
+
+class CompletedInteractiveContentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # module = get_object_or_404(Module, pk=module_id)
+
+        content_type = ContentType.objects.get_for_model(Task)
+
+        # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
+
+        viewed_tasks = ContentProgress.objects.filter(
+            user=request.user,
+            content_type=content_type,
+            # object_id__in=module_task_ids,
+            viewed=True
+        )
+
+        results = []
+        for item in viewed_tasks:
+            try:
+                task = item.content_object
+                results.append({
+                    "content_id": str(item.object_id),
+                    "title": task.title,
+                    "viewed_at": item.viewed_at,
+                    "quiz_type": task.get_quiz_type_display(),
+                    "module_title": task.moduleID.title if task.moduleID else None
+                })
+            except:
+                continue
+
+        return Response(results)

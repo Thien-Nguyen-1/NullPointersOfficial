@@ -312,10 +312,10 @@ export const quizApi = {
 //get the task that needs downloading nd the authentication token
 export const downloadCompletedTask = async(taskId, token) => {
   try {
-    const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
+    const response = await api.get(`/api/download-completed-task/${taskId}/`,{
       headers:{
         Authorization: `Token ${token}`,
-        Accept: "application/pdf",
+        // Accept: "application/pdf",
       },
       responseType: "blob", //dowlaod pdf in blob format
     });
@@ -412,6 +412,29 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
   } catch (error) {
     console.error("Failed to mark content as viewed:", error);
     throw error;
+  }
+};
+
+
+export const fetchCompletedInteractiveContent = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    console.error("No token found");
+    return [];
+  }
+
+  try {
+    const response = await api.get('/api/completed-interactive-content/', {
+      headers: {
+        Authorization: `Token ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching completed interactive content:", error);
+    return [];
   }
 };
 
