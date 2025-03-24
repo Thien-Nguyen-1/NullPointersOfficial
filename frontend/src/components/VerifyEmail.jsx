@@ -15,10 +15,12 @@ const VerifyEmail = () => {
 
         if (response.ok) {
           setMessage("Email verified successfully! Redirecting..."); 
+          navigate("/login")
         } else {
           setMessage( "Loading log in page...");
+          navigate("/login")
         }
-        setTimeout(() => navigate("/login"), 3000); 
+        // setTimeout(() => navigate("/login"), 3000); 
       } catch (error) {
         setMessage("An error occurred. Please try again.");
       }
