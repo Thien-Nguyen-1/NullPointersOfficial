@@ -1,8 +1,9 @@
 import React, { useContext, useRef, useState, } from "react";
-import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaBrain} from "react-icons/fa";
+import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaBrain, FaUserShield} from "react-icons/fa";
 import { BiSupport } from "react-icons/bi";
 import { PiBooksBold } from "react-icons/pi";
 import { PiColumnsPlusLeftFill } from "react-icons/pi";
+import { RiQuestionnaireLine } from "react-icons/ri";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import '../styles/Sidebar.css'; 
@@ -15,9 +16,16 @@ import { AuthContext } from "../services/AuthContext.jsx";
 const Sidebar = ({ role }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const basePath = role === "admin" ? "/admin" : "/worker";
+  // const basePath = role === "admin" ? "/admin" : "/worker";
 
-  const {logoutUser} = useContext(AuthContext)
+  const {user, logoutUser} = useContext(AuthContext)
+
+  const isSuperAdmin = user && user.user_type === 'superadmin';
+
+  // Determine base path
+  let basePath = "/worker";
+  if (role === "admin") basePath = "/admin";
+  if (isSuperAdmin) basePath = "/superadmin";
 
   const [menuStatus, setMenuStatus] = useState(false)
   const wrapperSidebar = useRef(null)
@@ -36,17 +44,34 @@ const Sidebar = ({ role }) => {
   const adminItems = [
     { path: "service-users", icon: <FaUsers size={24} />, label: "Manage Users" },
     { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
+    { path: "set-questionnaire", icon: <RiQuestionnaireLine size={24} />, label: "Set Quesionnaire"},
     { path: "all-courses/create-and-manage-module", icon: <PiColumnsPlusLeftFill size={24} />, label: "Create Module" }
-
   ];
+
+
   
   // Worker-specific menu items (for "service user")
   const workerItems = [ 
     { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
   ];
 
+  // SuperAdmin-specific menu items
+  const superAdminItems = [
+    { path: "superadmin-settings", icon: <FaUserShield size={24} />, label: "Super Admin Settings" },
+  ];
+
   const menuItems = [...commonItems];
-  if (role === "admin") {
+  // if (role === "admin") {
+  //   menuItems.splice(1, 0, ...adminItems);
+  // } else {
+  //   menuItems.splice(1, 0, ...workerItems);
+  // }
+
+  if (isSuperAdmin) {
+    // For superadmin, add admin items plus superadmin items at position 1
+    menuItems.splice(1, 0, ...adminItems, ...superAdminItems);
+    // splice(startPosition, howManyToRemove, ...itemsToAdd)
+  } else if (role === "admin") {
     menuItems.splice(1, 0, ...adminItems);
   } else {
     menuItems.splice(1, 0, ...workerItems);

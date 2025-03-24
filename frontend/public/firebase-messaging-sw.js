@@ -119,3 +119,24 @@ messaging.onBackgroundMessage((payload) => {
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+
+
+// FOR SAFARI PROTOCOLS //
+
+self.addEventListener('push', function (event) {
+  const payload = event.data.json(); 
+
+  
+  event.waitUntil(
+    self.registration.showNotification(' SAFARI PUSH NOTIFICATION TEST', {
+      body: ' ',
+      tag: 'silent-push',
+      silent: true, 
+      requireInteraction: false,
+
+    })
+  );
+
+  
+});

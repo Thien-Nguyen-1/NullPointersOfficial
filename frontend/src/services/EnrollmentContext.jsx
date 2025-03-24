@@ -31,9 +31,11 @@ export const EnrollmentContextProvider = ({ children }) => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await api.get('/api/progress-tracker/', {
-          headers: { Authorization: `Token ${token}` }
-        });
+        // const response = await api.get('/api/progress-tracker/', {
+        //   headers: { Authorization: `Token ${token}` }
+        // });
+
+        const response = await api.get('/api/progress-tracker/');
         
         // Filter for current user's enrollments
         const userEnrollments = response.data.filter(tracker => 
@@ -70,14 +72,22 @@ export const EnrollmentContextProvider = ({ children }) => {
     // If user has not enrolled
     try {
       // Create a new progress tracker entry
+      // const response = await api.post('/api/progress-tracker/', {
+      //   user: user.id,
+      //   module: moduleId,
+      //   completed: false,
+      //   pinned: false,
+      //   hasLiked: false
+      // }, {
+      //   headers: { Authorization: `Token ${token}` }
+      // });
+
       const response = await api.post('/api/progress-tracker/', {
         user: user.id,
         module: moduleId,
         completed: false,
         pinned: false,
         hasLiked: false
-      }, {
-        headers: { Authorization: `Token ${token}` }
       });
 
       // Update the local state with the new enrollment
@@ -105,11 +115,16 @@ export const EnrollmentContextProvider = ({ children }) => {
 
     try {
       // Update the progress tracker
+      // const response = await api.put(`/api/progress-tracker/${enrollment.id}`, {
+      //   ...enrollment,
+      //   ...progressData
+      // }, {
+      //   headers: { Authorization: `Token ${token}` }
+      // });
+
       const response = await api.put(`/api/progress-tracker/${enrollment.id}`, {
         ...enrollment,
         ...progressData
-      }, {
-        headers: { Authorization: `Token ${token}` }
       });
 
       // Update the local state
