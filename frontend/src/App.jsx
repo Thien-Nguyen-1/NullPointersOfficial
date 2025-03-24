@@ -29,6 +29,7 @@ import DropZoneTest from './pages/DropZone.jsx';
 import QuizContainer from './components/quizzes/QuizContainer';
 import AddModule from './pages/AddModule';
 import VerifyEmail from './components/VerifyEmail.jsx';
+import QuestionnaireAdmin from './pages/questionnaire-admin.jsx'
 
 import "./App.css";
 
@@ -57,7 +58,6 @@ function App() {
             <Route path="/tag" element={<Tag />} />
             <Route path="/questionnaire" element={<Questionnaire />} />
             <Route path="/settings" element={<Settings />} />
-
             {/* Quiz Route */}
             <Route path="/quiz/:taskId" element={<QuizContainer />} />
 
@@ -102,7 +102,8 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="support" element={<Support />} />
                     <Route path="courses" element={<Courses />} />
-                    <Route path="/service-users" element={<ServiceUsersPage />} />
+                    <Route path="service-users" element={<ServiceUsersPage />} />
+                    <Route path="set-questionnaire" element={<QuestionnaireAdmin />} />
 
                     {/* to be deleted */}
                     <Route path="all-courses" element={<CoursesList role="admin" />} />
