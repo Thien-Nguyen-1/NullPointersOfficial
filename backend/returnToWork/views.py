@@ -865,12 +865,12 @@ class TaskPdfView(APIView):
         y_position = 780
         # get related response and create the pdf
         for question in questions:
-            try:
-                response = UserResponse.objects.filter(user=user, question=question).first()
-                answer_text = response.response_text
+            # try:
+            response = UserResponse.objects.filter(user=user, question=question).first()
+            answer_text = response.response_text if response else "No response provided"
 
-            except UserResponse.DoesNotExist:
-                answer_text = "No response provided"
+            # except UserResponse.DoesNotExist:
+            #     answer_text = "No response provided"
 
             pdf.drawString(100, y_position, f"Question: {question.question_text}")
             y_position -=20

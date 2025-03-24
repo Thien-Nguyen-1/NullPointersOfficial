@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { getUserSettings, deleteUserSettings, changeUserPassword, GetModule, GetAllProgressTracker, downloadCompletedTask , fetchCompletedInteractiveContent} from "../services/api";
+import { deleteUserSettings, changeUserPassword, downloadCompletedTask , fetchCompletedInteractiveContent} from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Settings.css';
 import {AuthContext} from "../services/AuthContext";
@@ -8,9 +8,8 @@ function Settings() {
   const {user, updateUser}= useContext(AuthContext);
   const [showModal, setShowModal] = useState (false);
   const navigate = useNavigate();
-  // const [user, setUser] = useState({});
   const [completedCourses, setCompletedCourses] = useState([]);
-  const [taskId, setTaskId] = useState("");
+  // const [taskId, setTaskId] = useState("");
   const token = localStorage.getItem("token");
 
   const [passwordData,setPasswordData] = useState ({
@@ -53,7 +52,7 @@ const handleDownload = async(taskId) => {
         error.response?.status === 400 &&
         errorJson?.error === "No questions found for this task"
       ) {
-        alert("This task has no questions and cannot be downloaded as a PDF.");
+        alert("This task has no questions/answers and cannot be downloaded as a PDF.");
       } else {
         alert("Error downloading PDF");
       }
@@ -108,9 +107,6 @@ const handleDelete = async () => {
       localStorage.removeItem("token");
 
       navigate("/signup");
-    // } else {
-    //   alert("Failed to delete account. Please try again.");
-    // }
   } 
   catch (error) {
     alert("Failed to delete account.");
@@ -136,7 +132,6 @@ return (
           <h3>{task.title}</h3> <br />
           <p><strong>Type:</strong> {task.quiz_type} </p>
           <p><strong>Completed on:</strong> {new Date(task.viewed_at).toLocaleString()}</p>
-          {/* Download button */}
           <button onClick={() => handleDownload(task.content_id)}>
             Download PDF
           </button>
@@ -157,7 +152,6 @@ return (
         <input
           id = "old_password"
           type="password"
-          // placeholder="Old Password"
           value={passwordData.old_password}
           onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
         />
@@ -168,7 +162,6 @@ return (
         <input
           id = "new_password"
           type="password"
-          // placeholder="New Password"
           value={passwordData.new_password}
           onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
         />
@@ -179,7 +172,6 @@ return (
         <input
           id = "confirm_new_password"
           type="password"
-          // placeholder="Confirm New Password"
           value={passwordData.confirm_new_password}
           onChange={(e) => setPasswordData({ ...passwordData, confirm_new_password: e.target.value })}
         />
