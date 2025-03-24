@@ -3,6 +3,7 @@ import { FaHome, FaUsers, FaCog, FaSignOutAlt, FaBrain, FaUserShield} from "reac
 import { BiSupport } from "react-icons/bi";
 import { PiBooksBold } from "react-icons/pi";
 import { PiColumnsPlusLeftFill } from "react-icons/pi";
+import { RiQuestionnaireLine } from "react-icons/ri";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import '../styles/Sidebar.css'; 
@@ -43,9 +44,11 @@ const Sidebar = ({ role }) => {
   const adminItems = [
     { path: "service-users", icon: <FaUsers size={24} />, label: "Manage Users" },
     { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
+    { path: "set-questionnaire", icon: <RiQuestionnaireLine size={24} />, label: "Set Quesionnaire"},
     { path: "all-courses/create-and-manage-module", icon: <PiColumnsPlusLeftFill size={24} />, label: "Create Module" }
-
   ];
+
+
   
   // Worker-specific menu items (for "service user")
   const workerItems = [ 
