@@ -396,21 +396,11 @@ export const quizApi = {
 //get the task that needs downloading nd the authentication token
 export const downloadCompletedTask = async(taskId, token) => {
   try {
-    // const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
-    //   headers:{
-    //     Authorization: `Token ${token}`,
-    //     Accept: "application/pdf",
-    //   },
-    //   responseType: "blob", //dowlaod pdf in blob format
-    // });
-
-    const response = await api.get('/api/download-completed-task/<uuid:task_id>/');
     const response = await api.get(`/api/download-completed-task/${taskId}/`,{
       headers:{
         Authorization: `Token ${token}`,
-        // Accept: "application/pdf",
       },
-      responseType: "blob", //dowlaod pdf in blob format
+      responseType: "blob", 
     });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
