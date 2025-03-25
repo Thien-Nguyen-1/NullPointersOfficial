@@ -6,10 +6,12 @@ import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
 import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
 import HeadingsComponent from "../components/editors/Headings";
 import DocumentUploader, {DocumentEditorWrapper} from "../components/editors/DocumentUploader";
+import { AudioEditorWrapper } from "../components/editors/AudioUploader";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
 import DocumentService from "../services/DocumentService";
+import AudioService from "../services/AudioService";
 
 import styles from "../styles/AddModule.module.css";
 import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
@@ -64,7 +66,8 @@ const AddModule = () => {
   ];
 
   const media = {
-    'Upload Document': {component: DocumentEditorWrapper, type:'document'}
+    'Upload Document': {component: DocumentEditorWrapper, type:'document'},
+    'Upload Audio': {component: AudioEditorWrapper, type:'audio'}
   };
 
   useEffect(() => {
@@ -115,8 +118,17 @@ const AddModule = () => {
         })
       ]);
 
+      //  fetch audio clips:
+      const audiosResponse = await AudioService.getModuleAudios(moduleId).catch(error => {
+        console.error("Error fetching audio clips:", error);
+        return []; // Return empty array on error
+      });
+
       const tasks = tasksResponse || [];
       const documents = documentsResponse || [];
+      const audios = audiosResponse || [];
+
+      console.log("[DEBUG] Fetched Audio Clips for Module:", audios);
 
       console.log("[DEBUG] Fetched Tasks for Module:", tasks);
       console.log("[DEBUG] Fetched Documents for Module:", documents);
@@ -177,9 +189,31 @@ const AddModule = () => {
         moduleId: moduleId, // Store the document ID separately
         actualModuleId: moduleId // Store the actual module ID
       }));
+      // === this code creates one new component for EACH audio in the audios array === #
+      // const audioTemplates = audios.map(audio => ({
+      //   id: audio.contentID,
+      //   type: 'Upload Audio',
+      //   quizType: 'audio',
+      //   componentType: 'media',
+      //   mediaType: 'audio',
+      //   moduleId: moduleId,
+      //   actualModuleId: moduleId
+      // }));
 
-      setModules([...taskTemplates, ...documentTemplates]);
-      console.log("[DEBUG] Final Module Templates :",[...taskTemplates, ...documentTemplates]);
+      // Instead of creating multiple audio templates (one per audio file)
+      // Create just ONE audio template to show all audio files for this module:
+      const audioTemplates = audios.length > 0 ? [{
+        id: `audio-uploader-${moduleId}`,
+        type: 'Upload Audio',
+        quizType: 'audio',
+        componentType: 'media',
+        mediaType: 'audio',
+        moduleId: moduleId,
+        actualModuleId: moduleId
+      }] : [];
+
+      setModules([...taskTemplates, ...documentTemplates, ...audioTemplates]);
+      console.log("[DEBUG] Final Module Templates :",[...taskTemplates, ...documentTemplates, ...audioTemplates]);
 
       setIsLoading(false);
     } catch (err) {
@@ -409,6 +443,47 @@ const AddModule = () => {
                   console.log("Cannot get temp files from editor");
                 }
               }
+
+              else if (module.mediaType === "audio") {
+                const audioEditor = editorRefs.current[module.id];
+                console.log("Audio editor ref:", audioEditor);
+                console.log("Has getTempFiles method:", audioEditor && typeof audioEditor.getTempFiles === 'function');
+
+                if (audioEditor && audioEditor.getTempFiles) {
+                  const tempFiles = audioEditor.getTempFiles();
+                  console.log("Temp audio files retrieved:", tempFiles);
+                  console.log("Number of temp audio files:", tempFiles ? tempFiles.length : 0);
+                  
+                  if (tempFiles && tempFiles.length > 0) {
+                    try {
+                      // Create a FormData object to upload the files
+                      const formData = new FormData();
+                      formData.append('module_id', moduleId); 
+                      
+                      // Add each temp file to the form data
+                      tempFiles.forEach(fileData => {
+                        formData.append('files', fileData.file);
+                      });
+
+                      console.log("Attempting to upload audio files with formData:");
+                      for (let pair of formData.entries()) {
+                        console.log(pair[0], pair[1]);
+                      }
+                      
+                      // Use AudioService to upload directly
+                      const uploadedAudios = await AudioService.uploadAudios(formData);
+                      console.log("[DEBUG] Uploaded audio clips:", uploadedAudios);
+                    } catch (audioError) {
+                      console.error("Error uploading audio clips:", audioError);
+                      setError(`Failed to upload audio clips: ${audioError.message}`);
+                    }
+                  } else {
+                    console.log("No temp audio files to upload");
+                  }
+                } else {
+                  console.log("Cannot get temp audio files from editor");
+                }
+              }
               // Future media types would go here (audio, images, videos)
               // For example, if module.mediaType === "audio_clip" etc
 
@@ -532,9 +607,63 @@ const AddModule = () => {
           }
         }
         
+        // == FUNCTION TO DELETE COMPONENT IN EDITOR MODE == // 
         // Delete tasks that weren't updated
         try {
           const deletedCount = await QuizApiUtils.cleanupOrphanedTasks(moduleId, updatedTaskIds);
+
+          // FOR DOCUMENTS
+          // Collect IDs of document components that we're keeping
+          const keptDocumentComponentIds = modules
+          .filter(m => m.componentType === "media" && m.mediaType === "document")
+          .map(m => m.id);
+
+          // Clean up orphaned document files
+          try {
+            // Get all existing document files for this module
+            const existingDocuments = await DocumentService.getModuleDocuments(moduleId);
+
+            // If there are no document components/blocks left, delete all document files
+            if (keptDocumentComponentIds.length === 0) {
+              console.log(`No document components left - deleting all document files for module ${moduleId}`);
+              for (const document of existingDocuments) {
+                await DocumentService.deleteDocument(document.contentID);
+                console.log(`Deleted orphaned document: ${document.contentID}`);
+              }
+          }
+            // If we deleted specific document components, we'd need to track which documents belong to which component
+            // But since we're using a single component per module approach, this is simplified
+          } catch (error) {
+            console.error("Error cleaning up orphaned document files:", error);
+          }
+
+          // FOR AUDIO
+          // Collect IDs of audio components that we're keeping
+          const keptAudioComponentIds = modules
+          .filter(m => m.componentType === "media" && m.mediaType === "audio")
+          .map(m => m.id);
+          
+          try {
+            // Get all existing audio files for this module
+            const existingAudios = await AudioService.getModuleAudios(moduleId);
+            
+            // If there are no audio components left, delete all audio files
+            if (keptAudioComponentIds.length === 0) {
+              console.log(`No audio components left - deleting all audio files for module ${moduleId}`);
+              for (const audio of existingAudios) {
+                await AudioService.deleteAudio(audio.contentID);
+                console.log(`Deleted orphaned audio: ${audio.contentID}`);
+              }
+            }
+            // If we deleted specific audio components, we'd need to track which audios belong to which component
+            // But since we're using a single component per module approach, this is simplified
+          } catch (error) {
+            console.error("Error cleaning up orphaned audio files:", error);
+          }
+
+          // Future media ...
+
+          
         } catch (cleanupError) {
           console.error(`[ERROR] Error cleaning up orphaned tasks: ${cleanupError}`);
         }
@@ -584,6 +713,33 @@ const AddModule = () => {
                   } catch (docError) {
                     console.error("Error uploading documents:", docError);
                     setError(`Failed to upload documents: ${docError.message}`);
+                  }
+                }
+              }
+            }
+
+            else if (module.mediaType === "audio") {
+              const audioEditor = editorRefs.current[module.id];
+              if (audioEditor && audioEditor.getTempFiles) {
+                const tempFiles = audioEditor.getTempFiles();
+                if (tempFiles && tempFiles.length > 0) {
+                  try {
+                    // Create a FormData object to upload the files
+                    const formData = new FormData();
+                    // Pass moduleId directly instead of an object
+                    formData.append('module_id', moduleId);
+                    
+                    // Add each temp file to the form data
+                    tempFiles.forEach(fileData => {
+                      formData.append('files', fileData.file);
+                    });
+                    
+                    // Use AudioService to upload directly
+                    const uploadedAudios = await AudioService.uploadAudios(formData);
+                    console.log("[DEBUG] Uploaded audio files:", uploadedAudios);
+                  } catch (audioError) {
+                    console.error("Error uploading audio files:", audioError);
+                    setError(`Failed to upload audio files: ${audioError.message}`);
                   }
                 }
               }
