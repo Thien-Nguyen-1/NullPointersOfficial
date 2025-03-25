@@ -213,9 +213,30 @@ class AudioClipSerializer(ContentSerializer):
         fields  = ContentSerializer.Meta.fields + ['audio_file',"question_text","user_response"]
 
 class DocumentSerializer(ContentSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_size_formatted = serializers.SerializerMethodField()
+    upload_date = serializers.SerializerMethodField()
+    
     class Meta:
         model = Document
-        fields  = ContentSerializer.Meta.fields + ['documents']
+        fields = [
+            'contentID', 'title', 'filename', 'file_type', 'file_size', 
+            'file_url', 'file_size_formatted', 'upload_date', 'description'
+        ]
+    
+    def get_file_url(self, obj):
+        return obj.file.url if obj.file else None
+    
+    def get_file_size_formatted(self, obj):
+        """Return human-readable file size."""
+        size = obj.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+    
+    def get_upload_date(self, obj):
+        return obj.created_at
 
 class EmbeddedVideoSerializer(ContentSerializer):
     class Meta:

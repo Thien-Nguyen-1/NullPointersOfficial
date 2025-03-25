@@ -1,0 +1,198 @@
+.container {
+    margin-bottom: 20px;
+  }
+  
+  .dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    border: 2px dashed var(--primary-green);
+    border-radius: 8px;
+    background-color: var(--secondary-green);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 180px;
+  }
+  
+  .dropzone:hover {
+    background-color: #dbe8e0;
+  }
+  
+  .dropzone.active {
+    background-color: #d0e0d6;
+    border-color: var(--primary-green-dark);
+    transform: scale(1.01);
+  }
+  
+  .uploadIcon {
+    font-size: 36px;
+    color: var(--primary-green);
+    margin-bottom: 10px;
+  }
+  
+  .dropText {
+    font-size: 1.1rem;
+    margin: 8px 0;
+    color: var(--primary-green);
+    font-weight: 500;
+  }
+  
+  .supportedText {
+    font-size: 0.9rem;
+    color: var(--text-subtle);
+    margin-top: 5px;
+  }
+  
+  .fileInput {
+    display: none;
+  }
+  
+  .fileList {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .fileItem {
+    background-color: white;
+    border-radius: 6px;
+    padding: 12px 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+  }
+  
+  .fileInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .fileName {
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .fileSize {
+    color: var(--text-subtle);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  
+  .fileActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  
+  .removeButton {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    color: #999;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+  }
+  
+  .removeButton:hover {
+    background-color: #f5f5f5;
+    color: #666;
+  }
+  
+  .progressContainer {
+    width: 100%;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+  
+  .progressBar {
+    height: 100%;
+    background-color: var(--primary-green);
+    transition: width 0.3s ease;
+  }
+  
+  .errorBar {
+    background-color: #e74c3c;
+  }
+  
+  .uploadButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .uploadButton:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  .uploadButton:disabled {
+    background-color: #b8b8b8;
+    cursor: not-allowed;
+  }
+  
+  /* File icon colors */
+  .pdfIcon {
+    color: #e74c3c;
+  }
+  
+  .wordIcon {
+    color: #2980b9;
+  }
+  
+  .excelIcon {
+    color: #27ae60;
+  }
+  
+  .pptIcon {
+    color: #e67e22;
+  }
+  
+  .completeIcon {
+    color: #2ecc71;
+  }
+  
+  .errorIcon {
+    color: #e74c3c;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .dropzone {
+      padding: 20px;
+      min-height: 150px;
+    }
+    
+    .uploadIcon {
+      font-size: 30px;
+    }
+    
+    .dropText {
+      font-size: 1rem;
+    }
+  }

@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
+import os
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db.models import JSONField
@@ -302,8 +303,36 @@ class AudioClip(Content):
 
 class Document(Content):
     """Model for Attach PDF/Documents/Infosheet content type"""
-    documents = models.JSONField()  # Stores document metadata as JSON
+    # documents = models.JSONField()  # Stores document metadata as JSON
     # Each document will have: name, title, url, fileType
+    file = models.FileField(upload_to="documents/", null=True, blank=True)
+    filename = models.CharField(max_length=255, null=True, blank=True)
+    file_type = models.CharField(max_length=50, null=True, blank=True)
+    file_size = models.PositiveIntegerField(null=True, blank=True)  # size in bytes
+    upload_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.filename or ""
+    
+    @property
+    def file_url(self):
+        return self.file.url if self.file else None
+    
+    @property
+    def file_size_formatted(self):
+        """Return human-readable file size."""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+    
+    def delete(self, *args, **kwargs):
+        # Delete the file from storage when model instance is deleted
+        if self.file:
+            if os.path.isfile(self.file.path):
+                os.remove(self.file.path)
+        super().delete(*args, **kwargs)
 
 class EmbeddedVideo(Content):
     """Model for Embedded Video content type"""

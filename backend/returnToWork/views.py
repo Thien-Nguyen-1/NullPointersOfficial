@@ -1,5 +1,4 @@
-import json
-import random
+import os
 import uuid
 from io import BytesIO
 
@@ -13,6 +12,8 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from rest_framework.decorators import action
+
 
 from rest_framework import generics, status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -264,9 +265,90 @@ class AudioClipViewSet(viewsets.ModelViewSet):
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Filter by module ID if provided in query params
+        module_id = self.request.query_params.get('module_id')
+        if module_id:
+            try:
+                # convert string to integer since Module.id is an AutoField
+                module_id_int = int(module_id)
+                return Document.objects.filter(moduleID=module_id_int)
+            except (ValueError, TypeError) as e:
+                # Log the error for debugging
+                print(f"Error filtering documents by module_id {module_id}: {str(e)}")
+                return Document.objects.none()  # return empty queryset on error
+        
+        # If user is admin/superadmin, they can see all documents
+        if self.request.user.is_staff or self.request.user.is_superuser or self.request.user.user_type in ['admin', 'superadmin']:
+            return Document.objects.all()
+        
+        # Regular users can only see published documents
+        return Document.objects.filter(is_published=True)
+    
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        files = request.FILES.getlist('files')
+        module_id = request.data.get('module_id')
+        
+        if not files:
+            return Response({'error': 'No files to upload'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        module = None
+        if module_id:
+            try:
+                # convert module_id to integer since it's an AutoField
+                module_id_int = int(module_id)
+                module = Module.objects.get(id=module_id)
+            except Module.DoesNotExist:
+                print(f"Error getting module {module_id}: {str(e)}")
+                return Response({'error': 'Module not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        uploaded_documents = []
+        
+        for file in files:
+            # check file type and size
+            filename = file.name
+            file_extension = os.path.splitext(filename)[1][1:].lower()
+            
+            allowed_extensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']
+            if file_extension not in allowed_extensions:
+                continue  # skip unsupported files
+            
+            try:
+                # create document object
+                document = Document(
+                    moduleID=module,
+                    file=file,
+                    filename=filename,
+                    file_type=file_extension,
+                    file_size=file.size,
+                    author=request.user,
+                    title=filename,  # set title to filename by default
+                    description=f"Uploaded document: {filename}",
+                    is_published=True  # set as published by default
+                )
+                document.save()
+                uploaded_documents.append(document)
+            except Exception as e:
+                print(f"Error saving document {filename}: {str(e)}")
+        
+        if not uploaded_documents:
+            return Response({'error': 'No valid documents were uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer = DocumentSerializer(uploaded_documents, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        document = self.get_object()
+        
+        # Only allow admins or the document author to delete
+        if request.user.user_type in ['admin', 'superadmin'] or document.author == request.user:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
 
 class EmbeddedVideoViewSet(viewsets.ModelViewSet):
     queryset = EmbeddedVideo.objects.all()
@@ -1499,3 +1581,5 @@ class CompletedContentView(APIView):
         ).values_list('object_id', flat=True)
         
         return Response(list(viewed_content))
+    
+

@@ -227,6 +227,17 @@ export const QuizApiUtils = {
     return typeMap[uiType] || 'text_input';
   },
 
+  getComponentType: (quizType) => {
+    // Map quiz types to component types
+    const mediaTypes = ['document', 'audio', 'image', 'video', 'embed'];
+    
+    if (mediaTypes.includes(quizType)) {
+      return 'media';
+    } else {
+      return 'template';
+    }
+  },
+
   // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
   getUITypeFromAPIType: (apiType) => {
     const typeMap = {
@@ -234,13 +245,38 @@ export const QuizApiUtils = {
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
       'question_input':'Question and Answer Form',
-      'pair_input':'Matching Question Quiz'
+      'pair_input':'Matching Question Quiz',
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
 
+  getUIMediaTypeFromAPIType: (apiType) => {
+    const typeMap = {
+      'document': 'Upload Document',
+      // Add other media types as needed
+    };
+    return typeMap[apiType] || null;
+  },
+
+    /**
+   * Get only MEDIA CONTENT specific to a module
+   */
+  getModuleContents: async (moduleId) => {
+    try {
+      console.log(`Fetching documents for module ID: ${moduleId}`);
+      // This endpoint should return all content objects (including documents) for a module
+      const response = await api.get('/api/documents/', { 
+        params: { module_id: moduleId } 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching module contents:', error);
+      throw error;
+    }
+  },
+
   /**
-   * Get only tasks specific to a module
+   * Get only TASKS/QUIZ specific to a module
    */
   getModuleSpecificTasks: async (moduleId) => {
     try {

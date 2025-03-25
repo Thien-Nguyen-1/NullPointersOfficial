@@ -3,12 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
 import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
-import AudioQuestionEditor from "../components/editors/AudioQuestionEditor";
 import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
 import HeadingsComponent from "../components/editors/Headings";
+import DocumentUploader, {DocumentEditorWrapper} from "../components/editors/DocumentUploader";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
+import DocumentService from "../services/DocumentService";
 
 import styles from "../styles/AddModule.module.css";
 import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
@@ -62,25 +63,9 @@ const AddModule = () => {
     {name:"Heading 3", size: "heading3"}
   ];
 
-  // For development, use a prototype author
-  // useEffect(() => {
-  //   // Set a prototype author for development
-  //   const prototypeAuthor = { id: 1, user_id: 1 };
-  //   setCurrentUser(prototypeAuthor);
-  //   console.log("Using prototype author for development:", prototypeAuthor);
-    
-  //   // Optional: Still try to load from localStorage if available
-  //   try {
-  //     const userString = localStorage.getItem('user');
-  //     if (userString) {
-  //       const userData = JSON.parse(userString);
-  //       setCurrentUser(userData);
-  //       console.log("Loaded user from localStorage:", userData);
-  //     }
-  //   } catch (err) {
-  //     console.warn("Could not parse user data from localStorage:", err);
-  //   }
-  // }, []);
+  const media = {
+    'Upload Document': {component: DocumentEditorWrapper, type:'document'}
+  };
 
   useEffect(() => {
     if (!currentUser)
@@ -104,23 +89,55 @@ const AddModule = () => {
   const fetchModuleData = useCallback(async (moduleId) => {
     try {
       setIsLoading(true);
-      
+
+      // fetch module data first
       const moduleData = await QuizApiUtils.getModule(moduleId);
-      console.log("[DEBUG] Fetched Module Data:",moduleData);
+      console.log("[DEBUG] Fetched Module Data:", moduleData);
       setTitle(moduleData.title);
       setDescription(moduleData.description || "");
       setTags(moduleData.tags || []);
-      
-      // Use the new module-specific task function
-      const tasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-      console.log("[DEBUG] Fetched Tasks for Module :",tasks);
 
+      // // fetch TASK/QUIZ
+      // const tasks = await QuizApiUtils.getModule(moduleId);
+      // console.log("[DEBUG] Fetched Tasks for Module:", tasks);
+      // // fetch MEDIA Content (other than quiz)
+      // const documents = await QuizApiUtils.getModuleContents(moduleId);
+      // console.log("[DEBUG] Fetched Documents for Module:", documents);
+
+      const [tasksResponse, documentsResponse] = await Promise.all([
+        QuizApiUtils.getModuleSpecificTasks(moduleId).catch(error => {
+          console.error("Error fetching tasks:", error);
+          return []; // Return empty array on error
+        }),
+        QuizApiUtils.getModuleContents(moduleId).catch(error => {
+          console.error("Error fetching documents:", error);
+          return []; // Return empty array on error
+        })
+      ]);
+
+      const tasks = tasksResponse || [];
+      const documents = documentsResponse || [];
+
+      console.log("[DEBUG] Fetched Tasks for Module:", tasks);
+      console.log("[DEBUG] Fetched Documents for Module:", documents);
 
       // Reset the initialQuestionsRef to avoid any stale data
       initialQuestionsRef.current = {};
 
-      const moduleTemplates = await Promise.all(tasks.map(async (task) => {
-        let type = QuizApiUtils.getUITypeFromAPIType(task.quiz_type);
+      const taskTemplates = await Promise.all(tasks.map(async (task) => {
+        const componentType = QuizApiUtils.getComponentType(task.quiz_type);
+  
+        // Get the appropriate type based on component type
+        let type;
+        console.log(`Task quiz_type: ${task.quiz_type}`);
+        console.log(`Component type determined: ${componentType}`);
+
+        if (componentType === 'media') {
+          console.log(`UI media type: ${QuizApiUtils.getUIMediaTypeFromAPIType(task.quiz_type)}`);
+          type = QuizApiUtils.getUIMediaTypeFromAPIType(task.quiz_type);
+        } else {
+          type = QuizApiUtils.getUITypeFromAPIType(task.quiz_type);
+        }
 
         try {
           const questions = await QuizApiUtils.getQuestions(task.contentID);
@@ -133,6 +150,7 @@ const AddModule = () => {
             id: task.contentID,
             type,
             quizType: task.quiz_type,
+            componentType,
             taskId: task.contentID, // Store the actual task ID for referencing
             moduleId: moduleId // Store the module ID to maintain relationship
           };
@@ -143,15 +161,25 @@ const AddModule = () => {
           return {
             id: task.contentID,
             type,
-            quizType: task.quiz_type,
+            quizType: task.quiz_type,componentType,
             taskId: task.contentID,
             moduleId: moduleId
           };
         }
       }));
 
-      setModules(moduleTemplates);
-      console.log("[DEBUG] Final Module Templates :",moduleTemplates);
+      // Process documents
+      const documentTemplates = documents.map(doc => ({
+        id: doc.contentID,
+        type: 'Upload Document',
+        quizType: 'document',
+        componentType: 'media',
+        moduleId: moduleId, // Store the document ID separately
+        actualModuleId: moduleId // Store the actual module ID
+      }));
+
+      setModules([...taskTemplates, ...documentTemplates]);
+      console.log("[DEBUG] Final Module Templates :",[...taskTemplates, ...documentTemplates]);
 
       setIsLoading(false);
     } catch (err) {
@@ -188,8 +216,7 @@ const AddModule = () => {
 
       setModules([...modules, newHeading]);
     } else if (componentType === "template") {
-      
-      
+      console.log(`[DEBUG] Adding template module: ${moduleType}, with quizType: ${QuizApiUtils.getQuizTypeValue(moduleType)}`);
       const newModule = { 
         id: newModuleId,
         type: moduleType,
@@ -197,6 +224,15 @@ const AddModule = () => {
         quizType: QuizApiUtils.getQuizTypeValue(moduleType),
       };
 
+      setModules([...modules, newModule]);
+    } else if (componentType === "media") {
+      const newModule = { 
+        id: newModuleId,
+        type: moduleType,
+        componentType: componentType, 
+        mediaType: media[moduleType].type,
+        moduleId: editId || null
+      };
       setModules([...modules, newModule]);
     }
     
@@ -326,14 +362,62 @@ const AddModule = () => {
         // First, get current tasks
         const existingTasks = await QuizApiUtils.getModuleTasks(moduleId);
         
-        // Update or create tasks
-        for (const module of modules) {
-          // Get the current questions from the editor component using the ref
-          let currentQuestions = [];
-          const editorComponent = editorRefs.current[module.id];
-          
+          // Update or create tasks
+          for (const module of modules) {
+            // Get the current questions from the editor component using the ref
+            let currentQuestions = [];
+            const editorComponent = editorRefs.current[module.id];
+            
 
-          
+            // Special handling for MEDIA components (document, audio, images, videos)
+            if (module.componentType === "media") {
+              console.log(`Processing media module: ${module.type}, mediaType: ${module.mediaType}`);
+              // Handle document uploads using DocumentService
+              if (module.mediaType === "document") {
+                const documentEditor = editorRefs.current[module.id];
+                console.log("Document editor ref:", documentEditor);
+                console.log("Has getTempFiles method:", documentEditor && typeof documentEditor.getTempFiles === 'function');
+    
+                if (documentEditor && documentEditor.getTempFiles) {
+                  const tempFiles = documentEditor.getTempFiles();
+                  console.log("Temp files retrieved:", tempFiles);
+                  console.log("Number of temp files:", tempFiles ? tempFiles.length : 0);
+      
+                  
+                  if (tempFiles && tempFiles.length > 0) {
+                    try {
+                      // Create a FormData object to upload the files
+                      const formData = new FormData();
+                      formData.append('module_id', moduleId);
+                      
+                      // Add each temp file to the form data
+                      tempFiles.forEach(fileData => {
+                        formData.append('files', fileData.file);
+                      });
+                      
+                      // Use DocumentService to upload directly
+                      const uploadedDocs = await DocumentService.uploadDocuments(formData);
+                      console.log("[DEBUG] Uploaded documents:", uploadedDocs);
+                    } catch (docError) {
+                      console.error("Error uploading documents:", docError);
+                      setError(`Failed to upload documents: ${docError.message}`);
+                    }
+                  } else {
+                    console.log("No temp files to upload");
+                  }
+                } else {
+                  console.log("Cannot get temp files from editor");
+                }
+              }
+              // Future media types would go here (audio, images, videos)
+              // For example, if module.mediaType === "audio_clip" etc
+
+              // Skip the regular task creation process for all media components
+              continue; // This goes to the next iteration of the loop
+
+            }
+      
+          // Regular non-media task handling continues below
           if (editorComponent && typeof editorComponent.getQuestions === 'function') {
             // If the editor component exposes a getQuestions method, use it
             currentQuestions = editorComponent.getQuestions();
@@ -369,6 +453,7 @@ const AddModule = () => {
               title: `${module.type} for ${title}`,
               moduleID: moduleId, // Explicitly set module ID to maintain relationship
               description: `${module.type} content for ${title}`,
+              // Use mediaType if it's a media component, otherwise use quizType
               quiz_type: module.quizType,
               text_content: "Updated by admin interface",
               author: authorId, // Use the retrieved user ID
@@ -420,6 +505,7 @@ const AddModule = () => {
               title: `${module.type} for ${title}`,
               moduleID: moduleId,
               description: `${module.type} content for ${title}`,
+              // Use mediaType if it's a media component, otherwise use quizType
               quiz_type: module.quizType,
               text_content: "Generated by admin interface",
               author: authorId, // Use the retrieved user ID
@@ -472,7 +558,42 @@ const AddModule = () => {
           let currentQuestions = [];
           const editorComponent = editorRefs.current[module.id];
           
-          
+          // Special handling for media components (document, audio, images, videos)
+          if (module.componentType === "media") {
+            // Handle document uploads
+            if (module.mediaType === "document") {
+              const documentEditor = editorRefs.current[module.id];
+              if (documentEditor && documentEditor.getTempFiles) {
+                const tempFiles = documentEditor.getTempFiles();
+                
+                if (tempFiles && tempFiles.length > 0) {
+                  try {
+                    // Create a FormData object to upload the files
+                    const formData = new FormData();
+                    // Pass moduleId directly instead of an object
+                    formData.append('module_id', moduleId);
+                    
+                    // Add each temp file to the form data
+                    tempFiles.forEach(fileData => {
+                      formData.append('files', fileData.file);
+                    });
+                    
+                    // Use DocumentService to upload directly
+                    const uploadedDocs = await DocumentService.uploadDocuments(formData);
+                    console.log("[DEBUG] Uploaded documents:", uploadedDocs);
+                  } catch (docError) {
+                    console.error("Error uploading documents:", docError);
+                    setError(`Failed to upload documents: ${docError.message}`);
+                  }
+                }
+              }
+            }
+            // Future media types would go here (audio, images, videos)
+    
+            // Skip the regular task creation process for all media components
+            continue;
+          }
+
           if (editorComponent && typeof editorComponent.getQuestions === 'function') {
             // If the editor component exposes a getQuestions method, use it
             currentQuestions = editorComponent.getQuestions();
@@ -485,7 +606,7 @@ const AddModule = () => {
             title: `${module.type} for ${title}`,
             moduleID: moduleId,
             description: `${module.type} content for ${title}`,
-            quiz_type: module.quizType,
+            quiz_type:module.quizType,
             text_content: "Generated by admin interface",
             author: authorId, // Use the retrieved user ID
             is_published: true
@@ -642,6 +763,8 @@ const AddModule = () => {
               EditorComponent = moduleOptions[module.type]?.component
             } else if (module.componentType === "heading") {
               EditorComponent = HeadingsComponent;
+            } else if (module.componentType === "media") {
+              EditorComponent = media[module.type]?.component;
             }
 
             // Skip if no component is found for this type
@@ -673,8 +796,9 @@ const AddModule = () => {
                   ref={(el) => { 
                     editorRefs.current[module.id] = el;
                   }}
-                  moduleId={module.id}
-                  quizType={module.quizType}
+                  moduleId={module.moduleId }  // Use moduleId if available, otherwise fall back to id
+                  documentId={module.id}           // Pass document ID separately if needed
+                  quizType={module.componentType === "media" ? module.mediaType : module.quizType}
                   initialQuestions={initialQuestionsRef.current[module.id] || []}
                   key={`editor-${module.id}`} // Add a key to force re-render when questions change
                 />
@@ -716,6 +840,18 @@ const AddModule = () => {
                     onClick={() => addModule(moduleType, "template")}
                   >
                     {moduleType}
+                  </div>
+                ))}
+              </div>
+              <h4 className={styles["dropdown-title"]}>Media</h4>
+              <div className={styles["dropdown-options"]}>
+                {Object.keys(media).map((mediaType, index) => (
+                  <div
+                    key={index}
+                    className={styles["dropdown-item"]}
+                    onClick={() => addModule(mediaType, "media")}
+                  >
+                    {mediaType}
                   </div>
                 ))}
               </div>

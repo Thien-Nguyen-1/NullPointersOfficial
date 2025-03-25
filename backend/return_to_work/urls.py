@@ -34,7 +34,8 @@ from returnToWork.views import (
     DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
     TaskPdfView, QuizQuestionViewSet, VerifyEmailView, 
-    TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView
+    TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView,
+    DocumentViewSet,
 )
 #for media url access
 from django.conf import settings
@@ -50,7 +51,7 @@ router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'ranking-question', RankingQuestionViewSet, basename='ranking-question')
 router.register(r'inline-picture', InlinePictureViewSet, basename='inline-picture')
 router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
-router.register(r'document',DocumentViewSet , basename='document')
+router.register(r'documents', DocumentViewSet)
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
 router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
 # router.register(r'user_response', UserResponseViewSet,basename='userResponse')
@@ -107,6 +108,8 @@ urlpatterns = [
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
+    # Content Media Type
+    path('modules/<int:module_id>/documents/', DocumentViewSet.as_view({'get': 'list'}), {'module_id': 'module_id'}),
 
 
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
