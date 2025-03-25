@@ -1,3 +1,6 @@
+# views.py - Main views file for backward compatibility
+# This file imports all views from the modular structure
+
 import json
 import random
 import uuid
