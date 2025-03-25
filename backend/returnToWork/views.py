@@ -1440,6 +1440,7 @@ class MarkContentViewedView(APIView):
             )
         
         # Create or update progress
+
         progress, created = ContentProgress.objects.get_or_create(
             user=request.user,
             content_type=content_type,

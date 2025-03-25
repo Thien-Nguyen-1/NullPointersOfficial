@@ -481,7 +481,7 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Token ${token}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         content_id: contentId,

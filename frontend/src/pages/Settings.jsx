@@ -23,6 +23,8 @@ function Settings() {
       try {
         const data = await fetchCompletedInteractiveContent();
         setCompletedCourses(data);
+        console.log("Fetched completed content:", data);
+
       } catch (err) {
         console.error("Failed to fetch completed interactive content", err);
       }
