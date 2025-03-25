@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import dj_database_url
 import os
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'returnToWork',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', # Enable token blacklisting for logout
     'rest_framework.authtoken',
     'corsheaders',
 
@@ -155,6 +159,7 @@ AUTH_USER_MODEL = 'returnToWork.User'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React Frontend
     "http://localhost:5173",
+    "http://localhost:5174"
     "https://empower-pi.vercel.app",
 ]
 
@@ -171,6 +176,7 @@ CORS_ALLOW_CREDENTIALS = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',  # Token Auth
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -187,5 +193,20 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'readiness.to.return.to.work@gmail.com'  
 EMAIL_HOST_PASSWORD = 'lujx sgqs wypy uxsc'  
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True, # JWT authentication system is a security feature that helps manage token invalidation ->  it adds the refresh token to the database table of invalidated tokens.
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}
 
 

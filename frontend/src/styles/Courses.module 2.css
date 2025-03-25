@@ -1,0 +1,134 @@
+
+* { /* don't touch this */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+.createModuleBtn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 15px;
+  background-color: #9fca85; /* Green button */
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.createModuleBtn:hover {
+  background-color: var(--primary-green-dark) /* Slightly darker green */
+}
+
+
+.course-container {
+  display: flex;  
+  flex-direction: column;
+  width: 100%;
+  justify-items: center;
+}
+
+.courseContainer .tagCourseContainer {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  justify-items: center;
+  align-items: center;
+}
+
+.courseSelectionContainer {
+  display: inherit;
+  flex-direction: inherit;
+  align-items: flex-start;
+}
+
+
+
+/* Phone Resolution */
+@media screen and (min-width: 375px ){
+  .courseContainer .tagCourseContainer {
+    grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+    
+    p {
+      font-size: 0.7em;
+    }
+  }
+}
+
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+  .courseContainer .tagCourseContainer {
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    p {
+      font-size: 1em;
+    }
+  }
+}
+
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+
+}
+
+
+
+/* TO BE MOVED */
+.tagCourse {
+  width: 100%;
+  height: auto;
+  
+  background-color: var(--primary-green-dark);
+  color: white;
+
+  border-color: var(--primary-green-dark);
+  border-style: ridge;
+
+  border-radius: 1rem;
+
+  font-size: 16px;
+  text-align: center;
+  line-height: 2.2rem;     
+  transition: all 0.3s ease;  
+  cursor: pointer;  
+}
+
+.editButton {
+  background-color: grey;
+}
+
+.tabsFilter {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-start;
+}
+
+.tabsFilter button {
+  background-color: transparent;
+  color: var(--text-subtle);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  min-width: 100px;
+
+  font-size: clamp(0.6rem, 1vw, 1rem);
+}
+
+.tabsFilter button:hover {
+  background-color: var(--primary-green-light);
+  transform: translateY(-2px);
+}
+
+.tabsFilter button.active {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.tabsFilter button.active:hover {
+  background-color: var(--primary-green-dark);
+}

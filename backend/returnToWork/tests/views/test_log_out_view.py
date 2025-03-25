@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -15,20 +16,27 @@ class LogOutViewTest(APITestCase):
             password ="password123"
         )
         self.logout_url = reverse("logout")
-
-        self.token = Token.objects.create(user=self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         
     def test_succsesful_logout(self):
-        self.assertTrue(Token.objects.filter(user=self.user).exists())
-        response = self.client.post(self.logout_url, format="json")
+        refresh = RefreshToken.for_user(self.user)
+        # Since we're using JWT, we don't need the Token authentication
+        # but we still need to authenticate the user
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            self.logout_url, 
+            {"refresh": str(refresh)},
+            format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "Successfully logged out")
-        token_exists = Token.objects.filter(user=self.user).exists()
-        self.assertFalse(token_exists, "Token wasnt dleted after logout")
-        
+            
     def test_unauthnticated_user_cant_logout(self):
-        self.client.credentials()
-        response = self.client.post(self.logout_url, format="json")
+        self.client.force_authenticate(user=None)
+        refresh = RefreshToken.for_user(self.user)
+        response = self.client.post(
+            self.logout_url,
+            {"refresh": str(refresh)},
+            format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         

@@ -1,23 +1,16 @@
 html, body {
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* overflow-x: hidden; */
   background-color: var(--background-color);
   margin: 0;
   padding: 0;
   width: 100vw;
 }
 
-#root {
-  max-width: 1280px;
-  padding: 0.5rem;
-  background-color: var(--background-color);
-}
-  
 .app-container {
     display: flex;
     height: 100vh;
     width: 100vw;
-    overflow: visible;
+    /* overflow: hidden; <-- This would disable us from scrolling down and view the whole content for the page. so hopefully no one uses this */ 
     margin: 0;
     padding: 0;
 }
@@ -32,9 +25,7 @@ html, body {
    /* Why is the margin so huge? */
   margin-left: 1.2rem;
   margin-right: 1.2rem;
-  overflow-y: visible;
-  /* margin-left: 5rem;
-  padding-right: 15px; */
+
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
@@ -94,6 +85,52 @@ html, body {
   width: 100%;
   margin-top: 30px;
 }
+#root {
+
+  max-width: 1280px;
+  padding: 0rem;
+  background-color: var(--background-color);
+  height: 100dvh;
+  
+}
+
+
+
+.timeout-warning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.timeout-warning-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 450px;
+}
+
+.timeout-warning-content button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.timeout-warning-content button:hover {
+  background-color: #45a049;
+}
 
 /* ===== MARGIN STYLES ===== */
 
@@ -123,26 +160,40 @@ html, body {
 }
 
 
+/* ===== OPACITY ===== */
+.op-1 {opacity: 1;}
+.op-2 {opacity: 0.8;}
+.op-3 {opacity: 0.6;}
+
+
 /* Phone Resolution */
 @media screen and (min-width: 375px ){
+
    .main-content {
       margin-left: 1rem;
       margin-right: 1rem;
    }
+
 }
 
 /* Tablet Resolution */
 @media screen and (min-width: 768px ){
+
+  
+
   .main-content {
     margin-left: 2rem;
     margin-right: 2rem;
  }
+
 }
 
 /* Desktop Resolution */
 @media screen and (min-width: 1080px) {
+
   .main-content {
     margin-left: 5rem;
     margin-right: 5rem;
  }
+
 }

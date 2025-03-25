@@ -1,14 +1,4 @@
-# models.py - Main models file
-# This file is kept for backward compatibility and redirects to the organized model structure
-
-# Import all models from the models directory
-# This preserves the existing API so any code already using imports like:
-# from returnToWork.models import User
-# will continue to work without changes
-
-from .models import *
-
-from datetime import timezone
+from django.utils import timezone
 from django.core.validators import RegexValidator , EmailValidator
 from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
@@ -145,7 +135,8 @@ class User(AbstractUser):
 
     USER_TYPE_CHOICES = [
         ('admin', 'Admin'),
-        ('service user', 'Service user')
+        ('service user', 'Service user'),
+        ('superadmin', 'Super Admin')
         
     ]
 
@@ -180,6 +171,13 @@ class User(AbstractUser):
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
+    terms_accepted = models.BooleanField(default=False)
+
+    firebase_token = models.TextField(
+        default="",
+        blank=False,
+        null=False,
+    )
 
     class Meta:
         """Model options."""
@@ -385,6 +383,30 @@ class UserResponse(models.Model):
         return f"Response by {self.user.username} for {self.question}"
 
 
+class Conversation(models.Model): #one-to-many relationship with Messages
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="user_conversation")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="admin_conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    hasEngaged = models.BooleanField(default=False)
+    lastMessage = models.TextField(default="")
+
+    def __str__(self):
+        return f"Conversation created for: {self.user} and {self.admin}"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    text_content = models.TextField()
+    timestamp =  models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="message-files/", null=True)
+
+    def __str__(self):
+        return f"Text sent: {self.text_content}"
+            
+
+
 
     
  # Simplified ContentProgress for tracking viewed status only (no time tracking)
@@ -491,3 +513,17 @@ class PageViewSession(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.module.title} Session"
+    
+class TermsAndConditions(models.Model):
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_terms')
+    
+    class Meta:
+        verbose_name = 'Terms and Conditions'
+        verbose_name_plural = 'Terms and Conditions'
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        return f"Terms and Conditions (Updated: {self.updated_at.strftime('%Y-%m-%d')})"

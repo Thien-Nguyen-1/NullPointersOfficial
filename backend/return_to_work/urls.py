@@ -5,34 +5,31 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-# Import views from their new locations
-from returnToWork.views.auth import (
-    LogInView, LogOutView, SignUpView, PasswordResetView,
-    RequestPasswordResetView, CheckUsernameView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
 )
-from returnToWork.views.user import (
-    UserProfileView, UserSettingsView, UserPasswordChangeView,
-    UserDetail, ServiceUserListView, DeleteServiceUserView
+from returnToWork.views import (
+    CompletedContentView, MarkContentViewedView, ProgressTrackerView,
+    TagViewSet, ModuleViewSet, InfoSheetViewSet, VideoViewSet, TaskViewSet,
+    UserInteractionView, LogInView, LogOutView, SignUpView, UserProfileView,
+    PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView,
+    DeleteServiceUserView, UserSettingsView, UserPasswordChangeView,
+    CheckUsernameView, RequestPasswordResetView, ContentPublishView,
+    RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet,
+    DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
+    QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
+    TaskPdfView, QuizQuestionViewSet, VerifyEmailView, 
+    TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView
 )
-from returnToWork.views.modules import (
-    ModuleViewSet, TagViewSet, UserInteractionView
-)
-from returnToWork.views.progress import (
-    ProgressTrackerView
-)
-from returnToWork.views.content import (
-    InfoSheetViewSet, VideoViewSet, RankingQuestionViewSet,
-    InlinePictureViewSet, AudioClipViewSet, DocumentViewSet,
-    EmbeddedVideoViewSet, ContentPublishView, MarkContentViewedView,
-    CompletedContentView
-)
-from returnToWork.views.quizzes import (
-    TaskViewSet, QuestionnaireView, QuizDetailView, QuizResponseView,
-    QuizDataView, QuizQuestionView, QuizQuestionViewSet, TaskPdfView
-)
-from returnToWork.views.admin import (
-    AdminQuizResponsesView
-)
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView
+
+#for media url access
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path
 
 router = DefaultRouter()
 router.register(r'modules', ModuleViewSet, basename='module')
@@ -69,8 +66,29 @@ urlpatterns = [
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name="user-password-change"),
     path("api/check-username/", CheckUsernameView.as_view(), name="check-username"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
+    path('api/accept-terms/', AcceptTermsView.as_view(), name='accept-terms'),
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+
+    # SuperAdmin API endpoints
+    path('api/terms-and-conditions/', TermsAndConditionsView.as_view(), name='terms-and-conditions'),
+    path('api/admin-users/', AdminUsersView.as_view(), name='admin-users'),
+    path('api/admin-users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
+    path('api/check-superadmin/', CheckSuperAdminView.as_view(), name='check-superadmin'),
+    path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
     path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
     path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),
+    path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
+    path('api/completed-interactive-content/', CompletedInteractiveContentView.as_view(), name = 'completed-interactive-content'),
+
+
+
+
+
+
+
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
@@ -82,4 +100,9 @@ urlpatterns = [
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
-]
+
+
+    path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
+    path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
+    path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

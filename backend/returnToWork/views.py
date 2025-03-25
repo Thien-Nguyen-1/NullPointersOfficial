@@ -33,12 +33,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from reportlab.lib.pagesizes import letter
+from django.core.cache import cache
+
+from django.db.models import Q
+from firebase_admin import messaging
+
+
 from reportlab.pdfgen import canvas
 
 from .models import (
     Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
     RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
-    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video
+    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
+    Conversation, Message, TermsAndConditions
 )
 from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
@@ -47,11 +54,13 @@ from .serializers import (
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    VideoSerializer
+    VideoSerializer, MessageSerializer, ConversationSerializer
 )
 
 User = get_user_model()
 
+
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class ProgressTrackerView(APIView):
 
@@ -97,30 +106,56 @@ class LogInView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             login(request,user)
-            token, created = Token.objects.get_or_create(user=user)
+            # token, created = Token.objects.get_or_create(user=user)
 
-            return Response({"message": "Login Successful", "token": token.key, "user": UserSerializer(user).data})
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+
+            return Response({"message": "Login Successful", 
+                            "user": UserSerializer(user).data,
+                            "token": str(refresh.access_token),  # For backward compatibility
+                            "refreshToken": str(refresh)}) # refresh token to get new access
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LogOutView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
-        user=request.user
-        Token.objects.filter(user=user).delete()
-        logout(request)
+        # user=request.user
+        # Token.objects.filter(user=user).delete()
+        # logout(request)
 
         # if hasattr(request.user, 'auth_token'):
         #     request.user.auth_token.delete()
-        return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+        # return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+        try: 
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            logout(request)
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
 class SignUpView(APIView):
     def post(self,request):
         serializer =SignUpSerializer(data = request.data)
         if serializer.is_valid():
-            user = serializer.save()
-            login(request,user)
-            return Response({"message":"User registered successfully","user":UserSerializer(user).data})
+            serializer.save()
+            # login(request,user)
+            return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    
+class VerifyEmailView(APIView):
+    def get(self,request,token):
+        user_data = cache.get(token)
+        if not user_data:
+            return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=user_data.get("email")).exists():
+            return Response({"message": "This email is already verified. You can log in"}, status=status.HTTP_200_OK)
+        user = User.objects.create_user(**user_data)
+        cache.delete(token)
+        return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
     
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -271,10 +306,7 @@ class UserDetail(APIView):
 
         # Prepare module details with random progress
         module_details = []
-        print("Progress Trackers:", progress_trackers.count())
         for tracker in progress_trackers:
-            print(f"Tracker for module {tracker.module.id}: completed={tracker.completed}, progress_percentage={getattr(tracker, 'progress_percentage', 'N/A')}")
-
             module_details.append({
                 'id': tracker.module.id,
                 'title': tracker.module.title,
@@ -311,12 +343,16 @@ class UserDetail(APIView):
             user_in.user_type = user.user_type
 
             tag_data = data['tags']
-
+            fire_token = data.get('firebase_token')
             mod_data = data['module']
 
 
             tags = []
             modules = []
+
+            if(fire_token):
+                user_in.firebase_token = fire_token
+            
 
 
             for tag_obj in tag_data:
@@ -375,6 +411,14 @@ class DeleteServiceUserView(generics.DestroyAPIView):
     def delete(self, request, username):
         try:
             user = User.objects.get(username=username)
+            user_email = user.email
+            send_mail(
+            subject= "Account deletion",
+            message = f"Dear {username}, Your account has been deleted by the admin",
+            from_email = "readiness.to.return.to.work@gmail.com",
+            recipient_list=[user_email],
+            fail_silently=False,
+            )
             user.delete()
             return Response({"message": f"User with username \"{username}\" has been deleted."}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
@@ -417,8 +461,22 @@ class UserSettingsView(APIView):
 
     def delete(self,request):
         user = request.user
+        user_email = user.email
+        username = user.username
+
         user.delete()
-        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+
+        if not User.objects.filter(username = username).exists():
+            send_mail(
+                subject= "Account deletion",
+                message = f"Dear {username}, Your account has been successfully deleted.",
+                from_email = "readiness.to.return.to.work@gmail.com",
+                recipient_list=[user_email],
+                fail_silently=False,
+                )
+            return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"error":"User account not deleted"},status=status.HTTP_400_BAD_REQUEST)
 
 class UserPasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -567,7 +625,6 @@ class RequestPasswordResetView(APIView):
             return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
         return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-
 class UserInteractionView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -577,10 +634,10 @@ class UserInteractionView(APIView):
 
         option = request.query_params.get("filter")
 
-        allInteracts = UserModuleInteraction.objects.filter(user=user) if option == "user" else UserModuleInteraction.objects.all()
+        allInteracts = ProgressTracker.objects.filter(user=user) if option == "user" else ProgressTracker.objects.all()
 
         if allInteracts:
-             serializedInf = UserModuleInteractSerializer(allInteracts,many=True)
+             serializedInf = ProgressTrackerSerializer(allInteracts,many=True)
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -596,18 +653,24 @@ class UserInteractionView(APIView):
         if module:
 
             try:
-                interactObj, hasCreated = UserModuleInteraction.objects.get_or_create(user=user, module=module)
-
-
-                if( (data["hasLiked"]) and (((not hasCreated)  and ( not interactObj.hasLiked)) or (hasCreated))):
+                tracker, created = ProgressTracker.objects.get_or_create(
+                                user=user, 
+                                module=module,
+                                defaults={
+                                    'hasLiked': False,
+                                    'pinned': False
+                                }
+                            )
+                # Handle upvote/downvote logic
+                if( (data["hasLiked"]) and (((not created)  and ( not tracker.hasLiked)) or (created))):
                     module.upvote()
-                elif( (not data["hasLiked"]) and (not hasCreated ) and (interactObj.hasLiked)):
+                elif( (not data["hasLiked"]) and (not created ) and (tracker.hasLiked)):
                     module.downvote()
 
 
-                interactObj.hasPinned = data["hasPinned"]
-                interactObj.hasLiked = data["hasLiked"]
-                interactObj.save()
+                tracker.pinned = data["pinned"]
+                tracker.hasLiked = data["hasLiked"]
+                tracker.save()
 
                 module.save()
 
@@ -830,27 +893,511 @@ class TaskPdfView(APIView):
         y_position = 780
         # get related response and create the pdf
         for question in questions:
-            try:
-                response = UserResponse.objects.filter(user=user, question=question).first()
-                answer_text = response.response_text
+            # try:
+            response = UserResponse.objects.filter(user=user, question=question).first()
+            answer_text = response.response_text if response else "No response provided"
 
-            except UserResponse.DoesNotExist:
-                answer_text = "No response provided"
+            # except UserResponse.DoesNotExist:
+            #     answer_text = "No response provided"
 
-            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            pdf.drawString(100, y_position, f"Question: {question.question_text}")
             y_position -=20
-            pdf.drawString(120, y_position, f"A: {answer_text}")
+            pdf.drawString(120, y_position, f"Answer: {answer_text}")
             y_position -=30
 
         pdf.save()
         buffer.seek(0)
         response = HttpResponse(buffer, content_type="application/pdf")
-        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
+
         return response
+    
+
+# ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
+
+# Add these views to your returnToWork/views.py file
+
+class TermsAndConditionsView(APIView):
+    """API view for managing Terms and Conditions"""
+    # permission_classes = [IsAuthenticated]
+    permission_classes = []
+    
+    def get(self, request):
+        """Get the current terms and conditions"""
+        try:
+            # Get the latest terms and conditions
+            terms = TermsAndConditions.objects.latest('updated_at')
+            return Response({
+                'content': terms.content,
+                'last_updated': terms.updated_at
+            })
+        except TermsAndConditions.DoesNotExist:
+            # Return default content if no terms exist yet
+            return Response({
+                'content': '',
+                'last_updated': None
+            })
+    
+    def put(self, request):
+        """Update the terms and conditions"""
+        # For PUT requests, still require authentication and superadmin role
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, 
+                          status=status.HTTP_401_UNAUTHORIZED)
+        
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can update terms and conditions'}, 
+                          status=status.HTTP_403_FORBIDDEN)
+        
+        content = request.data.get('content')
+        if not content:
+            return Response({'error': 'Content is required'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create new terms and conditions entry
+        terms = TermsAndConditions.objects.create(
+            content=content,
+            created_by=request.user
+        )
+        
+        return Response({
+            'content': terms.content,
+            'last_updated': terms.updated_at
+        })
+
+class AdminUsersView(APIView):
+    """API view for managing admin users"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get list of admin users"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can view admin users'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        # Get all users with user_type='admin'
+        admins = User.objects.filter(user_type='admin')
+        serializer = UserSerializer(admins, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        """Create a new admin user"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can create admin users'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        # Ensure user_type is set to 'admin'
+        data = request.data.copy()
+        data['user_type'] = 'admin'
+        
+        # Use the existing SignUpSerializer for validation
+        serializer = SignUpSerializer(data=data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminUserDetailView(APIView):
+    """API view for managing individual admin users"""
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, user_id):
+        """Delete an admin user"""
+        # Check if user is a superadmin
+        print(f"[DEBUG] Received delete request for user_id: {user_id}")
+        print(f"[DEBUG] Type of user_id: {type(user_id)}")
+
+        if request.user.user_type != 'superadmin':
+            print(f"[DEBUG] Permission denied: User type is {request.user.user_type}")
+            return Response({'error': 'Only superadmins can delete admin users'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            print(f"[DEBUG] Looking for admin user with id={user_id}")
+            admin_to_delete = User.objects.get(id=user_id, user_type='admin')
+            print(f"[DEBUG] Found admin: {admin_to_delete.username}")
+
+            # Identify the superadmin (current user) 
+            superadmin = request.user
+
+            # find all content authored by this admin
+            # check all content types that have author relationship
+            from django.db import transaction
+        
+            # Use a transaction to ensure all operations are atomic
+            with transaction.atomic():
+                # 1. Check if the ADMIN user is associated with any modules
+                # if using a many-to-many relationship
+                module_count = 0
+                if hasattr(admin_to_delete, 'module'):
+                    module_count = admin_to_delete.module.count()
+                    print(f"[DEBUG] Admin has {module_count} modules in many-to-many relationship")
+                    # for many-to-many relationships, just need to ensure the superadmin
+                    # also has these modules associated, not necessarily transfer ownership
+                    if module_count > 0:
+                        # add the modules to the superadmin's list if not already there
+                        for module in admin_to_delete.module.all():
+                            if not superadmin.module.filter(id=module.id).exists():
+                                superadmin.module.add(module)
+                        print(f"[DEBUG] Ensured all modules are associated with superadmin")
+                
+                # 2. Transfer authorship for each content type
+                # for each content type that has an author field, update it
+                
+                # trasfer ownership of Task content
+                tasks = Task.objects.filter(author=admin_to_delete)
+                task_count = tasks.count()
+                if task_count > 0:
+                    print(f"[DEBUG] Transferring {task_count} Task items from {admin_to_delete.username} to {superadmin.username}")
+                    tasks.update(author=superadmin)
+                
+                # Transfer ownership of RankingQuestion content
+                ranking_questions = RankingQuestion.objects.filter(author=admin_to_delete)
+                rq_count = ranking_questions.count()
+                if rq_count > 0:
+                    print(f"[DEBUG] Transferring {rq_count} RankingQuestion items")
+                    ranking_questions.update(author=superadmin)
+                
+                # Transfer ownership of InlinePicture content
+                inline_pictures = InlinePicture.objects.filter(author=admin_to_delete)
+                ip_count = inline_pictures.count()
+                if ip_count > 0:
+                    print(f"[DEBUG] Transferring {ip_count} InlinePicture items")
+                    inline_pictures.update(author=superadmin)
+                
+                # Transfer ownership of AudioClip content
+                audio_clips = AudioClip.objects.filter(author=admin_to_delete)
+                ac_count = audio_clips.count()
+                if ac_count > 0:
+                    print(f"[DEBUG] Transferring {ac_count} AudioClip items")
+                    audio_clips.update(author=superadmin)
+                
+                # Transfer ownership of Document content
+                documents = Document.objects.filter(author=admin_to_delete)
+                doc_count = documents.count()
+                if doc_count > 0:
+                    print(f"[DEBUG] Transferring {doc_count} Document items")
+                    documents.update(author=superadmin)
+                
+                # Transfer ownership of EmbeddedVideo content
+                videos = EmbeddedVideo.objects.filter(author=admin_to_delete)
+                video_count = videos.count()
+                if video_count > 0:
+                    print(f"[DEBUG] Transferring {video_count} EmbeddedVideo items")
+                    videos.update(author=superadmin)
+                
+                # Transfer ownership of InfoSheet content
+                infosheets = InfoSheet.objects.filter(author=admin_to_delete)
+                infosheet_count = infosheets.count()
+                if infosheet_count > 0:
+                    print(f"[DEBUG] Transferring {infosheet_count} InfoSheet items")
+                    infosheets.update(author=superadmin)
+                
+                # Transfer ownership of Video content
+                video_content = Video.objects.filter(author=admin_to_delete)
+                video_content_count = video_content.count()
+                if video_content_count > 0:
+                    print(f"[DEBUG] Transferring {video_content_count} Video items")
+                    video_content.update(author=superadmin)
+                
+                # Update any terms and conditions created by this admin_to_delete
+                terms = TermsAndConditions.objects.filter(created_by=admin_to_delete)
+                terms_count = terms.count()
+                if terms_count > 0:
+                    print(f"[DEBUG] Transferring {terms_count} TermsAndConditions items")
+                    terms.update(created_by=superadmin)
+                
+                # 3. Check for UserModuleInteraction and ProgressTracker 
+                user_interactions = UserModuleInteraction.objects.filter(user=admin_to_delete)
+                ui_count = user_interactions.count()
+                if ui_count > 0:
+                    print(f"[DEBUG] Deleting {ui_count} UserModuleInteraction items")
+                    # For user interactions, it's probably better to delete them
+                    # since these are personal interactions not ownership
+                    user_interactions.delete()
+                
+                progress_trackers = ProgressTracker.objects.filter(user=admin_to_delete)
+                pt_count = progress_trackers.count()
+                if pt_count > 0:
+                    print(f"[DEBUG] Deleting {pt_count} ProgressTracker items")
+                    # For progress trackers, also better to delete
+                    progress_trackers.delete()
+                
+                # 4. Check for UserResponse records
+                user_responses = UserResponse.objects.filter(user=admin_to_delete)
+                ur_count = user_responses.count()
+                if ur_count > 0:
+                    print(f"[DEBUG] Deleting {ur_count} UserResponse items")
+                    user_responses.delete()
+                
+                # Store admin_to_delete name for the response message
+                admin_name = f"{admin_to_delete.first_name} {admin_to_delete.last_name}"
+                admin_username = admin_to_delete.username
+                
+                # Finally, delete the admin_to_delete user after transferring all content
+                admin_to_delete.delete()
+                print(f"[DEBUG] Admin user deleted successfully after content transfer")
+                
+                # Return a 200 OK with detailed information instead of 204 No Content
+                # This allows the frontend to display more informative feedback
+                return Response({
+                    'status': 'success', 
+                    'message': f'Admin user {admin_name} ({admin_username}) deleted successfully. All content transferred to your account.',
+                    'transferred_items': {
+                        'modules': module_count,
+                        'tasks': task_count,
+                        'ranking_questions': rq_count,
+                        'inline_pictures': ip_count,
+                        'audio_clips': ac_count,
+                        'documents': doc_count,
+                        'videos': video_count + video_content_count,
+                        'infosheets': infosheet_count,
+                        'terms': terms_count
+                    },
+                    'deleted_items': {
+                        'user_interactions': ui_count,
+                        'progress_trackers': pt_count,
+                        'user_responses': ur_count
+                    }
+                }, status=status.HTTP_200_OK)
+                
+        except User.DoesNotExist:
+            print(f"[DEBUG] Admin user not found with id={user_id}")
+            return Response({'error': 'Admin user not found'}, 
+                           status=status.HTTP_404_NOT_FOUND)
+        
+        except Exception as e:
+            print(f"[DEBUG] Error deleting admin user: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response({'error': f'An error occurred: {str(e)}'}, 
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # class UserResponseViewSet(viewsets.ModelViewSet):
 #     queryset = UserResponse.objects.all()
 #     serializer_class = UserResponseSerializer
+
+class CheckSuperAdminView(APIView):
+    """API view to check if the current user is a superadmin"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Check if current user is a superadmin"""
+        is_superadmin = request.user.user_type == 'superadmin'
+        return Response({'isSuperAdmin': is_superadmin})
+    
+class AcceptTermsView(APIView):
+    """API view for users to accept terms and conditions"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Mark the current user as having accepted the terms"""
+        user = request.user
+        
+        user.terms_accepted = True
+        user.save()
+        
+        return Response({
+            'message': 'Terms and conditions accepted',
+            'user': UserSerializer(user).data
+        })
+
+class UserSupportView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    MAX_LIMIT = 5
+
+    def get(self, request):
+        user_ = request.user
+        data = request.data
+
+        
+
+        try:
+          
+            info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+            info_chats = info_chats.order_by('-updated_at')
+            
+            serialized_info = ConversationSerializer(info_chats, many=True)
+            
+            
+            updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
+            
+
+            return Response(updated_data, status=status.HTTP_200_OK)
+
+        except:
+            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+    
+        
+
+    def post(self, request):
+        user_ = request.user
+        data = request.data
+
+        currentNo = Conversation.objects.filter(user = user_).count()
+
+        if( (user_.user_type == "service user") and ( currentNo < self.MAX_LIMIT )):
+            Conversation.objects.create(user=user_)
+
+
+        elif((user_.user_type == "admin") and data):
+         
+            conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+
+            if conversation_:
+                if not conversation_.hasEngaged:
+
+                    conversation_.hasEngaged = True
+                    conversation_.admin = user_
+
+                    conversation_.save()
+                    
+                else:
+                    return Response({"message": "Conversation already occupied"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+            else:
+                return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+    
+        else:
+            return Response({"message": "Maximum Support Room Limit (5) Reached"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        return Response({"message": "success"}, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request):
+        user_ = request.user
+        data = request.data
+
+
+        try:
+             conversation_ = Conversation.objects.get(id = data.get("conversation_id"))
+
+             if conversation_:
+                conversation_.delete()
+
+                return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+        
+
+
+
+
+
+
+
+
+
+class UserChatView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def getFcmToken(self, usr_type, conv_Obj):
+      
+        if usr_type == "service user": # user -> admin
+           
+            if getattr(conv_Obj.admin, "firebase_token", False):
+                return conv_Obj.admin.firebase_token
+               
+        elif usr_type == "admin":  # admin -> user
+            if getattr(conv_Obj.user, "firebase_token", False):
+                return conv_Obj.user.firebase_token
+
+        
+        return None
+
+        
+    def get(self, request, room_id):
+        user_ = request.user
+        data = request.data
+       
+        conv_Obj = Conversation.objects.get(id = room_id)
+
+        if conv_Obj:
+            
+            all_Messages = Message.objects.filter(conversation=conv_Obj)
+            
+
+            serialized_messages = MessageSerializer(all_Messages, many=True)
+           
+            return Response(serialized_messages.data, status=status.HTTP_200_OK)
+
+        
+        else:
+            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
+
+            
+
+
+    def post(self,request, room_id, *args, **kwargs):
+        user_ = request.user
+        data = request.data
+
+        conv_Obj = Conversation.objects.get(id = room_id)
+        
+    
+  
+        if conv_Obj:
+            
+            token = self.getFcmToken(user_.user_type, conv_Obj)
+
+            admin = conv_Obj.admin
+
+            message_content = data["message"]
+            uploaded_file = data.get("file", None)
+
+            
+                #Create a new message object
+            Message.objects.create(
+                conversation=conv_Obj,
+                sender=user_,
+                text_content = message_content,
+                file = uploaded_file
+            )
+
+            conv_Obj.save() 
+
+            if token:
+
+                message = messaging.Message(
+                     notification=messaging.Notification(
+                         title= user_.username ,
+                         body = message_content,
+                        
+                     ),
+                     token=token
+                 )
+                
+                try:
+                    response = messaging.send(message)
+                   
+                except:
+                    pass
+
+                
+ 
+            else:
+                return Response({"message": "token unlocated"}, status=status.HTTP_200_OK)
+
+
+
+            return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
+
+
+        else:
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
+
+
+    
+
+
 class MarkContentViewedView(APIView):
     """
     API view to mark content as viewed/completed.
@@ -904,6 +1451,7 @@ class MarkContentViewedView(APIView):
             )
         
         # Create or update progress
+
         progress, created = ContentProgress.objects.get_or_create(
             user=request.user,
             content_type=content_type,
@@ -964,3 +1512,37 @@ class CompletedContentView(APIView):
         ).values_list('object_id', flat=True)
         
         return Response(list(viewed_content))
+    
+
+class CompletedInteractiveContentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # module = get_object_or_404(Module, pk=module_id)
+
+        content_type = ContentType.objects.get_for_model(Task)
+
+        # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
+
+        viewed_tasks = ContentProgress.objects.filter(
+            user=request.user,
+            content_type=content_type,
+            # object_id__in=module_task_ids,
+            viewed=True
+        )
+
+        results = []
+        for item in viewed_tasks:
+            try:
+                task = item.content_object
+                results.append({
+                    "content_id": str(item.object_id),
+                    "title": task.title,
+                    "viewed_at": item.viewed_at,
+                    "quiz_type": task.get_quiz_type_display(),
+                    "module_title": task.moduleID.title if task.moduleID else None
+                })
+            except:
+                continue
+
+        return Response(results)

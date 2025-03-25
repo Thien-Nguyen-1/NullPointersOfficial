@@ -6,14 +6,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         User = get_user_model()
-        default_username = "default_user"
-        default_password = "your_secure_password_here"
+        default_username = "@John"
+        default_password = "12345"
 
         user, created = User.objects.get_or_create(
             username=default_username,
             defaults={
-                "first_name": "Default",
-                "last_name": "User",
+                "first_name": "John",
+                "last_name": "Doe",
                 "user_type": "admin",  # adjust if needed
             }
         )

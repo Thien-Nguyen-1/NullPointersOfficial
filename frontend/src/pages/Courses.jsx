@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
-import "../styles/Courses.css";
+import styles from "../styles/Courses.module.css";
 import "../App.css";
 
 import { AuthContext } from "../services/AuthContext";
@@ -113,42 +113,41 @@ function Courses({ role }) {
 
     
     return (
-
-        <div className="course-container mt-2">
+        <div className={styles.courseContainer}>
         
-            <h1 className="page-title"> Your Tags </h1>
+            <h1 className={styles.pageTitle}> Your Tags </h1>
            
-            <section className="tag-course-container mb-2 ">
+            <section className={styles.tagCourseContainer}>
         
                 {user && (
                    user.tags.map(
                     (obj, index)=> (
-                        <div className="tag-course" key={index}>
+                        <div className={styles.tagCourse} key={index}>
                             <p> {obj.tag} </p>
                         </div>
                     )
                    )
                 )}
 
-                <div className="tag-course edit-button" onClick={(e) => {}}> 
+                <div className={`${styles.tagCourse} ${styles.editButton}`} onClick={(e) => {}}> 
                     <GrAdd />
                 </div>
                 
             </section>
             
 
-            <section className="course-selection-container">
+            <section className={styles.courseSelectionContainer}>
 
-                <h1 className="page-title">Courses</h1>
+                <h1 className={styles.pageTitle}>Courses</h1>
                 
-                <div className="filter-container">
+                <div className={styles.filterContainer}>
                     
-                    <div className="tabs-filter">
+                    <div className={styles.tabsFilter}>
 
                         {Object.keys(FILTER_MAP).map( (option, index) => (
                             <button key={index} 
                                     onClick={() => handle_option_chosen(option, index)}
-                                    className= {active === index ? "active":""}
+                                    className={active === index ? styles.active : ""}
                                     
                             > {option} </button>
                         ))}
@@ -164,9 +163,10 @@ function Courses({ role }) {
                 
                
                 
-                {user?.user_type == "admin" && (
-                    <Link to="/admin/create-module" className="create-module-btn">
-                    Create Module </Link>
+                {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
+                    <Link to="/admin/create-module" className={styles.createModuleBtn}>
+                        Create Module
+                    </Link>
                 )}
 
                 
@@ -175,9 +175,6 @@ function Courses({ role }) {
 
 
         </div>
-
-
-        
     );
 }
     
