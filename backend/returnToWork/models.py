@@ -292,14 +292,45 @@ class InlinePicture(Content):
     """Model for Inline Picture content type"""
     image_file = models.ImageField(upload_to="inline_pictures/")
 
+def audio_file_path(instance, filename):
+    """Generate file path for new audio file"""
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('uploads/audios/', filename)
+
 class AudioClip(Content):
     """Model for Audio Clip content type"""
-    question_text = models.TextField(null=True, blank=True)
-    audio_file = models.FileField(upload_to="audio_clips/")
-    user_response = models.TextField(blank=True, null=True)
-
+    audio_file = models.FileField(upload_to=audio_file_path)
+    filename = models.CharField(max_length=255, null=True, blank=True)
+    file_type = models.CharField(max_length=50, null=True, blank=True)
+    file_size = models.PositiveIntegerField(null=True, blank=True)  # size in bytes
+    duration = models.FloatField(null=True, blank=True)  # in seconds
+    
     def __str__(self):
-        return f"Audio Clip : {self.question_test}"
+        return self.title or self.filename or "Audio Clip"
+    
+    @property
+    def file_url(self):
+        return self.audio_file.url if self.audio_file else None
+    
+    @property
+    def file_size_formatted(self):
+        """Return human-readable file size."""
+        size = self.file_size
+        if not size:
+            return None
+            
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+    
+    def delete(self, *args, **kwargs):
+        # Delete the file from storage when model instance is deleted
+        if self.audio_file:
+            if os.path.isfile(self.audio_file.path):
+                os.remove(self.audio_file.path)
+        super().delete(*args, **kwargs)
 
 class Document(Content):
     """Model for Attach PDF/Documents/Infosheet content type"""

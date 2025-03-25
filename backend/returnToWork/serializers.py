@@ -208,10 +208,32 @@ class InlinePictureSerializer(ContentSerializer):
         fields  = ContentSerializer.Meta.fields + ['image_file']
 
 class AudioClipSerializer(ContentSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_size_formatted = serializers.SerializerMethodField()
+    
     class Meta:
         model = AudioClip
-        fields  = ContentSerializer.Meta.fields + ['audio_file',"question_text","user_response"]
-
+        fields = [
+            'contentID', 'title', 'moduleID', 'author', 'description', 
+            'created_at', 'updated_at', 'is_published', 'audio_file', 
+            'file_url', 'file_size_formatted', 'duration', 'filename',
+            'file_size', 'file_type'
+        ]
+    
+    def get_file_url(self, obj):
+        return obj.audio_file.url if obj.audio_file else None
+    
+    def get_file_size_formatted(self, obj):
+        """Return human-readable file size."""
+        if not obj.file_size:
+            return None
+            
+        size = obj.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+            
 class DocumentSerializer(ContentSerializer):
     file_url = serializers.SerializerMethodField()
     file_size_formatted = serializers.SerializerMethodField()

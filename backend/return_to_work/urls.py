@@ -50,7 +50,7 @@ router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'ranking-question', RankingQuestionViewSet, basename='ranking-question')
 router.register(r'inline-picture', InlinePictureViewSet, basename='inline-picture')
-router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
+router.register('audios', AudioClipViewSet)
 router.register(r'documents', DocumentViewSet)
 router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
 router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
@@ -110,7 +110,15 @@ urlpatterns = [
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
     # Content Media Type
     path('modules/<int:module_id>/documents/', DocumentViewSet.as_view({'get': 'list'}), {'module_id': 'module_id'}),
-
+    # Audio API Endpoints
+    path('api/audios/upload/', AudioClipViewSet.as_view({'post': 'upload'})),
+    path('api/audios/<uuid:pk>/', AudioClipViewSet.as_view({
+        'get': 'retrieve',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    })),
+    path('api/modules/<int:module_id>/audios/', 
+         AudioClipViewSet.as_view({'get': 'list'})),
 
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),

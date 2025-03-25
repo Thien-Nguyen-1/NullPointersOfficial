@@ -14,7 +14,6 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework.decorators import action
 
-
 from rest_framework import generics, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -258,9 +257,123 @@ class InlinePictureViewSet(viewsets.ModelViewSet):
 class AudioClipViewSet(viewsets.ModelViewSet):
     queryset = AudioClip.objects.all()
     serializer_class = AudioClipSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Filter by module ID if provided in query params
+        module_id = self.request.query_params.get('module_id')
+        if module_id:
+            try:
+                # convert string to integer since Module.id is an AutoField
+                module_id_int = int(module_id)
+                return AudioClip.objects.filter(moduleID=module_id_int)
+            except (ValueError, TypeError) as e:
+                # Log the error for debugging
+                print(f"Error filtering audio clips by module_id {module_id}: {str(e)}")
+                return AudioClip.objects.none()  # return empty queryset on error
+        
+        # If user is admin/superadmin, they can see all audio clips
+        if self.request.user.is_staff or self.request.user.is_superuser or self.request.user.user_type in ['admin', 'superadmin']:
+            return AudioClip.objects.all()
+        
+        # Regular users can only see published audio clips
+        return AudioClip.objects.filter(is_published=True)
+    
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        print("===== AUDIO UPLOAD REQUEST STARTED =====")
+        print(f"Files in request: {request.FILES}")
+        print(f"Request data: {request.data}")
+        
+        files = request.FILES.getlist('files')
+        print(f"Number of files: {len(files)}")
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        module_id = request.data.get('module_id')
+        print(f"Module ID: {module_id}")
+        
+        if not files:
+            print("No files found in request")
+            return Response({'error': 'No files to upload'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        module = None
+        if module_id:
+            try:
+                # convert module_id to integer since it's an AutoField
+                module_id_int = int(module_id)
+                print(f"Converted module_id to int: {module_id_int}")
+
+                module = Module.objects.get(id=module_id_int)
+                print(f"Found module: {module.title}")
+            except (Module.DoesNotExist, ValueError, TypeError) as e:
+                print(f"Error getting module {module_id}: {str(e)}")
+                return Response({'error': 'Module not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        uploaded_audios = []
+        
+        for file in files:
+            print(f"Processing file: {file.name}, size: {file.size} bytes")
+
+            # check file type and size
+            filename = file.name
+            file_extension = os.path.splitext(filename)[1][1:].lower()
+            
+            allowed_extensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a']
+            if file_extension not in allowed_extensions:
+                print(f"File extension {file_extension} not allowed, skipping")
+                continue  # skip unsupported files
+            
+            try:
+                print(f"Creating AudioClip object for {filename}")
+
+                # create audio clip object
+                audio = AudioClip(
+                    moduleID=module,
+                    audio_file=file,
+                    filename=filename,
+                    file_type=file_extension,
+                    file_size=file.size,
+                    author=request.user,
+                    title=filename,  # set title to filename by default
+                    description=f"Uploaded audio: {filename}",
+                    is_published=True  # set as published by default
+                )
+                
+                # Try to get audio duration
+                try:
+                    import mutagen
+                    print("Using mutagen to get audio duration")
+                    audio_data = mutagen.File(file)
+                    if audio_data and hasattr(audio_data.info, 'length'):
+                        audio.duration = audio_data.info.length
+                        print(f"Duration: {audio.duration} seconds")
+                    else:
+                        print("Could not extract duration from audio file")
+                except Exception as e:
+                    print(f"Error getting audio duration: {e}")
+                
+                print("Saving audio to database")
+                audio.save()
+                print(f"Audio saved successfully with content ID: {audio.contentID}")
+                uploaded_audios.append(audio)
+            except Exception as e:
+                print(f"Error saving audio {filename}: {str(e)}")
+        
+        if not uploaded_audios:
+            print("No valid audio files were uploaded")
+            return Response({'error': 'No valid audio files were uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+        print(f"Successfully uploaded {len(uploaded_audios)} audio files")
+        serializer = AudioClipSerializer(uploaded_audios, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        audio = self.get_object()
+        
+        # Only allow admins or the audio author to delete
+        if request.user.user_type in ['admin', 'superadmin'] or audio.author == request.user:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
