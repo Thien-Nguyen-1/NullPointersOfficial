@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import dj_database_url
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'return_to_work.urls'
@@ -80,12 +83,20 @@ WSGI_APPLICATION = 'return_to_work.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Default to SQLite for local development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# If DATABASE_URL environment variable exists (provided by Render), use it
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 
 # Password validation
@@ -127,6 +138,10 @@ STATIC_URL = 'static/'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Where collectstatic will put files
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -140,7 +155,16 @@ AUTH_USER_MODEL = 'returnToWork.User'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React Frontend
     "http://localhost:5173",
+    "https://empower-pi.vercel.app",
 ]
+
+# Add production origins from environment variable if it exists
+if 'CORS_ALLOWED_ORIGINS' in os.environ:
+    production_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    for origin in production_origins:
+        if origin.strip():
+            CORS_ALLOWED_ORIGINS.append(origin.strip())
+
 CORS_ALLOW_CREDENTIALS = True
 
 # Django REST Framework Configuration
