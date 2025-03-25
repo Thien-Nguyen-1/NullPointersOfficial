@@ -159,7 +159,7 @@ AUTH_USER_MODEL = 'returnToWork.User'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React Frontend
     "http://localhost:5173",
-    "http://localhost:5174"
+    "http://localhost:5174",
     "https://empower-pi.vercel.app",
 ]
 
