@@ -191,7 +191,26 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.full_name()} - {self.username} - {self.user_id}"
+
+# adding this since the implementation now is ONLY superadmin is allowed to create admin (admin cant simply sign up using the signup page)
+# so this separates verification data --> to avoid redundancy since service user and superadmin dont need this
+class AdminVerification(models.Model):
+    """Model to track admin verification status and token information separately from User model"""
+    admin = models.OneToOneField(User, on_delete=models.CASCADE, related_name='verification')
+    is_verified = models.BooleanField(default=False)
+    verification_token = models.CharField(max_length=255, null=True, blank=True)
+    token_created_at = models.DateTimeField(auto_now_add=True)
     
+    def __str__(self):
+        return f"Verification for {self.admin.username}"
+        
+    def is_token_expired(self):
+        """Check if token is expired (older than 48 hours)"""
+        if not self.verification_token or not self.token_created_at:
+            return True
+        expiration = self.token_created_at + timezone.timedelta(hours=48)
+        return timezone.now() > expiration
+
 
 #task has a module id - but 
 

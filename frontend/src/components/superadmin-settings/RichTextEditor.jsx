@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import '../styles/InlineRichTextEditor.css';
+import '../../styles/InlineRichTextEditor.css';
 
 const InlineRichTextEditor = ({ initialContent, onSave, onCancel }) => {
   const [content, setContent] = useState(initialContent || '');

@@ -3,7 +3,7 @@
 
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
-import { AuthContext } from '../services/AuthContext';
+import { AuthContext } from '../../services/AuthContext';
 
 // this component checks if the user is a superadmin before rendering the protected route
 const ProtectedSuperAdminRoute = ({ children }) => {

@@ -190,27 +190,26 @@ const AddModule = () => {
         actualModuleId: moduleId // Store the actual module ID
       }));
       // === this code creates one new component for EACH audio in the audios array === #
-      // const audioTemplates = audios.map(audio => ({
-      //   id: audio.contentID,
-      //   type: 'Upload Audio',
-      //   quizType: 'audio',
-      //   componentType: 'media',
-      //   mediaType: 'audio',
-      //   moduleId: moduleId,
-      //   actualModuleId: moduleId
-      // }));
-
-      // Instead of creating multiple audio templates (one per audio file)
-      // Create just ONE audio template to show all audio files for this module:
-      const audioTemplates = audios.length > 0 ? [{
-        id: `audio-uploader-${moduleId}`,
+      const audioTemplates = audios.map(audio => ({
+        id: audio.contentID,
         type: 'Upload Audio',
         quizType: 'audio',
         componentType: 'media',
         mediaType: 'audio',
         moduleId: moduleId,
         actualModuleId: moduleId
-      }] : [];
+      }));
+
+      // this create just ONE audio template to show all audio files for this module:
+      // const audioTemplates = audios.length > 0 ? [{
+      //   id: `audio-uploader-${moduleId}`,
+      //   type: 'Upload Audio',
+      //   quizType: 'audio',
+      //   componentType: 'media',
+      //   mediaType: 'audio',
+      //   moduleId: moduleId,
+      //   actualModuleId: moduleId
+      // }] : [];
 
       setModules([...taskTemplates, ...documentTemplates, ...audioTemplates]);
       console.log("[DEBUG] Final Module Templates :",[...taskTemplates, ...documentTemplates, ...audioTemplates]);

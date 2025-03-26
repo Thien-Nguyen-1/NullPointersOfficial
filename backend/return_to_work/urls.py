@@ -35,7 +35,7 @@ from returnToWork.views import (
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
     TaskPdfView, QuizQuestionViewSet, VerifyEmailView, 
     TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView,
-    DocumentViewSet,
+    DocumentViewSet, AdminEmailVerificationView, ResendAdminVerificationView
 )
 #for media url access
 from django.conf import settings
@@ -92,6 +92,8 @@ urlpatterns = [
     path('api/admin-users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
     path('api/check-superadmin/', CheckSuperAdminView.as_view(), name='check-superadmin'),
     path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
+    path('api/verify-admin-email/<str:token>/', AdminEmailVerificationView.as_view(), name='verify_admin_email'),
+    path('api/admin-users/<int:user_id>/resend-verification/', ResendAdminVerificationView.as_view(), name='resend_admin_verification'),
     path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
     path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),
 
