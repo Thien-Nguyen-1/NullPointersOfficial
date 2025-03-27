@@ -10,12 +10,12 @@ import styles from "../../styles/DocumentUploader.module.css";
 
 // wrapper for AddModule
 const DocumentEditorWrapper = React.forwardRef((props, ref) => {
-    const { moduleId, quizType } = props;
+    const { moduleId, quizType, documentId } = props;
     const documentUploaderRef = useRef(null);
     
     // pass the actual module ID to the DocumentUploader (not the CONTENT ID bc module ID is a UUID -- int)
-    const actualModuleId = props.moduleId.startsWith('new-') ? null : props.moduleId;
-  
+    const actualModuleId = moduleId && typeof moduleId === 'string' && moduleId.startsWith('new-') ? null : moduleId;
+
     // this matches the API expected by AddModule.jsx
     React.useImperativeHandle(ref, () => ({
       getQuestions: () => {
@@ -23,13 +23,29 @@ const DocumentEditorWrapper = React.forwardRef((props, ref) => {
         return [];
       },
 
+      // getTempFiles: () => {
+      //   // makeing sure its returning the file correctly
+      //   console.log("getTempFiles called in DocumentEditorWrapper");
+      //   console.log("documentUploaderRef.current:", documentUploaderRef.current);
+
+      //   const files = documentUploaderRef.current?.getTempFiles?.() || [];
+      //   console.log("Files returned:", files);
+      //   return files;
+      // }
+
       getTempFiles: () => {
-        // makeing sure its returning the file correctly
-        console.log("getTempFiles called in wrapper");
+        // Making sure it's returning the file correctly
+        console.log("getTempFiles called in DocumentEditorWrapper");
         console.log("documentUploaderRef.current:", documentUploaderRef.current);
-        const files = documentUploaderRef.current?.getTempFiles?.() || [];
-        console.log("Files returned:", files);
-        return files;
+        
+        if (documentUploaderRef.current && typeof documentUploaderRef.current.getTempFiles === 'function') {
+          const files = documentUploaderRef.current.getTempFiles() || [];
+          console.log("Files returned:", files);
+          return files;
+        } else {
+          console.warn("getTempFiles function not found on documentUploaderRef.current");
+          return [];
+        }
       }
     }));
     
@@ -40,8 +56,10 @@ const DocumentEditorWrapper = React.forwardRef((props, ref) => {
         <DocumentUploader 
         ref={documentUploaderRef}
           moduleId={actualModuleId} 
+          documentId={documentId}
           allowDirectUpload={true}
-          temporaryMode={moduleId && moduleId.toString().startsWith("new-")}
+          // temporaryMode={moduleId && moduleId.toString().startsWith("new-")}
+          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-"))} // --> module ID should be null when creating new Module so tempMode should evaluate to TRUE
         />
       </div>
     );
@@ -67,32 +85,97 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
     if (moduleId && !temporaryMode) {
       fetchDocuments();
     }
-  }, [moduleId, temporaryMode]);
+  }, [moduleId, documentId, temporaryMode]);
+
+  // DEBUG for useState for tempFiles
+  useEffect(() => {
+    console.log("[DEBUG] tempFiles state updated:", tempFiles);
+  }, [tempFiles]);
+
+  // const fetchDocuments = async () => {
+  //   console.log("DocumentUploader received moduleId:", moduleId);
+  //   console.log("DocumentUploader received documentId:", documentId);
+    
+  //   try {
+  //     console.log('moduleId: ', moduleId)
+  //     const response = await DocumentService.getModuleDocuments(moduleId);
+
+  //     console.log('Response: ', response)
+  //     setDocuments(response);
+  //   } catch (err) {
+  //     console.error("Error fetching documents:", err);
+  //     setError("Failed to load documents. Please try again.");
+  //   }
+
+  //   try {
+  //     console.log(`moduleId: ${moduleId}`);
+
+  //     // 1. fetch all documents for this module
+  //     const allDocuments = await DocumentService.getModuleDocuments(moduleId);
+
+  //     // // if we have a documentId, filter to only show documents associated with it
+  //     // if (documentId && !documentId.toString().startsWith('new')) {
+  //     //   // for existing documents (that already have an ID)
+  //     //   setDocuments(allDocuments.filter(doc => doc.contentID === documentId));
+  //     // } else if (documentId && documentId.toString().startsWith('new')) {
+  //     //   // for new documents, show nothing
+  //     //   setDocuments([]);
+  //     // } else {
+  //     //   // no documentId provided
+  //     //   setDocuments(allDocuments);
+  //     // }
+
+  //     if (documentId && documendId !== 'underfined') {
+  //       console.log("Filtering documents by component ID: ", documentId);
+  //       setDocuments([response[0]]);
+
+  //     } else {
+  //       // no document Id provided
+  //       console.error("Error fetching document: ", err);
+  //       setError("Failed to load documents. Please try again.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching document: ", err);
+  //     setError("Failed to load documents. Please try again.");
+  //   }
+  // };
 
   const fetchDocuments = async () => {
     console.log("DocumentUploader received moduleId:", moduleId);
     console.log("DocumentUploader received documentId:", documentId);
     
     try {
-      console.log('moduleId: ', moduleId)
+      // Fetch all documents for this module
       const response = await DocumentService.getModuleDocuments(moduleId);
-      console.log('Response: ', response)
-      setDocuments(response);
+      console.log('All documents for module:', response);
+      
+      if (documentId && !documentId.toString().startsWith('new-')) {
+        // For existing documents, only show the document that matches this ID
+        const filteredDocs = response.filter(doc => doc.contentID === documentId);
+        console.log(`Filtered documents for ID ${documentId}:`, filteredDocs);
+        setDocuments(filteredDocs);
+      } else {
+        // For new components or if no documentId is provided, show empty
+        setDocuments([]);
+      }
     } catch (err) {
       console.error("Error fetching documents:", err);
       setError("Failed to load documents. Please try again.");
     }
   };
+
   React.useImperativeHandle(ref, () => ({
     getTempFiles: () => {
       return tempFiles;
     }
   }));
 
+
   const handleUpload = async (formData) => {
-    if (temporaryMode) {
-        // in temporary mode, just store the files in state
-        // they'll be uploaded when the module is saved
+    if (temporaryMode || !moduleId) {
+        // In temporary mode, just store the files in state
+        // They'll be uploaded when the module is saved
+        // when creating NEW module
         const files = formData.getAll('files');
         const tempFileData = files.map(file => ({
           id: Date.now() + Math.random().toString(36).substring(2, 9),
@@ -100,16 +183,22 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
           filename: file.name,
           file_size: file.size,
           file_type: file.name.split('.').pop().toLowerCase(),
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          // Formatted file size only to display before it's saved
+          file_size_formatted: formatFileSize(file.size), 
+          title: file.name
         }));
 
-        setTempFiles([...tempFiles, ...tempFileData]);
+        // Use functional state update to ensure we're working with the latest state
+        // setTempFiles(prevFiles => [...prevFiles, ...tempFileData]);
+        setTempFiles(tempFileData);
         setSuccess(true);
         
         setTimeout(() => {
             setSuccess(false);
         }, 3000);
         
+        console.log("[DEBUG] Temporary files stored:", tempFileData);
         return tempFileData;
     } else {
         setUploading(true);
@@ -127,30 +216,124 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
             console.log("Extracted actualModuleId:", actualModuleId);
 
             formData.append('module_id', actualModuleId);
-            console.log(`Uploading files to module ID: ${actualModuleId}`);
+            // add componentId if available
+            if (documentId) {
+              formData.append('component_id', documentId)
+              console.log(`Uploading files to module ID: ${actualModuleId}, component ID ${documentId}`);
+            }
+            else {
+              console.log(`Uploading files to module ID: ${actualModuleId}`);
+            }
           }
 
-          // upload files
+          // Upload files
           const uploadedDocuments = await DocumentService.uploadDocuments(formData);
 
-          // update documents list with newly uploaded files
-          setDocuments([...documents, ...uploadedDocuments]);
+          // Update documents list with newly uploaded files
+          //setDocuments(prevDocs => [...prevDocs, ...uploadedDocuments]);
+
+          // if this is a single document component, replace rather than append
+          if (documentId) {
+            setDocuments(uploadedDocuments);
+          } else {
+            // else update documents list with newly uplaoded files.
+            setDocuments(prevDocs => [...prevDocs, ...uploadedDocuments]);
+          }
           setSuccess(true);
           
-          // show success message for 3 seconds
+          // Show success message for 3 seconds
           setTimeout(() => {
               setSuccess(false);
           }, 3000);
 
           return uploadedDocuments;
         } catch (err) {
-        console.error("Error uploading documents:", err);
-        setError(`Upload failed: ${err.response?.data?.detail || err.message}`);
-        throw err;
+          console.error("Error uploading documents:", err);
+          setError(`Upload failed: ${err.response?.data?.detail || err.message}`);
+          throw err;
         } finally {
-        setUploading(false);
+          setUploading(false);
         }
     }
+  };
+  // const handleUpload = async (formData) => {
+  //   if (temporaryMode || !moduleId) {
+  //       // in temporary mode, just store the files in state
+  //       // they'll be uploaded when the module is saved
+  //       const files = formData.getAll('files');
+  //       const tempFileData = files.map(file => ({
+  //         id: Date.now() + Math.random().toString(36).substring(2, 9),
+  //         file: file,
+  //         filename: file.name,
+  //         file_size: file.size,
+  //         file_type: file.name.split('.').pop().toLowerCase(),
+  //         created_at: new Date().toISOString(),
+  //         // formatted file size only to display before its saved (if moduleId has not being created )
+  //         file_size_formatted: formatFileSize(file.size), 
+  //         title: file.name
+  //       }));
+
+  //       //setTempFiles([...tempFiles, ...tempFileData]);
+  //       setTempFiles(prevFiles => [...prevFiles, ...tempFileData]);
+  //       setSuccess(true);
+        
+  //       setTimeout(() => {
+  //           setSuccess(false);
+  //       }, 3000);
+        
+  //       console.log("[DEBUG] Temporary files stored:", tempFileData);
+  //       return tempFileData;
+  //   } else {
+  //       setUploading(true);
+  //       setError(null);
+  //       setSuccess(false);
+
+  //       try {
+  //         // Always use the actual module ID, not a document's contentID
+  //         if (moduleId) {
+  //           // Extract the real module ID if it's an object
+  //           const actualModuleId = typeof moduleId === 'object' 
+  //               ? moduleId.moduleID || moduleId.moduleId || moduleId.id 
+  //               : moduleId;
+  //           console.log("Original moduleId:", moduleId);
+  //           console.log("Extracted actualModuleId:", actualModuleId);
+
+  //           formData.append('module_id', actualModuleId);
+  //           console.log(`Uploading files to module ID: ${actualModuleId}`);
+  //         }
+
+  //         // upload files
+  //         const uploadedDocuments = await DocumentService.uploadDocuments(formData);
+
+  //         // update documents list with newly uploaded files
+  //         setDocuments([...documents, ...uploadedDocuments]);
+  //         setSuccess(true);
+          
+  //         // show success message for 3 seconds
+  //         setTimeout(() => {
+  //             setSuccess(false);
+  //         }, 3000);
+
+  //         return uploadedDocuments;
+  //       } catch (err) {
+  //       console.error("Error uploading documents:", err);
+  //       setError(`Upload failed: ${err.response?.data?.detail || err.message}`);
+  //       throw err;
+  //       } finally {
+  //       setUploading(false);
+  //       }
+  //   }
+  // };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleDelete = async (documentId) => {
@@ -170,6 +353,15 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       console.error("Error deleting document:", err);
       setError(`Delete failed: ${err.response?.data?.detail || err.message}`);
     }
+  };
+
+  // handle deleting temporary files
+  const handleDeleteTemp = (id) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+    
+    setTempFiles(tempFiles.filter(file => file.id !== id));
   };
 
   const handleDownload = async (doc) => {
@@ -193,7 +385,7 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       
       // Use the backend server URL instead of the frontend URL
       const backendUrl = "http://localhost:8000"; // our Django port
-      const fileUrl = doc.file_url.startsWith('http') 
+      const fileUrl = doc.file_url && typeof doc.file_url === 'string' && doc.file_url.startsWith('http') 
         ? doc.file_url 
         : `${backendUrl}${doc.file_url}`;
       
@@ -248,7 +440,7 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
 
   const openDocumentViewer = (document) => {
     // only open PDF viewer for PDF files
-    if (document.filename.toLowerCase().endsWith('.pdf')) {
+    if (document.filename && document.filename.toLowerCase().endsWith('.pdf')) {
       setViewingDocument(document);
     } else {
       // for non-PDF files, just download them
@@ -262,7 +454,10 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
     return date.toLocaleDateString();
   };
 
-  const displayedDocuments = temporaryMode ? tempFiles : documents;
+  const isTemporaryMode = temporaryMode || !moduleId || (typeof moduleId === 'string' && moduleId.startsWith("new-"));
+  const displayedDocuments = temporaryMode ? tempFiles : documents; // ensures all temporary files are properly displayed in the UI
+  console.log("[DEBUG] temporaryMode:", temporaryMode);
+  console.log("[DEBUG] displayedDocuments:", displayedDocuments);
 
   return (
     <div className={styles.documentUploader}>
@@ -281,8 +476,7 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
         </div>
       )}
       
-      <DragDropUploader onUpload={handleUpload} />
-      
+      <DragDropUploader onUpload={handleUpload} />      
       {displayedDocuments.length > 0 ? (
         <div className={styles.documentsList}>
           <h4 className={styles.sectionTitle}>Uploaded Documents</h4>

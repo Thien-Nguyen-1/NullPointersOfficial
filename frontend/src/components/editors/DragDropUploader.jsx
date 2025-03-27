@@ -46,25 +46,28 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
   };
 
   const processFiles = (newFiles) => {
-    // filter for accepted file types
-    const validFiles = newFiles.filter(file => {
+    // take only the first file if multiple files wwere selected somehow
+    const fileToProcess = newFiles.length > 0 ? [newFiles[0]]: [];
+
+    // filter for accepted files type
+    const validFiles = fileToProcess.filter(file => {
       const fileType = file.name.split('.').pop().toLowerCase();
       return acceptedFileTypes.includes(`.${fileType}`);
     });
 
-    // add valid files to the list
-    setFiles(prevFiles => [...prevFiles, ...validFiles]);
+    // replace existing files instead of adding to them
+    setFiles(validFiles);
 
-    // initialize progress for each file
+    // initialize progress for the file
     const newProgress = {};
     const newStatus = {};
     validFiles.forEach(file => {
       newProgress[file.name] = 0;
-      newStatus[file.name] = 'pending';
+      newStatus[file.name] = 'pending'
     });
 
-    setUploadProgress(prev => ({ ...prev, ...newProgress }));
-    setUploadStatus(prev => ({ ...prev, ...newStatus }));
+    setUploadProgress(newProgress);
+    setUploadStatus(newStatus);
   };
 
   const removeFile = (fileName) => {
@@ -84,24 +87,97 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
     });
   };
 
+  // const handleUpload = async () => {
+  //   if (files.length === 0) return;
+
+  //   // create FormData with all files
+  //   const formData = new FormData();
+  //   files.forEach(file => {
+  //     formData.append('files', file);
+  //   });
+
+  //   try {
+  //     // set all files to 'uploading' status
+  //     const initialStatus = {};
+  //     files.forEach(file => {
+  //       initialStatus[file.name] = 'uploading';
+  //     });
+  //     setUploadStatus(prev => ({ ...prev, ...initialStatus }));
+
+  //     // simulate upload progress
+  //     const simulateProgress = () => {
+  //       setUploadProgress(prev => {
+  //         const newProgress = { ...prev };
+  //         files.forEach(file => {
+  //           if (newProgress[file.name] < 90) {
+  //             newProgress[file.name] = Math.min(newProgress[file.name] + 10, 90);
+  //           }
+  //         });
+  //         return newProgress;
+  //       });
+  //     };
+
+  //     // simulate progress at intervals
+  //     const progressInterval = setInterval(simulateProgress, 300);
+
+  //     // call the actual upload function passed via props
+  //     const result = await onUpload(formData);
+
+  //     // clear the interval
+  //     clearInterval(progressInterval);
+
+  //     // set all files to complete with 100% progress
+  //     const completeProgress = {};
+  //     const completeStatus = {};
+  //     files.forEach(file => {
+  //       completeProgress[file.name] = 100;
+  //       completeStatus[file.name] = 'complete';
+  //     });
+      
+  //     setUploadProgress(prev => ({ ...prev, ...completeProgress }));
+  //     setUploadStatus(prev => ({ ...prev, ...completeStatus }));
+
+  //     // clear the files after a short delay
+  //     setTimeout(() => {
+  //       //setFiles([]);
+  //       setUploadProgress({});
+  //       setUploadStatus({});
+  //     }, 2000);
+
+  //     return result;
+  //   } catch (error) {
+  //     // Set status to error
+  //     const errorStatus = {};
+  //     files.forEach(file => {
+  //       errorStatus[file.name] = 'error';
+  //     });
+  //     setUploadStatus(prev => ({ ...prev, ...errorStatus }));
+      
+  //     console.error('Upload failed:', error);
+  //     throw error;
+  //   }
+  // };
+
+  // Fix for DragDropUploader.jsx
   const handleUpload = async () => {
+    console.log("[DEBUG] DragDropUploader handleUpload called");  
     if (files.length === 0) return;
 
-    // create FormData with all files
+    // Create FormData with all files
     const formData = new FormData();
     files.forEach(file => {
       formData.append('files', file);
     });
 
     try {
-      // set all files to 'uploading' status
+      // Set all files to 'uploading' status
       const initialStatus = {};
       files.forEach(file => {
         initialStatus[file.name] = 'uploading';
       });
       setUploadStatus(prev => ({ ...prev, ...initialStatus }));
 
-      // simulate upload progress
+      // Simulate upload progress
       const simulateProgress = () => {
         setUploadProgress(prev => {
           const newProgress = { ...prev };
@@ -114,16 +190,16 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
         });
       };
 
-      // simulate progress at intervals
+      // Simulate progress at intervals
       const progressInterval = setInterval(simulateProgress, 300);
 
-      // call the actual upload function passed via props
+      // Call the actual upload function passed via props
       const result = await onUpload(formData);
 
-      // clear the interval
+      // Clear the interval
       clearInterval(progressInterval);
 
-      // set all files to complete with 100% progress
+      // Set all files to complete with 100% progress
       const completeProgress = {};
       const completeStatus = {};
       files.forEach(file => {
@@ -134,12 +210,15 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
       setUploadProgress(prev => ({ ...prev, ...completeProgress }));
       setUploadStatus(prev => ({ ...prev, ...completeStatus }));
 
-      // clear the files after a short delay
+      // Clear the files list after successful upload
+      // Don't clear the files immediately to allow the user to see the completion status
       setTimeout(() => {
-        setFiles([]);
+        setFiles([]);  
         setUploadProgress({});
         setUploadStatus({});
       }, 2000);
+
+      console.log("[DEBUG] DragDropUploader upload completed");
 
       return result;
     } catch (error) {
@@ -207,13 +286,13 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
           type="file"
           ref={fileInputRef}
           className={styles.fileInput}
-          multiple
+          // multiple -->> this cause multiple files to be uploaded
           accept={acceptedFileTypes}
           onChange={handleFileSelect}
         />
         <FiUpload className={styles.uploadIcon} />
         <p className={styles.dropText}>
-          {isDragging ? 'Drop files here' : 'Drag and drop files here or click to browse'}
+          {isDragging ? 'Drop ONE file here' : 'Drag and drop files here or click to browse'}
         </p>
         <p className={styles.supportedText}>
           Supported formats: PDF, Word, Excel, PowerPoint

@@ -180,15 +180,17 @@ const AddModule = () => {
         }
       }));
 
-      // Process documents
+      // Process documents (one document per component)
       const documentTemplates = documents.map(doc => ({
         id: doc.contentID,
         type: 'Upload Document',
         quizType: 'document',
         componentType: 'media',
-        moduleId: moduleId, // Store the document ID separately
-        actualModuleId: moduleId // Store the actual module ID
+        mediaType: 'document',
+        moduleId: moduleId,
+        actualModuleId: moduleId
       }));
+  
       // === this code creates one new component for EACH audio in the audios array === #
       const audioTemplates = audios.map(audio => ({
         id: audio.contentID,
@@ -611,30 +613,11 @@ const AddModule = () => {
         try {
           const deletedCount = await QuizApiUtils.cleanupOrphanedTasks(moduleId, updatedTaskIds);
 
-          // FOR DOCUMENTS
-          // Collect IDs of document components that we're keeping
-          const keptDocumentComponentIds = modules
-          .filter(m => m.componentType === "media" && m.mediaType === "document")
-          .map(m => m.id);
+          console.log("[DEBUG] Module structure check:");
+          console.log("All modules:", modules.map(m => ({id: m.id, type: m.type, componentType: m.componentType, mediaType: m.mediaType})));
+          console.log("Document components:", modules.filter(m => m.componentType === "media" && m.mediaType === "document"));
 
-          // Clean up orphaned document files
-          try {
-            // Get all existing document files for this module
-            const existingDocuments = await DocumentService.getModuleDocuments(moduleId);
-
-            // If there are no document components/blocks left, delete all document files
-            if (keptDocumentComponentIds.length === 0) {
-              console.log(`No document components left - deleting all document files for module ${moduleId}`);
-              for (const document of existingDocuments) {
-                await DocumentService.deleteDocument(document.contentID);
-                console.log(`Deleted orphaned document: ${document.contentID}`);
-              }
-          }
-            // If we deleted specific document components, we'd need to track which documents belong to which component
-            // But since we're using a single component per module approach, this is simplified
-          } catch (error) {
-            console.error("Error cleaning up orphaned document files:", error);
-          }
+          // FOR DOCUMENT
 
           // FOR AUDIO
           // Collect IDs of audio components that we're keeping
@@ -689,35 +672,9 @@ const AddModule = () => {
           // Special handling for media components (document, audio, images, videos)
           if (module.componentType === "media") {
             // Handle document uploads
-            if (module.mediaType === "document") {
-              const documentEditor = editorRefs.current[module.id];
-              if (documentEditor && documentEditor.getTempFiles) {
-                const tempFiles = documentEditor.getTempFiles();
-                
-                if (tempFiles && tempFiles.length > 0) {
-                  try {
-                    // Create a FormData object to upload the files
-                    const formData = new FormData();
-                    // Pass moduleId directly instead of an object
-                    formData.append('module_id', moduleId);
-                    
-                    // Add each temp file to the form data
-                    tempFiles.forEach(fileData => {
-                      formData.append('files', fileData.file);
-                    });
-                    
-                    // Use DocumentService to upload directly
-                    const uploadedDocs = await DocumentService.uploadDocuments(formData);
-                    console.log("[DEBUG] Uploaded documents:", uploadedDocs);
-                  } catch (docError) {
-                    console.error("Error uploading documents:", docError);
-                    setError(`Failed to upload documents: ${docError.message}`);
-                  }
-                }
-              }
-            }
 
-            else if (module.mediaType === "audio") {
+
+             if (module.mediaType === "audio") {
               const audioEditor = editorRefs.current[module.id];
               if (audioEditor && audioEditor.getTempFiles) {
                 const tempFiles = audioEditor.getTempFiles();
@@ -913,6 +870,9 @@ const AddModule = () => {
         {/* Modules List */}
         <div className={styles["modules-list"]}>
           {modules.map((module) => {
+
+            console.log("[DEBUG] Module component:", module.id, module.type, module.componentType);
+
             let EditorComponent = null;
             if (module.componentType === "template") {
               EditorComponent = moduleOptions[module.type]?.component
