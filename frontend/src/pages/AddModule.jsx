@@ -617,7 +617,27 @@ const AddModule = () => {
           console.log("All modules:", modules.map(m => ({id: m.id, type: m.type, componentType: m.componentType, mediaType: m.mediaType})));
           console.log("Document components:", modules.filter(m => m.componentType === "media" && m.mediaType === "document"));
 
-          // FOR DOCUMENT
+          // FOR DOCUMENTS
+          // Collect IDs of document components that we're keeping
+          const keptDocumentComponentIds = modules
+          .filter(m => m.componentType === "media" && m.mediaType === "document")
+          .map(m => m.id);
+
+          try {
+            // Get all existing document files for this module
+            const existingDocuments = await DocumentService.getModuleDocuments(moduleId);
+            
+            // If there are no document components left, delete all document files
+            if (keptDocumentComponentIds.length === 0) {
+              console.log(`No document components left - deleting all document files for module ${moduleId}`);
+              for (const doc of existingDocuments) {
+                await DocumentService.deleteDocument(doc.contentID);
+                console.log(`Deleted orphaned document: ${doc.contentID}`);
+              }
+            }
+          } catch (error) {
+            console.error("Error cleaning up orphaned document files:", error);
+          }
 
           // FOR AUDIO
           // Collect IDs of audio components that we're keeping

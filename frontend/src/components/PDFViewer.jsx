@@ -23,25 +23,42 @@ const PDFViewer = ({ documentUrl, documentName }) => {
     // Fetch the PDF as a blob to display it
     const fetchPdf = async () => {
       try {
-        // Use the backend server URL instead of the frontend URL
-        const backendUrl = "http://localhost:8000"; // remember to use our Django port
-        const fileUrl = documentUrl.startsWith('http') 
-          ? documentUrl 
-          : `${backendUrl}${documentUrl}`;
-        
-        console.log("Fetching PDF from:", fileUrl);
-        
-        const response = await fetch(fileUrl, {
-          credentials: 'include' // Include cookies for authentication
-        });
-        
-        console.log("PDF fetch response status:", response.status);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load PDF: ${response.status}`);
+        if (!documentUrl) {
+          console.error("No document URL provided");
+          setError("No document URL provided")
+          return;
         }
         
-        const blob = await response.blob();
+        let pdfResponse;
+
+        // check if its already a blob URL (for remporary files)
+        if (documentUrl.startsWith('blob:')) {
+          console.log("Using direct blob URL for temporary file");
+          pdfResponse = await fetch(documentUrl);
+        }
+
+        else {
+          // if its a SERVER URL
+          // Use the backend server URL instead of the frontend URL
+          const backendUrl = "http://localhost:8000"; // remember to use our Django port
+          const fileUrl = documentUrl.startsWith('http') 
+            ? documentUrl 
+            : `${backendUrl}${documentUrl}`;
+          
+          console.log("Fetching PDF from:", fileUrl);
+          
+          const response = await fetch(fileUrl, {
+            credentials: 'include' // Include cookies for authentication
+          });
+        }
+
+        console.log("PDF fetch response status:", pdfResponse.status);
+        
+        if (!pdfResponse.ok) {
+          throw new Error(`Failed to load PDF: ${pdfResponse.status}`);
+        }
+        
+        const blob = await pdfResponse.blob();
         console.log("PDF blob created:", blob.type, "size:", blob.size, "bytes");
         
         const url = URL.createObjectURL(blob);
