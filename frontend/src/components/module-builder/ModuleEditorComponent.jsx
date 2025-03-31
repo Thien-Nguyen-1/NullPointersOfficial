@@ -32,6 +32,8 @@ export const ModuleEditorComponent = ({
     // Media
     "Upload Document": DocumentEditorWrapper,
     "Upload Audio": AudioEditorWrapper,
+    // add future media
+
     // Heading
     "heading": HeadingsComponent
   };
