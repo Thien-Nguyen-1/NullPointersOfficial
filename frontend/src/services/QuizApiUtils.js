@@ -253,6 +253,7 @@ export const QuizApiUtils = {
   getUIMediaTypeFromAPIType: (apiType) => {
     const typeMap = {
       'document': 'Upload Document',
+      'audio': 'Upload Audio'
       // Add other media types as needed
     };
     return typeMap[apiType] || null;
@@ -261,20 +262,50 @@ export const QuizApiUtils = {
     /**
    * Get only MEDIA CONTENT specific to a module
    */
-  getModuleContents: async (moduleId) => {
+  // getModuleContents: async (moduleId) => {
+  //   const endpoints = {
+  //     'documents' : '/api/documents/',
+  //     'audio' : '/api/audio/'
+  //   }
+  //   try {
+  //     console.log(`Fetching documents for module ID: ${moduleId}`);
+  //     // This endpoint should return all content objects (including documents) for a module
+  //     const response = await api.get('/api/documents/', { 
+  //       params: { module_id: moduleId } 
+  //     });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Error fetching module contents:', error);
+  //     throw error;
+  //   }
+  // },
+  getModuleContents: async (moduleId, mediaType = 'document') => {
     try {
-      console.log(`Fetching documents for module ID: ${moduleId}`);
-      // This endpoint should return all content objects (including documents) for a module
-      const response = await api.get('/api/documents/', { 
-        params: { module_id: moduleId } 
-      });
-      return response.data;
+       console.log(`Fetching ${mediaType} for module ID: ${moduleId}`);
+       
+       // Use different endpoints based on media type
+       const endpoints = {
+           'document': '/api/documents/',
+           'audio': '/api/audios/'
+       };
+   
+       // Select the correct endpoint
+       const endpoint = endpoints[mediaType];
+       
+       if (!endpoint) {
+           throw new Error(`Unsupported media type: ${mediaType}`);
+       }
+   
+       const response = await api.get(endpoint, {
+           params: { module_id: moduleId }
+       });
+       
+       return response.data;
     } catch (error) {
-      console.error('Error fetching module contents:', error);
-      throw error;
+       console.error(`Error fetching ${mediaType} contents:`, error);
+       throw error;
     }
-  },
-
+   },
   /**
    * Get only TASKS/QUIZ specific to a module
    */

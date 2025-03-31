@@ -239,17 +239,23 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
           const uploadedDocuments = await DocumentService.uploadDocuments(formData);
           console.log("[DEBUG] Uploaded documents response:", uploadedDocuments);
 
-          // CRITICAL SECTION: This is where the bug might be happening
+          // CRITICAL SECTION: 
           // if this is a single document component, replace rather than append
           if (documentId) {
             console.log("[DEBUG] Setting documents with replacement for documentId:", documentId);
             console.log("[DEBUG] New documents:", uploadedDocuments);
             console.log("[DEBUG] Old documents:", documents);
             
-            // Set the documents state with ONLY the newly uploaded documents
-            setDocuments(uploadedDocuments);
+            // Replace the document but PRESERVE the original component ID
+            const updatedDocuments = uploadedDocuments.map(doc => ({
+              ...doc,
+              contentID: documentId  // Force the new document to use the original component ID
+            }));
+            
+            console.log("[DEBUG] Updated documents with preserved component ID:", updatedDocuments);
+            setDocuments(updatedDocuments);
           } else {
-            // else update documents list with newly uploaded files
+            // Regular handling for non-replacement uploads
             console.log("[DEBUG] Appending new documents to existing ones");
             setDocuments(prevDocs => {
               const newDocs = [...prevDocs, ...uploadedDocuments];
@@ -257,7 +263,6 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
               return newDocs;
             });
           }
-          
           setSuccess(true);
           
           // Show success message for 3 seconds

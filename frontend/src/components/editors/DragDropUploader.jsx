@@ -4,12 +4,26 @@ import React, { useState, useRef } from 'react';
 import { FiUpload, FiFile, FiCheckCircle, FiX, FiAlertCircle } from 'react-icons/fi';
 import styles from '../../styles/DragDropUploader.module.css';
 
-const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx' }) => {
+const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx',
+  mediaType = 'document' // default value
+ }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({});
   const [uploadStatus, setUploadStatus] = useState({});
   const fileInputRef = useRef(null);
+
+  //get help text based on media type
+  const getSupportedFormatsText = () => {
+    switch(mediaType) {
+      // Future media here
+      case 'audio':
+        return 'Supported formats: MP3, WAV, OGG, M4A';
+      case 'document':
+      default:
+        return 'Supported formats: PDF, Word, Excel, PowerPoint';
+    }
+  };
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -158,7 +172,6 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
   //   }
   // };
 
-  // Fix for DragDropUploader.jsx
   const handleUpload = async () => {
     console.log("[DEBUG] DragDropUploader handleUpload called");  
     if (files.length === 0) return;
@@ -295,7 +308,7 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
           {isDragging ? 'Drop ONE file here' : 'Drag and drop files here or click to browse'}
         </p>
         <p className={styles.supportedText}>
-          Supported formats: PDF, Word, Excel, PowerPoint
+          {getSupportedFormatsText()}
         </p>
       </div>
       

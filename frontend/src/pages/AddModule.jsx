@@ -5,7 +5,7 @@ import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEdit
 import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
 import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
 import HeadingsComponent from "../components/editors/Headings";
-import DocumentUploader, {DocumentEditorWrapper} from "../components/editors/DocumentUploader";
+import  {DocumentEditorWrapper} from "../components/editors/DocumentUploader";
 import { AudioEditorWrapper } from "../components/editors/AudioUploader";
 import api from "../services/api";
 import { QuizApiUtils } from "../services/QuizApiUtils";
@@ -30,6 +30,11 @@ const AddModule = () => {
   const [error, setError] = useState(null);
   // const [currentUser, setCurrentUser] = useState(null);
   const [headingSize, setHeadingSize] = useState("heading1");
+  const [pendingDeletions, setPendingDeletions] = useState({ 
+    document: [], 
+    audio: [] 
+  });
+  
 
   
   // Use AuthContext to get the current user
@@ -107,7 +112,7 @@ const AddModule = () => {
       // const documents = await QuizApiUtils.getModuleContents(moduleId);
       // console.log("[DEBUG] Fetched Documents for Module:", documents);
 
-      const [tasksResponse, documentsResponse] = await Promise.all([
+      const [tasksResponse, documentsResponse, audiosResponse] = await Promise.all([
         QuizApiUtils.getModuleSpecificTasks(moduleId).catch(error => {
           console.error("Error fetching tasks:", error);
           return []; // Return empty array on error
@@ -115,23 +120,21 @@ const AddModule = () => {
         QuizApiUtils.getModuleContents(moduleId).catch(error => {
           console.error("Error fetching documents:", error);
           return []; // Return empty array on error
-        })
+        }),
+        QuizApiUtils.getModuleContents(moduleId, 'audio').catch(error => {
+          console.error("Error fetching audio clips:", error);
+          return []; // Return empty array on error
+        }) 
       ]);
-
-      //  fetch audio clips:
-      const audiosResponse = await AudioService.getModuleAudios(moduleId).catch(error => {
-        console.error("Error fetching audio clips:", error);
-        return []; // Return empty array on error
-      });
 
       const tasks = tasksResponse || [];
       const documents = documentsResponse || [];
       const audios = audiosResponse || [];
 
-      console.log("[DEBUG] Fetched Audio Clips for Module:", audios);
-
       console.log("[DEBUG] Fetched Tasks for Module:", tasks);
       console.log("[DEBUG] Fetched Documents for Module:", documents);
+      console.log("[DEBUG] Fetched Audio Clips for Module:", audios);
+
 
       // Reset the initialQuestionsRef to avoid any stale data
       initialQuestionsRef.current = {};
@@ -191,7 +194,7 @@ const AddModule = () => {
         actualModuleId: moduleId
       }));
   
-      // === this code creates one new component for EACH audio in the audios array === #
+      // create one audio pe component
       const audioTemplates = audios.map(audio => ({
         id: audio.contentID,
         type: 'Upload Audio',
@@ -202,18 +205,9 @@ const AddModule = () => {
         actualModuleId: moduleId
       }));
 
-      // this create just ONE audio template to show all audio files for this module:
-      // const audioTemplates = audios.length > 0 ? [{
-      //   id: `audio-uploader-${moduleId}`,
-      //   type: 'Upload Audio',
-      //   quizType: 'audio',
-      //   componentType: 'media',
-      //   mediaType: 'audio',
-      //   moduleId: moduleId,
-      //   actualModuleId: moduleId
-      // }] : [];
+      // Future Media template goes here
 
-      setModules([...taskTemplates, ...documentTemplates, ...audioTemplates]);
+      setModules([...taskTemplates, ...documentTemplates, ...audioTemplates]); // then add it here
       console.log("[DEBUG] Final Module Templates :",[...taskTemplates, ...documentTemplates, ...audioTemplates]);
 
       setIsLoading(false);
@@ -281,11 +275,51 @@ const AddModule = () => {
 
   // Remove a module
   const removeModule = (id) => {
+      // find the module being removed to check its type
+      const moduleToRemove = modules.find(module => module.id === id);
+      
+      if (moduleToRemove) {
+        console.log(`[DEBUG] Removing module: ${id}, type: ${moduleToRemove.type}, componentType: ${moduleToRemove.componentType}`);
+        
+        // handle media components specially
+        if (moduleToRemove.componentType === "media") {
+          // for document components
+          if (moduleToRemove.mediaType === "document") {
+            console.log(`[DEBUG] Removing document component: ${id}`);
+            
+            // if we're in edit mode and it's an existing document (not a new one)
+            if (editId && !id.toString().startsWith('new-')) {
+              console.log(`[DEBUG] Marking document ${id} for deletion on save`);
+              // add to pending deletions
+              setPendingDeletions(prev => ({
+                ...prev,
+                document: [...prev.document, id]
+              }));
+            }
+          } 
+          // for audio components
+          else if (moduleToRemove.mediaType === "audio") {
+            console.log(`[DEBUG] Removing audio component: ${id}`);
+            
+            if (editId && !id.toString().startsWith('new-')) {
+              console.log(`[DEBUG] Marking audio ${id} for deletion on save`);
+              setPendingDeletions(prev => ({
+                ...prev,
+                audio: [...prev.audio, id]
+              }));
+            }
+          }
+          // Future Media
+        }
+      }
+    
     setModules(modules.filter(module => module.id !== id));
 
     // Clean up refs
     delete editorRefs.current[id];
     delete initialQuestionsRef.current[id];
+
+    console.log(`[DEBUG] Module ${id} removed successfully`);
   };
 
   // Add a new tag
@@ -397,6 +431,57 @@ const AddModule = () => {
         // First, get current tasks
         const existingTasks = await QuizApiUtils.getModuleTasks(moduleId);
         
+          // Process pending deletions for documents
+          if (pendingDeletions.document.length > 0) {
+            console.log(`[DEBUG] Processing ${pendingDeletions.document.length} pending document deletions`);
+            
+            for (const docId of pendingDeletions.document) {
+              try {
+                // Get all documents for this module
+                const allDocs = await DocumentService.getModuleDocuments(moduleId);
+                
+                // Find documents that match this component ID
+                const docsToDelete = allDocs.filter(doc => doc.contentID === docId);
+                
+                for (const doc of docsToDelete) {
+                  console.log(`[DEBUG] Deleting document: ${doc.contentID}`);
+                  await DocumentService.deleteDocument(doc.contentID);
+                }
+                
+                console.log(`[DEBUG] Deleted ${docsToDelete.length} documents for component ${docId}`);
+              } catch (err) {
+                console.error(`[ERROR] Failed to delete documents for component ${docId}:`, err);
+              }
+            }
+          }
+          
+          // Process pending deletions for audio
+          if (pendingDeletions.audio.length > 0) {
+            console.log(`[DEBUG] Processing ${pendingDeletions.audio.length} pending audio deletions`);
+            
+            for (const audioId of pendingDeletions.audio) {
+              try {
+                // Get all audio files for this module
+                const allAudios = await AudioService.getModuleAudios(moduleId);
+                
+                // Find audio files that match this component ID
+                const audiosToDelete = allAudios.filter(audio => audio.contentID === audioId);
+                
+                for (const audio of audiosToDelete) {
+                  console.log(`[DEBUG] Deleting audio: ${audio.contentID}`);
+                  await AudioService.deleteAudio(audio.contentID);
+                }
+                
+                console.log(`[DEBUG] Deleted ${audiosToDelete.length} audio files for component ${audioId}`);
+              } catch (err) {
+                console.error(`[ERROR] Failed to delete audio files for component ${audioId}:`, err);
+              }
+            }
+          }
+          
+          // Clear pending deletions after processing
+          setPendingDeletions({ document: [], audio: [] });
+          
           // Update or create tasks
           for (const module of modules) {
             // Get the current questions from the editor component using the ref
@@ -616,6 +701,7 @@ const AddModule = () => {
           console.log("[DEBUG] Module structure check:");
           console.log("All modules:", modules.map(m => ({id: m.id, type: m.type, componentType: m.componentType, mediaType: m.mediaType})));
           console.log("Document components:", modules.filter(m => m.componentType === "media" && m.mediaType === "document"));
+          console.log("Audio components:", modules.filter(m => m.componentType === "media" && m.mediaType === "audio"));
 
           // FOR DOCUMENTS
           // Collect IDs of document components that we're keeping
@@ -657,8 +743,6 @@ const AddModule = () => {
                 console.log(`Deleted orphaned audio: ${audio.contentID}`);
               }
             }
-            // If we deleted specific audio components, we'd need to track which audios belong to which component
-            // But since we're using a single component per module approach, this is simplified
           } catch (error) {
             console.error("Error cleaning up orphaned audio files:", error);
           }
@@ -693,8 +777,33 @@ const AddModule = () => {
           if (module.componentType === "media") {
             // Handle document uploads
 
-
-             if (module.mediaType === "audio") {
+            if (module.mediaType === "document") {
+              const documentEditor = editorRefs.current[module.id];
+              if (documentEditor && documentEditor.getTempFiles) {
+                const tempFiles = documentEditor.getTempFiles();
+                if (tempFiles && tempFiles.length > 0) {
+                  try {
+                    // Create a FormData object to upload the files
+                    const formData = new FormData();
+                    // Pass moduleId directly instead of an object
+                    formData.append('module_id', moduleId);
+                    
+                    // Add each temp file to the form data
+                    tempFiles.forEach(fileData => {
+                      formData.append('files', fileData.file);
+                    });
+                    
+                    // Use documentService to upload directly
+                    const uploadedDocuments = await DocumentService.uploadDocuments(formData);
+                    console.log("[DEBUG] Uploaded document files:", uploadedDocuments);
+                  } catch (documentError) {
+                    console.error("Error uploading document files:", documentError);
+                    setError(`Failed to upload document files: ${documentError.message}`);
+                  }
+                }
+              }
+            
+            } else  if (module.mediaType === "audio") {
               const audioEditor = editorRefs.current[module.id];
               if (audioEditor && audioEditor.getTempFiles) {
                 const tempFiles = audioEditor.getTempFiles();
@@ -720,7 +829,7 @@ const AddModule = () => {
                 }
               }
             }
-            // Future media types would go here (audio, images, videos)
+            // // Future media types would go here (audio, images, videos)
     
             // Skip the regular task creation process for all media components
             continue;
