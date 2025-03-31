@@ -5,7 +5,8 @@ import { useState } from 'react';
 export const useMediaDeletions = () => {
   const [pendingDeletions, setPendingDeletions] = useState({ 
     document: [], 
-    audio: [] 
+    audio: [],
+    // future media
   });
   
   return { pendingDeletions, setPendingDeletions };
