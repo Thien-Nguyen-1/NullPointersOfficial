@@ -13,7 +13,8 @@ class ServiceUserSettingsViewTest(APITestCase):
             first_name = "john",
             last_name = "doe",
             password ="password123",
-            user_type = "Service user"
+            user_type = "Service user",
+            firebase_token="test_token"
         )
         self.client.force_authenticate(user=self.user)
 
@@ -51,9 +52,11 @@ class ServiceUserSettingsViewTest(APITestCase):
 
     # @patch("returnToWork.models.User.delete")
     # @patch("returnToWork.models.User.objects")
-    # def test_inavlid_delete_user_settings(self, mock_delete, mock_objects):
+    # def test_inavlid_delete_user_settings(self, mock_delete):
     #     mock_delete.return_value = None   #doesnt acc delete the user
-    #     mock_objects.filter.return_value.exists.return_value = True #shows user still exists
+        
+    #     with patch ("returnToWork.models.User.objects.filter") as mock_filter:
+    #         mock_filter.filter.return_value.exists.return_value = True #shows user still exists
     #     response = self.client.delete(self.url)
     #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     #     self.assertEqual(response.data["error"], "User account not deleted")

@@ -1,3 +1,8 @@
+# views.py - Main views file for backward compatibility
+# This file imports all views from the modular structure
+
+import json
+import random
 import os
 import uuid
 from io import BytesIO
@@ -140,6 +145,8 @@ class VerifyEmailView(APIView):
         user_data = cache.get(token)
         if not user_data:
             return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=user_data.get("email")).exists():
+            return Response({"message": "This email is already verified. You can log in"}, status=status.HTTP_200_OK)
         user = User.objects.create_user(**user_data)
         cache.delete(token)
         return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
@@ -647,8 +654,6 @@ class UserSettingsView(APIView):
         username = user.username
 
         user.delete()
-        return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
-
 
         if not User.objects.filter(username = username).exists():
             send_mail(
@@ -1077,22 +1082,23 @@ class TaskPdfView(APIView):
         y_position = 780
         # get related response and create the pdf
         for question in questions:
-            try:
-                response = UserResponse.objects.filter(user=user, question=question).first()
-                answer_text = response.response_text
+            # try:
+            response = UserResponse.objects.filter(user=user, question=question).first()
+            answer_text = response.response_text if response else "No response provided"
 
-            except UserResponse.DoesNotExist:
-                answer_text = "No response provided"
+            # except UserResponse.DoesNotExist:
+            #     answer_text = "No response provided"
 
-            pdf.drawString(100, y_position, f"Q: {question.question_text}")
+            pdf.drawString(100, y_position, f"Question: {question.question_text}")
             y_position -=20
-            pdf.drawString(120, y_position, f"A: {answer_text}")
+            pdf.drawString(120, y_position, f"Answer: {answer_text}")
             y_position -=30
 
         pdf.save()
         buffer.seek(0)
         response = HttpResponse(buffer, content_type="application/pdf")
-        response["content-Disposition"] = f'attachment; filename ="{task.title.replace(" ", "-")}_completed.pdf"'
+        response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
+
         return response
     
 
@@ -1818,6 +1824,7 @@ class MarkContentViewedView(APIView):
             )
         
         # Create or update progress
+
         progress, created = ContentProgress.objects.get_or_create(
             user=request.user,
             content_type=content_type,
@@ -1880,3 +1887,35 @@ class CompletedContentView(APIView):
         return Response(list(viewed_content))
     
 
+class CompletedInteractiveContentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # module = get_object_or_404(Module, pk=module_id)
+
+        content_type = ContentType.objects.get_for_model(Task)
+
+        # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
+
+        viewed_tasks = ContentProgress.objects.filter(
+            user=request.user,
+            content_type=content_type,
+            # object_id__in=module_task_ids,
+            viewed=True
+        )
+
+        results = []
+        for item in viewed_tasks:
+            try:
+                task = item.content_object
+                results.append({
+                    "content_id": str(item.object_id),
+                    "title": task.title,
+                    "viewed_at": item.viewed_at,
+                    "quiz_type": task.get_quiz_type_display(),
+                    "module_title": task.moduleID.title if task.moduleID else None
+                })
+            except:
+                continue
+
+        return Response(results)

@@ -1,14 +1,12 @@
 import axios from 'axios';
 
 
-const baseURL =
-  import.meta.env && import.meta.env.VITE_API_URL 
-    ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000'; 
+// Determine the base URL using environment variables
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-    
+// Create axios instance with the determined baseURL
 const api = axios.create({
-  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json', // headers property sets default http headers that will be included in all requests made by this api instance
@@ -415,15 +413,12 @@ export const quizApi = {
 //get the task that needs downloading nd the authentication token
 export const downloadCompletedTask = async(taskId, token) => {
   try {
-    // const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
-    //   headers:{
-    //     Authorization: `Token ${token}`,
-    //     Accept: "application/pdf",
-    //   },
-    //   responseType: "blob", //dowlaod pdf in blob format
-    // });
-
-    const response = await api.get('/api/download-completed-task/<uuid:task_id>/');
+    const response = await api.get(`/api/download-completed-task/${taskId}/`,{
+      headers:{
+        Authorization: `Token ${token}`,
+      },
+      responseType: "blob", 
+    });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -503,7 +498,7 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Token ${token}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         content_id: contentId,
@@ -521,6 +516,29 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
   } catch (error) {
     console.error("Failed to mark content as viewed:", error);
     throw error;
+  }
+};
+
+
+export const fetchCompletedInteractiveContent = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    console.error("No token found");
+    return [];
+  }
+
+  try {
+    const response = await api.get('/api/completed-interactive-content/', {
+      headers: {
+        Authorization: `Token ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching completed interactive content:", error);
+    return [];
   }
 };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { getUserSettings, deleteUserSettings, changeUserPassword, GetModule, GetAllProgressTracker, downloadCompletedTask } from "../services/api";
+import { deleteUserSettings, changeUserPassword, downloadCompletedTask , fetchCompletedInteractiveContent} from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Settings.css';
 import {AuthContext} from "../services/AuthContext";
@@ -8,9 +8,8 @@ function Settings() {
   const {user, updateUser}= useContext(AuthContext);
   const [showModal, setShowModal] = useState (false);
   const navigate = useNavigate();
-  // const [user, setUser] = useState({});
   const [completedCourses, setCompletedCourses] = useState([]);
-  const [taskId, setTaskId] = useState("");
+  // const [taskId, setTaskId] = useState("");
   const token = localStorage.getItem("token");
 
   const [passwordData,setPasswordData] = useState ({
@@ -19,40 +18,25 @@ function Settings() {
     confirm_new_password: "" 
   }); 
 
-// useEffect(() => {
-//   async function fetchCompletedCourses() {
-//     if (!user || !user.id) {
-//       console.warn("User is not available.");
-//       return;
-//     }
+  useEffect(() => {
+    async function loadCompletedTasks() {
+      try {
+        const data = await fetchCompletedInteractiveContent();
+        setCompletedCourses(data);
+        console.log("Fetched completed content:", data);
 
-//     try {
-//       const allModules = await GetModule();
-//       const progressData = await GetAllProgressTracker(); 
-
-//       if (allModules && progressData) {
-//         const completed = progressData
-//           .filter(tracker => tracker.user === user.id && tracker.completed)
-//           .map(tracker => {
-//             const foundModule = allModules.find(mod => mod.id === tracker.module);
-//             if (!foundModule) {
-//             }
-//             return foundModule ? { ...foundModule, progressId: tracker.id } : null;
-//           })
-//           .filter(Boolean); 
-//         setCompletedCourses(completed);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching completed courses:", error);
-//     }
-//   }
-
-//   fetchCompletedCourses();
-// }, [user]);
+      } catch (err) {
+        console.error("Failed to fetch completed interactive content", err);
+      }
+    }
+  
+    loadCompletedTasks();
+  }, []);
+  
 
 
 const handleDownload = async(taskId) => {
-  if(token){
+  if(!token){
     alert("user isnt authenticated");
     return;
   }
@@ -60,9 +44,26 @@ const handleDownload = async(taskId) => {
     await downloadCompletedTask(taskId, token);
 
   }
-  catch(error){
-    alert("Error downloading pdf");
+  catch (error) {
+    try {
+      const errorBlob = error.response?.data;
+      const errorText = await errorBlob.text(); 
+      const errorJson = JSON.parse(errorText);  
+  
+      if (
+        error.response?.status === 400 &&
+        errorJson?.error === "No questions found for this task"
+      ) {
+        alert("This task has no questions/answers and cannot be downloaded as a PDF.");
+      } else {
+        alert("Error downloading PDF");
+      }
+    } catch (parseError) {
+      alert("Error downloading PDF");
+      console.error("Unhandled error:", parseError);
+    }
   }
+  
 };
 
 
@@ -108,9 +109,6 @@ const handleDelete = async () => {
       localStorage.removeItem("token");
 
       navigate("/signup");
-    // } else {
-    //   alert("Failed to delete account. Please try again.");
-    // }
   } 
   catch (error) {
     alert("Failed to delete account.");
@@ -129,20 +127,22 @@ return (
     {user?.user_type === "service user" && (
       <div className="settings-card">
       <h1>Completed Courses</h1>
-      {/* {completedCourses.length > 0 ? (
-        <ul>
-          {completedCourses.map((module, index) => (
-            <li key={index}>
-              {module.title}
-              <button onClick={() => handleDownload(module.id)} className="download-button">
-                    Download PDF
-                </button>
-              </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No completed courses yet.</p>
-      )} */}
+      {completedCourses.length > 0 ? (
+    <div className="completed-courses-container">
+      {completedCourses.map((task, index) => (
+        <div key={index} className="course-card">
+          <h3>{task.title}</h3> <br />
+          <p><strong>Type:</strong> {task.quiz_type} </p>
+          <p><strong>Completed on:</strong> {new Date(task.viewed_at).toLocaleString()}</p>
+          <button onClick={() => handleDownload(task.content_id)}>
+            Download PDF
+          </button>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p>No completed content yet.</p>
+  )}
     </div>
     
     )}
@@ -154,7 +154,6 @@ return (
         <input
           id = "old_password"
           type="password"
-          // placeholder="Old Password"
           value={passwordData.old_password}
           onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
         />
@@ -165,7 +164,6 @@ return (
         <input
           id = "new_password"
           type="password"
-          // placeholder="New Password"
           value={passwordData.new_password}
           onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
         />
@@ -176,7 +174,6 @@ return (
         <input
           id = "confirm_new_password"
           type="password"
-          // placeholder="Confirm New Password"
           value={passwordData.confirm_new_password}
           onChange={(e) => setPasswordData({ ...passwordData, confirm_new_password: e.target.value })}
         />
