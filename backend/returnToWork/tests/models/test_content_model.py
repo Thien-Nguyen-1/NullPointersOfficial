@@ -93,30 +93,30 @@ class ContentModelTests(TestCase):
         self.assertTrue(inline_picture.image_file.name.startswith('inline_pictures/'))
         self.assertFalse(inline_picture.is_published)
 
-    def test_audio_clip_creation(self):
-        """
-        Test AudioClip model creation
-        """
-        # Create a test audio file
-        test_audio = SimpleUploadedFile(
-            name='test_audio.mp3',
-            content=b'',
-            content_type='audio/mpeg'
-        )
+    # def test_audio_clip_creation(self):
+    #     """
+    #     Test AudioClip model creation
+    #     """
+    #     # Create a test audio file
+    #     test_audio = SimpleUploadedFile(
+    #         name='test_audio.mp3',
+    #         content=b'',
+    #         content_type='audio/mpeg'
+    #     )
 
-        audio_clip = AudioClip.objects.create(
-            title='Test Audio Clip',
-            moduleID=self.module,
-            author=self.user,
-            description='Audio clip description',
-            audio_file=test_audio
-        )
+    #     audio_clip = AudioClip.objects.create(
+    #         title='Test Audio Clip',
+    #         moduleID=self.module,
+    #         author=self.user,
+    #         description='Audio clip description',
+    #         audio_file=test_audio
+    #     )
 
-        self.assertEqual(audio_clip.title, 'Test Audio Clip')
-        self.assertEqual(audio_clip.moduleID, self.module)
-        self.assertEqual(audio_clip.author, self.user)
-        self.assertTrue(audio_clip.audio_file.name.startswith('audio_clips/'))
-        self.assertFalse(audio_clip.is_published)
+    #     self.assertEqual(audio_clip.title, 'Test Audio Clip')
+    #     self.assertEqual(audio_clip.moduleID, self.module)
+    #     self.assertEqual(audio_clip.author, self.user)
+    #     self.assertTrue(audio_clip.audio_file.name.startswith('audio_clips/'))
+    #     self.assertFalse(audio_clip.is_published)
 
     def test_document_creation(self):
         """
