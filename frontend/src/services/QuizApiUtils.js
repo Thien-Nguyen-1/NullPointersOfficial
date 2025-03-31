@@ -262,23 +262,6 @@ export const QuizApiUtils = {
     /**
    * Get only MEDIA CONTENT specific to a module
    */
-  // getModuleContents: async (moduleId) => {
-  //   const endpoints = {
-  //     'documents' : '/api/documents/',
-  //     'audio' : '/api/audio/'
-  //   }
-  //   try {
-  //     console.log(`Fetching documents for module ID: ${moduleId}`);
-  //     // This endpoint should return all content objects (including documents) for a module
-  //     const response = await api.get('/api/documents/', { 
-  //       params: { module_id: moduleId } 
-  //     });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error fetching module contents:', error);
-  //     throw error;
-  //   }
-  // },
   getModuleContents: async (moduleId, mediaType = 'document') => {
     try {
        console.log(`Fetching ${mediaType} for module ID: ${moduleId}`);
@@ -287,6 +270,7 @@ export const QuizApiUtils = {
        const endpoints = {
            'document': '/api/documents/',
            'audio': '/api/audios/'
+           // add future media here
        };
    
        // Select the correct endpoint
@@ -328,22 +312,6 @@ export const QuizApiUtils = {
     }
   },
 
-  // Also add a function to create the module-task relationship in the backend
-  // createModuleTask: async (moduleId, taskData) => {
-  //   try {
-  //     // Ensure the moduleID is explicitly set to this module
-  //     const data = {
-  //       ...taskData,
-  //       moduleID: moduleId
-  //     };
-      
-  //     const response = await api.post('/api/tasks/', data);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error creating module task:', error);
-  //     throw error;
-  //   }
-  // },
 
   createModuleTask: async (moduleId, taskData) => {
     try {
