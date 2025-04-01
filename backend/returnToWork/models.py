@@ -495,7 +495,7 @@ class ContentProgress(models.Model):
     
     # Using Django's ContentType framework
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()  # Using UUID for your Content subclasses
+    object_id = models.UUIDField()  # Using UUID for Content subclasses
     content_object = GenericForeignKey('content_type', 'object_id')
     
     # Progress tracking

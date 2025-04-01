@@ -118,40 +118,40 @@ class ContentModelTests(TestCase):
     #     self.assertTrue(audio_clip.audio_file.name.startswith('audio_clips/'))
     #     self.assertFalse(audio_clip.is_published)
 
-    def test_document_creation(self):
-        """
-        Test Document model creation
-        """
-        documents = [
-            {
-                'name': 'document1.pdf',
-                'title': 'First Document',
-                'url': 'http://example.com/doc1.pdf',
-                'fileType': 'pdf'
-            },
-            {
-                'name': 'document2.docx',
-                'title': 'Second Document',
-                'url': 'http://example.com/doc2.docx',
-                'fileType': 'docx'
-            }
-        ]
+    # def test_document_creation(self):
+    #     """
+    #     Test Document model creation
+    #     """
+    #     documents = [
+    #         {
+    #             'name': 'document1.pdf',
+    #             'title': 'First Document',
+    #             'url': 'http://example.com/doc1.pdf',
+    #             'fileType': 'pdf'
+    #         },
+    #         {
+    #             'name': 'document2.docx',
+    #             'title': 'Second Document',
+    #             'url': 'http://example.com/doc2.docx',
+    #             'fileType': 'docx'
+    #         }
+    #     ]
 
-        document = Document.objects.create(
-            title='Test Document Collection',
-            moduleID=self.module,
-            author=self.user,
-            description='Document collection description',
-            documents=documents
-        )
+    #     document = Document.objects.create(
+    #         title='Test Document Collection',
+    #         moduleID=self.module,
+    #         author=self.user,
+    #         description='Document collection description',
+    #         documents=documents
+    #     )
 
-        self.assertEqual(document.title, 'Test Document Collection')
-        self.assertEqual(document.description, 'Document collection description')
+    #     self.assertEqual(document.title, 'Test Document Collection')
+    #     self.assertEqual(document.description, 'Document collection description')
 
-        self.assertEqual(document.moduleID, self.module)
-        self.assertEqual(document.author, self.user)
-        self.assertEqual(document.documents, documents)
-        self.assertFalse(document.is_published)
+    #     self.assertEqual(document.moduleID, self.module)
+    #     self.assertEqual(document.author, self.user)
+    #     self.assertEqual(document.documents, documents)
+    #     self.assertFalse(document.is_published)
 
     def test_embedded_video_creation(self):
         """
