@@ -1108,8 +1108,7 @@ class TaskPdfView(APIView):
 
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
-    # permission_classes = [IsAuthenticated]
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Get the current terms and conditions"""

@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 import uuid
 import time
+import os
 
 
 User = get_user_model()
@@ -93,65 +94,127 @@ class ContentModelTests(TestCase):
         self.assertTrue(inline_picture.image_file.name.startswith('inline_pictures/'))
         self.assertFalse(inline_picture.is_published)
 
-    # def test_audio_clip_creation(self):
-    #     """
-    #     Test AudioClip model creation
-    #     """
-    #     # Create a test audio file
-    #     test_audio = SimpleUploadedFile(
-    #         name='test_audio.mp3',
-    #         content=b'',
-    #         content_type='audio/mpeg'
-    #     )
+    def test_audio_clip_model_methods(self):
+        """
+        Test AudioClip model's methods including __str__, file_url, file_size_formatted, and delete
+        """
+        test_audio = SimpleUploadedFile(
+            name='test_audio.mp3',
+            content=b'x' * 3072,  # 3KB audio file for testing size formatting
+            content_type='audio/mpeg'
+        )
+        
+        audio_clip = AudioClip.objects.create(
+            title='Test Audio',
+            moduleID=self.module,
+            author=self.user,
+            description='Test audio clip methods',
+            audio_file=test_audio,
+            filename='test_audio.mp3',
+            file_type='mp3',
+            file_size=3072,
+            duration=180.5
+        )
+        
+        self.assertEqual(str(audio_clip), 'Test Audio')
+        
+        # test __str__ with no title but with filename
+        audio_clip.title = ''
+        audio_clip.save()
+        self.assertEqual(str(audio_clip), 'test_audio.mp3')
+        
+        #test __str__ with no title and no filename (falls back to "Audio Clip")
+        audio_clip.filename = ''
+        audio_clip.save()
+        self.assertEqual(str(audio_clip), 'Audio Clip')
+        
+        #restore title for other tests
+        audio_clip.title = 'Test Audio'
+        audio_clip.save()
+        
+        self.assertIsNotNone(audio_clip.file_url)
+        if audio_clip.file_url:  # Check if not None first
+            self.assertIsInstance(audio_clip.file_url, str)
+        
+        # Test file_size_formatted property
+        self.assertEqual(audio_clip.file_size_formatted, '3.00 KB')
+        audio_clip.file_size = None
+        audio_clip.save()
+        self.assertIsNone(audio_clip.file_size_formatted)
+        audio_clip.file_size = 500  # Bytes
+        audio_clip.save()
+        self.assertEqual(audio_clip.file_size_formatted, '500.00 B')
+        
+        audio_clip.file_size = 1500000  # ~1.5 MB
+        audio_clip.save()
+        self.assertEqual(audio_clip.file_size_formatted, '1.43 MB')
+        
+        audio_clip.file_size = 2500000000  # ~2.5 GB
+        audio_clip.save()
+        self.assertEqual(audio_clip.file_size_formatted, '2.33 GB')
+        
+        file_path = audio_clip.audio_file.path
+        audio_clip.delete()
+        self.assertFalse(os.path.exists(file_path))
+        empty_audio = AudioClip.objects.create(
+            title='Empty Audio',
+            moduleID=self.module,
+            author=self.user
+        )
+        self.assertIsNone(empty_audio.file_url)
 
-    #     audio_clip = AudioClip.objects.create(
-    #         title='Test Audio Clip',
-    #         moduleID=self.module,
-    #         author=self.user,
-    #         description='Audio clip description',
-    #         audio_file=test_audio
-    #     )
-
-    #     self.assertEqual(audio_clip.title, 'Test Audio Clip')
-    #     self.assertEqual(audio_clip.moduleID, self.module)
-    #     self.assertEqual(audio_clip.author, self.user)
-    #     self.assertTrue(audio_clip.audio_file.name.startswith('audio_clips/'))
-    #     self.assertFalse(audio_clip.is_published)
-
-    # def test_document_creation(self):
-    #     """
-    #     Test Document model creation
-    #     """
-    #     documents = [
-    #         {
-    #             'name': 'document1.pdf',
-    #             'title': 'First Document',
-    #             'url': 'http://example.com/doc1.pdf',
-    #             'fileType': 'pdf'
-    #         },
-    #         {
-    #             'name': 'document2.docx',
-    #             'title': 'Second Document',
-    #             'url': 'http://example.com/doc2.docx',
-    #             'fileType': 'docx'
-    #         }
-    #     ]
-
-    #     document = Document.objects.create(
-    #         title='Test Document Collection',
-    #         moduleID=self.module,
-    #         author=self.user,
-    #         description='Document collection description',
-    #         documents=documents
-    #     )
-
-    #     self.assertEqual(document.title, 'Test Document Collection')
-    #     self.assertEqual(document.description, 'Document collection description')
-
-    #     self.assertEqual(document.moduleID, self.module)
-    #     self.assertEqual(document.author, self.user)
-    #     self.assertEqual(document.documents, documents)
-    #     self.assertFalse(document.is_published)
+    def test_document_model_methods(self):
+        """
+        Test Document model's methods including __str__, file_url, file_size_formatted, and delete
+        """
+        # Create a test document file
+        test_file = SimpleUploadedFile(
+            name='test_document.pdf',
+            content=b'x' * 2048,  # 2KB file for testing size formatting
+            content_type='application/pdf'
+        )
+        
+        document = Document.objects.create(
+            title='Test Document Methods',
+            moduleID=self.module,
+            author=self.user,
+            description='Test document methods',
+            file=test_file,
+            filename='test_document.pdf',
+            file_type='pdf',
+            file_size=2048
+        )
+        
+        self.assertEqual(str(document), 'test_document.pdf')  
+        self.assertIsNotNone(document.file_url)
+        if document.file_url:
+            self.assertIsInstance(document.file_url, str)
+        self.assertEqual(document.file_size_formatted, '2.00 KB')
+        
+        # test with different file sizes
+        document.file_size = 500 
+        self.assertEqual(document.file_size_formatted, '500.00 B')
+        document.file_size = 1500000 
+        self.assertEqual(document.file_size_formatted, '1.43 MB')
+        document.file_size = 2500000000 
+        self.assertEqual(document.file_size_formatted, '2.33 GB')
+        
+        file_path = document.file.path
+        
+        # test delete method
+        document.delete()
+        self.assertFalse(os.path.exists(file_path))
+        
+        # test __str__ method with empty filename
+        empty_doc = Document.objects.create(
+            title='Empty Document',
+            moduleID=self.module,
+            author=self.user
+        )
+        self.assertEqual(str(empty_doc), '')
+        
+        # test file_url with no file
+        self.assertIsNone(empty_doc.file_url)
 
     def test_embedded_video_creation(self):
         """
