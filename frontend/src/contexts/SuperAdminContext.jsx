@@ -195,7 +195,6 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     }
 
     try {
-      // You need to implement this API endpoint in your backend
       const response = await api.post(`/api/admin-users/${userId}/resend-verification/`);
       return { success: true, message: `Verification email resent to ${response.data.email || 'admin'}` };
     } catch (err) {

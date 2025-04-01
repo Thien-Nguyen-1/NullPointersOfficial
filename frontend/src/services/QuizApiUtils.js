@@ -385,7 +385,7 @@ export const QuizApiUtils = {
         });
       }
       
-      // Make separate API calls for each answer (matching your backend structure)
+      // Make separate API calls for each answer (matching backend structure)
       const results = [];
       for (const submission of submissions) {
         const headers = token ? { 'Authorization': `Token ${token}` } : {};

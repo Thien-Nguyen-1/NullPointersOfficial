@@ -144,7 +144,6 @@
     margin-top: 32px;
   }
   
-  /* Note: You had .modal-cancel-btn in your component but .cancel-btn in the CSS */
   .modal-cancel-btn {
     padding: 10px 20px;
     background-color: white;

@@ -23,7 +23,7 @@ const AudioPlayer = ({ audioUrl, audioName, onClose }) => {
     const audio = audioRef.current;
     
     // Handle backend URL formatting for audio source
-    const backendUrl = "http://localhost:8000"; // Adjust to your Django port
+    const backendUrl = "http://localhost:8000";
     const formattedUrl = typeof audioUrl === 'string' ? 
       (audioUrl.startsWith('http') ? audioUrl : `${backendUrl}${audioUrl}`) : null;
     
