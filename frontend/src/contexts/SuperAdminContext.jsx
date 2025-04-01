@@ -3,8 +3,8 @@
 // integrated with the existing AuthContext.
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {AuthContext} from "./AuthContext";
-import api from './api';
+import {AuthContext} from "../services/AuthContext";
+import api from '../services/api';
 
 // Create the context
 export const SuperAdminContext = createContext();
@@ -22,6 +22,8 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
 
   // Fetch terms and conditions
   useEffect(() => {
+    console.log('token:', localStorage.getItem('token'));
+
     const fetchTermsAndConditions = async () => {
       if (!token) {
         // if !isSuperAdmin, is will not run
@@ -58,17 +60,34 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
 
   // Fetch admin users (only if superadmin)
   useEffect(() => {
+    console.log('token:', localStorage.getItem('token'));
+
     const fetchAdminUsers = async () => {
+      // checks if there's a token and if the user is a superadmin
       if (!token || !isSuperAdmin) {
         return;
       }
 
       try {
         setIsLoading(true);
-        setError(null);
+        setError(null); // clears any previous errors
         const response = await api.get('/api/admin-users/');
+
+        // ONLY FOR DEBUGGING
+        console.log('Raw admin users response:', response);
+        console.log('Admin users data:', response.data);
+
+        // make sure each admin has the is_verified field (newly added)
+        const adminsWithVerification = response.data.map(admin => {
+          // if is_verified is null (for some reason...), default to false
+          return {
+            ...admin,
+            is_verified: admin.is_verified === null? false: admin.is_verified
+          };
+        });
         
-        setAdminUsers(response.data || []);
+        setAdminUsers(adminsWithVerification || []);
+        //setAdminUsers(response.data || []);
         setIsLoading(false);
       } catch (err) {
         console.error("Error fetching admin users:", err);
@@ -108,15 +127,24 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     }
 
     try {
+      console.log('[DEBUG] Adding admin user with data:', userData);
       // adding user_type as admin
       const adminData = {
         ...userData,
         user_type: 'admin'
       };
+      console.log('[DEBUG] Adding admin data:', adminData);
+
 
       const response = await api.post('/api/admin-users/', adminData)
-      
-      setAdminUsers([...adminUsers, response.data]);
+
+      console.log('[DEBUG] Admin user creation response:', response);
+
+      const newAdmin = response.data.user || response.data
+      // update the local state with the new admin
+      setAdminUsers(prev => [...prev, newAdmin]);
+
+      // setAdminUsers([...adminUsers, response.data]);
       return { success: true, data: response.data };
     } catch (err) {
       console.error("Error adding admin user:", err);
@@ -160,6 +188,21 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
     }
   };
 
+  // Resend verification email to an admin user
+  const resendAdminVerification = async (userId) => {
+    if (!token || !isSuperAdmin) {
+      throw new Error("Unauthorized access");
+    }
+
+    try {
+      const response = await api.post(`/api/admin-users/${userId}/resend-verification/`);
+      return { success: true, message: `Verification email resent to ${response.data.email || 'admin'}` };
+    } catch (err) {
+      console.error("Error resending verification:", err);
+      throw new Error("Failed to resend verification email");
+    }
+  };
+
   return (
     <SuperAdminContext.Provider value={{
       isSuperAdmin,
@@ -169,7 +212,8 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
       error,
       updateTermsAndConditions,
       addAdminUser,
-      removeAdminUser
+      removeAdminUser,
+      resendAdminVerification
     }}>
       {children}
     </SuperAdminContext.Provider>

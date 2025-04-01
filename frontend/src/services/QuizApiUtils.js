@@ -227,6 +227,17 @@ export const QuizApiUtils = {
     return typeMap[uiType] || 'text_input';
   },
 
+  getComponentType: (quizType) => {
+    // Map quiz types to component types
+    const mediaTypes = ['document', 'audio', 'image', 'video', 'embed'];
+    
+    if (mediaTypes.includes(quizType)) {
+      return 'media';
+    } else {
+      return 'template';
+    }
+  },
+
   // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
   getUITypeFromAPIType: (apiType) => {
     const typeMap = {
@@ -234,13 +245,53 @@ export const QuizApiUtils = {
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
       'question_input':'Question and Answer Form',
-      'pair_input':'Matching Question Quiz'
+      'pair_input':'Matching Question Quiz',
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
 
+  getUIMediaTypeFromAPIType: (apiType) => {
+    const typeMap = {
+      'document': 'Upload Document',
+      'audio': 'Upload Audio'
+      // Add other media types as needed
+    };
+    return typeMap[apiType] || null;
+  },
+
+    /**
+   * Get only MEDIA CONTENT specific to a module
+   */
+  getModuleContents: async (moduleId, mediaType = 'document') => {
+    try {
+       console.log(`Fetching ${mediaType} for module ID: ${moduleId}`);
+       
+       // Use different endpoints based on media type
+       const endpoints = {
+           'document': '/api/documents/',
+           'audio': '/api/audios/'
+           // add future media here
+       };
+   
+       // Select the correct endpoint
+       const endpoint = endpoints[mediaType];
+       
+       if (!endpoint) {
+           throw new Error(`Unsupported media type: ${mediaType}`);
+       }
+   
+       const response = await api.get(endpoint, {
+           params: { module_id: moduleId }
+       });
+       
+       return response.data;
+    } catch (error) {
+       console.error(`Error fetching ${mediaType} contents:`, error);
+       throw error;
+    }
+   },
   /**
-   * Get only tasks specific to a module
+   * Get only TASKS/QUIZ specific to a module
    */
   getModuleSpecificTasks: async (moduleId) => {
     try {
@@ -261,22 +312,6 @@ export const QuizApiUtils = {
     }
   },
 
-  // Also add a function to create the module-task relationship in the backend
-  // createModuleTask: async (moduleId, taskData) => {
-  //   try {
-  //     // Ensure the moduleID is explicitly set to this module
-  //     const data = {
-  //       ...taskData,
-  //       moduleID: moduleId
-  //     };
-      
-  //     const response = await api.post('/api/tasks/', data);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error creating module task:', error);
-  //     throw error;
-  //   }
-  // },
 
   createModuleTask: async (moduleId, taskData) => {
     try {
@@ -350,7 +385,7 @@ export const QuizApiUtils = {
         });
       }
       
-      // Make separate API calls for each answer (matching your backend structure)
+      // Make separate API calls for each answer (matching backend structure)
       const results = [];
       for (const submission of submissions) {
         const headers = token ? { 'Authorization': `Token ${token}` } : {};

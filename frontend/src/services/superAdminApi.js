@@ -49,16 +49,22 @@ export const superAdminApi = {
   
   createAdminUser: async (userData) => {
     try {
+      console.log('[DEBUG] Adding admin user with data:', userData);
+
       // Ensure user_type is set to 'admin'
       const adminData = {
         ...userData,
         user_type: 'admin'
       };
+      console.log('[DEBUG] Adding admin data:', adminData);
       
       // const response = await api.post('/api/admin-users/', adminData, {
       //   headers: { Authorization: `Token ${token}` }
       // });
       const response = await api.post('/api/admin-users/', adminData);
+
+      console.log('[DEBUG] Admin user creation response:', response);
+
       return response.data;
     } catch (error) {
       console.error('Error creating admin user:', error);
@@ -94,7 +100,24 @@ export const superAdminApi = {
       console.error('Error checking superadmin status:', error);
       return false;
     }
-  }
+  },
+
+  /**
+   * Resend verification email to admin user
+   * @param {string} userId - The ID of the admin user
+   * @returns {Promise<Object>} - Response data
+   */
+  resendAdminVerification: async (userId) => {
+  
+    try {
+      const response = await api.post(`/api/admin-users/${userId}/resend-verification/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error resending verification:', error);
+      throw error;
+    }
+  },
+
 };
 
 export default superAdminApi;
