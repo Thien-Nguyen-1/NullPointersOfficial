@@ -29,7 +29,6 @@ function ChatSideBox(props){
     async function render_chat(){
      
         props.getUserMessages(convoObj.id)
-        props.requestPermissionAndGetToken()
         props.toggleChatVisibility(true)
      
     }
