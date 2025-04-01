@@ -1,0 +1,132 @@
+.audioPlayer {
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .audioTitle {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80%;
+  }
+  
+  .closeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-subtle);
+    font-size: 1.2rem;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+  }
+  
+  .closeButton:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .mainControls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .playPauseButton {
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .playPauseButton:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  .timeInfo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-subtle);
+    font-size: 0.9rem;
+  }
+  
+  .progressContainer {
+    height: 6px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .progressBar {
+    height: 100%;
+    background-color: var(--primary-green);
+    border-radius: 3px;
+    transition: width 0.1s;
+  }
+  
+  .volumeControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .muteButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-subtle);
+  }
+  
+  .volumeBar {
+    flex-grow: 1;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    max-width: 100px;
+  }
+  
+  .volumeLevel {
+    height: 100%;
+    background-color: var(--primary-green);
+    border-radius: 2px;
+    transition: width 0.1s;
+  }
+  
+  .loadingState,
+  .errorState {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-subtle);
+  }

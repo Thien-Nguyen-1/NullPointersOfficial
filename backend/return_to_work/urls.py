@@ -21,7 +21,8 @@ from returnToWork.views import (
     DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
     TaskPdfView, QuizQuestionViewSet, VerifyEmailView, 
-    TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView
+    TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView,
+    DocumentViewSet, AdminEmailVerificationView, ResendAdminVerificationView
 )
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView
 from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView
@@ -39,10 +40,13 @@ router.register(r'videos', VideoViewSet, basename='video')
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'ranking-question', RankingQuestionViewSet, basename='ranking-question')
 router.register(r'inline-picture', InlinePictureViewSet, basename='inline-picture')
-router.register(r'audio-clip', AudioClipViewSet, basename='audio-clip')
-router.register(r'document', DocumentViewSet, basename='document')
-router.register(r'embedded-video', EmbeddedVideoViewSet, basename='embedded-video')
-router.register(r'quiz_question', QuizQuestionViewSet, basename='quizQuestion')
+router.register(r'audios', AudioClipViewSet)
+router.register(r'documents', DocumentViewSet)
+router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
+router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
+# router.register(r'user_response', UserResponseViewSet,basename='userResponse')
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -78,6 +82,8 @@ urlpatterns = [
     path('api/admin-users/<int:user_id>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
     path('api/check-superadmin/', CheckSuperAdminView.as_view(), name='check-superadmin'),
     path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
+    path('api/verify-admin-email/<str:token>/', AdminEmailVerificationView.as_view(), name='verify_admin_email'),
+    path('api/admin-users/<int:user_id>/resend-verification/', ResendAdminVerificationView.as_view(), name='resend_admin_verification'),
     path('api/content-progress/mark-viewed/', MarkContentViewedView.as_view(), name='mark-content-viewed'),
     path('api/progress/<int:module_id>/completed-content/', CompletedContentView.as_view(), name='completed-content'),
     path('api/verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-sign-up'),
@@ -100,7 +106,17 @@ urlpatterns = [
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
-
+    # Content Media Type
+    path('modules/<int:module_id>/documents/', DocumentViewSet.as_view({'get': 'list'}), {'module_id': 'module_id'}),
+    # Audio API Endpoints
+    path('api/audios/upload/', AudioClipViewSet.as_view({'post': 'upload'})),
+    path('api/audios/<uuid:pk>/', AudioClipViewSet.as_view({
+        'get': 'retrieve',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    })),
+    path('api/modules/<int:module_id>/audios/', 
+         AudioClipViewSet.as_view({'get': 'list'})),
 
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),

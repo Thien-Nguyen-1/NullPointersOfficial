@@ -49,7 +49,6 @@ export const TermsContextProvider = ({ children }) => {
   const acceptTerms = async () => {
     try {
       // Update user's terms acceptance status in the backend
-      // This endpoint needs to be implemented on your backend
       // await api.post('/api/accept-terms/', {}, {
       //   headers: { Authorization: `Token ${token}` }
       // });
@@ -70,7 +69,6 @@ export const TermsContextProvider = ({ children }) => {
 
   // Decline terms (logout or other actions as needed)
   const declineTerms = () => {
-    // You could implement a logout here if terms are mandatory
     setShowTermsModal(false);
   };
 
