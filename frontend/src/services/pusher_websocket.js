@@ -38,7 +38,7 @@ export const subscribeToChatRoom = (room_id, callback) => {
 }
 
 export const subscribeToBackgroundChats  = () => {
-
+    
 
 }
 
