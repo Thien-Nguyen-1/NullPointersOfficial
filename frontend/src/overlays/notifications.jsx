@@ -11,6 +11,8 @@ import { getAnalytics } from "firebase/analytics";
 import { onMessage } from "firebase/messaging";
 // import { messaging } from "../services/firebase_foreground";
 import NotifPanel from "../components/notification-assets/NotifPanel";
+import { initializeBackgroundChats } from "../services/pusher_websocket";
+
 
 function NotificationOverlay(props){
     
@@ -21,6 +23,35 @@ function NotificationOverlay(props){
     const [messages, setMessage] = useState([])
 
    
+    const onMessage = (payload) => {
+        console.log(payload)
+
+        setMessage((messages) => {
+
+            const index = messages?.findIndex((msgObj) => msgObj.sender_username === payload.sender_username );
+
+            if (index !== -1 ){
+                const updatedMessages  = [...messages];
+
+                updatedMessages[index] = {
+                    ...messages[index],
+                   'message': payload.message 
+
+                };
+
+                return updatedMessages;
+
+            } else {
+                return [payload, ...messages]
+            }
+
+
+
+
+        })
+
+
+    }
 
     // onMessage(messaging, (payload) => {
     //     console.log(messages);
@@ -74,6 +105,14 @@ function NotificationOverlay(props){
         }
     }, [pathName])
     
+
+    useEffect(() => {
+        //subscribeToBackgroundChats(onMessage)
+        initializeBackgroundChats(onMessage)
+        return () => {
+
+        }
+    }, [])
     
    
     const arr_invalid_paths = ['/support', '/login', '/signup']
@@ -86,9 +125,9 @@ function NotificationOverlay(props){
         <>
         {isValidPath(pathName) && (
         <div className="notification-overlay-container">
-            
+
             {messages.map( (msgObj) => (<NotifPanel 
-                key={"notif-" + msgObj?.messageId}
+                key={"notif-" + msgObj?.id}
                 msgObj={msgObj}
                 handleDeleteNotification={handleDeleteNotification}
                 

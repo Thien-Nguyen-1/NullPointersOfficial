@@ -36,13 +36,13 @@ function NotificationPanel(props) {
        
         <div className={`notif-panel-container ${active ? "no-amin" : ""}`}>
 
-           {console.log("RERENDEIRNG: ", msjObj?.notification.body)}
+           
 
             <div className="notif-vertical-line" /> 
 
             <div className="notif-msg">
-                <h4> {msjObj?.data.sender} </h4>
-                <p className="notif-msg-p"> {ProfanityFilter.filterText(msjObj?.notification.body)}</p>
+                <h4> {msjObj?.sender_username} </h4>
+                <p className="notif-msg-p"> {ProfanityFilter.filterText(msjObj?.message)}</p>
                 
                
             </div>

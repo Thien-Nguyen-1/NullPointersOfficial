@@ -94,7 +94,9 @@ function Messaging() {
 
    useEffect(() => {
 
-      subscribeToChatRoom(chatID, handleMsg)
+    
+
+      subscribeToChatRoom(chatID, handleMsg, false)
 
 
       return () => {
