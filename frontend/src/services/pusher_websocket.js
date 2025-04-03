@@ -22,15 +22,15 @@ myWorker.port.onmessage = (e) => {
     const messageObj = e.data.message;
     
 
-    console.log("WE ARE CHECKING ", e.data.message)
+    console.log("WE ARE CHECKING WE ARE CHECKING - leclerc's engineer", e.data.message)
 
     if (messageObj){
-        console.log("triggering callbacks")
+
         callbacks.forEach( (callback) => callback(messageObj));
         return;
     }
 
-    if (isWebsocketConnected !== null && !isWebsocketConnected){
+    if (isWebsocketConnected === false){
          console.log("Setting up background connections")
         InitializePusher()
 
@@ -43,7 +43,6 @@ myWorker.port.onmessage = (e) => {
 
     } 
 
-    
 
 }
 
@@ -52,7 +51,9 @@ myWorker.port.onmessage = (e) => {
 const InitializePusher = () => {
     if(!pusherInstance.pusher){
         pusherInstance.pusher = new Pusher('d32d75089ef19c7a1669', {
-            cluster: 'eu'
+            cluster: 'eu',
+            encrypted: true,
+            
         });
     }
 }
@@ -61,22 +62,15 @@ const InitializePusher = () => {
 const SetUpBackgroundConnections = async () => {
     const allConvos = await GetConversations();
 
+    console.log("Initializing all connections", allConvos)
 
     allConvos.forEach(convObj => {
         
         const channel = pusherInstance.pusher.subscribe(`chat-room-${convObj.id}`)
 
         channel.bind('new-message', (data) => {
-                
-
-                console.log("FIRING MESSAGE FOR ", convObj.id );
-
+             
                 myWorker.port.postMessage({cmd:"SEND-MESSAGES-TABS", data: data})
-
-              //  callbacks.forEach( (callback) => callback(data));
-
-
-
 
                 
             }
@@ -91,7 +85,6 @@ const SetUpBackgroundConnections = async () => {
 
 
 export const subscribeToChatRoom = (room_id, callback, isBackground) => {
-    // console.log("Sending info on room Number, ", room_id)
 
     myWorker.port.postMessage({cmd: "SUBSCRIBE-CHAT", data: {"chatID": room_id}})
 
@@ -101,7 +94,7 @@ export const subscribeToChatRoom = (room_id, callback, isBackground) => {
 
 export const initializeBackgroundChats = async(callback) => {
 
-    //check shared worker for existing connection
+    
     myWorker.port.postMessage({cmd: "CHECK-WEBSOCKET",data: null});
 
     
@@ -127,8 +120,6 @@ export const unsubscribeToChatRoom = (room_id, callback) => {
     if (connections[room_id] && room_id){
 
          pusherInstance.pusher.unsubscribe(`chat-room-${room_id}`)
-
-
          delete connections[room_id]
       
     }
@@ -139,8 +130,14 @@ export const unsubscribeToChatRoom = (room_id, callback) => {
 
 addEventListener("beforeunload", (event) => {
 
-    console.log("beforeunload event triggered!");
+   
 
+    if(pusherInstance.pusher){
+       pusherInstance.pusher.disconnect();
+
+    }
+
+   
     myWorker.port.postMessage({cmd: "DELETE-PORT"})
 
     event.preventDefault();  // Required for showing a warning in some browsers
@@ -149,3 +146,6 @@ addEventListener("beforeunload", (event) => {
 
 
 });
+
+
+

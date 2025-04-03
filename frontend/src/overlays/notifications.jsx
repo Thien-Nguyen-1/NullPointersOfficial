@@ -7,11 +7,11 @@ import { useState, useEffect } from "react";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 
-// import { setForegroundMessageListener } from "../services/firebase_foreground";
+
 import { onMessage } from "firebase/messaging";
-// import { messaging } from "../services/firebase_foreground";
+
 import NotifPanel from "../components/notification-assets/NotifPanel";
-import { initializeBackgroundChats } from "../services/pusher_websocket";
+import { initializeBackgroundChats, AddCallback } from "../services/pusher_websocket";
 
 
 function NotificationOverlay(props){
@@ -53,34 +53,6 @@ function NotificationOverlay(props){
 
     }
 
-    // onMessage(messaging, (payload) => {
-    //     console.log(messages);
-    
-    //     setMessage((messages) => {
-           
-    //         const index = messages.findIndex((msgObj) => msgObj.data.sender === payload?.data.sender);
-    
-    //         if (index !== -1) {
-              
-    //             const updatedMessages = [...messages];
-                
-
-    //             updatedMessages[index] = {  //keeping original references
-    //                 ...messages[index],
-    //                 notification:{
-    //                     ...messages[index].notification,
-    //                     'body': payload.notification.body
-    //                 }
-    //             }
-    
-    //             return updatedMessages;
-    //         } else {
-    
-    //             return [payload, ...messages];
-    //         }
-    //     });
-    // });
-
 
     const handleDeleteNotification = (msgDeleteObj) => {
         const index = messages.findIndex((msgObj) => msgObj.data.sender === msgDeleteObj?.data.sender);
@@ -107,8 +79,15 @@ function NotificationOverlay(props){
     
 
     useEffect(() => {
-        //subscribeToBackgroundChats(onMessage)
-        initializeBackgroundChats(onMessage)
+      
+
+        if(localStorage.getItem("token")){
+            
+            initializeBackgroundChats(onMessage)
+            AddCallback(onMessage)
+        }
+
+     
         return () => {
 
         }
@@ -146,23 +125,3 @@ function NotificationOverlay(props){
 
 export default NotificationOverlay
 
-
-// {from: '1053389486667', collapseKey: undefined, messageId: '2bc0c16d-c154-4b47-b78b-3dc6db3666d2', notification: {…}, data: {…}}
-// collapseKey
-// : 
-// undefined
-// data
-// : 
-// {type: 'support-notification', sender: '@admin', 'additional_messages': [],}
-// from
-// : 
-// "1053389486667"
-// messageId
-// : 
-// "2bc0c16d-c154-4b47-b78b-3dc6db3666d2"
-// notification
-// : 
-// {title: '@admin', body: 'fk'}
-// [[Prototype]]
-// : 
-// Object
