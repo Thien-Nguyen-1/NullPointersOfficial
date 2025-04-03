@@ -58,9 +58,14 @@ self.onconnect =  (event) => {
     console.log(tabConnections)
 
     const port = event.ports[0];
-    tabConnections.push(port) ;
 
-    console.log("Starting port")
+    console.log(event.ports)
+  
+    tabConnections.push(port);
+    
+    
+
+    console.log("Starting port");
 
 
     port.onmessage = (e) => {
@@ -70,6 +75,7 @@ self.onconnect =  (event) => {
         // console.log(cmd)
 
         switch(cmd){
+
             case "CHECK-WEBSOCKET":
                 port.postMessage(IsActiveConnection());
                 return;
@@ -83,7 +89,10 @@ self.onconnect =  (event) => {
                 
                 SendMessagesAllTabs(data, port);
                 return;
+            case "DELETE-PORT":
+                tabConnections.splice(tabConnections.findIndex(p => p === port), 1);
 
+            
                 
         }
 

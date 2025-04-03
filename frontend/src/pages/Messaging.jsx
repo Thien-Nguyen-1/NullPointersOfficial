@@ -37,8 +37,8 @@ function Messaging() {
 
 
   const chatContainerRef = useRef(null)
-
-  // const myWorker = new SharedWorker('/shared-worker.js');
+  const chatIDRef = useRef(chatID)
+  
 
   /* ========== ASYNC FUNCTIONALITIES ==========*/
 
@@ -87,6 +87,7 @@ function Messaging() {
       AddCallback(handleMsg)
       loadConversations()
 
+
       
    }, [])
 
@@ -95,10 +96,9 @@ function Messaging() {
    useEffect(() => {
 
     
-
       //subscribeToChatRoom(chatID, handleMsg, false)
 
-
+      chatIDRef.current = chatID
       return () => {
         
         unsubscribeToChatRoom(chatID)
@@ -113,7 +113,13 @@ function Messaging() {
   
    const handleMsg = (data) => {
       //console.log(data)
-      getUserMessages(data.chatID)
+      console.log("The current CHAT ID  is, ", chatIDRef.current)
+      
+      if(chatIDRef.current === data.chatID){
+        getUserMessages(data.chatID)
+      }
+     
+     
 
    }
 
@@ -174,10 +180,12 @@ function Messaging() {
   async function getUserMessages(id){
   
     try { 
+      setChatId(id)
+
       const response = await GetMessages(token, id)
 
       setMessages(response)
-      setChatId(id)
+      
     
 
     } catch(error){
@@ -192,6 +200,7 @@ function Messaging() {
       
       if(chatID){
         try{
+            
 
             await SendMessage(token, chatID, objMessage)
 

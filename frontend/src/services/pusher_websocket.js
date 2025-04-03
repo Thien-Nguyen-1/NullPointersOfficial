@@ -17,11 +17,10 @@ const pusherInstance = {
 }
 
 
-
 myWorker.port.onmessage = (e) => {
     const isWebsocketConnected = e.data.isWebsocketConnected;
     const messageObj = e.data.message;
-    // console.log("WEBSOCKET STATUS IS, ", isWebsocketConnected)
+    
 
     console.log("WE ARE CHECKING ", e.data.message)
 
@@ -46,7 +45,6 @@ myWorker.port.onmessage = (e) => {
 
     
 
-
 }
 
 
@@ -62,14 +60,6 @@ const InitializePusher = () => {
 
 const SetUpBackgroundConnections = async () => {
     const allConvos = await GetConversations();
-
-   
-    //create a websocket connection to Pusher
-
-    
-    // const pusher = new Pusher('d32d75089ef19c7a1669', {
-    //     cluster: 'eu'
-    // });
 
 
     allConvos.forEach(convObj => {
@@ -132,7 +122,7 @@ export const RefreshSubscriptions = () => {
 
 export const unsubscribeToChatRoom = (room_id, callback) => {
 
-    // console.log("Cleaning connections with ID ", room_id)
+   
 
     if (connections[room_id] && room_id){
 
@@ -140,7 +130,7 @@ export const unsubscribeToChatRoom = (room_id, callback) => {
 
 
          delete connections[room_id]
-        // delete background_connections[room_id]
+      
     }
 }
 
@@ -149,10 +139,12 @@ export const unsubscribeToChatRoom = (room_id, callback) => {
 
 addEventListener("beforeunload", (event) => {
 
-    // console.log("beforeunload event triggered!");
+    console.log("beforeunload event triggered!");
 
-    // event.preventDefault();  // Required for showing a warning in some browsers
-    // event.returnValue = "";  // Some browsers require this for confirmation dialog
+    myWorker.port.postMessage({cmd: "DELETE-PORT"})
+
+    event.preventDefault();  // Required for showing a warning in some browsers
+    event.returnValue = "";  // Some browsers require this for confirmation dialog
 
 
 
