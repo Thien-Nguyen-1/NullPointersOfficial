@@ -1378,7 +1378,9 @@ class UserChatView(APIView):
                 messageObj = {
                     "message": message_content,
                     "sender": user_.id,
+                    "chatID": room_id,
                     "sender_username": user_.username,
+
                 }
 
                 pusher_client.trigger(f"chat-room-{room_id}", "new-message", messageObj)

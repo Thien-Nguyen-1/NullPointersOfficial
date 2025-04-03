@@ -96,7 +96,7 @@ function Messaging() {
 
     
 
-      subscribeToChatRoom(chatID, handleMsg, false)
+      //subscribeToChatRoom(chatID, handleMsg, false)
 
 
       return () => {

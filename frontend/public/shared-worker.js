@@ -1,38 +1,58 @@
 
 
 const tabConnections = []
-
-importScripts('https://js.pusher.com/7.0/pusher.min.js');
-
-
-const pusher = new Pusher('d32d75089ef19c7a1669', {
-    cluster: 'eu'
-});
+const isWebsocketConnected = []
 
 
 
-const SubscribeWebsocket = (data) => {
-    const chatID = data["chatID"];
+
+//check for existing connection 
+const IsActiveConnection = () => {
+    //{"isWebsocketConnected": true}
+    const returnObj = {
+        "isWebsocketConnected" : false
+    };
+
+    console.log(isWebsocketConnected)
     
-    if (chatID) {
-        const channel = pusher.subscribe(`chat-room-${chatID}`)
-        console.log("binded channel")
-        channel.bind('new-message', (data) => {
-            
-
-            tabConnections.forEach( (port) => {
-                port.postMessage({"message": data})
-
-            })
+    return isWebsocketConnected.length === 0 ? returnObj : {...returnObj, "isWebsocketConnected": true};
 
 
-        });
-
-
-    }
 }
 
+
+//Update isWebsocketConnected
+const UpdateWebsocketStatus = (isActive) => {
+    if(isActive){
+        isWebsocketConnected.push(true);
+    } else {
+        isWebsocketConnected.length = 0;
+    }
+    return;
+}
+
+
+
+//Send all messages to all ports so every tab is synchronised
+const SendMessagesAllTabs = (data, currPort) => {
+    tabConnections.forEach( (port) => {
+        if(port !== currPort){
+
+            port.postMessage({"message": data})
+
+        }
+    })
+
+}
+
+
+// when tab that has connection closes, update flag 
+
+
+
 self.onconnect =  (event) => {
+
+
     const port = event.ports[0];
     tabConnections.push(port) ;
 
@@ -43,13 +63,24 @@ self.onconnect =  (event) => {
         console.log("Received from tab ", e.data);
 
         const {cmd, data} = e.data;
+        console.log(cmd)
 
         switch(cmd){
-            case "SUBSCRIBE-CHAT":
-                SubscribeWebsocket(data)
+            case "CHECK-WEBSOCKET":
+                port.postMessage(IsActiveConnection());
+                return;
+
+            case "UPDATE-WEBSOCKET":
+                
+                UpdateWebsocketStatus(data.isActive);
+                return;
+
+            case "SEND-MESSAGES-TABS":
+                SendMessagesAllTabs(data, port);
+                return;
+
                 
         }
-
 
     }
 
