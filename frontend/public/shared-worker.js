@@ -28,19 +28,21 @@ const UpdateWebsocketStatus = (isActive) => {
     } else {
         isWebsocketConnected.length = 0;
     }
-    return;
+    
 }
 
 
 
 //Send all messages to all ports so every tab is synchronised
 const SendMessagesAllTabs = (data, currPort) => {
+    console.log("Sendin all mesage")
+    console.log(tabConnections)
     tabConnections.forEach( (port) => {
-        if(port !== currPort){
+        // if(port !== currPort){
 
             port.postMessage({"message": data})
 
-        }
+        // }
     })
 
 }
@@ -52,6 +54,8 @@ const SendMessagesAllTabs = (data, currPort) => {
 
 self.onconnect =  (event) => {
 
+    console.log("TAB CONNECTIONS ARE")
+    console.log(tabConnections)
 
     const port = event.ports[0];
     tabConnections.push(port) ;
@@ -60,10 +64,10 @@ self.onconnect =  (event) => {
 
 
     port.onmessage = (e) => {
-        console.log("Received from tab ", e.data);
+       // console.log("Received from tab ", e.data);
 
         const {cmd, data} = e.data;
-        console.log(cmd)
+        // console.log(cmd)
 
         switch(cmd){
             case "CHECK-WEBSOCKET":
@@ -76,6 +80,7 @@ self.onconnect =  (event) => {
                 return;
 
             case "SEND-MESSAGES-TABS":
+                
                 SendMessagesAllTabs(data, port);
                 return;
 

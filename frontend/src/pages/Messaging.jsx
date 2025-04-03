@@ -15,7 +15,7 @@ import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 
 import "../styles/SupportStyles/Messaging.css"
 
-import { subscribeToChatRoom, unsubscribeToChatRoom } from "../services/pusher_websocket";
+import { subscribeToChatRoom, unsubscribeToChatRoom, AddCallback, RefreshSubscriptions  } from "../services/pusher_websocket";
 
 
 
@@ -38,7 +38,7 @@ function Messaging() {
 
   const chatContainerRef = useRef(null)
 
-
+  // const myWorker = new SharedWorker('/shared-worker.js');
 
   /* ========== ASYNC FUNCTIONALITIES ==========*/
 
@@ -84,7 +84,7 @@ function Messaging() {
 
    useEffect(() => {
 
-     
+      AddCallback(handleMsg)
       loadConversations()
 
       
@@ -112,10 +112,25 @@ function Messaging() {
 
   
    const handleMsg = (data) => {
-    
-      getUserMessages(chatID)
+      //console.log(data)
+      getUserMessages(data.chatID)
 
    }
+
+  //  myWorker.port.onmessage = (e) => {
+  //    const response = e.data.message
+
+  //    if (response !== null){
+  //       console.log("Picked up feed")
+      
+
+
+  //     //getUserMessages(chatID)
+  //    }
+  //   //  console.log("Picking up something?")
+  //   //  console.log(response)
+
+  //  }
 
 
  
@@ -130,8 +145,10 @@ function Messaging() {
     try{
       const response = await CreateConversation(token, objConvoReq)
       
+     
 
       await loadConversations()
+      RefreshSubscriptions()
 
     } catch(error){
       return error
