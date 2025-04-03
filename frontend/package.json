@@ -17,6 +17,7 @@
     "firebase": "^11.4.0",
     "lucide-react": "^0.477.0",
     "obscenity": "^0.4.3",
+    "pusher-js": "^8.4.0",
     "react": "^18.3.1",
     "react-circular-progressbar": "^2.2.0",
     "react-dnd": "^16.0.1",

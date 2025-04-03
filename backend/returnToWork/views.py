@@ -31,7 +31,7 @@ from django.core.cache import cache
 
 from django.db.models import Q
 from firebase_admin import messaging
-
+import pusher
 
 from reportlab.pdfgen import canvas
 
@@ -1746,6 +1746,24 @@ class UserChatView(APIView):
                      ),
                      token=token
                  )
+                
+                pusher_client = pusher.Pusher(
+                    app_id='1963499',
+                    key='d32d75089ef19c7a1669',
+                    secret='6523d0f19e5a5a6db9b3',
+                    cluster='eu',
+                    ssl=True
+                )
+
+                messageObj = {
+                    "message": message_content,
+                    "sender": user_.id,
+                    "chatID": room_id,
+                    "sender_username": user_.username,
+
+                }
+
+                pusher_client.trigger(f"chat-room-{room_id}", "new-message", messageObj)
                 
                 try:
                     response = messaging.send(message)
