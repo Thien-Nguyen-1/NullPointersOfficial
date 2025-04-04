@@ -116,9 +116,36 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
     }
   };
 
+  // React.useImperativeHandle(ref, () => ({
+  //   getTempFiles: () => {
+  //     console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+  //     return tempFiles;
+  //   }
+  // }));
   React.useImperativeHandle(ref, () => ({
     getTempFiles: () => {
       console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+      
+      // If we're in edit mode and already have displayed documents, include them
+      if (moduleId && documents.length > 0) {
+        // Create objects that mimic the structure of temp files
+        const existingFiles = documents.map(doc => ({
+          id: doc.contentID,
+          file: {
+            name: doc.filename,
+            size: doc.file_size || 0,
+            // Create a placeholder for preview purposes
+            type: doc.filename.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'
+          },
+          originalDocument: doc // Keep reference to original document
+        }));
+        
+        console.log('[DEBUG] Including existing documents in getTempFiles:', existingFiles);
+        
+        // Return both temporary and existing files
+        return [...tempFiles, ...existingFiles];
+      }
+      
       return tempFiles;
     }
   }));

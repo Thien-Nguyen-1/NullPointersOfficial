@@ -116,9 +116,36 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
     }
   };
 
+  // React.useImperativeHandle(ref, () => ({
+  //   getTempFiles: () => {
+  //     console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+  //     return tempFiles;
+  //   }
+  // }));
   React.useImperativeHandle(ref, () => ({
     getTempFiles: () => {
       console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+      
+      // If we're in edit mode and already have displayed audios, include them
+      if (moduleId && audios.length > 0) {
+        // Create objects that mimic the structure of temp files
+        const existingFiles = audios.map(audio => ({
+          id: audio.contentID,
+          file: {
+            name: audio.filename,
+            size: audio.file_size || 0,
+            // Create a placeholder for preview purposes
+            type: 'audio/mpeg'
+          },
+          originalAudio: audio // Keep reference to original audio
+        }));
+        
+        console.log('[DEBUG] Including existing audio files in getTempFiles:', existingFiles);
+        
+        // Return both temporary and existing files
+        return [...tempFiles, ...existingFiles];
+      }
+      
       return tempFiles;
     }
   }));

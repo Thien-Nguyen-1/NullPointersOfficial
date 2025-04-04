@@ -4,6 +4,8 @@ import { AuthContext } from "../services/AuthContext";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import DocumentService from "../services/DocumentService";
 import AudioService from "../services/AudioService";
+import { usePreviewMode } from "../services/PreviewModeContext";
+
 import { SaveUserModuleInteract, GetUserModuleInteract } from "../services/api";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt, MdBookmark, MdBookmarkBorder } from "react-icons/md";
@@ -14,11 +16,14 @@ import ModuleCompletion from "./module-content/ModuleCompletion";
 
 import "../styles/AlternativeModuleView.css";
 import "../styles/Quizzes.css";
+import "../styles/PreviewMode.css"
 
 const ModuleViewAlternative = () => {
   const { moduleId } = useParams();
   const navigate = useNavigate();
   const { user, token } = useContext(AuthContext);
+  
+  const { isPreviewMode, previewData, exitPreviewMode } = usePreviewMode();
   
   const [module, setModule] = useState(null);
   const [moduleContent, setModuleContent] = useState([]);
@@ -30,149 +35,162 @@ const ModuleViewAlternative = () => {
   const [moduleCompleted, setModuleCompleted] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
 
-// Fetch module data when component mounts
-useEffect(() => {
-  const fetchModuleData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Fetch module details
-      const moduleData = await QuizApiUtils.getModule(moduleId);
-      setModule(moduleData);
-      
-      // Fetch tasks associated with this module
-      const moduleTasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-      const moduleDocuments = await DocumentService.getModuleDocuments(moduleId);
-      console.log("Documents for module:", moduleDocuments);
-      const moduleAudios = await AudioService.getModuleAudios(moduleId);
-      console.log("Audio files for module:", moduleAudios);
-      // add future media ...
 
-
-      // Create a resources section if there are media types: documents, etc...
-      const resourcesItems = [
-        // Documents
-        ...moduleDocuments.map(doc => ({
-          id: doc.contentID,
-          type: 'infosheet',
-          title: doc.title || doc.filename,
-          content: `View or download: ${doc.filename}`,
-          documents: [doc],
-          moduleId: moduleId
-        })),
-        
-        // Audio files
-        ...moduleAudios.map(audio => ({
-          id: audio.contentID,
-          type: 'audio',
-          title: audio.title || audio.filename,
-          content: `Listen to: ${audio.filename}`,
-          audioFiles: [audio],
-          moduleId: moduleId
-        }))
-        // add future media
-      ];
-      
-      // Create a structured content from the tasks
-      // This transforms flat task data into sections with content
-      const structuredContent = [
-        {
-          id: 'section-introduction',
-          type: 'section',
-          title: 'Introduction',
-          content: [
-            {
-              id: 'heading-intro',
-              type: 'heading',
-              level: 1,
-              text: moduleData.title
-            },
-            {
-              id: 'paragraph-intro',
-              type: 'paragraph',
-              text: moduleData.description
-            }
-          ]
-        },
-
-      ];
-
-      // Add Resources section if there are any resources
-      if (resourcesItems.length > 0) {
-        structuredContent.push({
-          id: 'section-resources',
-          type: 'section',
-          title: 'Resources',
-          content: resourcesItems
-        });
-      }
-
-      // Add Assessment section
-      structuredContent.push({
-        id: 'section-assessment',
-        type: 'section',
-        title: 'Assessment',
-        content: moduleTasks.map(task => ({
-          id: task.contentID,
-          type: 'quiz',
-          quiz_type: task.quiz_type,
-          title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
-          taskData: task
-        }))
-      });
-
-
-      
-
-      
-      setModuleContent(structuredContent);
-      
-      // Fetch tags
-      try {
-        const tagsResponse = await fetch('/api/tags/');
-        const tagsData = await tagsResponse.json();
-        setAvailableTags(tagsData);
-      } catch (tagsError) {
-        console.warn("Could not fetch tags:", tagsError);
-      }
-      
-      // Fetch user interaction data if the user is logged in
-      if (user && token) {
-        try {
-          const interactionsData = await GetUserModuleInteract(token);
-          
-          // Find the interaction for this specific module
-          const moduleInteraction = interactionsData.find(
-            interaction => interaction.module === parseInt(moduleId)
-          );
-          
-          if (moduleInteraction) {
-            setUserInteraction({
-              hasLiked: moduleInteraction.hasLiked,
-              pinned: moduleInteraction.pinned
-            });
-          }
-        } catch (interactionError) {
-          console.warn("Could not fetch user interaction data:", interactionError);
-        }
-      }
-      
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching module data:", err);
-      setError("Failed to load module data. Please try again later.");
+  // Handle preview mode data
+  useEffect(() => {
+    if (isPreviewMode && previewData) {
+      setModule(previewData.module);
+      setModuleContent(previewData.moduleContent);
+      setAvailableTags(previewData.availableTags|| []);
       setIsLoading(false);
     }
-  };
-  
-  if (moduleId) {
-    fetchModuleData();
-  }
-}, [moduleId, user, token]);
+  }, [isPreviewMode, previewData])
+
+  // Fetch module data when component mounts (only in NON-PREVIEW MODE)
+  useEffect(() => {
+    const fetchModuleData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Fetch module details
+        const moduleData = await QuizApiUtils.getModule(moduleId);
+        setModule(moduleData);
+        
+        // Fetch tasks associated with this module
+        const moduleTasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
+        const moduleDocuments = await DocumentService.getModuleDocuments(moduleId);
+        console.log("Documents for module:", moduleDocuments);
+        const moduleAudios = await AudioService.getModuleAudios(moduleId);
+        console.log("Audio files for module:", moduleAudios);
+        // add future media ...
+
+
+        // Create a resources section if there are media types: documents, etc...
+        const resourcesItems = [
+          // Documents
+          ...moduleDocuments.map(doc => ({
+            id: doc.contentID,
+            type: 'infosheet',
+            title: doc.title || doc.filename,
+            content: `View or download: ${doc.filename}`,
+            documents: [doc],
+            moduleId: moduleId
+          })),
+          
+          // Audio files
+          ...moduleAudios.map(audio => ({
+            id: audio.contentID,
+            type: 'audio',
+            title: audio.title || audio.filename,
+            content: `Listen to: ${audio.filename}`,
+            audioFiles: [audio],
+            moduleId: moduleId
+          }))
+          // add future media
+        ];
+        
+        // Create a structured content from the tasks
+        // This transforms flat task data into sections with content
+        const structuredContent = [
+          {
+            id: 'section-introduction',
+            type: 'section',
+            title: 'Introduction',
+            content: [
+              // {
+              //   id: 'heading-intro',
+              //   type: 'heading',
+              //   level: 1,
+              //   text: moduleData.title
+              // },
+              // {
+              //   id: 'paragraph-intro',
+              //   type: 'paragraph',
+              //   text: moduleData.description
+              // }
+            ]
+          },
+
+        ];
+
+        // Add Resources section if there are any resources
+        if (resourcesItems.length > 0) {
+          structuredContent.push({
+            id: 'section-resources',
+            type: 'section',
+            title: 'Resources',
+            content: resourcesItems
+          });
+        }
+
+        // Add Assessment section
+        structuredContent.push({
+          id: 'section-assessment',
+          type: 'section',
+          title: 'Assessment',
+          content: moduleTasks.map(task => ({
+            id: task.contentID,
+            type: 'quiz',
+            quiz_type: task.quiz_type,
+            title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
+            taskData: task
+          }))
+        });
+
+
+        
+
+        
+        setModuleContent(structuredContent);
+        
+        // Fetch tags
+        try {
+          const tagsResponse = await fetch('/api/tags/');
+          const tagsData = await tagsResponse.json();
+          setAvailableTags(tagsData);
+        } catch (tagsError) {
+          console.warn("Could not fetch tags:", tagsError);
+        }
+        
+        // Fetch user interaction data if the user is logged in
+        if (user && token) {
+          try {
+            const interactionsData = await GetUserModuleInteract(token);
+            
+            // Find the interaction for this specific module
+            const moduleInteraction = interactionsData.find(
+              interaction => interaction.module === parseInt(moduleId)
+            );
+            
+            if (moduleInteraction) {
+              setUserInteraction({
+                hasLiked: moduleInteraction.hasLiked,
+                pinned: moduleInteraction.pinned
+              });
+            }
+          } catch (interactionError) {
+            console.warn("Could not fetch user interaction data:", interactionError);
+          }
+        }
+        
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching module data:", err);
+        setError("Failed to load module data. Please try again later.");
+        setIsLoading(false);
+      }
+    };
+    
+    if (moduleId) {
+      fetchModuleData();
+    }
+  }, [moduleId, user, token, isPreviewMode]);
 
   // Handle liking/pinning the module
   const handleInteraction = async (action) => {
+    if (isPreviewMode) return; // disable interactions iin preview mode
+
     if (!user || !token) {
       // Prompt user to log in
       alert("Please log in to save your progress.");
@@ -216,7 +234,9 @@ useEffect(() => {
   // Handle content completion
   
 // Handle content completion
-const handleContentComplete = async (contentId, results) => {    
+const handleContentComplete = async (contentId, results) => {   
+    if (isPreviewMode) return; // skip content completion in preview mode
+
     // Add this content to completed set
     setCompletedContentIds(prev => {
       const updated = new Set(prev);
@@ -279,6 +299,15 @@ const handleContentComplete = async (contentId, results) => {
   useEffect(() => {
   }, [moduleCompleted]);
 
+  // In preview mode, handle the navigation differently
+  const handleNavigation = () => {
+    if (isPreviewMode) {
+      exitPreviewMode(0); 
+    } else {
+      navigate(-1); // regular navigation
+    }
+  }
+
   
 
   if (isLoading) {
@@ -290,7 +319,7 @@ const handleContentComplete = async (contentId, results) => {
       <div className="alt-module-container alt-error">
         <h2>Error</h2>
         <p>{error}</p>
-        <button onClick={() => navigate(-1)}>Go Back</button>
+        <button onClick={() => {handleNavigation}}>Go Back</button>
       </div>
     );
   }
@@ -300,27 +329,32 @@ const handleContentComplete = async (contentId, results) => {
   }
 
   return (
-    <div className="alt-module-container">
+    <div className={`alt-module-container ${isPreviewMode ? 'preview-mode' : ''}`}>
+      {isPreviewMode && <div className="preview-banner">PREVIEW MODE</div>}
+      
       {/* Module Header */}
       <div className="alt-module-header">
-        <button className="alt-back-button" onClick={() => navigate(-1)}>
-          <FaArrowLeft /> Back
+        <button className={`alt-back-button ${isPreviewMode ? 'preview-disabled' : ''}`}
+          onClick={handleNavigation}>
+          <FaArrowLeft /> {isPreviewMode ? "Exit Preview" : "Back"}
         </button>
         
         <h1 className="alt-module-title">{module.title}</h1>
         
         <div className="alt-module-actions">
           <button 
-            className={`alt-like-button ${userInteraction.hasLiked ? 'active' : ''}`}
+            className={`alt-like-button ${userInteraction.hasLiked ? 'active' : ''} ${isPreviewMode ? 'preview-disabled' : ''}`}
             onClick={() => handleInteraction('like')}
+            disabled={isPreviewMode}
           >
             {userInteraction.hasLiked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt />}
             <span className="alt-like-count">{module.upvotes}</span>
           </button>
           
           <button 
-            className={`alt-pin-button ${userInteraction.pinned ? 'active' : ''}`}
+            className={`alt-pin-button ${userInteraction.pinned ? 'active' : ''} ${isPreviewMode ? 'preview-disabled' : ''}`}
             onClick={() => handleInteraction('pin')}
+            disabled={isPreviewMode}
           >
             {userInteraction.pinned ? <MdBookmark /> : <MdBookmarkBorder />}
           </button>
@@ -343,13 +377,13 @@ const handleContentComplete = async (contentId, results) => {
         </div>
       )}
       
-      {moduleCompleted ? (
-        // When module is completed, show congratulations screen
+      {moduleCompleted&& !isPreviewMode ? (
+        // When module is completed, show congratulations screen (and NOT in preview mode)
         <ModuleCompletion user={user} />
       ) : (
         // Otherwise show module content
         <div className="alt-content-layout">
-          {/* Table of Contents (fixed on scroll) */}
+          {/* Table of Contents */}
           <div className="alt-sidebar">
             <TableOfContents 
                 moduleContent={moduleContent} 
@@ -373,6 +407,7 @@ const handleContentComplete = async (contentId, results) => {
                         item={item}
                         completedContentIds={completedContentIds}
                         onContentComplete={handleContentComplete}
+                        isPreviewMode={isPreviewMode}
                         />
                     </div>
                   ))}
@@ -381,6 +416,21 @@ const handleContentComplete = async (contentId, results) => {
             ))}
           </div>
         </div>
+      )}
+
+      {isPreviewMode && (
+        <div className="preview-notice-container">
+        <p className="preview-notice">
+          This is a preview mode. In the published version, users will be able to interact 
+          with content and track their progress.
+        </p>
+        <button 
+          className="exit-preview-btn" 
+          onClick={exitPreviewMode}
+        >
+          Exit Preview
+        </button>
+      </div>
       )}
     </div>
   );

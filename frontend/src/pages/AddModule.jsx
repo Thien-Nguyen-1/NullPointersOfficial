@@ -41,6 +41,7 @@ import { AuthContext } from "../services/AuthContext";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import DocumentService from "../services/DocumentService";
 import AudioService from "../services/AudioService";
+import { usePreviewMode } from "../services/PreviewModeContext";
 
 import { ModuleEditorComponent } from "../components/module-builder/ModuleEditorComponent";
 import { ModuleDropdown } from "../components/module-builder/ModuleDropdown";
@@ -53,6 +54,7 @@ import { useMediaDeletions } from "../hooks/useMediaDeletions";
 
 import styles from "../styles/AddModule.module.css";
 import "../styles/AlternativeModuleView.css"; 
+import ModuleViewAlternative from "../components/ModuleViewAlternative";
 
 const AddModule = () => {
   const navigate = useNavigate();
@@ -67,7 +69,7 @@ const AddModule = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [headingSize, setHeadingSize] = useState("heading1");
-  const [isPreview, setIsPreview] = useState(false);
+  const {isPreviewMode, enterPreviewMode, exitPreviewMode} = usePreviewMode(); // using context-based approach
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -122,6 +124,160 @@ const AddModule = () => {
 
     fetchTags();
   }, [currentUser, navigate, isEditing, editId, fetchModuleData, fetchTags, initialQuestionsRef]);
+
+  // Handle Preview button click
+  const handlePreview = () => {
+    if (!title.trim()) {
+      setError("Module title is required for preview");
+      return;
+    }
+
+    // Generate preview content structure (similar to ModuleViewAlternative)
+    const documentItems = [];
+    const audioItems = [];
+    // add future media
+    const quizItems = [];
+
+    
+    // Process modules to build the content structure
+    modules.forEach(module => {
+      if (module.componentType === "media") {
+        // Handle media modules
+        if (module.mediaType === "document") {
+          const editor = editorRefs.current[module.id];
+
+          const tempFiles = editor?.getTempFiles?.() || [];
+          
+          tempFiles.forEach(fileData => {
+            // Handle both new files and existing files
+            const fileUrl = fileData.originalDocument 
+            ? fileData.originalDocument.file_url 
+            : URL.createObjectURL(fileData.file);
+
+            documentItems.push({
+              id: fileData.id || module.id,
+              type: 'infosheet',
+              title: fileData.file.name || "Document",
+              content: `View or download: ${fileData.file.name}`,
+              documents: [{
+                contentID: fileData.id || module.id,
+                filename: fileData.file.name,
+                // file_url: URL.createObjectURL(fileData.file),
+                file_url: fileUrl,
+                file_size: fileData.file.size
+              }],
+              moduleId: editId || "preview"
+            });
+          });
+        } 
+        else if (module.mediaType === "audio") {
+          const editor = editorRefs.current[module.id];
+
+          
+          const tempFiles = editor?.getTempFiles?.() || [];
+          
+          tempFiles.forEach(fileData => {
+            // Handle both new files and existing files
+            const fileUrl = fileData.originalAudio 
+              ? fileData.originalAudio.file_url 
+              : URL.createObjectURL(fileData.file);
+
+            audioItems.push({
+              id: fileData.id || module.id,
+              type: 'audio',
+              title: fileData.file.name || "Audio",
+              content: `Listen to: ${fileData.file.name}`,
+              audioFiles: [{
+                contentID: fileData.id || module.id,
+                filename: fileData.file.name,
+                file_url: fileUrl,
+                file_size: fileData.file.size
+              }],
+              moduleId: editId || "preview"
+            });
+          });
+        }
+      } 
+      else if (module.componentType === "template") {
+        // Handle quiz templates
+        const questions = getQuestionsFromEditor(module.id);
+        
+        quizItems.push({
+          id: module.id,
+          type: 'quiz',
+          quiz_type: module.quizType,
+          title: module.type,
+          taskData: {
+            contentID: module.id,
+            title: module.type,
+            quiz_type: module.quizType,
+            questions: questions
+          }
+        });
+      }
+    });
+    console.log("Document items being added:", documentItems);
+    console.log("Audio items being added:", audioItems);
+    
+    // Structured content for preview
+    const structuredContent = [
+      {
+        id: 'section-introduction',
+        type: 'section',
+        title: 'Introduction',
+        content: [
+          {
+            id: 'heading-intro',
+            type: 'heading',
+            level: 1,
+            text: title
+          },
+          {
+            id: 'paragraph-intro',
+            type: 'paragraph',
+            text: description || title
+          }
+        ]
+      }
+    ];
+
+    // Add Resources section if there are any resources
+    if (documentItems.length > 0 || audioItems.length > 0) {
+      structuredContent.push({
+        id: 'section-resources',
+        type: 'section',
+        title: 'Resources',
+        content: [...documentItems, ...audioItems]
+      });
+    }
+
+    // Add Assessment section if there are quizzes
+    if (quizItems.length > 0) {
+      structuredContent.push({
+        id: 'section-assessment',
+        type: 'section',
+        title: 'Assessment',
+        content: quizItems
+      });
+    }
+    
+    // Create preview data
+    const previewData = {
+      module: {
+        id: editId || 'preview',
+        title: title,
+        description: description || title,
+        tags: tags,
+        upvotes: 0,
+        pinned: false
+      },
+      moduleContent: structuredContent,
+      availableTags: availableTags
+    };
+    
+    // Enter preview mode with generated data
+    enterPreviewMode(previewData);
+  };
 
   // Add a module to the list
   const addModule = (moduleType, componentType) => {
@@ -491,7 +647,7 @@ const AddModule = () => {
     return questions;
   };
 
-  // Clean up orphaned content
+  // Clean up orphaned content (quiz)
   const cleanupOrphanedContent = async (moduleId, updatedTaskIds) => {
     // Clean up orphaned tasks
     try {
@@ -543,141 +699,108 @@ const AddModule = () => {
   // Render function
   return (
     <div className={styles["module-editor-container"]}>
-      <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
-      
-      {isLoading && <div className="loading-overlay">Loading...</div>}
-      
-      <div className={styles["module-creator-container"]}>
-        {/* Module Title */}
-        <div className={styles["module-title-container"]}>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={styles["module-title-input"]}
-          />
-        </div>
-        
-        {/* Module Description */}
-        <input
-          placeholder="Module Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className={styles["description-input"]}
-        />
-
-        {/* Tags */}
-        <TagsManager 
-          tags={tags} 
-          availableTags={availableTags} 
-          addTag={addTag} 
-          removeTag={removeTag}
-          styles={styles}
-        />
-
-        {/* Error Display */}
-        {error && (
-          <div className={styles["error-message"]}>
-            <p>{error}</p>
-            <button onClick={() => setError(null)}>×</button>
-          </div>
-        )}
-
-        {/* Modules List */}
-        <div className={styles["modules-list"]}>
-          {modules.map((module) => (
-            <ModuleEditorComponent
-              key={module.id}
-              module={module}
-              editorRefs={editorRefs}
-              initialQuestionsRef={initialQuestionsRef}
-              removeModule={removeModule}
-              moduleOptions={moduleOptions}
-              media={media}
-              styles={styles}
-              title={title}
-            />
-          ))}
-        </div>
-
-        {/* Add Module Templates Button */}
-        <ModuleDropdown
-          showDropdown={showDropdown}
-          setShowDropdown={setShowDropdown}
-          dropdownRef={dropdownRef}
-          headings={headings}
-          moduleOptions={moduleOptions}
-          media={media}
-          addModule={addModule}
-          styles={styles}
-        />
-      </div>
-      
-      {/* Action Buttons */}
-      {!isPreview ? (
-        <div className={styles["button-container"]}>
-          <div className={styles["preview-container"]}>
-            <button 
-              className={styles["preview-btn"]} 
-              onClick={() => setIsPreview(true)} 
-              disabled={isLoading}
-            >
-              Preview
-            </button>
-          </div>
-          <button 
-            className={styles["publish-btn"]} 
-            onClick={publishModule} 
-            disabled={isLoading}
-          >
-            {isLoading ? 
-              (isEditing ? "Updating..." : "Publishing...") : 
-              (isEditing ? "Update" : "Publish")
-            }
-          </button>
-          {!isEditing && <button className={styles["edit-btn"]}>Edit</button>}
-        </div>
-      ) : (
-        <div className={styles["preview-container"]}>
-          <h2>{title}</h2>
-          <p>{description}</p>
-          <div className={styles["preview-tags"]}>
-            {tags.map((tagId) => {
-              const tagObj = availableTags.find(t => t.id === tagId);
-              return tagObj ? (
-                <span key={tagId} className={styles["preview-tag"]}>{tagObj.tag}</span>
-              ) : null;
-            })}
-          </div>
-          <div className={styles["preview-modules"]}>
-            {modules.map((module, index) => {
-              // For preview, try to get current question count if possible
-              let questionCount = 0;
-              const editorComponent = editorRefs.current[module.id];
+      {/* in preview mode, show ModuleViewAlternative iwith preview data */}
+      {isPreviewMode ? (<ModuleViewAlternative/> 
+        // normal mode
+        ): (
+          // Normal edit mode
+          <>
+            <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
+            
+            {isLoading && <div className="loading-overlay">Loading...</div>}
+            
+            <div className={styles["module-creator-container"]}>
+              {/* Module Title */}
+              <div className={styles["module-title-container"]}>
+                <input
+                  type="text"
+                  placeholder="Title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className={styles["module-title-input"]}
+                />
+              </div>
               
-              if (editorComponent && typeof editorComponent.getQuestions === 'function') {
-                questionCount = editorComponent.getQuestions().length;
-              } else {
-                questionCount = initialQuestionsRef.current[module.id]?.length || 0;
-              }
-              
-              return (
-                <div key={module.id} className={styles["preview-module"]}>
-                  <h3>{module.type} {index + 1}</h3>
-                  <p>Questions: {questionCount}</p>
+              {/* Module Description */}
+              <input
+                placeholder="Module Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={styles["description-input"]}
+              />
+  
+              {/* Tags */}
+              <TagsManager 
+                tags={tags} 
+                availableTags={availableTags} 
+                addTag={addTag} 
+                removeTag={removeTag}
+                styles={styles}
+              />
+  
+              {/* Error Display */}
+              {error && (
+                <div className={styles["error-message"]}>
+                  <p>{error}</p>
+                  <button onClick={() => setError(null)}>×</button>
                 </div>
-              );
-            })}
-          </div>
-          <button 
-            className={styles["exit-preview-btn"]} 
-            onClick={() => setIsPreview(false)}
-          >
-            Exit Preview
-          </button>
-        </div>
-      )}
+              )}
+  
+              {/* Modules List */}
+              <div className={styles["modules-list"]}>
+                {modules.map((module) => (
+                  <ModuleEditorComponent
+                    key={module.id}
+                    module={module}
+                    editorRefs={editorRefs}
+                    initialQuestionsRef={initialQuestionsRef}
+                    removeModule={removeModule}
+                    moduleOptions={moduleOptions}
+                    media={media}
+                    styles={styles}
+                    title={title}
+                  />
+                ))}
+              </div>
+  
+              {/* Add Module Templates Button */}
+              <ModuleDropdown
+                showDropdown={showDropdown}
+                setShowDropdown={setShowDropdown}
+                dropdownRef={dropdownRef}
+                headings={headings}
+                moduleOptions={moduleOptions}
+                media={media}
+                addModule={addModule}
+                styles={styles}
+              />
+              
+              {/* Action Buttons */}
+              <div className={styles["button-container"]}>
+                <div className={styles["preview-container"]}>
+                  <button 
+                    className={styles["preview-btn"]} 
+                    onClick={handlePreview} 
+                    disabled={isLoading}
+                  >
+                    Preview
+                  </button>
+                </div>
+                <button 
+                  className={styles["publish-btn"]} 
+                  onClick={publishModule} 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 
+                    (isEditing ? "Updating..." : "Publishing...") : 
+                    (isEditing ? "Update" : "Publish")
+                  }
+                </button>
+                {!isEditing && <button className={styles["edit-btn"]}>Edit</button>}
+              </div>
+            </div>
+          </>
+        )}
     </div>
   );
 };
