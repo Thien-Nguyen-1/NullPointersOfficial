@@ -22,6 +22,8 @@ const DragDropUploader = ({ onUpload, acceptedFileTypes = '.pdf,.doc,.docx,.xls,
       case 'document':
       default:
         return 'Supported formats: PDF, Word, Excel, PowerPoint';
+      case 'image':
+        return 'Supported formats: JPG, JPEG, PNG, GIF, WEBP';
     }
   };
 

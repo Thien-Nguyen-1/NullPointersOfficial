@@ -24,7 +24,7 @@ from returnToWork.views import (
     TermsAndConditionsView, AdminUsersView, AdminUserDetailView, CheckSuperAdminView, AcceptTermsView,
     DocumentViewSet, AdminEmailVerificationView, ResendAdminVerificationView
 )
-from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView
+from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet,InfoSheetViewSet,VideoViewSet,TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, InlinePictureViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, ImageViewSet
 from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView
 
 #for media url access
@@ -42,7 +42,7 @@ router.register(r'ranking-question', RankingQuestionViewSet, basename='ranking-q
 router.register(r'inline-picture', InlinePictureViewSet, basename='inline-picture')
 router.register(r'audios', AudioClipViewSet)
 router.register(r'documents', DocumentViewSet)
-router.register(r'embedded-video',EmbeddedVideoViewSet, basename='embedded-video')
+router.register(r'embedded-videos',EmbeddedVideoViewSet, basename='embedded-videos')
 router.register(r'quiz_question', QuizQuestionViewSet,basename='quizQuestion')
 # router.register(r'user_response', UserResponseViewSet,basename='userResponse')
 
@@ -90,11 +90,6 @@ urlpatterns = [
     path('api/completed-interactive-content/', CompletedInteractiveContentView.as_view(), name = 'completed-interactive-content'),
 
 
-
-
-
-
-
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
@@ -117,8 +112,20 @@ urlpatterns = [
     })),
     path('api/modules/<int:module_id>/audios/', 
          AudioClipViewSet.as_view({'get': 'list'})),
+    #Image API Endpoints
+    path('api/images/', ImageViewSet.as_view({'get': 'list', 'post': 'create'}), name='image-list'),
+    path('api/images/upload/', ImageViewSet.as_view({'post': 'upload'}), name='image-upload'),
+    path('api/images/<uuid:pk>/', ImageViewSet.as_view({
+        'get': 'retrieve',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    }), name='image-detail'),
+    path('api/images/<uuid:pk>/dimensions/', ImageViewSet.as_view({'patch': 'update_dimensions'}), name='image-dimensions'),
+    path('api/modules/<int:module_id>/images/', ImageViewSet.as_view({'get': 'list'}), name='module-images'),
 
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
     path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
+    #Video API Endpoints
+    path('api/modules/<int:module_id>/embedded-videos/', EmbeddedVideoViewSet.as_view({'get': 'list'}), name='module-embedded-videos'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

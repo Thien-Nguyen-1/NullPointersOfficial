@@ -11,6 +11,8 @@ import VisualMatchingQuestionsQuizEditor from "../editors/VisualMatchingQuestion
 import HeadingsComponent from "../editors/Headings";
 import { DocumentEditorWrapper } from "../editors/DocumentUploader";
 import { AudioEditorWrapper } from "../editors/AudioUploader";
+import { InlinePictureEditorWrapper } from "../editors/InlinePictureUploader";
+import { EmbeddedVideoEditorWrapper } from '../editors/EmbeddedVideoEditor';
 
 export const ModuleEditorComponent = ({ 
   module, 
@@ -32,6 +34,8 @@ export const ModuleEditorComponent = ({
     // Media
     "Upload Document": DocumentEditorWrapper,
     "Upload Audio": AudioEditorWrapper,
+    "Upload Image": InlinePictureEditorWrapper,
+    "Link Video": EmbeddedVideoEditorWrapper,
     // add future media
 
     // Heading

@@ -253,7 +253,9 @@ export const QuizApiUtils = {
   getUIMediaTypeFromAPIType: (apiType) => {
     const typeMap = {
       'document': 'Upload Document',
-      'audio': 'Upload Audio'
+      'audio': 'Upload Audio',
+      'image' : 'Upload Image',
+      'video' : 'Link Video'
       // Add other media types as needed
     };
     return typeMap[apiType] || null;
@@ -269,7 +271,9 @@ export const QuizApiUtils = {
        // Use different endpoints based on media type
        const endpoints = {
            'document': '/api/documents/',
-           'audio': '/api/audios/'
+           'audio': '/api/audios/',
+           'image' : '/api/images/',
+           'video' : '/api/embedded-videos/'
            // add future media here
        };
    
