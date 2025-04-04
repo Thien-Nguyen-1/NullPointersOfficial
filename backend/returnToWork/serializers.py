@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -11,6 +11,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache  
 from django.conf import settings
 import uuid
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 User = get_user_model()
 
@@ -36,12 +38,26 @@ class UserSerializer(serializers.ModelSerializer):
     )
 
    # tags = serializers.PrimaryKeyRelatedField(queryset=Tags.objects.all(), many=True) #serializers.StringRelatedField(many=True) #without this, only the primary key of the many-to-many field is returned
-    module = ModuleSerializer(many=True)
+    module = ModuleSerializer(many=True, required=False)  # setting Module to be optional so that superadmin can still create admin even without admin has any module
+    is_verified = serializers.SerializerMethodField() # for ADMIN verification
    # tags = TagSerializer(many=True)
 
     class Meta:
         model = User
-        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'module', 'tags', 'firebase_token', 'terms_accepted']
+        fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'email', 'date_joined', 'module', 'tags',
+                   'firebase_token', 'terms_accepted', 'is_verified']
+
+    def get_is_verified(self, obj):
+        """Get verification status from AdminVerification model"""
+        # Only check verification for ADMIN users
+        if obj.user_type != 'admin':
+            return None
+            
+        try:
+            verification = AdminVerification.objects.get(admin=obj)
+            return verification.is_verified
+        except AdminVerification.DoesNotExist:
+            return False
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -209,14 +225,57 @@ class InlinePictureSerializer(ContentSerializer):
         fields  = ContentSerializer.Meta.fields + ['image_file']
 
 class AudioClipSerializer(ContentSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_size_formatted = serializers.SerializerMethodField()
+    
     class Meta:
         model = AudioClip
-        fields  = ContentSerializer.Meta.fields + ['audio_file',"question_text","user_response"]
+        fields = [
+            'contentID', 'title', 'moduleID', 'author', 'description', 
+            'created_at', 'updated_at', 'is_published', 'audio_file', 
+            'file_url', 'file_size_formatted', 'duration', 'filename',
+            'file_size', 'file_type'
+        ]
+    
+    def get_file_url(self, obj):
+        return obj.audio_file.url if obj.audio_file else None
+    
+    def get_file_size_formatted(self, obj):
+        """Return human-readable file size."""
+        if not obj.file_size:
+            return None
+            
+        size = obj.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
 
 class DocumentSerializer(ContentSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_size_formatted = serializers.SerializerMethodField()
+    upload_date = serializers.SerializerMethodField()
+    
     class Meta:
         model = Document
-        fields  = ContentSerializer.Meta.fields + ['documents']
+        fields = [
+            'contentID', 'title', 'filename', 'file_type', 'file_size', 
+            'file_url', 'file_size_formatted', 'upload_date', 'description'
+        ]
+    
+    def get_file_url(self, obj):
+        return obj.file.url if obj.file else None
+    
+    def get_file_size_formatted(self, obj):
+        """Return human-readable file size."""
+        size = obj.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+    
+    def get_upload_date(self, obj):
+        return obj.created_at
 
 class EmbeddedVideoSerializer(ContentSerializer):
     class Meta:
@@ -359,3 +418,8 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'conversation', 'sender', 'text_content', 'timestamp', 'file']
+
+class AdminVerificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminVerification
+        fields = ['is_verified']

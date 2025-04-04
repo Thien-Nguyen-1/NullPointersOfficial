@@ -15,26 +15,7 @@ import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 
 import "../styles/SupportStyles/Messaging.css"
 
-
-//TODO: Move to Environmental Variable for non-exposure
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDQb9cx05Rm34vwBtrqnywzIa5LYWHhjes",
-  authDomain: "readytowork-8cf2f.firebaseapp.com",
-  projectId: "readytowork-8cf2f",
-  storageBucket: "readytowork-8cf2f.firebasestorage.app",
-  messagingSenderId: "1053389486667",
-  appId: "1:1053389486667:web:abf7479522b11fc4d5abce",
-  measurementId: "G-64C4KL7XTF"
-};
-
-
-
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const messaging = getMessaging(app);
+import { subscribeToChatRoom, unsubscribeToChatRoom, AddCallback, RefreshSubscriptions  } from "../services/pusher_websocket";
 
 
 
@@ -48,38 +29,24 @@ function Messaging() {
 
   const [allConvos, setConvos] = useState([])
   const[messages, setMessages] = useState([])
-
+  
 
   
   const [chatID, setChatId] = useState(null)
   const [chatVisible, setChatVisible] = useState(false) 
 
 
-
-
   const chatContainerRef = useRef(null)
-
-
+  const chatIDRef = useRef(chatID)
+  
 
   /* ========== ASYNC FUNCTIONALITIES ==========*/
 
-  async function requestPermissionAndGetToken() {
- 
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted" ) {
-        const token = await getToken(messaging, {
-          vapidKey: "BGGckvvLfnXH8p6-uj-oP14iIpF3KzayWAn1rx55QdIWTVQxx0tv87koLnCXyS-nuMO0DJZcXeFV4rnJS7Z4ASQ"
-        });
-        setFcmToken(token);
-        await saveFCMToken(token)
-      }
-    } catch (error) {
-      console.error("Error getting token:", error);
-     }  
-  };
+
 
   async function loadConversations() {
+    
+
     try{
      
       const response_data = await GetConversations(token || localStorage.getItem("token"))
@@ -117,17 +84,62 @@ function Messaging() {
 
    useEffect(() => {
 
+      AddCallback(handleMsg)
       loadConversations()
 
 
+      
    }, [])
 
 
-   onMessage(messaging, (payload) => {
 
-    getUserMessages(chatID)
+   useEffect(() => {
 
-  })
+    
+      //subscribeToChatRoom(chatID, handleMsg, false)
+
+      chatIDRef.current = chatID
+      return () => {
+        
+        unsubscribeToChatRoom(chatID)
+
+      }
+
+
+   }, [chatID])
+
+
+
+  
+   const handleMsg = (data) => {
+      //console.log(data)
+      console.log("The current CHAT ID  is, ", chatIDRef.current)
+      
+      if(chatIDRef.current === data.chatID){
+        getUserMessages(data.chatID)
+      }
+     
+     
+
+   }
+
+  //  myWorker.port.onmessage = (e) => {
+  //    const response = e.data.message
+
+  //    if (response !== null){
+  //       console.log("Picked up feed")
+      
+
+
+  //     //getUserMessages(chatID)
+  //    }
+  //   //  console.log("Picking up something?")
+  //   //  console.log(response)
+
+  //  }
+
+
+ 
 
 
 
@@ -139,8 +151,10 @@ function Messaging() {
     try{
       const response = await CreateConversation(token, objConvoReq)
       
+     
 
       await loadConversations()
+      RefreshSubscriptions()
 
     } catch(error){
       return error
@@ -166,10 +180,12 @@ function Messaging() {
   async function getUserMessages(id){
   
     try { 
+      setChatId(id)
+
       const response = await GetMessages(token, id)
 
       setMessages(response)
-      setChatId(id)
+      
     
 
     } catch(error){
@@ -182,15 +198,13 @@ function Messaging() {
 
    async function sendNewMessage(objMessage){
       
-
       if(chatID){
         try{
+            
 
             await SendMessage(token, chatID, objMessage)
 
             await getUserMessages(chatID)
-
-            
 
         }catch(error){
           console.error("Error sending message")
@@ -249,7 +263,6 @@ function Messaging() {
               all_Chats={allConvos} 
               getUserMessages= {getUserMessages}
               
-              requestPermissionAndGetToken={requestPermissionAndGetToken}
               toggleChatVisibility={toggleChatVisibility}
               />
 
@@ -293,7 +306,7 @@ function Messaging() {
                 </div>
 
         </section>
-      
+
       
       </div>
     );

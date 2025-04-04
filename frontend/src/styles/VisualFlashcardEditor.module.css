@@ -1,0 +1,354 @@
+/* VisualFlashcardEditor.module.css */
+
+/* Using color theme from index.css */
+:root {
+    --background-color: #f0f5f0;
+    --primary-green: #426751;
+    --secondary-green: #e7efea;
+    --text-subtle: #666666;
+    --primary-green-dark: #375643;
+    --primary-green-light: rgba(66, 103, 81, 0.1);
+    --flashcard-yellow: #f8f4d5;
+    --flashcard-back: #e3f2fd;
+    --cancel-red: #d9534f;
+    --cancel-red-dark: #c9302c;
+  }
+  
+  .editorContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    position: relative;
+  }
+  
+  .flashcardsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  /* Flashcard base styling */
+  .flashcard {
+    width: 350px;
+    height: 240px;
+    perspective: 1000px;
+    position: relative;
+    cursor: pointer;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .flashcardInner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+  
+  .flashcard.flipped .flashcardInner {
+    transform: rotateY(180deg);
+  }
+  
+  .flashcardFront, 
+  .flashcardBack, 
+  .addPlaceholder {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Keep the yellow background color for front */
+  .flashcardFront, 
+  .addPlaceholder {
+    background-color: var(--flashcard-yellow);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .flashcardBack {
+    background-color: var(--flashcard-back);
+    transform: rotateY(180deg);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .cardTitle {
+    font-size: 18px;
+    color: var(--primary-green);
+    margin-bottom: 15px;
+    text-align: left;
+    font-weight: 600;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(66, 103, 81, 0.2);
+  }
+  
+  /* Question text styling */
+  .questionText {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-align: center;
+    color: #333;
+    word-wrap: break-word;
+    overflow-y: auto;
+    padding: 15px;
+    font-weight: 500;
+  }
+  
+  /* Hint text styling - visually different from question */
+  .hintText {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-align: center;
+    color: #555;
+    word-wrap: break-word;
+    overflow-y: auto;
+    padding: 15px;
+    font-style: italic;
+    background-color: rgba(227, 242, 253, 0.5);
+    border-radius: 8px;
+  }
+  
+  /* Enhanced styles for editable content */
+  .editableContent {
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+  
+  .editableWrapper {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .editableTextarea {
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    background-color: transparent;
+    border: none;
+    resize: none;
+    font-size: 16px;
+    font-family: inherit;
+    color: #333;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+  }
+  
+  .editableTextarea.hintArea {
+    font-style: italic;
+    color: #555;
+    background-color: rgba(227, 242, 253, 0.2);
+    border-radius: 8px;
+  }
+  
+  .editableTextarea:focus {
+    border: none;
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Add card styling */
+  .addCard {
+    border: 2px dashed rgba(66, 103, 81, 0.4);
+    background-color: var(--flashcard-yellow);
+    transition: all 0.2s ease;
+  }
+  
+  .addCard:hover {
+    border: 2px dashed var(--primary-green);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  .addCard.editing {
+    border: 2px solid var(--primary-green-light);
+  }
+  
+  .addCardForm {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  
+  /* Action buttons */
+  .actionButtons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 15px;
+  }
+  
+  .actionButton {
+    background: transparent;
+    border: none;
+    color: var(--primary-green);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  .actionButton:hover {
+    background-color: var(--primary-green-light);
+    text-decoration: none;
+  }
+  
+  /* Form actions styling */
+  .formActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    gap: 10px;
+  }
+  
+  .submitButton {
+    flex: 1;
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .submitButton:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  .cancelButton {
+    flex: 1;
+    background-color: var(--cancel-red);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cancelButton:hover {
+    background-color: var(--cancel-red-dark);
+  }
+  
+  .flipInstruction {
+    font-size: 12px;
+    color: var(--text-subtle);
+    text-align: center;
+    margin-top: 10px;
+    font-style: italic;
+  }
+  
+  /* Add another button styling */
+  .addAnotherButton {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .addAnotherButton button {
+    display: inline-flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid var(--primary-green);
+    border-radius: 30px;
+    color: var(--primary-green);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .addAnotherButton button:hover {
+    background-color: var(--primary-green-light);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .plusIcon {
+    width: 24px;
+    height: 24px;
+    background-color: var(--primary-green);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  /* Placeholder text styling */
+  .placeholderText {
+    color: #999;
+    font-style: italic;
+  }
+  
+  /* Error message */
+  .errorMessage {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    position: relative;
+    border-left: 4px solid #dc3545;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .closeError {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #721c24;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .flashcardsContainer {
+      justify-content: center;
+    }
+    
+    .flashcard, 
+    .addAnotherButton {
+      width: 100%;
+      max-width: 350px;
+    }
+    
+    .formActions {
+      flex-direction: column;
+    }
+    
+    .submitButton, 
+    .cancelButton {
+      width: 100%;
+    }
+  }

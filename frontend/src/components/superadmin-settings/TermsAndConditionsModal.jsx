@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
-import '../styles/TermsAndConditions.css';
+import api from '../../services/api';
+import '../../styles/TermsAndConditions.css';
 
 const TermsAndConditionsModal = ({ onAccept, onDecline }) => {
   const [termsContent, setTermsContent] = useState('');

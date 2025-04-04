@@ -30,6 +30,10 @@ const getAuthHeader = () => {
 // A REQUEST interceptor to include the auth token in all requests 
 api.interceptors.request.use(
   (config) => {
+    // ONLY FOR DEBUGGING
+    const token = localStorage.getItem('token')
+    console.log('token:', localStorage.getItem('token'));
+
     const authHeader = getAuthHeader();
     if (authHeader) {
       // If a token exists, it adds it to the Authorization header of the request.
@@ -112,13 +116,28 @@ export async function loginUser(username, password){
     const response = await api.post(`/api/login/`, {
       username,
       password,
-    })
+    });
   
         
     // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
-    localStorage.setItem('token', response.data.token);
-  
+
+    // ONLY FOR DEBUGGING
+    localStorage.getItem('token', response.data.token)
+    console.log('token after login:', response.data.token);
+
+
+    // Check if the response contains JWT tokens
+    if (response.data.access && response.data.refresh) {
+      // Store JWT tokens
+      localStorage.setItem('token', response.data.access);
+      localStorage.setItem('refreshToken', response.data.refresh);
+    } else if (response.data.token) {
+      // Fall back to old token format
+      localStorage.setItem('token', response.data.token);
+    }
+    
+    
     if(response.data){
       localStorage.setItem("user_type",response.data.user_type);
       return response.data;

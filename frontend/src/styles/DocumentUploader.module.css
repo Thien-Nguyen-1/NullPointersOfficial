@@ -1,0 +1,211 @@
+.documentUploader {
+    background-color: var(--secondary-green);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    color: var(--primary-green);
+    margin-top: 0;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .uploadContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border: 2px dashed var(--primary-green);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+  }
+  
+  .uploadContainer:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: var(--primary-green-dark);
+  }
+  
+  .uploadButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+  
+  .uploadButton:hover {
+    background-color: var(--primary-green-dark);
+  }
+  
+  .uploadButton:disabled {
+    background-color: #b8b8b8;
+    cursor: not-allowed;
+  }
+  
+  .fileInput {
+    display: none;
+  }
+  
+  .uploadHint {
+    color: var(--text-subtle);
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+  
+  .documentsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .documentItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 12px 15px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .documentItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+  
+  .documentInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .documentName {
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+  }
+  
+  .documentActions {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .downloadButton, .deleteButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .downloadButton {
+    color: var(--primary-green);
+  }
+  
+  .deleteButton {
+    color: #e74c3c;
+  }
+  
+  .downloadButton:hover {
+    background-color: var(--primary-green-light);
+  }
+  
+  .deleteButton:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+  }
+  
+  .errorMessage {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffebee;
+    color: #d32f2f;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  .successMessage {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  .noDocuments {
+    text-align: center;
+    color: var(--text-subtle);
+    padding: 15px;
+    font-style: italic;
+  }
+  
+  /* File icon colors */
+  .pdfIcon {
+    color: #e74c3c;
+  }
+  
+  .wordIcon {
+    color: #2980b9;
+  }
+  
+  .excelIcon {
+    color: #27ae60;
+  }
+  
+  .pptIcon {
+    color: #e67e22;
+  }
+
+  .pendingSaveMessage {
+    background-color: var(--secondary-green);
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    color: var(--text-subtle);
+    font-style: italic;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .documentName {
+      max-width: 180px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .documentItem {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .documentActions {
+      align-self: flex-end;
+    }
+  }
