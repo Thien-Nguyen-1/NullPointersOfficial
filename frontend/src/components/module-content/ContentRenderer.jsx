@@ -4,7 +4,7 @@ import ImageContent from "./ImageContent";
 import VideoContent from "./VideoContent";
 import InfosheetContent from "./InfosheetContent";
 import QuizContent from "./QuizContent";
-import HeadingContent from "./HeadingContent";
+//import HeadingContent from "./HeadingContent";
 import ParagraphContent from "./ParagraphContent";
 import AudioContent from "./AudioContent";
 import { markContentAsViewed } from "../../services/api";
@@ -101,8 +101,6 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
   };
 
   switch (item.type) {
-    case 'heading':
-      return <HeadingContent headingData={item} />;
     case 'paragraph':
       return <ParagraphContent paragraphData={item} />;
     case 'image':

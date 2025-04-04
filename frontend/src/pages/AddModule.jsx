@@ -90,11 +90,11 @@ const AddModule = () => {
     'Ranking Question': {component: RankingQuestionEditor, type:''}
   };
 
-  const headings = [
-    {name:"Heading 1", size: "heading1"},
-    {name:"Heading 2", size: "heading2"},
-    {name:"Heading 3", size: "heading3"}
-  ];
+  // const headings = [
+  //   {name:"Heading 1", size: "heading1"},
+  //   {name:"Heading 2", size: "heading2"},
+  //   {name:"Heading 3", size: "heading3"}
+  // ];
 
   const media = {
     'Upload Document': {component: "DocumentEditorWrapper", type:'document'},
@@ -228,12 +228,6 @@ const AddModule = () => {
         type: 'section',
         title: 'Introduction',
         content: [
-          {
-            id: 'heading-intro',
-            type: 'heading',
-            level: 1,
-            text: title
-          },
           {
             id: 'paragraph-intro',
             type: 'paragraph',
@@ -787,7 +781,6 @@ const AddModule = () => {
                 showDropdown={showDropdown}
                 setShowDropdown={setShowDropdown}
                 dropdownRef={dropdownRef}
-                headings={headings}
                 moduleOptions={moduleOptions}
                 media={media}
                 addModule={addModule}

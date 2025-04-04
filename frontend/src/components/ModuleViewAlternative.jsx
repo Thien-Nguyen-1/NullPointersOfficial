@@ -98,17 +98,11 @@ const ModuleViewAlternative = () => {
             type: 'section',
             title: 'Introduction',
             content: [
-              // {
-              //   id: 'heading-intro',
-              //   type: 'heading',
-              //   level: 1,
-              //   text: moduleData.title
-              // },
-              // {
-              //   id: 'paragraph-intro',
-              //   type: 'paragraph',
-              //   text: moduleData.description
-              // }
+              {
+                id: 'paragraph-intro',
+                type: 'paragraph',
+                text: moduleData.description
+              }
             ]
           },
 
@@ -360,11 +354,7 @@ const handleContentComplete = async (contentId, results) => {
           </button>
         </div>
       </div>
-      
-      {/* Module Description */}
-      <div className="alt-module-description">
-        <p>{module.description}</p>
-      </div>
+  
       
       {/* Module Tags */}
       {module.tags && module.tags.length > 0 && (
