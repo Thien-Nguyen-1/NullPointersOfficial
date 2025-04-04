@@ -1,8 +1,6 @@
 import React, { useState, useContext } from "react";
-//import { loginUser, redirectBasedOnUserType } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import '../styles/Login.css';
-
 import { AuthContext } from "../services/AuthContext";
 import {redirectBasedOnUserType } from "../services/api";
 
@@ -18,7 +16,6 @@ const Login = () => {
   const handleLogin = async(e) => {
     e.preventDefault();
     try {
-    //  const data = await loginUser(username, password);
       const data = await loginUser(username, password);
       redirectBasedOnUserType(data);
 

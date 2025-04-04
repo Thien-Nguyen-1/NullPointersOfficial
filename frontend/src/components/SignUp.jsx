@@ -9,7 +9,7 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [userType, setUserType] = useState("");
+  // const [userType, setUserType] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -84,7 +84,7 @@ const Signup = () => {
     }
     
     try{
-      const data = await SignUpUser(username, firstName, lastName, userType, password, confirmPassword, email);
+      const data = await SignUpUser(username, firstName, lastName, password, confirmPassword, email);
       console.log("Sign Up successful:", data);
       alert("Sign up succesfull " + username + "Please check your email for verification.");
 
@@ -133,7 +133,7 @@ const Signup = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <select 
+          {/* <select 
             value={userType} 
             onChange={(e) => setUserType(e.target.value)}
             required
@@ -141,7 +141,7 @@ const Signup = () => {
             <option value="" disabled>Select user type</option>
             <option value="admin">Admin</option>
             <option value="service user">Service user</option>
-          </select>
+          </select> */}
           <input
             type="password"
             value={password}

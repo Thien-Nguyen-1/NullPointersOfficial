@@ -203,13 +203,12 @@ const AuthContextProvider = ({children}) => {
 
      // ===== SIGNING IN ===== //
     //  Please complete this //
-    async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword,email){
+    async function SignUpUser(username, firstName, lastName, password, confirmPassword,email){
         try {
           const response = await api.post(`/api/signup/`, {
             username,
             first_name: firstName,
             last_name: lastName,
-            user_type: userType,
             password,
             confirm_password: confirmPassword,
             email,
