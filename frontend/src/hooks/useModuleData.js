@@ -9,7 +9,7 @@ export const useModuleData = (editId) => {
   const [modules, setModules] = useState([]);
   
   // fetches all data for a module including associated tasks and media
-  const fetchModuleData = useCallback(async (moduleId) => {
+  const fetchModuleData = useCallback(async (moduleId, initialQuestionsRef) => {
     try {
       // Fetch module data
       const moduleData = await QuizApiUtils.getModule(moduleId);
@@ -33,6 +33,20 @@ export const useModuleData = (editId) => {
       const tasks = tasksResponse || [];
       const documents = documentsResponse || [];
       const audios = audiosResponse || [];
+
+      // CRITICAL PART: Making sure that questions are fetched when admin/superadmin go back to editor mode
+      // fetch questions for each task and store them in initialQuestionsRef
+      if (initialQuestionsRef) {
+        await Promise.all(tasks.map(async (task) => {
+          try {
+            const questions = await QuizApiUtils.getQuestions(task.contentID);
+            initialQuestionsRef.current[task.contentID] = questions;
+          } catch (error) {
+            console.error(`Error fetching questions for task ${task.contentID}:`, error);
+            initialQuestionsRef.current[task.contentID] = [];
+          }
+        }));
+      }
       
       // Process tasks to create module templates
       const taskTemplates = await Promise.all(tasks.map(async (task) => {
@@ -41,9 +55,9 @@ export const useModuleData = (editId) => {
         // Get the appropriate type based on component type
         let type;
         if (componentType === 'media') {
-          type = QuizApiUtils.getUIMediaTypeFromAPIType(task.quiz_type);
+          type = QuizApiUtils.getUIMediaTypeFromAPIType(task.quiz_type); // if its a media type
         } else {
-          type = QuizApiUtils.getUITypeFromAPIType(task.quiz_type);
+          type = QuizApiUtils.getUITypeFromAPIType(task.quiz_type); // if its a quiz type
         }
         
         return {
