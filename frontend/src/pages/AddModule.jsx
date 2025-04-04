@@ -55,6 +55,7 @@ import { useMediaDeletions } from "../hooks/useMediaDeletions";
 import styles from "../styles/AddModule.module.css";
 import "../styles/AlternativeModuleView.css"; 
 import ModuleViewAlternative from "../components/ModuleViewAlternative";
+import RankingQuestionEditor from "../components/editors/RankingQuestionEditor";
 
 const AddModule = () => {
   const navigate = useNavigate();
@@ -85,7 +86,8 @@ const AddModule = () => {
     "Fill in the Blanks": { component: "VisualFillTheFormEditor", type: "text_input" },
     "Flowchart Quiz": { component: "VisualFlowChartQuiz", type: "statement_sequence" },
     'Question and Answer Form': { component: "VisualQuestionAndAnswerFormEditor", type:'question_input'},
-    'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'}
+    'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'},
+    'Ranking Question': {component: RankingQuestionEditor, type:''}
   };
 
   const headings = [
@@ -534,9 +536,26 @@ const AddModule = () => {
       const formData = new FormData();
       formData.append('module_id', moduleId);
       
+      // tempFiles.forEach(fileData => {
+      //   formData.append('files', fileData.file);
+      // });
+
+      // if module has an ID and its not a temporary ID
+      if (module.id && !module.id.toString().startsWith('new-')) {
+        formData.append('component_id', module.id);
+      }
+
+      let hasNewFiles = false;
       tempFiles.forEach(fileData => {
-        formData.append('files', fileData.file);
+        // only append actual file objext, not references to existing files
+        if (fileData.file instanceof File && !fileData.originalDocument && !fileData.originalAudio) {
+          formData.append('files', fileData.file);
+          hasNewFiles = true;
+        }
       });
+
+      // only upload when there is new Files
+      if (!hasNewFiles) return;
       
       if (module.mediaType === "document") {
         await DocumentService.uploadDocuments(formData);
