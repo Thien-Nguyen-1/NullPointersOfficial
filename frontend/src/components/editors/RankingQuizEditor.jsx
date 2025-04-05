@@ -32,6 +32,16 @@ const RankingQuizEditor = forwardRef((props, ref) => {
         order: index,
         answers: question.tiers || [] // Store tier data in answers field
       }));
+    },
+
+    setQuestions: (newQuestions) => {
+      // Convert from API format if needed
+      const formattedQuestions = newQuestions.map(q => ({
+        id: q.id,
+        question_text: q.question_text || q.text || 'Rank the following items:',
+        tiers: q.answers || []
+      }));
+      setQuestions(formattedQuestions);
     }
   }));
 

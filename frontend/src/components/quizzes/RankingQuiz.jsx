@@ -3,7 +3,7 @@ import { FaArrowUp, FaArrowDown, FaCheck } from "react-icons/fa";
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 import "../../styles/Quizzes.css";
 
-const RankingQuiz = ({ taskId, onComplete }) => {
+const RankingQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions = null }) => {
   const [questions, setQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -18,6 +18,31 @@ const RankingQuiz = ({ taskId, onComplete }) => {
       try {
         setIsLoading(true);
         console.log("Fetching questions for taskId:", taskId);
+
+        // if users are in PREVIEW MODE, use them directly 
+        if (isPreview && previewQuestions) {
+          console.log("Using preview questions in RankingQuiz:", previewQuestions);
+          
+          // normalize question data
+          const normalizedQuestions = previewQuestions.map(q => ({
+            id: q.id,
+            question_text: q.question_text || q.text || "",
+            tiers: q.answers || [] // Tiers are stored in the answers field
+          }));
+
+          setQuestions(normalizedQuestions);
+
+          // initialize userAnswers with the default order of tiers
+          const initialAnswers = {};
+          normalizedQuestions.forEach(question => {
+            initialAnswers[question.id] = [...question.tiers]; // Copy the original order
+          });
+
+          setUserAnswers(initialAnswers);
+          setIsLoading(false);
+          return;
+        }
+
         const fetchedQuestions = await QuizApiUtils.getQuestions(taskId);
         console.log("Fetched questions:", fetchedQuestions);
 
@@ -58,7 +83,7 @@ const RankingQuiz = ({ taskId, onComplete }) => {
       setError("Quiz configuration error. Please contact support.");
       setIsLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, isPreview, previewQuestions]);
 
   // Handle moving a tier up or down
   const handleMoveTier = (questionId, tierIndex, direction) => {
@@ -94,6 +119,13 @@ const RankingQuiz = ({ taskId, onComplete }) => {
 
   // Continue after review
   const handleContinue = () => {
+    if (isPreview) {
+      if (onComplete) {
+        onComplete({ preview: true });
+      }
+      return;
+    }
+    
     if (onComplete) {
       onComplete(userAnswers);
     }

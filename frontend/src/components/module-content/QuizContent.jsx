@@ -133,6 +133,8 @@ const QuizContent = ({ quizData, completedContentIds, onComplete, isPreviewMode 
       quizComponent = <RankingQuiz
         taskId={quizData.taskData.contentID}
         onComplete={(results) => onComplete(quizData.id, results)}
+        isPreview={isPreviewMode}
+        previewQuestions={isPreviewMode ? questions : null}
       />;
       break;
     case 'pair_input':
