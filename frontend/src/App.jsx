@@ -21,7 +21,6 @@ import Welcome from './components/Welcome';
 import PasswordReset from './components/PasswordReset.jsx';
 import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
-import Module2 from './pages/KnowValuesModule';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
@@ -101,8 +100,6 @@ function App() {
                       
                       {/* to be deleted */}
                       <Route path="all-courses" element={<CoursesList/>} />
-                      <Route path="KnowValuesModule" element={<Module2/>} />
-
                     </Routes>
                   </DashboardLayout>
                 } />
