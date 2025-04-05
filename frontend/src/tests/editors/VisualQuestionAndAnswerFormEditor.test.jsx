@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor,act } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import VisualQuestionAndAnswerFormEditor from '../../components/editors/VisualQuestionAndAnswerFormEditor';
 
@@ -27,6 +27,8 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
         global.alert = vi.fn();
         global.confirm = vi.fn(() => true);
         QuizApiUtils.deleteQuestion = vi.fn(() => Promise.resolve({ status: 200 }));
+        QuizApiUtils.getQuestions = vi.fn(() => Promise.resolve({ status: 200 }));
+
 
     });
 
@@ -40,7 +42,7 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
      });
 
 
-     test('allows adding a new question and answer pair', async () => {
+     test('allows adding for new question and answer form', async () => {
         const { getByPlaceholderText, getByText ,findByText} = renderComponent();
     
         
@@ -104,10 +106,47 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
         // Ensure the deleteQuestion was called correctly
         expect(QuizApiUtils.deleteQuestion).toHaveBeenCalledWith(1);
     });
+
+    test('getQuestions method returns the correct state data after form submission', async () => {
+        const ref = React.createRef();
+        render(<VisualQuestionAndAnswerFormEditor ref={ref} {...mockProps} />);
+    
+        const questionInput = screen.getByPlaceholderText('Enter your question');
+    
+        fireEvent.change(questionInput, { target: { value: 'New Question' } });
+    
+        fireEvent.click(screen.getByText('Add Question'));
+    
+        await waitFor(() => {
+            // Check if getQuestions returns the updated list
+            const questions = ref.current.getQuestions();
+            expect(questions).toEqual(expect.arrayContaining([
+                expect.objectContaining({ question_text: 'New Question'})
+            ]));
+        });
+    });
     
       
+    test('updates displayed questions when initialQuestions prop changes', async () => {
+        const { rerender, findAllByText } = renderComponent();
       
-
+        // Check initial render off questions
+        let questions = await findAllByText(/How are you feeling today?|Describe your confidence./);
+        expect(questions).toHaveLength(2);
+      
+        const newQuestions = [
+          { id: 3, text: 'What is your favorite color?', order: 2 }
+        ];
+        rerender(<VisualQuestionAndAnswerFormEditor ref={React.createRef()} {...mockProps} initialQuestions={newQuestions} />);
+      
+        // Check if component updates correctly
+        questions = await findAllByText(/What is your favorite color?/);
+        expect(questions).toHaveLength(1);
+      });
+       
+      
+      
+      
 });
 
 describe.skip('VisualQuestionAndAnswerFormEditor', () => {
