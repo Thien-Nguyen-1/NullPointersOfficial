@@ -5,6 +5,7 @@ import { QuizApiUtils } from "../services/QuizApiUtils";
 import DocumentService from "../services/DocumentService";
 import AudioService from "../services/AudioService";
 import VideoService from "../services/VideoService";
+import ImageService from "../services/ImageService";
 import { usePreviewMode } from "../services/PreviewModeContext";
 
 import { SaveUserModuleInteract, GetUserModuleInteract } from "../services/api";
@@ -66,6 +67,8 @@ const ModuleViewAlternative = () => {
         console.log("Audio files for module:", moduleAudios);
         const moduleVideos = await VideoService.getModuleVideos(moduleId);
         console.log("Videos for module:", moduleVideos);
+        const moduleImages = await ImageService.getModuleImages(moduleId);
+        console.log("Pictures for module:", moduleImages);
 
         // add future media ...
 
@@ -101,7 +104,16 @@ const ModuleViewAlternative = () => {
             videos: [video], // Include full video data for downloads
             moduleId: moduleId
           })),
+          // Image
+          ...moduleImages.map(image => ({
+            id: image.contentID,
+            type: 'image',
+            title: image.title || 'Image',
+            content: `Check out: ${image.title || 'Image'}`,
+            imageFiles: [image], 
+            moduleId: moduleId
           // add future media
+          })),
         ];
         
         // Create a structured content from the tasks

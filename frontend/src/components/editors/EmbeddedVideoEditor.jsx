@@ -52,8 +52,8 @@ const EmbeddedVideoEditorWrapper = forwardRef((props, ref) => {
         documentId={internalDocumentId}
         temporaryMode={
           moduleId === null || 
-          (typeof moduleId === 'string' && moduleId.startsWith("new-")) || 
-          (typeof documentId === 'string' && documentId.startsWith("new-"))
+          (typeof moduleId === 'string' && moduleId.startsWith("new-"))
+         
         }      />
     </div>
   );
