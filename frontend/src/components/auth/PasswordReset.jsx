@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 //import { ResetPassword } from "../services/api";
 import '../styles/PasswordReset.css';
 
-import { AuthContext } from "../services/AuthContext";
+import { AuthContext } from "../../services/AuthContext";
 
 const PasswordReset = () => {
 
