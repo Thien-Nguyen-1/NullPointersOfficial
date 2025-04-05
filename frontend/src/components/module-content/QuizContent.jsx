@@ -116,6 +116,7 @@ const QuizContent = ({ quizData, completedContentIds, onComplete, isPreviewMode 
           onComplete={(results) => onComplete(quizData.id, results)}
           isPreview={isPreviewMode}
           previewQuestions={isPreviewMode ? questions : null}
+          completedContentIds={completedContentIds}
         />
       );
       break;
@@ -126,6 +127,7 @@ const QuizContent = ({ quizData, completedContentIds, onComplete, isPreviewMode 
           onComplete={(results) => onComplete(quizData.id, results)}
           isPreview={isPreviewMode}
           previewQuestions={isPreviewMode ? questions : null}
+          completedContentIds={completedContentIds}
         />
       );
       break;
