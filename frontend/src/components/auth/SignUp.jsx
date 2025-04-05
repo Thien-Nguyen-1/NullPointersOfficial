@@ -3,7 +3,7 @@ import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../services/AuthContext";
 import api from '../../services/api';
-import '../styles/Signup.css';
+import '../../styles/Signup.css';
 
 const Signup = () => {
   const [username, setUsername] = useState("");

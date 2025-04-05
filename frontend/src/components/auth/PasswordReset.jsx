@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 //import { ResetPassword } from "../services/api";
-import '../styles/PasswordReset.css';
+import '../../styles/PasswordReset.css';
 
 import { AuthContext } from "../../services/AuthContext";
 
