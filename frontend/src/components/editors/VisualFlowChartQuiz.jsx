@@ -63,6 +63,24 @@ const VisualFlowChartQuiz = forwardRef((props, ref) => {
       
       console.log("[DEBUG] Returning formatted questions:", formattedQuestions);
       return formattedQuestions;
+    },
+
+    setQuestions: (newQuestions) => {
+      // Normalize and format incoming questions
+      const formattedStatements = newQuestions.map(q => ({
+        id: q.id || Date.now() + Math.random(),
+        text: q.question_text || q.text || "",
+        question: q.hint_text || q.question || "",
+        answer: "Sample Answer",
+        order: q.order || 0
+      }));
+      
+      setStatements(formattedStatements);
+      
+      // Auto-select the first statement if available
+      if (formattedStatements.length > 0) {
+        setSelectedStatement(formattedStatements[0]);
+      }
     }
   }), [statements]);
 

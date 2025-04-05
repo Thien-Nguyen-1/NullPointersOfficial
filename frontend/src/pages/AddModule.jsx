@@ -122,34 +122,254 @@ const AddModule = () => {
   }, [currentUser, navigate, isEditing, editId, fetchModuleData, fetchTags, initialQuestionsRef]);
 
   // Handle Preview button click
+  // const handlePreview = () => {
+  //   if (!title.trim()) {
+  //     setError("Module title is required for preview");
+  //     return;
+  //   }
+
+  //   // Create an introduction section
+  //   const introductionSection = {
+  //     id: 'section-introduction',
+  //     type: 'section',
+  //     title: 'Introduction',
+  //     content: [
+  //       {
+  //         id: 'paragraph-intro',
+  //         type: 'paragraph',
+  //         text: description || "No description provided."
+  //       }
+  //     ]
+  //   };
+
+  //   // Arrays to hold all content items
+  //   const allContentItems = [];
+
+  //   const resourceItems = [];
+  //   const assessmentItems = [];
+    
+  //   // For debugging
+  //   console.log("Starting preview generation with modules:", modules);
+  //   console.log("Editor refs available:", Object.keys(editorRefs.current));
+    
+  //   // Process modules to build the content structure in the order they were added
+  //   modules.forEach((module, index) => {
+  //     // Process media components
+  //     if (module.componentType === "media") {
+  //       if (module.mediaType === "document") {
+  //         const editor = editorRefs.current[module.id];
+  //         const tempFiles = editor?.getTempFiles?.() || [];
+          
+  //         tempFiles.forEach(fileData => {
+  //           // Handle document files
+  //           const fileUrl = fileData.originalDocument 
+  //             ? fileData.originalDocument.file_url 
+  //             : URL.createObjectURL(fileData.file);
+
+  //           allContentItems.push({
+  //             id: fileData.id || module.id,
+  //             type: 'infosheet',
+  //             title: fileData.file.name || "Document",
+  //             content: `View or download: ${fileData.file.name}`,
+  //             documents: [{
+  //               contentID: fileData.id || module.id,
+  //               filename: fileData.file.name,
+  //               file_url: fileUrl,
+  //               file_size: fileData.file.size
+  //             }],
+  //             moduleId: editId || "preview",
+  //             order: index // Use the index to preserve order
+  //           });
+  //         });
+  //       } 
+  //       else if (module.mediaType === "audio") {
+  //         const editor = editorRefs.current[module.id];
+  //         const tempFiles = editor?.getTempFiles?.() || [];
+          
+  //         tempFiles.forEach(fileData => {
+  //           // Handle both new files and existing files
+  //           const fileUrl = fileData.originalAudio 
+  //             ? fileData.originalAudio.file_url 
+  //             : URL.createObjectURL(fileData.file);
+
+  //           allContentItems.push({
+  //             id: fileData.id || module.id,
+  //             type: 'audio',
+  //             title: fileData.file.name || "Audio",
+  //             content: `Listen to: ${fileData.file.name}`,
+  //             audioFiles: [{
+  //               contentID: fileData.id || module.id,
+  //               filename: fileData.file.name,
+  //               file_url: fileUrl,
+  //               file_size: fileData.file.size
+  //             }],
+  //             moduleId: editId || "preview",
+  //             order: index
+  //           });
+  //         });
+  //       }
+  //     }
+  //     // Process quiz templates
+  //     else if (module.componentType === "template") {
+  //       console.log(`Preparing quiz module for preview: ${module.id}`, module);
+        
+  //       // Get questions directly from the editor
+  //       let questions = [];
+  //       const editor = editorRefs.current[module.id];
+        
+  //       if (editor && typeof editor.getQuestions === 'function') {
+  //         console.log(`Getting questions from editor for ${module.id}`);
+  //         try {
+  //           questions = editor.getQuestions() || [];
+  //           // Cache the questions for this module
+  //           setCachedQuestions(prev => ({
+  //             ...prev,
+  //             [module.id]: questions
+  //           }));
+  //           console.log(`Retrieved ${questions.length} questions from editor for ${module.id}:`, questions);
+  //         } catch (error) {
+  //           console.error(`Error getting questions from editor for ${module.id}:`, error);
+  //           questions = [];
+  //         }
+  //       } else {
+  //         // Try from cached questions first
+  //         if (cachedQuestions[module.id] && cachedQuestions[module.id].length > 0) {
+  //           questions = cachedQuestions[module.id];
+  //           console.log(`Using ${questions.length} cached questions for ${module.id}`);
+  //         }
+  //         // Then try initialQuestionsRef as fallback
+  //         else if (initialQuestionsRef.current && initialQuestionsRef.current[module.id]) {
+  //           questions = initialQuestionsRef.current[module.id] || [];
+  //           console.log(`Using ${questions.length} questions from initialQuestionsRef for ${module.id}`);
+  //         } else {
+  //           console.warn(`No questions found for module ${module.id}, using empty array`);
+  //           questions = [];
+  //         }
+  //       }
+        
+  //       // Add a fallback test question if no questions found (for debugging)
+  //       if (questions.length === 0) {
+  //         console.log(`Adding a test question for ${module.id} since no questions were found`);
+  //         questions = [{
+  //           id: `test-${Date.now()}`,
+  //           question_text: "This is a test question (no actual questions found)",
+  //           hint_text: "This is a test hint",
+  //           order: 0
+  //         }];
+  //       }
+        
+  //       // Format questions if needed
+  //       const formattedQuestions = questions.map(q => ({
+  //         id: q.id || `temp-${Date.now()}-${Math.random()}`,
+  //         question_text: q.question_text || q.text || "",
+  //         hint_text: q.hint_text || q.hint || "",
+  //         order: q.order || 0,
+  //         answers: q.answers || []
+  //       }));
+        
+  //       console.log(`Formatted ${formattedQuestions.length} questions for ${module.id}`);
+        
+  //       allContentItems.push({
+  //         id: module.id,
+  //         type: 'quiz',
+  //         quiz_type: module.quizType,
+  //         title: module.type,
+  //         taskData: {
+  //           contentID: module.id,
+  //           title: module.type,
+  //           quiz_type: module.quizType,
+  //           questions: formattedQuestions,
+  //           isPreview: true
+  //         },
+  //         order: index
+  //       });
+  //     }
+  //   });
+    
+  //   // Sort all content items by their order
+  //   allContentItems.sort((a, b) => a.order - b.order);
+    
+  //   // Add description as a paragraph at the beginning
+  //   if (description) {
+  //     allContentItems.unshift({
+  //       id: 'module-description',
+  //       type: 'paragraph',
+  //       text: description,
+  //       order: -1
+  //     });
+  //   }
+    
+  //   // Create a single content section with all items
+  //   const structuredContent = [
+  //     {
+  //       id: 'section-content',
+  //       type: 'section',
+  //       title: 'Course Content',
+  //       content: allContentItems
+  //     }
+  //   ];
+    
+  //   // Create preview data
+  //   const previewData = {
+  //     module: {
+  //       id: editId || 'preview',
+  //       title: title,
+  //       description: description || title,
+  //       tags: tags,
+  //       upvotes: 0,
+  //       pinned: false
+  //     },
+  //     moduleContent: structuredContent,
+  //     availableTags: availableTags
+  //   };
+    
+  //   console.log("Entering preview mode with data:", previewData);
+    
+  //   // Enter preview mode with generated data
+  //   enterPreviewMode(previewData);
+  // };
+
   const handlePreview = () => {
     if (!title.trim()) {
       setError("Module title is required for preview");
       return;
     }
-
-    // Arrays to hold all content items
-    const allContentItems = [];
+  
+    // Temporarily store cached questions
+    const tempCachedQuestions = {};
     
-    // For debugging
-    console.log("Starting preview generation with modules:", modules);
-    console.log("Editor refs available:", Object.keys(editorRefs.current));
-    
-    // Process modules to build the content structure in the order they were added
+    // Create an introduction section
+    const introductionSection = {
+      id: 'section-introduction',
+      type: 'section',
+      title: 'Introduction',
+      content: [
+        {
+          id: 'paragraph-intro',
+          type: 'paragraph',
+          text: description || "No description provided."
+        }
+      ]
+    };
+  
+    // Arrays to hold resources and assessment content
+    const resourceItems = [];
+    const assessmentItems = [];
+  
+    // Process modules to build the content structure
     modules.forEach((module, index) => {
-      // Process media components
+      // Process media components (Resources)
       if (module.componentType === "media") {
         if (module.mediaType === "document") {
           const editor = editorRefs.current[module.id];
           const tempFiles = editor?.getTempFiles?.() || [];
           
           tempFiles.forEach(fileData => {
-            // Handle document files
             const fileUrl = fileData.originalDocument 
               ? fileData.originalDocument.file_url 
               : URL.createObjectURL(fileData.file);
-
-            allContentItems.push({
+  
+            resourceItems.push({
               id: fileData.id || module.id,
               type: 'infosheet',
               title: fileData.file.name || "Document",
@@ -161,7 +381,7 @@ const AddModule = () => {
                 file_size: fileData.file.size
               }],
               moduleId: editId || "preview",
-              order: index // Use the index to preserve order
+              order: index
             });
           });
         } 
@@ -170,12 +390,11 @@ const AddModule = () => {
           const tempFiles = editor?.getTempFiles?.() || [];
           
           tempFiles.forEach(fileData => {
-            // Handle both new files and existing files
             const fileUrl = fileData.originalAudio 
               ? fileData.originalAudio.file_url 
               : URL.createObjectURL(fileData.file);
-
-            allContentItems.push({
+  
+            resourceItems.push({
               id: fileData.id || module.id,
               type: 'audio',
               title: fileData.file.name || "Audio",
@@ -192,47 +411,22 @@ const AddModule = () => {
           });
         }
       }
-      // Process quiz templates
+      // Process quiz templates (Assessment)
       else if (module.componentType === "template") {
-        console.log(`Preparing quiz module for preview: ${module.id}`, module);
-        
-        // Get questions directly from the editor
-        let questions = [];
         const editor = editorRefs.current[module.id];
+        let questions = [];
         
         if (editor && typeof editor.getQuestions === 'function') {
-          console.log(`Getting questions from editor for ${module.id}`);
-          try {
-            questions = editor.getQuestions() || [];
-            // Cache the questions for this module
-            setCachedQuestions(prev => ({
-              ...prev,
-              [module.id]: questions
-            }));
-            console.log(`Retrieved ${questions.length} questions from editor for ${module.id}:`, questions);
-          } catch (error) {
-            console.error(`Error getting questions from editor for ${module.id}:`, error);
-            questions = [];
-          }
+          questions = editor.getQuestions() || [];
+          // Cache the questions for this module
+          tempCachedQuestions[module.id] = questions;
         } else {
-          // Try from cached questions first
-          if (cachedQuestions[module.id] && cachedQuestions[module.id].length > 0) {
-            questions = cachedQuestions[module.id];
-            console.log(`Using ${questions.length} cached questions for ${module.id}`);
-          }
-          // Then try initialQuestionsRef as fallback
-          else if (initialQuestionsRef.current && initialQuestionsRef.current[module.id]) {
-            questions = initialQuestionsRef.current[module.id] || [];
-            console.log(`Using ${questions.length} questions from initialQuestionsRef for ${module.id}`);
-          } else {
-            console.warn(`No questions found for module ${module.id}, using empty array`);
-            questions = [];
-          }
+          // Try from initialQuestionsRef as fallback
+          questions = initialQuestionsRef.current[module.id] || [];
         }
         
-        // Add a fallback test question if no questions found (for debugging)
+        // Add a fallback test question if no questions found
         if (questions.length === 0) {
-          console.log(`Adding a test question for ${module.id} since no questions were found`);
           questions = [{
             id: `test-${Date.now()}`,
             question_text: "This is a test question (no actual questions found)",
@@ -241,7 +435,7 @@ const AddModule = () => {
           }];
         }
         
-        // Format questions if needed
+        // Format questions
         const formattedQuestions = questions.map(q => ({
           id: q.id || `temp-${Date.now()}-${Math.random()}`,
           question_text: q.question_text || q.text || "",
@@ -250,9 +444,7 @@ const AddModule = () => {
           answers: q.answers || []
         }));
         
-        console.log(`Formatted ${formattedQuestions.length} questions for ${module.id}`);
-        
-        allContentItems.push({
+        assessmentItems.push({
           id: module.id,
           type: 'quiz',
           quiz_type: module.quizType,
@@ -268,30 +460,32 @@ const AddModule = () => {
         });
       }
     });
-    
-    // Sort all content items by their order
-    allContentItems.sort((a, b) => a.order - b.order);
-    
-    // Add description as a paragraph at the beginning
-    if (description) {
-      allContentItems.unshift({
-        id: 'module-description',
-        type: 'paragraph',
-        text: description,
-        order: -1
+  
+    // Create structured content sections
+    const structuredContent = [
+      introductionSection
+    ];
+  
+    // Add Resources section if there are any resources
+    if (resourceItems.length > 0) {
+      structuredContent.push({
+        id: 'section-resources',
+        type: 'section',
+        title: 'Resources',
+        content: resourceItems
       });
     }
-    
-    // Create a single content section with all items
-    const structuredContent = [
-      {
-        id: 'section-content',
+  
+    // Add Assessment section if there are assessment items
+    if (assessmentItems.length > 0) {
+      structuredContent.push({
+        id: 'section-assessment',
         type: 'section',
-        title: 'Course Content',
-        content: allContentItems
-      }
-    ];
-    
+        title: 'Assessment',
+        content: assessmentItems
+      });
+    }
+  
     // Create preview data
     const previewData = {
       module: {
@@ -306,7 +500,8 @@ const AddModule = () => {
       availableTags: availableTags
     };
     
-    console.log("Entering preview mode with data:", previewData);
+    // Update the cachedQuestions state before entering preview mode
+    setCachedQuestions(tempCachedQuestions);
     
     // Enter preview mode with generated data
     enterPreviewMode(previewData);
@@ -782,16 +977,6 @@ const AddModule = () => {
   // Render function
   return (
     <div className={styles["module-editor-container"]}>
-      
-      {/* Toggle button at the top */}
-      <div className={styles["preview-toggle"]}>
-        <button 
-          onClick={isPreviewMode ? exitPreviewMode : handlePreview}
-          className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
-        >
-          {isPreviewMode ? "Back to Editor" : "Preview"}
-        </button>
-      </div>
 
       {/* Display either editor or preview */}
       {isPreviewMode ? (

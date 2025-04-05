@@ -142,6 +142,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
 const VisualFillTheFormEditor = forwardRef((props, ref) => {
   const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
+
   
   // Expose getQuestions method to parent component
   useImperativeHandle(ref, () => ({
@@ -153,8 +154,16 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
         hint_text: "", // Fill-in-the-blanks doesn't use hints
         order: index
       }));
+    },
+    setQuestions: (newQuestions) => {
+      // Normalize the new questions 
+      const formattedQuestions = newQuestions.map(q => 
+        q.question_text || q.text || q
+      );
+      setQuestions(formattedQuestions);
     }
   }));
+
 
   // Load initial questions if provided
   useEffect(() => {
