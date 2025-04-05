@@ -5,7 +5,7 @@ import FillInTheBlanksQuiz from "../quizzes/FillInTheBlanksQuiz";
 import FlowchartQuiz from "../quizzes/FlowchartQuiz";
 import QuestionAndAnswerForm from "../quizzes/QuestionAndAnswerForm";
 import MatchingQuestionsQuiz from "../quizzes/MatchingQuestionsQuiz";
-
+import RankingQuiz from "../quizzes/RankingQuiz";
 /**
  * Component for rendering quiz content in the module
  *
@@ -126,6 +126,12 @@ const QuizContent = ({ quizData, completedContentIds, onComplete, isPreviewMode 
           previewQuestions={isPreviewMode ? questions : null}
         />
       );
+      break;
+    case 'ranking_quiz':
+      quizComponent = <RankingQuiz
+        taskId={quizData.taskData.contentID}
+        onComplete={(results) => onComplete(quizData.id, results)}
+      />;
       break;
     case 'pair_input':
       quizComponent = (

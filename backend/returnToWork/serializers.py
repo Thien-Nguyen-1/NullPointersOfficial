@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification, Image
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -218,6 +218,15 @@ class RankingQuestionSerializer(ContentSerializer):
         model = RankingQuestion
         fields  = ContentSerializer.Meta.fields + ['tiers']
 
+class ImageSerializer(ContentSerializer):
+    class Meta:
+        model = Image
+        fields = ContentSerializer.Meta.fields + [
+            'file_url', 'filename', 'file_size', 'file_size_formatted',
+            'file_type', 'width', 'height'
+        ]
+        read_only_fields = ContentSerializer.Meta.read_only_fields + ['file_size_formatted']
+
 class InlinePictureSerializer(ContentSerializer):
     class Meta:
         model = InlinePicture
@@ -283,6 +292,33 @@ class EmbeddedVideoSerializer(ContentSerializer):
     class Meta:
         model = EmbeddedVideo
         fields  = ContentSerializer.Meta.fields + ['video_url']
+        read_only_fields = ContentSerializer.Meta.read_only_fields
+
+        def validate_video_url(self, value):
+            """Validate the video URL to ensure it's from a supported platform"""
+            # List of supported video platforms
+            supported_domains = [
+                "youtube.com", "youtu.be",
+                "vimeo.com",
+                "dailymotion.com",
+                "wistia.com",
+                "loom.com"
+            ]
+
+            try:
+                from urllib.parse import urlparse
+                parsed_url = urlparse(value)
+                domain = parsed_url.netloc
+
+                # Check if the domain is from a supported platform
+                if not any(supported in domain for supported in supported_domains):
+                    raise serializers.ValidationError(
+                        f"URL must be from a supported video platform. Supported platforms: {', '.join(supported_domains)}"
+                    )
+
+                return value
+            except Exception as e:
+                raise serializers.ValidationError(f"Invalid URL: {str(e)}")
 
 class ContentPublishSerializer(serializers.Serializer):
     """Serializer to handle module and content creation"""

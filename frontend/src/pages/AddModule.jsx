@@ -41,7 +41,10 @@ import { AuthContext } from "../services/AuthContext";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import DocumentService from "../services/DocumentService";
 import AudioService from "../services/AudioService";
+import ImageService from "../services/ImageService";
+import VideoService from "../services/VideoService";
 import { usePreviewMode } from "../services/PreviewModeContext";
+
 
 import { ModuleEditorComponent } from "../components/module-builder/ModuleEditorComponent";
 import { ModuleDropdown } from "../components/module-builder/ModuleDropdown";
@@ -91,12 +94,14 @@ const AddModule = () => {
     "Flowchart Quiz": { component: "VisualFlowChartQuiz", type: "statement_sequence" },
     'Question and Answer Form': { component: "VisualQuestionAndAnswerFormEditor", type:'question_input'},
     'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'},
-    'Ranking Question': {component: RankingQuestionEditor, type:''}
+    'Ranking Quiz': {component: "RankingQuizEditor", type:'ranking_quiz'}
   };
 
   const media = {
     'Upload Document': {component: "DocumentEditorWrapper", type:'document'},
-    'Upload Audio': {component: "AudioEditorWrapper", type:'audio'}
+    'Upload Audio': {component: "AudioEditorWrapper", type:'audio'},
+    'Upload Image': {component: "InlinePictureEditorWrapperr", type:'image'},
+    'Link Video': {component: "EmbeddedVideoEditorWrapper", type:'video'}
     // future media
   };
   
@@ -663,7 +668,18 @@ const AddModule = () => {
         ...prev,
         audio: [...prev.audio, id]
       }));
+    } else if (module.mediaType === "image") {
+      setPendingDeletions(prev => ({
+        ...prev,
+        image: [...prev.image, id]
+      }));
+    } else if (module.mediaType === "video") {
+      setPendingDeletions(prev => ({
+        ...prev,
+        video : [...prev.video, id]
+      }));
     }
+      // future media ...
   };
 
   // Publish or update the module
@@ -786,10 +802,43 @@ const AddModule = () => {
           console.error(`[ERROR] Failed to delete audio files for component ${audioId}:`, err);
         }
       }
+
+      // process IMAGE deletions
+      if (pendingDeletions.image.length > 0) {
+          for (const imageId of pendingDeletions.image) {
+            try {
+              const allImages = await ImageService.getModuleImages(moduleId);
+              const imagesToDelete = allImages.filter(image => image.contentID === imageId);
+
+              for (const image of imagesToDelete) {
+                await ImageService.deleteImage(image.contentID);
+              }
+            } catch (err) {
+              console.error(`[ERROR] Failed to delete images for component ${imageId}:`, err);
+            }
+          }
+      }
+
+      // process VIDEO deletions
+      if (pendingDeletions.video.length > 0) {
+          for (const videoId of pendingDeletions.video) {
+            try {
+              const allVideos = await VideoService.getModuleVideos(moduleId);
+              const videosToDelete = allVideos.filter(video => video.contentID === videoId);
+
+              for (const video of videosToDelete) {
+                await VideoService.deleteVideo(video.contentID);
+              }
+            } catch (err) {
+              console.error(`[ERROR] Failed to delete videos for component ${videoId}:`, err);
+            }
+          }
+      }
+
     }
     
     // Clear pending deletions
-    setPendingDeletions({ document: [], audio: [] });
+    setPendingDeletions({ document: [], audio: [], images: [], videos: [] });
   };
 
   // Create a new module
@@ -856,22 +905,55 @@ const AddModule = () => {
         formData.append('component_id', module.id);
       }
 
-      let hasNewFiles = false;
-      tempFiles.forEach(fileData => {
-        // only append actual file object, not references to existing files
-        if (fileData.file instanceof File && !fileData.originalDocument && !fileData.originalAudio) {
+      
+      // special handling for image files
+      if (module.mediaType === "image") {
+        // Add each file to FormData
+        for (let i = 0; i < tempFiles.length; i++) {
+          const fileData = tempFiles[i];
           formData.append('files', fileData.file);
-          hasNewFiles = true;
-        }
-      });
 
-      // only upload when there is new Files
-      if (!hasNewFiles) return;
+          // Add dimensions as separate fields only for image media type
+          if (module.mediaType === "image" && fileData.width && fileData.height) {
+            formData.append(`width_${i}`, fileData.width.toString());
+            formData.append(`height_${i}`, fileData.height.toString());
+            console.log(`[DEBUG] Adding dimensions for ${fileData.filename}: ${fileData.width}×${fileData.height}`);
+          }
+        }
+
+        // Add component_id for existing (not new) image modules
+        if (module.id && !module.id.toString().startsWith('new-')) {
+          formData.append('component_id', module.id);
+        }
+        
+      } else {
+        let hasNewFiles = false;
+        tempFiles.forEach(fileData => {
+          // only append actual file object, not references to existing files
+          if (fileData.file instanceof File && !fileData.originalDocument && !fileData.originalAudio) {
+            formData.append('files', fileData.file);
+            hasNewFiles = true;
+          }
+        });
+
+        // Add component_id for existing (not new) modules
+        if (module.id && !module.id.toString().startsWith('new-')) {
+          formData.append('component_id', module.id);
+        }
+
+        // only upload when there is new Files for non image media (since media has its own handling)
+        if (!hasNewFiles) return;
+      }
+      
       
       if (module.mediaType === "document") {
         await DocumentService.uploadDocuments(formData);
       } else if (module.mediaType === "audio") {
         await AudioService.uploadAudios(formData);
+      } else if (module.mediaType === "image") {
+        await ImageService.uploadImages(formData);
+      } else if (module.mediaType === "video") {
+        await VideoService.uploadVideos(formData);
       }
       // add future media ..
     } catch (error) {
@@ -1002,6 +1084,24 @@ const AddModule = () => {
       modules.filter(m => m.componentType === "media" && m.mediaType === "audio"),
       AudioService.getModuleAudios,
       AudioService.deleteAudio
+    );
+
+    // Clean up orphaned images if no image components are left
+    await cleanupOrphanedMedia(
+      moduleId,
+      "image",
+      modules.filter(m => m.componentType === "media" && m.mediaType === "image"),
+      ImageService.getModuleImages,
+      ImageService.deleteImage
+    );
+
+    // Clean up orphaned videos if no image components are left
+    await cleanupOrphanedMedia(
+      moduleId,
+      "video",
+      modules.filter(m => m.componentType === "media" && m.mediaType === "video"),
+      VideoService.getModuleVideos,
+      VideoService.deleteVideo
     );
 
     // add future mediaa

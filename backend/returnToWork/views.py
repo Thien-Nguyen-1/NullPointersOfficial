@@ -12,6 +12,8 @@ from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -25,6 +27,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from reportlab.lib.pagesizes import letter
 from django.core.cache import cache
@@ -39,7 +42,7 @@ from .models import (
     Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
     RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
     AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
-    Conversation, Message, TermsAndConditions, AdminVerification
+    Conversation, Message, TermsAndConditions, AdminVerification, Image
 )
 from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
@@ -48,7 +51,7 @@ from .serializers import (
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    VideoSerializer, MessageSerializer, ConversationSerializer, AdminVerificationSerializer
+    VideoSerializer, MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer
 )
 
 User = get_user_model()
@@ -260,6 +263,98 @@ class InlinePictureViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class ImageViewSet(viewsets.ModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_queryset(self):
+        queryset = Image.objects.all()
+
+        # Filter by module_id if provided in query params
+        module_id = self.request.query_params.get('module_id', None)
+        if module_id:
+            queryset = queryset.filter(moduleID=module_id)
+
+        # Filter by content_id if provided in query params
+        content_id = self.request.query_params.get('content_id', None)
+        if content_id:
+            queryset = queryset.filter(contentID=content_id)
+
+        return queryset
+
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        files = request.FILES.getlist('files')
+        module_id = request.data.get('module_id')
+        component_id = request.data.get('component_id', None)
+
+        if not module_id:
+            return Response({"detail": "Module ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            module = Module.objects.get(id=module_id)
+        except Module.DoesNotExist:
+            return Response({"detail": "Module not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get current user for author field
+        current_user = request.user
+
+        uploaded_images = []
+
+        for i, file in enumerate(files):
+            # Get custom dimensions if provided, otherwise use defaults
+            width = int(request.data.get(f'width_{i}', 600))
+            height = int(request.data.get(f'height_{i}', 400))
+
+            # Create unique filename
+            filename = str(uuid.uuid4()) + os.path.splitext(file.name)[1]
+
+            # Save file to media storage
+            file_path = default_storage.save(f'module_images/{filename}', ContentFile(file.read()))
+
+            # Create image object with Content fields
+            image = Image.objects.create(
+                moduleID=module,  # Changed from module to moduleID
+                title=file.name,  # Use filename as title
+                author=current_user,  # Required by Content model
+                description="Uploaded image",  # Default description
+                is_published=True,  # Default to published
+                file_url=default_storage.url(file_path),
+                filename=file.name,
+                file_size=file.size,
+                file_type=os.path.splitext(file.name)[1][1:],  # Remove the dot from extension
+                width=width,  # Default width
+                height=height  # Default height
+            )
+
+            # If a component ID was provided, link it to the image as a description field
+            # since contentID is now the primary key
+            if component_id:
+                image.description = f"Associated with component {component_id}"
+
+            serializer = ImageSerializer(image)
+            uploaded_images.append(serializer.data)
+
+        return Response(uploaded_images, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['patch'])
+    def update_dimensions(self, request, pk=None):
+        image = self.get_object()
+        width = request.data.get('width')
+        height = request.data.get('height')
+
+        if not width or not height:
+            return Response({"detail": "Width and height are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        image.width = width
+        image.height = height
+        image.save()
+
+        serializer = ImageSerializer(image)
+        return Response(serializer.data)
 
 class AudioClipViewSet(viewsets.ModelViewSet):
     queryset = AudioClip.objects.all()
@@ -473,9 +568,72 @@ class DocumentViewSet(viewsets.ModelViewSet):
 class EmbeddedVideoViewSet(viewsets.ModelViewSet):
     queryset = EmbeddedVideo.objects.all()
     serializer_class = EmbeddedVideoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filter queryset based on request parameters"""
+        queryset = EmbeddedVideo.objects.all()
+
+        # Filter by module_id if provided
+        module_id = self.request.query_params.get('module_id')
+        if module_id:
+            queryset = queryset.filter(moduleID=module_id)
+
+        # Filter by component_id if provided (for specific content ID)
+        component_id = self.request.query_params.get('component_id')
+        if component_id:
+            queryset = queryset.filter(contentID=component_id)
+
+        # Filter by author if requested
+        author_only = self.request.query_params.get('author_only')
+        if author_only and author_only.lower() == 'true':
+            queryset = queryset.filter(author=self.request.user)
+
+        return queryset
 
     def perform_create(self, serializer):
+        """Set the author when creating a new embedded video"""
         serializer.save(author=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """Handle updates to embedded videos"""
+        instance = self.get_object()
+
+        # Check if the user is the author or has edit permissions
+        if instance.author != request.user and not request.user.is_staff:
+            return Response(
+                {"detail": "You do not have permission to edit this video."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Handle deletion of embedded videos"""
+        instance = self.get_object()
+
+        # Check if the user is the author or has delete permissions
+        if instance.author != request.user and not request.user.is_staff:
+            return Response(
+                {"detail": "You do not have permission to delete this video."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'])
+    def module_videos(self, request):
+        """Get all videos for a specific module"""
+        module_id = request.query_params.get('module_id')
+        if not module_id:
+            return Response(
+                {"detail": "module_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        videos = EmbeddedVideo.objects.filter(moduleID=module_id)
+        serializer = self.get_serializer(videos, many=True)
+        return Response(serializer.data)
 
 
 class UserDetail(APIView):

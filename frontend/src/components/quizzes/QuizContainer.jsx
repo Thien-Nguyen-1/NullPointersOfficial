@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FlashcardQuiz from './FlashcardQuiz';
+import RankingQuiz from './RankingQuiz';
 import "../../styles/MainQuizContainer.css";
 import { useParams } from "react-router-dom";
 
@@ -100,6 +101,10 @@ const QuizContainer = () => {
     
     if (quizType.includes('sequence') || quizType.includes('statement')) {
       return <FlowchartSequenceQuiz quizData={quizData} saveResponse={saveResponse} />;
+    }
+
+    if (quizType.includes('ranking')) {
+        return <RankingQuiz taskId={taskId} onComplete={saveResponse} />;
     }
     
     // Default to text input/fill blank quiz
