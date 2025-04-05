@@ -1,7 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef, useCallback  } from "react";
-import { FiPlay, FiPause, FiCheck, FiLink, FiVideo } from "react-icons/fi";
-import VideoService from "../../services/VideoService";
-
+import { FiPlay, FiPause, FiCheck, FiLink, FiVideo, FiTrash2 } from "react-icons/fi";import VideoService from "../../services/VideoService";
 import styles from "../../styles/EmbeddedVideoEditor.module.css";
 
 // Wrapper for AddModule
@@ -16,6 +14,7 @@ const EmbeddedVideoEditorWrapper = forwardRef((props, ref) => {
   console.log("[DEBUG] EmbeddedVideoEditorWrapper props:", { moduleId, documentId });
   console.log("[DEBUG] EmbeddedVideoEditorWrapper actualModuleId:", actualModuleId);
 
+  
   // This matches the API expected by AddModule.jsx
   useImperativeHandle(ref, () => ({
     getTempFiles: () => {
@@ -51,8 +50,11 @@ const EmbeddedVideoEditorWrapper = forwardRef((props, ref) => {
         ref={videoEditorRef}
         moduleId={actualModuleId}
         documentId={internalDocumentId}
-        temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-")) || (typeof documentId === 'string' && documentId.startsWith("new-"))}
-      />
+        temporaryMode={
+          moduleId === null || 
+          (typeof moduleId === 'string' && moduleId.startsWith("new-")) || 
+          (typeof documentId === 'string' && documentId.startsWith("new-"))
+        }      />
     </div>
   );
 });
@@ -66,6 +68,11 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
   const [videoData, setVideoData] = useState(existingVideo);
   const [isLoading, setIsLoading] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const [tempVideoData, setTempVideoData] = useState(null);
+  const [tempFiles, setTempFiles] = useState([]);
+  const isTemporaryMode = temporaryMode || !moduleId || (typeof moduleId === 'string' && moduleId.startsWith("new-"));
+  const displayedVideos = isTemporaryMode ? tempFiles : [videoData].filter(Boolean);
+
 
   console.log("[DEBUG] EmbeddedVideoEditor received moduleId:", moduleId);
   console.log("[DEBUG] EmbeddedVideoEditor received documentId:", documentId);
@@ -77,28 +84,128 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
     if (moduleId && documentId && !temporaryMode && !documentId.toString().startsWith('new-')) {
       console.log("[DEBUG] Fetching video data because moduleId and documentId exist and not in temporaryMode");
       fetchVideo();
-    } else {
-      console.log("[DEBUG] Not fetching video. Reason:",
-        !moduleId ? "No moduleId" : !documentId ? "No documentId" :
-        documentId.toString().startsWith('new-') ? "Document ID is temporary" : "In temporaryMode");
-    }
-  }, [moduleId, documentId, temporaryMode]);
-
-  // Expose getVideoData method for parent component
-  useImperativeHandle(ref, () => ({
-    getVideoData: () => {
-      console.log("[DEBUG] getVideoData called, returning:", {
+    } else if (temporaryMode && videoUrl) {
+      // for temporary mode set the data directly
+      setVideoData({
         video_url: videoUrl,
-        title: "Embedded Video",
+        title: "Temporary Video",
         description: ""
       });
+      setIsPreviewVisible(true);
+      // console.log("[DEBUG] Not fetching video. Reason:",
+      //   !moduleId ? "No moduleId" : !documentId ? "No documentId" :
+      //   documentId.toString().startsWith('new-') ? "Document ID is temporary" : "In temporaryMode");
+    }
+  }, [moduleId, documentId, temporaryMode, videoUrl]);
+
+  // Expose getVideoData method for parent component
+  // useImperativeHandle(ref, () => ({
+  //   // getVideoData: () => {
+  //   //   console.log("[DEBUG] getVideoData called, returning:", {
+  //   //     video_url: videoUrl,
+  //   //     title: "Embedded Video",
+  //   //     description: ""
+  //   //   });
+  //   //   return {
+  //   //     video_url: videoUrl,
+  //   //     title: "Embedded Video", // Default title
+  //   //     description: "" // Empty description
+  //   //   };
+  //   // },
+
+  //   getTempFiles: () => {
+  //     if (videoUrl) {
+  //       return [{
+  //         file: new File(
+  //           [JSON.stringify({ video_url: videoUrl, title: videoTitle })],
+  //           "video_data.json",
+  //           { type: "application/json" }
+  //         ),
+  //         filename: "video_data.json",
+  //         videoData: { video_url: videoUrl, title: videoTitle }
+  //       }];
+  //     }
+  //     return [];
+  //   },
+
+  //   setVideoData: (data) => {
+  //     console.log("[DEBUG] setVideoData called with:", data);
+  //     if (data && data.video_url) {
+  //       setVideoUrl(data.video_url);
+  //       setVideoTitle(data.title || "");
+  //       setVideoDescription(data.description || "");
+  //       setIsPreviewVisible(true);
+  //     }
+  //   }
+  // }));
+
+  useImperativeHandle(ref, () => ({
+    // Converts video data to a file-like object for module builder
+    getTempFiles: () => {
+      if (videoUrl) {
+        return [{
+          file: new File(
+            [JSON.stringify({ 
+              video_url: videoUrl, 
+              title: videoTitle || "Embedded Video",
+              description: videoDescription || ""
+            })],
+            "video_data.json",
+            { type: "application/json" }
+          ),
+          filename: "video_data.json",
+          videoData: { 
+            video_url: videoUrl, 
+            title: videoTitle || "Embedded Video",
+            description: videoDescription || ""
+          }
+        }];
+      }
+      return [];
+    },
+  
+    // Provides raw video data for external components
+    getVideoData: () => {
       return {
         video_url: videoUrl,
-        title: "Embedded Video", // Default title
-        description: "" // Empty description
+        title: videoTitle || "Embedded Video",
+        description: videoDescription || ""
       };
+    },
+  
+    // Allows external components to set video data
+    setTempFiles: (files) => {
+      if (files.length > 0) {
+        const videoData = JSON.parse(files[0].file);
+        setVideoUrl(videoData.video_url);
+        setVideoTitle(videoData.title || "Embedded Video");
+        setVideoDescription(videoData.description || "");
+        setIsPreviewVisible(true);
+      }
     }
   }));
+
+  const handleDeleteTemp = (id) => {
+    console.log("[DEBUG] handleDeleteTemp called for id:", id);
+    
+    if (!window.confirm('Are you sure you want to delete this video?')) {
+      return;
+    }
+    
+    console.log("[DEBUG] Deleting temp file with ID:", id);
+    console.log("[DEBUG] Current tempFiles:", tempFiles);
+    
+    const updatedTempFiles = tempFiles.filter(file => file.id !== id);
+    console.log("[DEBUG] Updated tempFiles after filter:", updatedTempFiles);
+    
+    setTempFiles(updatedTempFiles);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
 
   const fetchVideo = async () => {
     console.log("[DEBUG] fetchVideo called with moduleId:", moduleId, "documentId:", documentId);
@@ -142,20 +249,40 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
     }
   };
 
+  // const isValidUrl = (url) => {
+  //   // Basic URL validation - can be enhanced for specific platforms
+  //   try {
+  //     new URL(url);
+
+  //     // Check for common video platforms
+  //     const supportedDomains = [
+  //       "youtube.com", "youtu.be", "vimeo.com",
+  //       "dailymotion.com", "wistia.com", "loom.com"
+  //     ];
+
+  //     const urlObj = new URL(url);
+  //     return supportedDomains.some(domain => urlObj.hostname.includes(domain));
+  //   } catch (e) {
+  //     return false;
+  //   }
+  // };
+
   const isValidUrl = (url) => {
-    // Basic URL validation - can be enhanced for specific platforms
     try {
-      new URL(url);
-
-      // Check for common video platforms
+      if (!url) return false;
+      const parsedUrl = new URL(url);
+      
       const supportedDomains = [
-        "youtube.com", "youtu.be", "vimeo.com",
-        "dailymotion.com", "wistia.com", "loom.com"
+        "youtube.com", "youtu.be", 
+        "vimeo.com", "dailymotion.com", 
+        "wistia.com", "loom.com"
       ];
-
-      const urlObj = new URL(url);
-      return supportedDomains.some(domain => urlObj.hostname.includes(domain));
+  
+      return supportedDomains.some(domain => 
+        parsedUrl.hostname.includes(domain)
+      );
     } catch (e) {
+      console.error("[DEBUG] URL validation error:", e);
       return false;
     }
   };
@@ -187,87 +314,82 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // Comprehensive logging
+    console.group("[DEBUG] Video Submission");
+    console.log("Video URL:", videoUrl);
+    console.log("Module ID:", moduleId);
+    console.log("Document ID:", documentId);
+    console.log("Temporary Mode:", temporaryMode);
+    console.groupEnd();
+  
+    // Validate URL
     if (!videoUrl) {
       setErrorMessage("Please enter a video URL");
       return;
     }
-
+  
     if (!isValidUrl(videoUrl)) {
       setErrorMessage("Please enter a valid video URL from a supported platform (YouTube, Vimeo, etc.)");
       return;
     }
-
-    // Show preview regardless of whether we're saving to server
+  
+    // Reset UI states
     setIsPreviewVisible(true);
-
     setIsLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
-
+  
     try {
       const videoDataToSubmit = {
         video_url: videoUrl,
-        title: "Embedded Video", // Default title
-        description: "", // Empty description
+        title: videoTitle || "Embedded Video",
+        description: videoDescription || "",
         moduleID: moduleId
       };
-
-      console.log("[DEBUG] Submitting video data:", videoDataToSubmit);
-
-      let response;
-
+  
       if (temporaryMode) {
-        // In temporary mode, just store the data locally
-        console.log("[DEBUG] In temporary mode, storing data locally");
-        setVideoData({
-          ...videoDataToSubmit,
-          contentID: documentId || `temp-${Date.now()}`
-        });
-        setSuccessMessage("Video successfully saved!");
-      } else if (documentId && !documentId.toString().startsWith('new-') && videoData?.contentID) {
-        // Only try to update if we have videoData and the contentID matches documentId
-        // This ensures we don't try to update a video that's been deleted
-        if (videoData.contentID === documentId) {
-          console.log(`[DEBUG] Updating video with ID: ${documentId}`);
-          try {
-            response = await VideoService.updateEmbeddedVideo(documentId, videoDataToSubmit);
-            setVideoData(response);
-            setSuccessMessage("Video updated successfully!");
-          } catch (updateError) {
-            console.error("[ERROR] Error updating video, will try to create instead:", updateError);
-            // If update fails with 404, the video might have been deleted
-            // Fall back to creating a new video
-            console.log(`[DEBUG] Creating new video for module: ${moduleId}`);
-            response = await VideoService.createEmbeddedVideo(videoDataToSubmit);
-            setVideoData(response);
-            setSuccessMessage("Video added successfully!");
-          }
-        } else {
-          // Create a new video if contentID doesn't match
-          console.log(`[DEBUG] Creating new video for module: ${moduleId}`);
-          response = await VideoService.createEmbeddedVideo(videoDataToSubmit);
-          setVideoData(response);
-          setSuccessMessage("Video added successfully!");
-        }
+        // Store as a temp file similar to other uploaders
+        const tempFileData = [{
+          id: Date.now() + Math.random().toString(36).substring(2, 9),
+          file: new File(
+            [JSON.stringify({ video_url: videoUrl })], 
+            "video_data.json", 
+            { type: "application/json" }
+          ),
+          filename: "video_data.json",
+          video_url: videoUrl,
+          title: videoTitle || "Embedded Video",
+          created_at: new Date().toISOString()
+        }];
+
+        setTempFiles(tempFileData);
+        setSuccessMessage("Video successfully saved")
       } else {
-        // Create new video
-        console.log(`[DEBUG] Creating new video for module: ${moduleId}`);
-        response = await VideoService.createEmbeddedVideo(videoDataToSubmit);
+        // Backend submission logic
+        let response;
+        if (documentId && !documentId.toString().startsWith('new-') && videoData?.contentID) {
+          // Update existing video
+          response = await VideoService.updateEmbeddedVideo(documentId, videoDataToSubmit);
+        } else {
+          // Create new video
+          response = await VideoService.createEmbeddedVideo(videoDataToSubmit);
+        }
+        
         setVideoData(response);
-        setSuccessMessage("Video added successfully!");
+        setSuccessMessage("Video saved successfully!");
       }
-
-      // Show preview after successful submission
-      setIsPreviewVisible(true);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-
+  
+      // Auto-clear success message
+      setTimeout(() => setSuccessMessage(""), 3000);
+  
     } catch (err) {
-      console.error("[ERROR] Error saving video:", err);
+      // Detailed error logging
+      console.error("[CRITICAL] Video Submission Error:", {
+        message: err.message,
+        response: err.response,
+        stack: err.stack
+      });
       setErrorMessage(`Failed to save video: ${err.response?.data?.detail || err.message}`);
     } finally {
       setIsLoading(false);
@@ -300,6 +422,33 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
       return url;
     } catch (e) {
       return url;
+    }
+  };
+
+  const handleDelete = async (videoId) => {
+    console.log("[DEBUG] handleDelete called for videoId:", videoId);
+    
+    if (!window.confirm('Are you sure you want to delete this video?')) {
+      console.log("[DEBUG] Delete cancelled by user");
+      return;
+    }
+  
+    try {
+      console.log("[DEBUG] Deleting video with ID:", videoId);
+      await VideoService.deleteEmbeddedVideo(videoId);
+      
+      console.log("[DEBUG] Video deleted successfully, updating state");
+      console.log("[DEBUG] Current videoData:", videoData);
+      
+      // Reset video data
+      setVideoData(null);
+      setVideoUrl("");
+      setVideoTitle("");
+      setVideoDescription("");
+      
+    } catch (err) {
+      console.error("[ERROR] Error deleting video:", err);
+      setErrorMessage(`Delete failed: ${err.response?.data?.detail || err.message}`);
     }
   };
 
@@ -347,7 +496,7 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
         </div>
       </form>
 
-      {isPreviewVisible && videoUrl && (
+      {/* {isPreviewVisible && videoUrl && (
         <div className={styles.videoPreview}>
           <h4 className={styles.previewTitle}>Video Preview</h4>
 
@@ -362,13 +511,67 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
                 className={styles.embedFrame}
               ></iframe>
             </div>
+
           ) : (
             <div className={styles.noPreviewMessage}>
               <FiVideo /> No preview available for this link. Please ensure the entire URL has been pasted correctly.
             </div>
           )}
         </div>
+      )} */}
+      {(videoUrl || (videoData && videoData.video_url)) && (
+        <div className={styles.videoPreview}>
+          <h4 className={styles.previewTitle}>Video Preview</h4>
+          {isPreviewableUrl(videoUrl || videoData.video_url) ? (
+            <div className={styles.embedContainer}>
+              <iframe
+                src={getEmbedUrl(videoUrl || videoData.video_url)}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="Embedded Video"
+                className={styles.embedFrame}
+              ></iframe>
+            </div>
+          ) : (
+            <div className={styles.noPreviewMessage}>
+              <FiVideo /> No preview available for this link.
+            </div>
+          )}
+        </div>
       )}
+
+{displayedVideos.length > 0 && (
+      <div className={styles.videosList}>
+        <h4 className={styles.sectionTitle}>Uploaded Videos</h4>
+        {displayedVideos.map((video) => (
+          <div 
+            key={video.contentID || video.id} 
+            className={styles.videoItem}
+          >
+            <div className={styles.videoInfo}>
+              <FiVideo className={styles.videoIcon} />
+              <span className={styles.videoName}>
+                {video.title || video.filename}
+              </span>
+              <span className={styles.videoMeta}>
+                {video.video_url} • {video.created_at && formatDate(video.created_at)}
+              </span>
+            </div>
+            <div className={styles.videoActions}>
+              <button 
+                className={styles.deleteButton} 
+                onClick={() => isTemporaryMode 
+                  ? handleDeleteTemp(video.id) 
+                  : handleDelete(video.contentID)}
+              >
+                <FiTrash2 />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
     </div>
   );
 });

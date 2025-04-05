@@ -86,6 +86,8 @@ const AddModule = () => {
   const [cachedQuestions, setCachedQuestions] = useState({});
   const [cachedDocuments, setCachedDocuments] = useState({});
   const [cachedAudios, setCachedAudios] = useState({}); 
+  const [cachedImages, setCachedImages] = useState({});
+  const [cachedVideos, setCachedVideos] = useState({});
 
   // Module and component type definitions // 
   const moduleOptions = {
@@ -100,7 +102,7 @@ const AddModule = () => {
   const media = {
     'Upload Document': {component: "DocumentEditorWrapper", type:'document'},
     'Upload Audio': {component: "AudioEditorWrapper", type:'audio'},
-    'Upload Image': {component: "InlinePictureEditorWrapperr", type:'image'},
+    'Upload Image': {component: "InlinePictureEditorWrapper", type:'image'},
     'Link Video': {component: "EmbeddedVideoEditorWrapper", type:'video'}
     // future media
   };
@@ -220,6 +222,60 @@ const AddModule = () => {
               order: index
             });
           });
+        } 
+        else if (module.mediaType === "image") {
+          const editor = editorRefs.current[module.id];
+          const tempFiles = editor?.getTempFiles?.() || [];
+
+          // Cache image files
+          setCachedImages(prev => ({
+            ...prev,
+            [module.id]: tempFiles
+          }));
+          
+          tempFiles.forEach(fileData => {
+            const fileUrl = fileData.file 
+              ? URL.createObjectURL(fileData.file) 
+              : fileData.file_url;
+
+            resourceItems.push({
+              id: fileData.id || module.id,
+              type: 'image',
+              title: fileData.filename || "Image",
+              content: `View image: ${fileData.filename || "Image"}`,
+              imageData: {
+                contentID: fileData.id || module.id,
+                filename: fileData.filename || fileData.file.name,
+                file_url: fileUrl,
+                width: fileData.width,
+                height: fileData.height
+              },
+              moduleId: editId || "preview",
+              order: index
+            });
+          });
+        } 
+        else if (module.mediaType === "video") {
+          const editor = editorRefs.current[module.id];
+          const videoData = editor?.getVideoData?.() || {};
+          
+          // Cache video data
+          setCachedVideos(prev => ({
+            ...prev,
+            [module.id]: videoData
+          }));
+          
+          if (videoData.video_url) {
+            resourceItems.push({
+              id: module.id,
+              type: 'video',
+              title: videoData.title || "Embedded Video",
+              content: videoData.video_url,
+              videoData: videoData,
+              moduleId: editId || "preview",
+              order: index
+            });
+          }
         }
       }
       // Process quiz templates (Assessment)
@@ -372,6 +428,28 @@ const AddModule = () => {
               console.log(`Restoring ${cachedAudios[module.id].length} audio files to editor for ${module.id}`);
               editor.setTempFiles(cachedAudios[module.id]);
             }
+          }
+
+          // restore image files
+          if (module.componentType === "media" && module.mediaType === "image" && 
+            cachedImages[module.id] && cachedImages[module.id].length > 0) {
+          const editor = editorRefs.current[module.id];
+
+          if (editor && typeof editor.setTempFiles === 'function') {
+            console.log(`Restoring ${cachedImages[module.id].length} images to editor for ${module.id}`);
+            editor.setTempFiles(cachedImages[module.id]);
+          }
+          }
+
+          // restore video data
+          if (module.componentType === "media" && module.mediaType === "video" && 
+            cachedVideos[module.id]) {
+          const editor = editorRefs.current[module.id];
+
+          if (editor && typeof editor.setVideoData === 'function') {
+            console.log(`Restoring video data to editor for ${module.id}`);
+            editor.setVideoData(cachedVideos[module.id]);
+          }
           }
         });
       }, 100);

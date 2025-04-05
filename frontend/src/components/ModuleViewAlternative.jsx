@@ -4,6 +4,7 @@ import { AuthContext } from "../services/AuthContext";
 import { QuizApiUtils } from "../services/QuizApiUtils";
 import DocumentService from "../services/DocumentService";
 import AudioService from "../services/AudioService";
+import VideoService from "../services/VideoService";
 import { usePreviewMode } from "../services/PreviewModeContext";
 
 import { SaveUserModuleInteract, GetUserModuleInteract } from "../services/api";
@@ -63,6 +64,9 @@ const ModuleViewAlternative = () => {
         console.log("Documents for module:", moduleDocuments);
         const moduleAudios = await AudioService.getModuleAudios(moduleId);
         console.log("Audio files for module:", moduleAudios);
+        const moduleVideos = await VideoService.getModuleVideos(moduleId);
+        console.log("Videos for module:", moduleVideos);
+
         // add future media ...
 
 
@@ -86,7 +90,17 @@ const ModuleViewAlternative = () => {
             content: `Listen to: ${audio.filename}`,
             audioFiles: [audio],
             moduleId: moduleId
-          }))
+          })),
+          // Avideos
+          ...moduleVideos.map(video => ({
+            id: video.contentID,
+            type: 'video',
+            title: video.title || 'Embedded Video',
+            content: `Watch: ${video.title || 'Video'}`,
+            video_url: video.video_url, // Platform video URL
+            videos: [video], // Include full video data for downloads
+            moduleId: moduleId
+          })),
           // add future media
         ];
         

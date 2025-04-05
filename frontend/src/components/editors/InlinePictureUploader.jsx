@@ -40,6 +40,12 @@ const InlinePictureEditorWrapper = React.forwardRef((props, ref) => {
           console.warn("[DEBUG] getTempFiles function not found on pictureUploaderRef.current");
           return [];
         }
+      },
+
+      setTempFiles: (files) => {
+        if (pictureUploaderRef.current && typeof pictureUploaderRef.current.setTempFiles === 'function') {
+          pictureUploaderRef.current.setTempFiles(files);
+        }
       }
     }));
 
@@ -246,6 +252,11 @@ const InlinePictureUploader = React.forwardRef(({
           console.log(`[DEBUG] File ${file.filename} dimensions: ${file.width}×${file.height}`);
       });
       return tempFiles;
+    },
+
+    setTempFiles: (files) => {
+      console.log("[DEBUG] InlinePictureUploader.setTempFiles called with:", files);
+      setTempFiles(files);
     }
   }));
 
