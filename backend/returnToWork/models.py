@@ -446,7 +446,8 @@ class Task(Content):
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
         ('question_input', 'Question Answer Form'),
-        ('pair_input', 'Matching Question Quiz')
+        ('pair_input', 'Matching Question Quiz'),
+        ('ranking_quiz', 'Ranking Quiz')
     ]
 
     quiz_type = models.CharField(

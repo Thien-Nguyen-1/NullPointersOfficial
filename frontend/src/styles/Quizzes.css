@@ -738,6 +738,331 @@
   border: 1px dashed #ff4d4f;
 }
 
+/* Updated styling for the Ranking Quiz to match your theme */
+
+/* Ranking Quiz Editor Styles */
+.ranking-quiz-editor h2 {
+  color: var(--primary-green);
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--secondary-green);
+}
+
+.ranking-question-container {
+  background-color: var(--secondary-green);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ranking-question-number {
+  color: var(--primary-green);
+  margin: 0;
+  font-size: 18px;
+}
+
+.trash-icon-button {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+}
+
+.trash-icon-button:hover {
+  opacity: 0.7;
+  background: none;
+}
+
+.question-full-width {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.readonly-question-text {
+  width: 100%;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #333;
+}
+
+.question-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Match Fill in the Blanks styling */
+.add-question-container {
+  background-color: var(--secondary-green);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 25px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.add-question-container h3 {
+  color: var(--primary-green);
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.tier-count-container {
+  margin: 15px 0;
+}
+
+.tier-count-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.tiers-count-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.new-question-input {
+  margin-bottom: 15px;
+}
+
+.new-question-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.new-tiers-container {
+  margin: 15px 0;
+}
+
+.new-tiers-container label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #333;
+}
+
+.new-tier-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tier-number-label {
+  min-width: 30px;
+  font-weight: 500;
+  color: var(--primary-green);
+}
+
+.tier-text-input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.fitb-btn-add-question {
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.fitb-btn-add-question:hover {
+  background-color: #45a049;
+}
+
+.cancel-button {
+  background-color:var(--primary-green);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+.add-question-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 25px 0;
+}
+
+/* Styling for tier items */
+.tiers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tier-item {
+  display: flex;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.tier-item.readonly {
+  padding: 8px;
+  background-color: #f8f8f8;
+}
+
+.tier-controls {
+  display: flex;
+  border-right: 1px solid #eee;
+}
+
+.tier-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--primary-green);
+}
+
+.tier-button:hover {
+  background-color: #f0f0f0;
+}
+
+.tier-button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.tier-content {
+  flex-grow: 1;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+}
+
+.tier-content.readonly {
+  color: #333;
+  padding: 0 10px;
+}
+
+.tier-number {
+  min-width: 30px;
+  height: 30px;
+  background-color: var(--primary-green);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+.tier-input {
+  width: 100%;
+  border: none;
+  padding: 10px;
+  font-size: 15px;
+  margin: 2px 0; /* Slight vertical adjustment */
+}
+
+.tier-input:focus {
+  outline: none;
+  background-color: #f7f7f7;
+}
+
+/* Student-facing Ranking Quiz styles */
+.ranking-question {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: var(--secondary-green);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-green);
+}
+
+.ranking-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.ranking-tier {
+  display: flex;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  align-items: center;
+}
+
+/* Review screen styles */
+.review-tier {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.review-tier-number {
+  font-weight: bold;
+  margin-right: 10px;
+  color: var(--primary-green);
+}
+
+.review-tier-text {
+  color: #555;
+}
+
+/* Error message styling */
+.error-message {
+  color: #d32f2f;
+  background-color: #ffebee;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #d32f2f;
+}
+
 /* Add animation for validation errors */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

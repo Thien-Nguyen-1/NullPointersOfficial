@@ -8,6 +8,7 @@ import VisualFillTheFormEditor from "../editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../editors/VisualFlowChartQuiz";
 import VisualQuestionAndAnswerFormEditor from "../editors/VisualQuestionAndAnswerFormEditor";
 import VisualMatchingQuestionsQuizEditor from "../editors/VisualMatchingQuestionsQuizEditor";
+import RankingQuizEditor from "../editors/RankingQuizEditor";
 import HeadingsComponent from "../editors/Headings";
 import { DocumentEditorWrapper } from "../editors/DocumentUploader";
 import { AudioEditorWrapper } from "../editors/AudioUploader";
@@ -31,6 +32,7 @@ export const ModuleEditorComponent = ({
     "Flowchart Quiz": VisualFlowChartQuiz,
     "Question and Answer Form": VisualQuestionAndAnswerFormEditor,
     "Matching Question Quiz": VisualMatchingQuestionsQuizEditor,
+    "Ranking Quiz": RankingQuizEditor,
     // Media
     "Upload Document": DocumentEditorWrapper,
     "Upload Audio": AudioEditorWrapper,

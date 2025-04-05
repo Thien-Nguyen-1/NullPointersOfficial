@@ -84,7 +84,8 @@ const AddModule = () => {
     "Fill in the Blanks": { component: "VisualFillTheFormEditor", type: "text_input" },
     "Flowchart Quiz": { component: "VisualFlowChartQuiz", type: "statement_sequence" },
     'Question and Answer Form': { component: "VisualQuestionAndAnswerFormEditor", type:'question_input'},
-    'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'}
+    'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'},
+    'Ranking Quiz': {component: "RankingQuizEditor", type:'ranking_quiz'}
   };
 
   const headings = [

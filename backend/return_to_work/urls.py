@@ -122,10 +122,10 @@ urlpatterns = [
     }), name='image-detail'),
     path('api/images/<uuid:pk>/dimensions/', ImageViewSet.as_view({'patch': 'update_dimensions'}), name='image-dimensions'),
     path('api/modules/<int:module_id>/images/', ImageViewSet.as_view({'get': 'list'}), name='module-images'),
-
+    #Video API Endpoints
+    path('api/modules/<int:module_id>/embedded-videos/', EmbeddedVideoViewSet.as_view({'get': 'list'}), name='module-embedded-videos'),
+    #Support API Endpoints
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/support/chat-details/', UserSupportView.as_view(), name='user-support-view'),
     path('api/support/chat-room/<int:room_id>/', UserChatView.as_view(), name='user-chat-view'),
-    #Video API Endpoints
-    path('api/modules/<int:module_id>/embedded-videos/', EmbeddedVideoViewSet.as_view({'get': 'list'}), name='module-embedded-videos'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 
