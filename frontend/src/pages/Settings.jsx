@@ -107,6 +107,7 @@ const handleDelete = async () => {
       updateUser(null);
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
 
       navigate("/signup");
   } 

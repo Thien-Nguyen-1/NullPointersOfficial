@@ -223,17 +223,6 @@ export async function getUserSettings(){
 
 export async function deleteUserSettings(){
   try{
-    // const token = localStorage.getItem('token');
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    // const response = await api.delete(`/api/worker/settings/`, {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
     const response = await api.delete(`/api/worker/settings/`);
     return response.data;
   }

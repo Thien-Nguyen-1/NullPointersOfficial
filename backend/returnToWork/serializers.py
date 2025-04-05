@@ -268,6 +268,9 @@ class DocumentSerializer(ContentSerializer):
     def get_file_size_formatted(self, obj):
         """Return human-readable file size."""
         size = obj.file_size
+        if size is None:
+            return None
+        
         for unit in ['B', 'KB', 'MB', 'GB']:
             if size < 1024 or unit == 'GB':
                 return f"{size:.2f} {unit}"

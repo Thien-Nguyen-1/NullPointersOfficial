@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../services/AuthContext";
 import { QuizApiUtils } from "../services/QuizApiUtils";
+import DocumentService from "../services/DocumentService";
+import AudioService from "../services/AudioService";
 import { SaveUserModuleInteract, GetUserModuleInteract } from "../services/api";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt, MdBookmark, MdBookmarkBorder } from "react-icons/md";
@@ -41,6 +43,36 @@ useEffect(() => {
       
       // Fetch tasks associated with this module
       const moduleTasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
+      const moduleDocuments = await DocumentService.getModuleDocuments(moduleId);
+      console.log("Documents for module:", moduleDocuments);
+      const moduleAudios = await AudioService.getModuleAudios(moduleId);
+      console.log("Audio files for module:", moduleAudios);
+      // add future media ...
+
+
+      // Create a resources section if there are media types: documents, etc...
+      const resourcesItems = [
+        // Documents
+        ...moduleDocuments.map(doc => ({
+          id: doc.contentID,
+          type: 'infosheet',
+          title: doc.title || doc.filename,
+          content: `View or download: ${doc.filename}`,
+          documents: [doc],
+          moduleId: moduleId
+        })),
+        
+        // Audio files
+        ...moduleAudios.map(audio => ({
+          id: audio.contentID,
+          type: 'audio',
+          title: audio.title || audio.filename,
+          content: `Listen to: ${audio.filename}`,
+          audioFiles: [audio],
+          moduleId: moduleId
+        }))
+        // add future media
+      ];
       
       // Create a structured content from the tasks
       // This transforms flat task data into sections with content
@@ -63,19 +95,36 @@ useEffect(() => {
             }
           ]
         },
-        {
-          id: 'section-assessment',
-          type: 'section',
-          title: 'Assessment',
-          content: moduleTasks.map(task => ({
-            id: task.contentID,
-            type: 'quiz',
-            quiz_type: task.quiz_type,
-            title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
-            taskData: task
-          }))
-        }
+
       ];
+
+      // Add Resources section if there are any resources
+      if (resourcesItems.length > 0) {
+        structuredContent.push({
+          id: 'section-resources',
+          type: 'section',
+          title: 'Resources',
+          content: resourcesItems
+        });
+      }
+
+      // Add Assessment section
+      structuredContent.push({
+        id: 'section-assessment',
+        type: 'section',
+        title: 'Assessment',
+        content: moduleTasks.map(task => ({
+          id: task.contentID,
+          type: 'quiz',
+          quiz_type: task.quiz_type,
+          title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
+          taskData: task
+        }))
+      });
+
+
+      
+
       
       setModuleContent(structuredContent);
       
@@ -206,7 +255,7 @@ const handleContentComplete = async (contentId, results) => {
       if (section.content) {
         section.content.forEach(item => {
             // Check if the content type is one that requires completion tracking
-          if (['quiz', 'image', 'video', 'infosheet'].includes(item.type)) {
+          if (['quiz', 'image', 'video', 'infosheet', 'audio'].includes(item.type)) { // add future media
             allContentIds.push(item.id);
           }
         });

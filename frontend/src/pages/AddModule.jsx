@@ -52,6 +52,7 @@ import { useTags } from "../hooks/useTags";
 import { useMediaDeletions } from "../hooks/useMediaDeletions";
 
 import styles from "../styles/AddModule.module.css";
+import "../styles/AlternativeModuleView.css"; 
 
 const AddModule = () => {
   const navigate = useNavigate();
@@ -105,12 +106,14 @@ const AddModule = () => {
     }
     
     if (isEditing) {
-      fetchModuleData(editId).then(moduleData => {
+      fetchModuleData(editId, initialQuestionsRef).then(moduleData => {
         if (moduleData) {
           setTitle(moduleData.title);
           setDescription(moduleData.description || "");
           setTags(moduleData.tags || []);
         }
+
+        
       }).catch(error => {
         console.error("Error loading module data:", error);
         setError("Failed to load module data. Please try again.");
@@ -118,7 +121,7 @@ const AddModule = () => {
     }
 
     fetchTags();
-  }, [currentUser, navigate, isEditing, editId, fetchModuleData, fetchTags]);
+  }, [currentUser, navigate, isEditing, editId, fetchModuleData, fetchTags, initialQuestionsRef]);
 
   // Add a module to the list
   const addModule = (moduleType, componentType) => {
