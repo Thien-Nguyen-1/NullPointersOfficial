@@ -81,6 +81,8 @@ const AddModule = () => {
   const { pendingDeletions, setPendingDeletions } = useMediaDeletions();
 
   const [cachedQuestions, setCachedQuestions] = useState({});
+  const [cachedDocuments, setCachedDocuments] = useState({});
+  const [cachedAudios, setCachedAudios] = useState({}); 
 
   // Module and component type definitions // 
   const moduleOptions = {
@@ -363,6 +365,12 @@ const AddModule = () => {
         if (module.mediaType === "document") {
           const editor = editorRefs.current[module.id];
           const tempFiles = editor?.getTempFiles?.() || [];
+
+          // Cache document files
+          setCachedDocuments(prev => ({
+            ...prev,
+            [module.id]: tempFiles
+          }));
           
           tempFiles.forEach(fileData => {
             const fileUrl = fileData.originalDocument 
@@ -388,6 +396,12 @@ const AddModule = () => {
         else if (module.mediaType === "audio") {
           const editor = editorRefs.current[module.id];
           const tempFiles = editor?.getTempFiles?.() || [];
+
+          // Cache audio files
+          setCachedAudios(prev => ({
+            ...prev,
+            [module.id]: tempFiles
+          }));
           
           tempFiles.forEach(fileData => {
             const fileUrl = fileData.originalAudio 
@@ -507,7 +521,7 @@ const AddModule = () => {
     enterPreviewMode(previewData);
   };
 
-  // Effect to restore questions to editor components when exiting preview mode
+  // Effect to restore QUESTIONS to editor components when exiting preview mode
   useEffect(() => {
     if (!isPreviewMode && Object.keys(cachedQuestions).length > 0) {
       console.log("Exited preview mode, restoring cached questions to editors");
@@ -532,6 +546,42 @@ const AddModule = () => {
       return () => clearTimeout(timer);
     }
   }, [isPreviewMode, modules, cachedQuestions]);
+
+  // Effect to restore MEDIA files when exiting preview mode
+  useEffect(() => {
+    if (!isPreviewMode) {
+      console.log("Exited preview mode, restoring cached media files to editors");
+      
+      // Short delay to ensure components are mounted
+      const timer = setTimeout(() => {
+        // restore documents
+        modules.forEach(module => {
+          if (module.componentType === "media" && module.mediaType === "document" && 
+              cachedDocuments[module.id] && cachedDocuments[module.id].length > 0) {
+            const editor = editorRefs.current[module.id];
+            
+            if (editor && typeof editor.setTempFiles === 'function') {
+              console.log(`Restoring ${cachedDocuments[module.id].length} documents to editor for ${module.id}`);
+              editor.setTempFiles(cachedDocuments[module.id]);
+            }
+          }
+          
+          // restore audio files
+          if (module.componentType === "media" && module.mediaType === "audio" && 
+              cachedAudios[module.id] && cachedAudios[module.id].length > 0) {
+            const editor = editorRefs.current[module.id];
+            
+            if (editor && typeof editor.setTempFiles === 'function') {
+              console.log(`Restoring ${cachedAudios[module.id].length} audio files to editor for ${module.id}`);
+              editor.setTempFiles(cachedAudios[module.id]);
+            }
+          }
+        });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isPreviewMode, modules, cachedDocuments, cachedAudios]);
 
   // Add a module to the list
   const addModule = (moduleType, componentType) => {

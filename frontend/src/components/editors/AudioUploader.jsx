@@ -19,7 +19,6 @@ const AudioEditorWrapper = React.forwardRef((props, ref) => {
     console.log("[DEBUG] AudioEditorWrapper props:", { moduleId, quizType, documentId });
     console.log("[DEBUG] AudioEditorWrapper actualModuleId:", actualModuleId);
 
-    // this matches the API expected by AddModule.jsx
     React.useImperativeHandle(ref, () => ({
       getQuestions: () => {
         // return empty array to satisfy the interface
@@ -38,6 +37,15 @@ const AudioEditorWrapper = React.forwardRef((props, ref) => {
         } else {
           console.warn("[DEBUG] getTempFiles function not found on audioUploaderRef.current");
           return [];
+        }
+      },
+
+
+      // CRITICAL : To maintain state between preview mode transitions 
+      // ensures that files added before entering preview mode dont disappear when exiting preview mode
+      setTempFiles: (files) => {
+        if (audioUploaderRef.current && typeof audioUploaderRef.current.setTempFiles === 'function') {
+          audioUploaderRef.current.setTempFiles(files);
         }
       }
     }));
@@ -147,6 +155,11 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
       }
       
       return tempFiles;
+    },
+
+    setTempFiles: (files) => {
+      console.log("[DEBUG] setTempFiles called with files:", files);
+      setTempFiles(files);
     }
   }));
 

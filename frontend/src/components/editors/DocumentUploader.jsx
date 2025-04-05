@@ -39,6 +39,12 @@ const DocumentEditorWrapper = React.forwardRef((props, ref) => {
           console.warn("[DEBUG] getTempFiles function not found on documentUploaderRef.current");
           return [];
         }
+      },
+
+      setTempFiles: (files) => {
+        if (documentUploaderRef.current && typeof documentUploaderRef.current.setTempFiles === 'function') {
+          documentUploaderRef.current.setTempFiles(files);
+        }
       }
     }));
     
@@ -147,6 +153,11 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       }
       
       return tempFiles;
+    },
+
+    setTempFiles: (files) => {
+      console.log("[DEBUG] setTempFiles called with files:", files);
+      setTempFiles(files);
     }
   }));
 
