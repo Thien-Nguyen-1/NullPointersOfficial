@@ -8,17 +8,27 @@ const PreviewModeContext = createContext(null);
 export const PreviewModeProvider = ({ children }) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  //const [cachedPreviewData, setCachedPreviewData] = useState(null);
+
+
 
   // to enter preview mode with data
   const enterPreviewMode = (data) => {
     setPreviewData(data);
+    //setCachedPreviewData(data);
     setIsPreviewMode(true);
   };
 
   // to exit preview mode
   const exitPreviewMode = () => {
     setIsPreviewMode(false);
+    //setPreviewData(null);
+  };
+
+  // to clear preview data (only when needed)
+  const clearPreviewData = () => {
     setPreviewData(null);
+    setCachedPreviewData(null);
   };
 
   return (
@@ -26,8 +36,10 @@ export const PreviewModeProvider = ({ children }) => {
       value={{ 
         isPreviewMode,
         previewData,
+        //cachedPreviewData,
         enterPreviewMode,
-        exitPreviewMode
+        exitPreviewMode,
+        clearPreviewData
       }}
     >
       {children}

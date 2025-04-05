@@ -151,6 +151,7 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
             quizData={item} 
             completedContentIds={completedContentIds} 
             onComplete={handleContentComplete} 
+            isPreviewMode={isPreviewMode}
           />
         </PreviewWrapper>
       );

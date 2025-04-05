@@ -80,6 +80,8 @@ const AddModule = () => {
   const { tags, setTags, availableTags, setAvailableTags, fetchTags, addTag, removeTag } = useTags();
   const { pendingDeletions, setPendingDeletions } = useMediaDeletions();
 
+  const [cachedQuestions, setCachedQuestions] = useState({});
+
   // Module and component type definitions // 
   const moduleOptions = {
     "Flashcard Quiz": { component: "VisualFlashcardEditor", type: "flashcard" },
@@ -89,12 +91,6 @@ const AddModule = () => {
     'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'},
     'Ranking Question': {component: RankingQuestionEditor, type:''}
   };
-
-  // const headings = [
-  //   {name:"Heading 1", size: "heading1"},
-  //   {name:"Heading 2", size: "heading2"},
-  //   {name:"Heading 3", size: "heading3"}
-  // ];
 
   const media = {
     'Upload Document': {component: "DocumentEditorWrapper", type:'document'},
@@ -116,8 +112,6 @@ const AddModule = () => {
           setDescription(moduleData.description || "");
           setTags(moduleData.tags || []);
         }
-
-        
       }).catch(error => {
         console.error("Error loading module data:", error);
         setError("Failed to load module data. Please try again.");
@@ -134,29 +128,28 @@ const AddModule = () => {
       return;
     }
 
-    // Generate preview content structure (similar to ModuleViewAlternative)
-    const documentItems = [];
-    const audioItems = [];
-    // add future media
-    const quizItems = [];
-
+    // Arrays to hold all content items
+    const allContentItems = [];
     
-    // Process modules to build the content structure
-    modules.forEach(module => {
+    // For debugging
+    console.log("Starting preview generation with modules:", modules);
+    console.log("Editor refs available:", Object.keys(editorRefs.current));
+    
+    // Process modules to build the content structure in the order they were added
+    modules.forEach((module, index) => {
+      // Process media components
       if (module.componentType === "media") {
-        // Handle media modules
         if (module.mediaType === "document") {
           const editor = editorRefs.current[module.id];
-
           const tempFiles = editor?.getTempFiles?.() || [];
           
           tempFiles.forEach(fileData => {
-            // Handle both new files and existing files
+            // Handle document files
             const fileUrl = fileData.originalDocument 
-            ? fileData.originalDocument.file_url 
-            : URL.createObjectURL(fileData.file);
+              ? fileData.originalDocument.file_url 
+              : URL.createObjectURL(fileData.file);
 
-            documentItems.push({
+            allContentItems.push({
               id: fileData.id || module.id,
               type: 'infosheet',
               title: fileData.file.name || "Document",
@@ -164,18 +157,16 @@ const AddModule = () => {
               documents: [{
                 contentID: fileData.id || module.id,
                 filename: fileData.file.name,
-                // file_url: URL.createObjectURL(fileData.file),
                 file_url: fileUrl,
                 file_size: fileData.file.size
               }],
-              moduleId: editId || "preview"
+              moduleId: editId || "preview",
+              order: index // Use the index to preserve order
             });
           });
         } 
         else if (module.mediaType === "audio") {
           const editor = editorRefs.current[module.id];
-
-          
           const tempFiles = editor?.getTempFiles?.() || [];
           
           tempFiles.forEach(fileData => {
@@ -184,7 +175,7 @@ const AddModule = () => {
               ? fileData.originalAudio.file_url 
               : URL.createObjectURL(fileData.file);
 
-            audioItems.push({
+            allContentItems.push({
               id: fileData.id || module.id,
               type: 'audio',
               title: fileData.file.name || "Audio",
@@ -195,16 +186,73 @@ const AddModule = () => {
                 file_url: fileUrl,
                 file_size: fileData.file.size
               }],
-              moduleId: editId || "preview"
+              moduleId: editId || "preview",
+              order: index
             });
           });
         }
-      } 
+      }
+      // Process quiz templates
       else if (module.componentType === "template") {
-        // Handle quiz templates
-        const questions = getQuestionsFromEditor(module.id);
+        console.log(`Preparing quiz module for preview: ${module.id}`, module);
         
-        quizItems.push({
+        // Get questions directly from the editor
+        let questions = [];
+        const editor = editorRefs.current[module.id];
+        
+        if (editor && typeof editor.getQuestions === 'function') {
+          console.log(`Getting questions from editor for ${module.id}`);
+          try {
+            questions = editor.getQuestions() || [];
+            // Cache the questions for this module
+            setCachedQuestions(prev => ({
+              ...prev,
+              [module.id]: questions
+            }));
+            console.log(`Retrieved ${questions.length} questions from editor for ${module.id}:`, questions);
+          } catch (error) {
+            console.error(`Error getting questions from editor for ${module.id}:`, error);
+            questions = [];
+          }
+        } else {
+          // Try from cached questions first
+          if (cachedQuestions[module.id] && cachedQuestions[module.id].length > 0) {
+            questions = cachedQuestions[module.id];
+            console.log(`Using ${questions.length} cached questions for ${module.id}`);
+          }
+          // Then try initialQuestionsRef as fallback
+          else if (initialQuestionsRef.current && initialQuestionsRef.current[module.id]) {
+            questions = initialQuestionsRef.current[module.id] || [];
+            console.log(`Using ${questions.length} questions from initialQuestionsRef for ${module.id}`);
+          } else {
+            console.warn(`No questions found for module ${module.id}, using empty array`);
+            questions = [];
+          }
+        }
+        
+        // Add a fallback test question if no questions found (for debugging)
+        if (questions.length === 0) {
+          console.log(`Adding a test question for ${module.id} since no questions were found`);
+          questions = [{
+            id: `test-${Date.now()}`,
+            question_text: "This is a test question (no actual questions found)",
+            hint_text: "This is a test hint",
+            order: 0
+          }];
+        }
+        
+        // Format questions if needed
+        const formattedQuestions = questions.map(q => ({
+          id: q.id || `temp-${Date.now()}-${Math.random()}`,
+          question_text: q.question_text || q.text || "",
+          hint_text: q.hint_text || q.hint || "",
+          order: q.order || 0,
+          answers: q.answers || []
+        }));
+        
+        console.log(`Formatted ${formattedQuestions.length} questions for ${module.id}`);
+        
+        allContentItems.push({
           id: module.id,
           type: 'quiz',
           quiz_type: module.quizType,
@@ -213,49 +261,36 @@ const AddModule = () => {
             contentID: module.id,
             title: module.type,
             quiz_type: module.quizType,
-            questions: questions
-          }
+            questions: formattedQuestions,
+            isPreview: true
+          },
+          order: index
         });
       }
     });
-    console.log("Document items being added:", documentItems);
-    console.log("Audio items being added:", audioItems);
     
-    // Structured content for preview
+    // Sort all content items by their order
+    allContentItems.sort((a, b) => a.order - b.order);
+    
+    // Add description as a paragraph at the beginning
+    if (description) {
+      allContentItems.unshift({
+        id: 'module-description',
+        type: 'paragraph',
+        text: description,
+        order: -1
+      });
+    }
+    
+    // Create a single content section with all items
     const structuredContent = [
       {
-        id: 'section-introduction',
+        id: 'section-content',
         type: 'section',
-        title: 'Introduction',
-        content: [
-          {
-            id: 'paragraph-intro',
-            type: 'paragraph',
-            text: description || title
-          }
-        ]
+        title: 'Course Content',
+        content: allContentItems
       }
     ];
-
-    // Add Resources section if there are any resources
-    if (documentItems.length > 0 || audioItems.length > 0) {
-      structuredContent.push({
-        id: 'section-resources',
-        type: 'section',
-        title: 'Resources',
-        content: [...documentItems, ...audioItems]
-      });
-    }
-
-    // Add Assessment section if there are quizzes
-    if (quizItems.length > 0) {
-      structuredContent.push({
-        id: 'section-assessment',
-        type: 'section',
-        title: 'Assessment',
-        content: quizItems
-      });
-    }
     
     // Create preview data
     const previewData = {
@@ -271,9 +306,37 @@ const AddModule = () => {
       availableTags: availableTags
     };
     
+    console.log("Entering preview mode with data:", previewData);
+    
     // Enter preview mode with generated data
     enterPreviewMode(previewData);
   };
+
+  // Effect to restore questions to editor components when exiting preview mode
+  useEffect(() => {
+    if (!isPreviewMode && Object.keys(cachedQuestions).length > 0) {
+      console.log("Exited preview mode, restoring cached questions to editors");
+      
+      // Short delay to ensure components are mounted
+      const timer = setTimeout(() => {
+        modules.forEach(module => {
+          if (module.componentType === "template" && cachedQuestions[module.id]) {
+            const editor = editorRefs.current[module.id];
+            
+            if (editor && typeof editor.setQuestions === 'function') {
+              console.log(`Restoring ${cachedQuestions[module.id].length} questions to editor for ${module.id}`);
+              editor.setQuestions(cachedQuestions[module.id]);
+            } else {
+              console.log(`Editor for ${module.id} doesn't have setQuestions method, storing in initialQuestionsRef`);
+              initialQuestionsRef.current[module.id] = cachedQuestions[module.id];
+            }
+          }
+        });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isPreviewMode, modules, cachedQuestions]);
 
   // Add a module to the list
   const addModule = (moduleType, componentType) => {
@@ -308,6 +371,25 @@ const AddModule = () => {
     setShowDropdown(false);
   };
 
+  // Clean up refs when component unmounts or modules change
+  useEffect(() => {
+    return () => {
+      // Clean up any references when a module is removed
+      const currentIds = modules.map(m => m.id);
+      Object.keys(editorRefs.current).forEach(id => {
+        if (!currentIds.includes(id)) {
+          delete editorRefs.current[id];
+        }
+      });
+      
+      Object.keys(initialQuestionsRef.current).forEach(id => {
+        if (!currentIds.includes(id)) {
+          delete initialQuestionsRef.current[id];
+        }
+      });
+    };
+  }, [modules]);
+
   // Remove a module
   const removeModule = (id) => {
     const moduleToRemove = modules.find(module => module.id === id);
@@ -336,7 +418,6 @@ const AddModule = () => {
         ...prev,
         audio: [...prev.audio, id]
       }));
-      // future media ...
     }
   };
 
@@ -365,7 +446,6 @@ const AddModule = () => {
   };
 
   // Input validation
-  // this checks if all required fields are filled before saving!
   const validateModuleInputs = () => {
     if (!title.trim()) {
       setError("Module title is required");
@@ -380,7 +460,7 @@ const AddModule = () => {
     return true;
   };
 
-  // Gets the current user's ID for authorship of the module
+  // Gets current user's ID for authorship of the module
   const getAuthorId = () => {
     if (!currentUser) {
       setError("Unable to determine user identity");
@@ -461,8 +541,6 @@ const AddModule = () => {
           console.error(`[ERROR] Failed to delete audio files for component ${audioId}:`, err);
         }
       }
-
-      // add future media... 
     }
     
     // Clear pending deletions
@@ -511,8 +589,6 @@ const AddModule = () => {
         const taskId = await handleTemplateModule(module, moduleId, authorId, existingTasks);
         if (taskId) updatedTaskIds.push(taskId);
       }
-      
-      // Headings don't require backend processing
     }
     
     return updatedTaskIds;
@@ -529,10 +605,6 @@ const AddModule = () => {
     try {
       const formData = new FormData();
       formData.append('module_id', moduleId);
-      
-      // tempFiles.forEach(fileData => {
-      //   formData.append('files', fileData.file);
-      // });
 
       // if module has an ID and its not a temporary ID
       if (module.id && !module.id.toString().startsWith('new-')) {
@@ -541,7 +613,7 @@ const AddModule = () => {
 
       let hasNewFiles = false;
       tempFiles.forEach(fileData => {
-        // only append actual file objext, not references to existing files
+        // only append actual file object, not references to existing files
         if (fileData.file instanceof File && !fileData.originalDocument && !fileData.originalAudio) {
           formData.append('files', fileData.file);
           hasNewFiles = true;
@@ -705,97 +777,107 @@ const AddModule = () => {
     } catch (error) {
       console.error(`Error cleaning up orphaned ${mediaType} files:`, error);
     }
-
-    // add future media
   };
 
   // Render function
   return (
     <div className={styles["module-editor-container"]}>
-      {/* in preview mode, show ModuleViewAlternative iwith preview data */}
-      {isPreviewMode ? (<ModuleViewAlternative/> 
-        // normal mode
-        ): (
-          // Normal edit mode
-          <>
-            <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
-            
-            {isLoading && <div className="loading-overlay">Loading...</div>}
-            
-            <div className={styles["module-creator-container"]}>
-              {/* Module Title */}
-              <div className={styles["module-title-container"]}>
-                <input
-                  type="text"
-                  placeholder="Title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className={styles["module-title-input"]}
-                />
-              </div>
-              
-              {/* Module Description */}
+      
+      {/* Toggle button at the top */}
+      <div className={styles["preview-toggle"]}>
+        <button 
+          onClick={isPreviewMode ? exitPreviewMode : handlePreview}
+          className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
+        >
+          {isPreviewMode ? "Back to Editor" : "Preview"}
+        </button>
+      </div>
+
+      {/* Display either editor or preview */}
+      {isPreviewMode ? (
+        <ModuleViewAlternative/> 
+      ) : (
+        // Normal edit mode
+        <>
+          <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
+          
+          {isLoading && <div className="loading-overlay">Loading...</div>}
+          
+          <div className={styles["module-creator-container"]}>
+            {/* Module Title */}
+            <div className={styles["module-title-container"]}>
               <input
-                placeholder="Module Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className={styles["description-input"]}
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={styles["module-title-input"]}
               />
-  
-              {/* Tags */}
-              <TagsManager 
-                tags={tags} 
-                availableTags={availableTags} 
-                addTag={addTag} 
-                removeTag={removeTag}
-                styles={styles}
-              />
-  
-              {/* Error Display */}
-              {error && (
-                <div className={styles["error-message"]}>
-                  <p>{error}</p>
-                  <button onClick={() => setError(null)}>×</button>
-                </div>
-              )}
-  
-              {/* Modules List */}
-              <div className={styles["modules-list"]}>
-                {modules.map((module) => (
-                  <ModuleEditorComponent
-                    key={module.id}
-                    module={module}
-                    editorRefs={editorRefs}
-                    initialQuestionsRef={initialQuestionsRef}
-                    removeModule={removeModule}
-                    moduleOptions={moduleOptions}
-                    media={media}
-                    styles={styles}
-                    title={title}
-                  />
-                ))}
+            </div>
+            
+            {/* Module Description */}
+            <input
+              placeholder="Module Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className={styles["description-input"]}
+            />
+
+            {/* Tags */}
+            <TagsManager 
+              tags={tags} 
+              availableTags={availableTags} 
+              addTag={addTag} 
+              removeTag={removeTag}
+              styles={styles}
+            />
+
+            {/* Error Display */}
+            {error && (
+              <div className={styles["error-message"]}>
+                <p>{error}</p>
+                <button onClick={() => setError(null)}>×</button>
               </div>
-  
-              {/* Add Module Templates Button */}
-              <ModuleDropdown
-                showDropdown={showDropdown}
-                setShowDropdown={setShowDropdown}
-                dropdownRef={dropdownRef}
-                moduleOptions={moduleOptions}
-                media={media}
-                addModule={addModule}
-                styles={styles}
-              />
-              
+            )}
+
+            {/* Modules List */}
+            <div className={styles["modules-list"]}>
+              {modules.map((module) => (
+                <ModuleEditorComponent
+                  key={module.id}
+                  module={module}
+                  editorRefs={editorRefs}
+                  initialQuestionsRef={initialQuestionsRef}
+                  removeModule={removeModule}
+                  moduleOptions={moduleOptions}
+                  media={media}
+                  styles={styles}
+                  title={title}
+                />
+              ))}
+            </div>
+
+            {/* Add Module Templates Button */}
+            <ModuleDropdown
+              showDropdown={showDropdown}
+              setShowDropdown={setShowDropdown}
+              dropdownRef={dropdownRef}
+              moduleOptions={moduleOptions}
+              media={media}
+              addModule={addModule}
+              styles={styles}
+            />
+            
+            {/* Action Buttons */}
+            
               {/* Action Buttons */}
               <div className={styles["button-container"]}>
                 <div className={styles["preview-container"]}>
                   <button 
-                    className={styles["preview-btn"]} 
-                    onClick={handlePreview} 
-                    disabled={isLoading}
+                    onClick={isPreviewMode ? exitPreviewMode : handlePreview}
+                    className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
                   >
-                    Preview
+                    {isPreviewMode ? "Back to Editor" : "Preview"}
                   </button>
                 </div>
                 <button 
@@ -808,11 +890,11 @@ const AddModule = () => {
                     (isEditing ? "Update" : "Publish")
                   }
                 </button>
-                {!isEditing && <button className={styles["edit-btn"]}>Edit</button>}
+                {isEditing && <button className={styles["edit-btn"]}>Edit</button>}
               </div>
-            </div>
-          </>
-        )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
