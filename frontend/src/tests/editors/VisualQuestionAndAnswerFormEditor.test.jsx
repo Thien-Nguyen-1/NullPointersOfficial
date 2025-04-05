@@ -81,6 +81,33 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
     });
 
 
+    test('handles errors when removing a question fails', async () => {
+        // Setup: Initial questions and mock failure
+        const errorMessage = 'Network Error';
+        QuizApiUtils.deleteQuestion = vi.fn(() => Promise.reject(new Error(errorMessage)));
+    
+        // Mock console to check if errors are logged
+        global.console.log = vi.fn();
+        global.console.error = vi.fn();
+    
+        const { getAllByText } = renderComponent();
+    
+        // Trigger the delete action
+        fireEvent.click(getAllByText('Delete')[0]);
+    
+        // Expectations: Error handling
+        await waitFor(() => {
+          expect(console.log).toHaveBeenCalledWith('Failed to delete question from backend: with ID:', 1);
+          expect(console.error).toHaveBeenCalledWith('Failed to delete question from backend:', expect.any(Error));
+        });
+    
+        // Ensure the deleteQuestion was called correctly
+        expect(QuizApiUtils.deleteQuestion).toHaveBeenCalledWith(1);
+    });
+    
+      
+      
+
 });
 
 describe.skip('VisualQuestionAndAnswerFormEditor', () => {
