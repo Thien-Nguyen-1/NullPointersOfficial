@@ -3,7 +3,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 import '../../styles/MatchingQuestionsUserDisplay.css';
 
-const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
+const MatchingQuestionsQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions = null }) => {
     const [pairs, setPairs] = useState([]);
     const [userAnswers, setUserAnswers] = useState({});
     const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +16,23 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
         const fetchPairs = async () => {
             setIsLoading(true);
             try {
+                // Preview mode handling
+                if (isPreview && previewQuestions) {
+                console.log("Using preview questions in MatchingQuestionsQuiz:", previewQuestions);
+                
+                const pairsWithDefaultAnswers = previewQuestions.map(pair => ({
+                    id: pair.id,
+                    text: pair.text || pair.question_text || "",
+                    answers: Array.isArray(pair.answers) ? pair.answers : (pair.possible_answers || []),
+                    order: pair.order || 0
+                }));
+                
+                setPairs(pairsWithDefaultAnswers.sort((a, b) => a.order - b.order));
+                setIsLoading(false);
+                return;
+                }
+
+                // Regular fetching
                 const fetchedPairs = await QuizApiUtils.getQuestions(taskId);
                 if (fetchedPairs && fetchedPairs.length > 0) {
                     const pairsWithDefaultAnswers = fetchedPairs.map(pair => ({
@@ -34,7 +51,7 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
         };
 
         fetchPairs();
-    }, [taskId]);
+    }, [taskId, isPreview, previewQuestions]);
 
     const handleDrop = (questionId, answer) => {
         setUserAnswers(prev => ({
@@ -61,6 +78,14 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
     };
 
     const handleSubmitAnswers = () => {
+        // Preview mode handling
+        if (isPreview) {
+            if (onComplete) {
+            onComplete({ preview: true });
+            }
+            return;
+        }
+
         if (validateQuiz()) {
             onComplete(userAnswers);
             setQuizCompleted(true);
