@@ -124,9 +124,11 @@ export const QuizApiUtils = {
   // Quiz question related functions
   getQuestions: async (taskId) => {
     try {
+      console.log(`Fetching questions for task ID: ${taskId}`);
       const response = await api.get('/api/quiz/questions/', { 
         params: { task_id: taskId } 
       });
+      console.log(`Questions response for ${taskId}:`, response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -143,16 +145,6 @@ export const QuizApiUtils = {
       throw error;
     }
   },
-
-  // createQuestion: async (questionData) => {
-  //   try {
-  //     const response = await api.post('/api/quiz/questions/', questionData);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error creating question:', error);
-  //     throw error;
-  //   }
-  // },
 
   createQuestion: async (questionData) => {
     try {
@@ -182,12 +174,16 @@ export const QuizApiUtils = {
       
       // Make the API call
       const response = await api.post('/api/quiz/questions/', apiData);
+      console.log("[DEBUG] Question creation response:", response.data);
       return response.data;
 
     } catch (error) {
       // Enhanced error logging
       console.error("Error creating question:", error);
-      console.error("Error response data:", error.response?.data);
+      if (error.response) {
+        console.error("Error response status:", error.response.status);
+        console.error("Error response data:", error.response.data);
+      }
       
       // Rethrow the error for the caller to handle
       throw error;

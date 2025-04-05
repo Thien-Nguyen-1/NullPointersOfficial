@@ -143,6 +143,19 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
   const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
 
+  useEffect(() => {
+    if (onUpdateQuestions) {
+      const formattedQuestions = questions.map((question, index) => ({
+        id: Date.now() + index, // Temporary ID for UI
+        question_text: question || '',
+        hint_text: "", // Fill-in-the-blanks doesn't use hints
+        order: index
+      }));
+      
+      onUpdateQuestions(formattedQuestions);
+    }
+  }, [questions, onUpdateQuestions]);
+
   
   // Expose getQuestions method to parent component
   useImperativeHandle(ref, () => ({
