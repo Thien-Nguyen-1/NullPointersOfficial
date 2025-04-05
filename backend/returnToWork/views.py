@@ -1027,7 +1027,11 @@ class QuizQuestionView(APIView):
                     {'error': 'task_id parameter is required'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
+            # handle temporary IDs starting with "new-"
+            if task_id.startswith('new-'):
+                # return empty array for temporary IDs
+                return Response([])
+            
             task = get_object_or_404(Task, contentID=task_id)
             questions = QuizQuestion.objects.filter(task=task).order_by('order')
 

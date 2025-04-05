@@ -138,7 +138,7 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
           </div>
           <div>
             <button onClick={() => handleEdit(data.id)} className="button">Edit</button>
-            <button onClick={() => handleRemoveEntry(data.id)} className="button delete-button">Delete</button>
+            <button onClick={() => handleRemoveEntry(data.id)} className="button">Delete</button>
           </div>
         </div>
       ))}
