@@ -16,18 +16,6 @@ const VisualFlowChartQuiz = forwardRef((props, ref) => {
   const initializedRef = useRef(false); // Use a ref to track if we've already initialized
   const lastInitialQuestionsLength = useRef(0); // Track the last initialQuestions length
   
-  // Debug logging for props
-  console.log("[DEBUG] Component rendering with props:", { 
-    moduleId, 
-    quizType, 
-    initialQuestionsLength: initialQuestions?.length,
-    onUpdateQuestionsExists: !!onUpdateQuestions
-  });
-
-  // Log the raw initialQuestions to inspect field names
-  if (initialQuestions && initialQuestions.length > 0) {
-    console.log("[DEBUG] Raw initialQuestions:", JSON.stringify(initialQuestions));
-  }
 
   // Expose getQuestions method for parent component to access
   useImperativeHandle(ref, () => ({

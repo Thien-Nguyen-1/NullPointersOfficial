@@ -11,6 +11,25 @@ const RankingQuizEditor = forwardRef((props, ref) => {
   const [error, setError] = useState("");
   const [showNewQuestionForm, setShowNewQuestionForm] = useState(true);
 
+  useEffect(() => {
+    if (onUpdateQuestions) {
+      console.log("[DEBUG] Ranking questions changed:", questions);
+      console.log("[DEBUG] onUpdateQuestions exists:", !!onUpdateQuestions);
+
+      const formattedQuestions = questions.map((question, index) => ({
+        id: question.id || Date.now() + index, // Use existing ID or generate temp one
+        question_text: question.question_text || 'Rank the following items:',
+        hint_text: "", // Not used for ranking quiz
+        order: index,
+        answers: question.tiers || [], // Store tier data in answers field
+        tiers: question.tiers || [] // to maintain original tiers for ui, might be deleted
+      }));
+      
+      console.log("[DEBUG] Formatted questions for backend:", formattedQuestions);
+      onUpdateQuestions(formattedQuestions);
+    }
+  }, [questions, onUpdateQuestions]);
+
   // Expose getQuestions method to parent component
   useImperativeHandle(ref, () => ({
     getQuestions: () => {
@@ -30,7 +49,8 @@ const RankingQuizEditor = forwardRef((props, ref) => {
         question_text: question.question_text || 'Rank the following items:',
         hint_text: "", // Not used for ranking quiz
         order: index,
-        answers: question.tiers || [] // Store tier data in answers field
+        answers: question.tiers || [], // Store tier data in answers field
+        tiers: question.tiers || []
       }));
     },
 
