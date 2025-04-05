@@ -6,6 +6,8 @@ import FlowchartQuiz from "../quizzes/FlowchartQuiz";
 import QuestionAndAnswerForm from "../quizzes/QuestionAndAnswerForm";
 import MatchingQuestionsQuiz from "../quizzes/MatchingQuestionsQuiz";
 import RankingQuiz from "../quizzes/RankingQuiz";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 /**
  * Component for rendering quiz content in the module
  *
@@ -135,12 +137,15 @@ const QuizContent = ({ quizData, completedContentIds, onComplete, isPreviewMode 
       break;
     case 'pair_input':
       quizComponent = (
-        <MatchingQuestionsQuiz
-          taskId={quizData.taskData.contentID}
-          onComplete={(results) => onComplete(quizData.id, results)}
-          isPreview={isPreviewMode}
-          previewQuestions={isPreviewMode ? questions : null}
-        />
+        <DndProvider backend={HTML5Backend}>
+          <MatchingQuestionsQuiz
+            taskId={quizData.taskData.contentID}
+            onComplete={(results) => {console.log("QUIZ CONTENT: Matching Quiz onComplete", results); onComplete(quizData.id, results)}}
+            isPreview={isPreviewMode}
+            previewQuestions={isPreviewMode ? questions : null}
+            completedContentIds={completedContentIds}
+          />
+        </DndProvider>
       );
       break;
     default:

@@ -83,6 +83,10 @@ const RankingQuiz = ({ taskId, onComplete }) => {
 
   // Submit the quiz
   const submitQuiz = () => {
+    console.log("Submitting ranking quiz");
+    console.log("Current user answers:", userAnswers);
+    console.log("Questions:", questions);
+    
     // No validation needed for ranking quiz since the order is always valid
     setQuizSubmitted(true);
     setShowReview(true);
