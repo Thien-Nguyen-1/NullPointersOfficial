@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import VisualMatchingQuestionsQuizEditor from '../components/editors/VisualMatchingQuestionsQuizEditor';
+import VisualMatchingQuestionsQuizEditor from '../../components/editors/VisualMatchingQuestionsQuizEditor';
 
 describe('VisualMatchingQuestionsQuizEditor', () => {
     console.log = vi.fn();
