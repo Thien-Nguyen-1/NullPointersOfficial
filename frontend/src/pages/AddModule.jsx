@@ -58,7 +58,7 @@ import { useMediaDeletions } from "../hooks/useMediaDeletions";
 import styles from "../styles/AddModule.module.css";
 import "../styles/AlternativeModuleView.css"; 
 import ModuleViewAlternative from "../components/ModuleViewAlternative";
-import RankingQuestionEditor from "../components/editors/RankingQuestionEditor";
+import RankingQuizEditor from "../components/editors/RankingQuizEditor";
 
 const AddModule = () => {
   const navigate = useNavigate();
