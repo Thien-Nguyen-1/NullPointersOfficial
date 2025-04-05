@@ -201,7 +201,6 @@ function Messaging() {
       if(chatID){
         try{
             
-
             await SendMessage(token, chatID, objMessage)
 
             await getUserMessages(chatID)
@@ -211,9 +210,7 @@ function Messaging() {
 
         }
 
-      } else {
-        console.log("NO CHAT ID SET")
-      }
+      } 
         
    }
 
