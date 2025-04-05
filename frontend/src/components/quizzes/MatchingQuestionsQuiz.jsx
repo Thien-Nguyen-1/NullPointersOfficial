@@ -162,10 +162,20 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete, isPreview = false, previewQ
         if (validateQuiz()) {
             setQuizCompleted(true); // Set completion FIRST
 
+            // update the ref with the LATEST answers
             completionStateRef.current = {
                 isCompleted: true,
-                submittedAnswers: {...userAnswers}
+                submittedAnswers: {...userAnswers} // make sure this is a new object
             };
+
+            try {
+                localStorage.setItem(`matching-quiz-state-${taskId}`, JSON.stringify({
+                    submittedAnswers: userAnswers,
+                    isCompleted: true
+                }));
+            } catch (e) {
+                console.error("Failed to save quiz state", e);
+            }
 
             if (onComplete) {
                 onComplete(userAnswers);
@@ -183,19 +193,13 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete, isPreview = false, previewQ
         setReviewMode(false);
         completionStateRef.current = {
             isCompleted: false,
-            submittedAnswers: null
+            submittedAnswers: completionStateRef.current.submittedAnswers || {}
         };
-
-        localStorage.removeItem(`matching-quiz-state-${taskId}`);
     };
 
     if (isLoading) {
         return <div>Loading...</div>;
     }
-
-    // if (error) {
-    //     return <div>Error: {error}</div>;
-    // }
     if (error) {
         return <div className="matching-quiz-error">Error: {error}</div>;
     }
