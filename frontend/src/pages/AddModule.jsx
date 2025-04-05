@@ -800,7 +800,7 @@ const AddModule = () => {
       for (let i = 0; i < currentQuestions.length; i++) {
         const question = currentQuestions[i];
         const questionData = {
-          task: rankingTaskId,
+          task_id: rankingTaskId,
           question_text: question.question_text || question.text || "",
           hint_text: question.hint_text || question.hint || "",
           order: i,
