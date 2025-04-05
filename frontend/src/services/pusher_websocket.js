@@ -3,6 +3,7 @@
 import Pusher from 'pusher-js'
 import { GetConversations } from './api_chat';
 
+import { useContext } from 'react';
 
 const connections = {}
 const background_connections = {}
@@ -10,6 +11,7 @@ const callbacks = []
 
 const myWorker = new SharedWorker('/shared-worker.js');
 myWorker.port.start();
+
 
 
 const pusherInstance = {
@@ -20,7 +22,6 @@ const pusherInstance = {
 myWorker.port.onmessage = (e) => {
     const isWebsocketConnected = e.data.isWebsocketConnected;
     const messageObj = e.data.message;
-    
 
     console.log("WE ARE CHECKING WE ARE CHECKING - leclerc's engineer", e.data.message)
 
@@ -28,10 +29,11 @@ myWorker.port.onmessage = (e) => {
 
         callbacks.forEach( (callback) => callback(messageObj));
         return;
+
     }
 
     if (isWebsocketConnected === false){
-         console.log("Setting up background connections")
+
         InitializePusher()
 
         myWorker.port.postMessage({cmd: "UPDATE-WEBSOCKET", data: {"isActive": true}});
@@ -39,11 +41,7 @@ myWorker.port.onmessage = (e) => {
         SetUpBackgroundConnections();
 
         return;
-
-
     } 
-
-
 }
 
 
@@ -64,21 +62,22 @@ const SetUpBackgroundConnections = async () => {
 
     console.log("Initializing all connections", allConvos)
 
-    allConvos.forEach(convObj => {
-        
+
+    allConvos?.forEach(convObj => {
+
+     
+        if(pusherInstance.pusher){
         const channel = pusherInstance.pusher.subscribe(`chat-room-${convObj.id}`)
 
         channel.bind('new-message', (data) => {
              
                 myWorker.port.postMessage({cmd:"SEND-MESSAGES-TABS", data: data})
 
-                
             }
         )
+        }
             
-
     });
-
 
 }
 

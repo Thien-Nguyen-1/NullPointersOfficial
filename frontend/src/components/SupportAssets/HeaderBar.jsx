@@ -54,7 +54,7 @@ function ChatHeaderBar(props){
                 )}
                
                 <button 
-                    className="ml-1" 
+                    className="ml-1 delete-chat-button" 
                     style={{'backgroundColor':'red'}}
                     onClick={()=> {delete_chat()}}> Delete </button>
 

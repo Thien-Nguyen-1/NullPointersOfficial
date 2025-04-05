@@ -59,25 +59,25 @@ function Messaging() {
 
 
  
-  async function saveFCMToken(token_in){
+  // async function saveFCMToken(token_in){
 
-    if(user && token_in){
+  //   if(user && token_in){
       
-      const updatedUser = {...user, "firebase_token": token_in}
+  //     const updatedUser = {...user, "firebase_token": token_in}
 
-      try{
-        await updateUser(updatedUser)
+  //     try{
+  //       await updateUser(updatedUser)
 
-        console.log("SAVED USER")
+  //       console.log("SAVED USER")
 
 
-      } catch(error){
+  //     } catch(error){
        
-       }  
-    } else {
-      console.log("THAT SUCKS")
-    }
-  }
+  //      }  
+  //   } else {
+  //     console.log("THAT SUCKS")
+  //   }
+  // }
 
 
   /* ========== LOGIC FUNCTIONALITIES ========== */
@@ -253,7 +253,7 @@ function Messaging() {
               <p> Create A New Chat</p>
 
               
-              {user?.user_type =="service user" && (<FaCirclePlus 
+              {user?.user_type =="service user" && (<FaCirclePlus className="fa-circle-plus" data-testid="plus-icon"
                 onClick={()=>{handleUserCreateChat()}}
               />)}
               
