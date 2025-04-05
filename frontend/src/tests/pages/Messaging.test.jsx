@@ -1,14 +1,14 @@
 
-import { fireEvent, render, screen, waitFor, cleanup, act, userEvent } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, cleanup, act } from "@testing-library/react";
 import Messaging from "../../pages/Messaging";
 import { afterEach, beforeEach, expect } from "vitest";
 import { vi } from "vitest";
 import { AuthContext } from "../../services/AuthContext";
-
-
+import FileUploader from "../../components/SupportAssets/FileUploader";
+import userEvent from "@testing-library/user-event";
+import { createEvent } from "@testing-library/react";
 
 vi.mock("../../services/api_chat" ,() => ({
-    
     CreateConversation: vi.fn(),
     GetConversations: vi.fn(),
     DeleteConversation: vi.fn(),
@@ -27,7 +27,9 @@ const MockAPIs =  () => {
 
   GetConversations.mockResolvedValue( [{ id: 1, title: "Test Conversation" , updated_at: "2024-04-04T12:00:00.000Z", hasEngaged: true,  user_username: "@user"}]);
   SendMessage.mockResolvedValue({success:true});
-  GetMessages.mockResolvedValue([{chatID: 1, message: "Hello World!" , sender:1, sender_username: "@user"}]);
+  GetMessages.mockResolvedValue([{id: 1, chatID: 1, message: "Hello World!" , sender: 1, sender_username: "@user"},
+   {id:2 , chatID: 2, message: "Hello World!" , sender: 1000, sender_username: "@admin"},
+   {id:3 ,chatID: 2, file: 'document.pdf' ,message: "Hello World!" , sender: 1000, sender_username: "@admin"}]);
   CreateConversation.mockResolvedValue({id:1});
   
   
@@ -37,6 +39,7 @@ const MockAPIs =  () => {
 
 const FindFACircleButton = () => document.querySelector(".fa-circle-plus");
 const FindChatForm = () => document.querySelector('.user-chat-form');
+const FindDropZone = () => document.querySelector('.input-zone');
 const FindChatBox = async () => {
   return await waitFor(() => {
     const box = document.querySelector(".chat-side-box");
@@ -55,13 +58,12 @@ const SendClientMessage = async (inputField, userForm, messageStr) => {
 }
 
 
+const ClearAll = () => {cleanup(); vi.clearAllMocks; };
 
 
 beforeEach(async () => {
 
-     vi.clearAllMocks();
-
-    
+    ClearAll();
     MockAPIs();
 
     await act(async () => {
@@ -86,8 +88,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-    cleanup();
-    vi.clearAllMocks();
+    ClearAll();
 })
 
 
@@ -98,16 +99,12 @@ test(" Send Valid Messages ", async () => {
     const plusIcon = FindFACircleButton();
     expect(plusIcon).toBeInTheDocument();
 
-    await act(async () => {
-        fireEvent.click(plusIcon);
-      });
+    await act(async () => { fireEvent.click(plusIcon) });
     
     const chatbox = await FindChatBox();
     expect(chatbox).toBeInTheDocument();
 
-    await act(async () => {
-        fireEvent.click(chatbox);
-    });
+    await act(async () => { fireEvent.click(chatbox) });
 
 
     const formBar = FindChatForm();
@@ -128,7 +125,6 @@ test(" Send Valid Messages ", async () => {
     expect(bubble).toBeInTheDocument();
    
 })
-
 
 
 
@@ -187,8 +183,7 @@ test("Load conversations", async () => {
 
 test("Load invalid conversations", async () => {
 
-  cleanup();
-  vi.clearAllMocks();
+  ClearAll();
 
   GetConversations.mockRejectedValue(new Error(" Conversation cannot be found! "));
 
@@ -311,7 +306,28 @@ test(" Get Invalid Mesages ", async () => {
 })
 
 
+test(" Bubble Rendering ", async() => {
+  ClearAll();
 
+})
+
+
+test (" File Message Rendered ", async() => {
+  GetMessages.mockResolvedValue([{chatID: 1, file: "document.pdf", message: "Hello World!" , sender:1, sender_username: "@user"}]);
+
+  const plusIcon = FindFACircleButton();
+  expect(plusIcon).toBeInTheDocument();
+
+  await act(async () => { fireEvent.click(plusIcon) });
+  
+  const chatbox = await FindChatBox();
+  expect(chatbox).toBeInTheDocument();
+
+  await act(async () => { fireEvent.click(chatbox) });
+
+  expect(document.querySelector('.bubble-file')).toBeInTheDocument();
+
+})
 
 
 
