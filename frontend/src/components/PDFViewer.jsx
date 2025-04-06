@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiMaximize, FiMinimize, FiDownload } from 'react-icons/fi';
-import styles from '../../styles/PDFViewer.module.css';
+import styles from '../styles/PDFViewer.module.css';
 
 const PDFViewer = ({ documentUrl, documentName }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);

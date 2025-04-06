@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FiFile, FiTrash2, FiDownload, FiCheckCircle, FiEye } from "react-icons/fi";
 import DragDropUploader from "./DragDropUploader";
-import PDFViewer from "../settings/PDFViewer";
+import PDFViewer from "../PDFViewer";
 import DocumentService from "../../services/DocumentService";
 
 import styles from "../../styles/DocumentUploader.module.css";
