@@ -93,19 +93,19 @@ export const handleConnectEvent =  (event) => {
                 tabConnections.splice(tabConnections.findIndex(p => p === port), 1);
 
             
-                
         }
 
     }
 
     // port.postMessage("Worker: Staritng port")
 
-    self.onconnect = handleConnectEvent;
+    //self.onconnect = handleConnectEvent;
 
     port.start()
 
 }
 
+self.onconnect = handleConnectEvent;
 
 /* input message of the form:
     cmd: String

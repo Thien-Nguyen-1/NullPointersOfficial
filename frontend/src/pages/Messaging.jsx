@@ -15,7 +15,7 @@ import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 
 import "../styles/SupportStyles/Messaging.css"
 
-import { subscribeToChatRoom, unsubscribeToChatRoom, AddCallback, RefreshSubscriptions  } from "../services/pusher_websocket";
+import { subscribeToChatRoom, AddCallback, RefreshSubscriptions  } from "../services/pusher_websocket";
 
 
 
@@ -99,12 +99,7 @@ function Messaging() {
       //subscribeToChatRoom(chatID, handleMsg, false)
 
       chatIDRef.current = chatID
-      return () => {
-        
-        unsubscribeToChatRoom(chatID)
-
-      }
-
+   
 
    }, [chatID])
 

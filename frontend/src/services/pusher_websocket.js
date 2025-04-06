@@ -5,13 +5,12 @@ import { GetConversations } from './api_chat';
 
 import { useContext } from 'react';
 
-const connections = {}
-const background_connections = {}
+
 const callbacks = []
 
 // const myWorker = new SharedWorker('/shared-worker.js');
 
-const myWorker = new SharedWorker(new URL('./workers/shared-worker.js', import.meta.url) , {type:'module'});
+export const myWorker = new SharedWorker(new URL('./workers/shared-worker.js', import.meta.url) , {type:'module'});
 myWorker.port.start();
 
 
@@ -114,19 +113,6 @@ export const RefreshSubscriptions = () => {
 }
 
 
-export const unsubscribeToChatRoom = (room_id, callback) => {
-
-   
-
-    if (connections[room_id] && room_id){
-
-         pusherInstance.pusher.unsubscribe(`chat-room-${room_id}`)
-         delete connections[room_id]
-      
-    }
-}
-
-
 
 
 addEventListener("beforeunload", (event) => {
@@ -150,3 +136,17 @@ addEventListener("beforeunload", (event) => {
 
 
 
+
+//for testing - helper methods:
+
+export const _StopAllConnections = () => {
+    if(pusherInstance.pusher){
+        pusherInstance.pusher.disconnect();
+        pusherInstance.pusher = null;
+    } 
+    callbacks.length = 0;
+}
+
+export const _GetCallbackSize = () => {
+    return callbacks.length;
+}
