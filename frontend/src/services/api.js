@@ -153,14 +153,22 @@ export async function loginUser(username, password){
 
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
+  console.log("userType detected:", userType); // See what it finds
     switch(userType) {
+        case 'superadmin':
+            console.log("Redirecting to superadmin/home");
+            window.location.href = '/superadmin/home';
+            break;
         case 'admin':
+            console.log("Redirecting to admin/home");
             window.location.href = '/admin/home';
             break;
         case 'service user':
+            console.log("Redirecting to worker/home");
             window.location.href = '/worker/home';
             break;
         default:
+            console.log("Default case, redirecting to worker/home. User type:", userType);
             window.location.href = '/worker/home';
     }
 
