@@ -1,11 +1,11 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import RequestPasswordReset from "../../components/auth/RequestPasswordReset"; // Adjust path if needed
+import RequestPasswordReset from "../../components/auth/RequestPasswordReset"; 
 import { AuthContext } from "../../services/AuthContext";
 
 describe("RequestPasswordReset component", () => {
-    it("renders email input and confirm button", () => {
+    it("display correct page", () => {
       render(
         <AuthContext.Provider value={{ RequestPasswordReset: vi.fn() }}>
           <RequestPasswordReset />
@@ -16,7 +16,7 @@ describe("RequestPasswordReset component", () => {
       expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
     });
   
-    it("updates the email input on change", () => {
+    it("should update the email on change", () => {
       render(
         <AuthContext.Provider value={{ RequestPasswordReset: vi.fn() }}>
           <RequestPasswordReset />
@@ -28,7 +28,7 @@ describe("RequestPasswordReset component", () => {
       expect(emailInput.value).toBe("test@example.com");
     });
   
-    it("calls RequestPasswordReset with correct email on form submit", async () => {
+    it("should call RequestPasswordReset with correct email when form is submitted", async () => {
       const mockRequest = vi.fn().mockResolvedValue({ message: "Email sent" });
   
       render(
@@ -46,7 +46,7 @@ describe("RequestPasswordReset component", () => {
       });
     });
   
-    it("calls alert on failed request", async () => {
+    it("alerts if there is an errorr", async () => {
       const mockRequest = vi.fn().mockRejectedValue(new Error("Invalid email"));
       const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     

@@ -6,9 +6,7 @@ import Signup from "../../components/auth/SignUp";
 import { AuthContext } from "../../services/AuthContext";
 import api from "../../services/api";
 
-// Mock SignUpUser from context
 const mockSignUpUser = vi.fn();
-
 vi.mock("../../services/api", async (importActual) => {
     const actual = await importActual();
     return {
@@ -20,10 +18,9 @@ vi.mock("../../services/api", async (importActual) => {
     };
   });
 
-  // Top of your test file
+ 
 const mockNavigate = vi.fn();
 
-// Must come immediately after
 vi.mock("react-router-dom", async (importActual) => {
   const actual = await importActual();
   return {
@@ -31,27 +28,6 @@ vi.mock("react-router-dom", async (importActual) => {
     useNavigate: () => mockNavigate,
   };
 });
-
-  
-  
-
-// Mock terms API
-// vi.mock("../services/api", async () => {
-//   const actual = await vi.importActual("../services/api");
-//   return {
-//     ...actual,
-//     default: {
-//       get: vi.fn().mockResolvedValue({ data: { content: "<p>Mock T&Cs</p>" } }),
-//     },
-//   };
-// });
-
-// vi.mock("../services/api", async () => {  // ❌ This is after the describe block begins
-//     return {
-//       get: vi.fn().mockResolvedValue({ data: { content: "<p>Mock T&Cs</p>" } }),
-//     };
-//   });
-  
 
 const customRender = (ui, { providerProps, ...renderOptions }) => {
   return render(
@@ -66,7 +42,7 @@ const customRender = (ui, { providerProps, ...renderOptions }) => {
 
 beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-    json: async () => ({ exists: false }) // username is available
+    json: async () => ({ exists: false }) 
   }));
   vi.clearAllMocks();
 });
@@ -116,7 +92,7 @@ describe("Signup component", () => {
     customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
   
     fireEvent.change(screen.getByPlaceholderText("Username"), {
-      target: { value: "testUser" }, // Invalid (missing @)
+      target: { value: "testUser" }, 
     });
     fireEvent.change(screen.getByPlaceholderText("First Name"), {
       target: { value: "Test" },
@@ -133,8 +109,7 @@ describe("Signup component", () => {
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), {
       target: { value: "123456" },
     });
-    fireEvent.click(screen.getByRole("checkbox")); // Accept terms
-  
+    fireEvent.click(screen.getByRole("checkbox")); 
     fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
   
     await waitFor(() => {
@@ -167,7 +142,7 @@ describe("Signup component", () => {
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), {
       target: { value: "654321" },
     });
-    fireEvent.click(screen.getByRole("checkbox")); // Accept terms
+    fireEvent.click(screen.getByRole("checkbox")); 
   
     fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
   
@@ -181,13 +156,13 @@ describe("Signup component", () => {
   it("shows error when username is too short", async () => {
     customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
 
-    fireEvent.change(screen.getByPlaceholderText("Username"), { target: { value: "@a" } }); // too short
+    fireEvent.change(screen.getByPlaceholderText("Username"), { target: { value: "@a" } }); 
     fireEvent.change(screen.getByPlaceholderText("First Name"), { target: { value: "Test" } });
     fireEvent.change(screen.getByPlaceholderText("Last Name"), { target: { value: "User" } });
     fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "short@example.com" } });
     fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "123456" } });
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), { target: { value: "123456" } });
-    fireEvent.click(screen.getByRole("checkbox")); // accept T&Cs
+    fireEvent.click(screen.getByRole("checkbox")); 
 
     fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
 
@@ -198,7 +173,7 @@ describe("Signup component", () => {
 
   it("shows error when username is already taken", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      json: async () => ({ exists: true }) // simulate taken username
+      json: async () => ({ exists: true }) 
     }));
 
     customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
@@ -209,7 +184,7 @@ describe("Signup component", () => {
     fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "taken@example.com" } });
     fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "123456" } });
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), { target: { value: "123456" } });
-    fireEvent.click(screen.getByRole("checkbox")); // Accept T&Cs
+    fireEvent.click(screen.getByRole("checkbox")); 
 
     fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
 
@@ -246,7 +221,7 @@ describe("Signup component", () => {
     fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "123456" } });
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), { target: { value: "123456" } });
 
-    fireEvent.click(screen.getByRole("checkbox")); // Accept T&Cs
+    fireEvent.click(screen.getByRole("checkbox")); 
     fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
 
     await waitFor(() => {
@@ -266,7 +241,7 @@ describe("Signup component", () => {
     fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "123456" } });
     fireEvent.change(screen.getByPlaceholderText("Confirm Password"), { target: { value: "123456" } });
 
-    fireEvent.click(screen.getByRole("checkbox")); // Accept T&Cs
+    fireEvent.click(screen.getByRole("checkbox")); 
     fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
 
     expect(await screen.findByText(/signup failed/i)).toBeInTheDocument();
@@ -296,7 +271,7 @@ describe("Signup component", () => {
 
   
   it("shows fallback content if terms and conditions fetch fails", async () => {
-    api.get.mockRejectedValueOnce(new Error("API failure")); // ✅ use api.get, not api.default.get
+    api.get.mockRejectedValueOnce(new Error("API failure")); 
   
     customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
   
@@ -308,9 +283,7 @@ describe("Signup component", () => {
   });
 
   it("navigates to login and home when respective buttons are clicked", async () => {
-    // ✅ No need to redeclare mockNavigate
-  
-    // Re-import Signup AFTER vi.mock has run at the top
+    
     const { default: SignupComponent } = await import("../../components/auth/SignUp");
   
     customRender(<SignupComponent />, {
@@ -323,14 +296,7 @@ describe("Signup component", () => {
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(mockNavigate).toHaveBeenCalledWith("/");
   });
-  
-  
-  
-  
-  
 
-  
-  
   
 });
 

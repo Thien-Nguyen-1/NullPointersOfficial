@@ -7,9 +7,6 @@ import {
   downloadCompletedTask,
 } from '../../../services/api';
 
-// ================================
-// ✅ Global Axios Mock
-// ================================
 vi.mock('axios', () => {
   const mockGet = vi.fn();
   const mockDelete = vi.fn();
@@ -32,21 +29,17 @@ vi.mock('axios', () => {
 });
 
 const mockApiInstance = axios.create();
-
-// ================================
-// ✅ Setup global createObjectURL before all tests
-// ================================
 beforeAll(() => {
   global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
 });
 
-// ================================
-// ✅ getUserSettings Tests
-// ================================
+
+//get user settings
+
 describe('getUserSettings', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns user settings data on success', async () => {
+  it('returns user settings data', async () => {
     const mockResponse = { data: { theme: 'dark', language: 'en' } };
     mockApiInstance.get.mockResolvedValueOnce(mockResponse);
 
@@ -62,9 +55,7 @@ describe('getUserSettings', () => {
   });
 });
 
-// ================================
-// ✅ deleteUserSettings Tests
-// ================================
+//delete user settings
 describe('deleteUserSettings', () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -77,45 +68,68 @@ describe('deleteUserSettings', () => {
     expect(result).toEqual(mockResponse.data);
   });
 
-  it('throws an error if the delete fails', async () => {
+  it('throws an error on failure', async () => {
     const error = new Error('Request failed');
     mockApiInstance.delete.mockRejectedValueOnce(error);
     await expect(deleteUserSettings()).rejects.toThrow('Failed to delete user account');
   });
 });
 
-// ================================
-// ✅ fetchCompletedInteractiveContent Tests
-// ================================
-// describe('fetchCompletedInteractiveContent', () => {
-//   beforeEach(() => vi.clearAllMocks());
+//fetch completed intercative conetent
+describe("fetchCompletedInteractiveContent", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
 
-//   it('returns data on success', async () => {
-//     const mockResponse = { data: [{ id: 1 }, { id: 2 }] };
-//     mockApiInstance.get.mockResolvedValueOnce(mockResponse);
+  it("getsdata with valid token exists and request succeeds", async () => {
+    const mockResponse = { data: [{ id: 1 }, { id: 2 }] };
+    localStorage.setItem("token", "mock-token");
+    mockApiInstance.get.mockResolvedValueOnce(mockResponse);
 
-//     const result = await fetchCompletedInteractiveContent();
-//     expect(mockApiInstance.get).toHaveBeenCalledWith('/api/completed-interactive-content/');
-//     expect(result).toEqual(mockResponse.data);
-//   });
+    const result = await fetchCompletedInteractiveContent();
 
-//   it('logs an error on failure', async () => {
-//     const error = new Error('Network error');
-//     mockApiInstance.get.mockRejectedValueOnce(error);
+    expect(mockApiInstance.get).toHaveBeenCalledWith(
+      "/api/completed-interactive-content/",
+      {
+        headers: {
+          Authorization: "Token mock-token"
+        }
+      }
+    );
+    expect(result).toEqual(mockResponse.data);
+  });
 
-//     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-//     await fetchCompletedInteractiveContent();
-//     expect(consoleSpy).toHaveBeenCalledWith(
-//       'Error fetching completed interactive content:',
-//       error
-//     );
-//     consoleSpy.mockRestore();
-//   });
-// });
+  it("logs error and returns [] when no token is found", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-// ================================
-// ✅ downloadCompletedTask Tests
-// ================================
+    const result = await fetchCompletedInteractiveContent();
+
+    expect(consoleSpy).toHaveBeenCalledWith("No token found");
+    expect(result).toEqual([]);
+
+    consoleSpy.mockRestore();
+  });
+
+  it("logs error and returns [] when request fails", async () => {
+    localStorage.setItem("token", "mock-token");
+    const error = new Error("Network error");
+    mockApiInstance.get.mockRejectedValueOnce(error);
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const result = await fetchCompletedInteractiveContent();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Error fetching completed interactive content:",
+      error
+    );
+    expect(result).toEqual([]);
+
+    consoleSpy.mockRestore();
+  });
+});
+
+//download complted tasks
 describe('downloadCompletedTask', () => {
   let createObjectURLSpy, appendChildSpy, removeSpy, clickSpy;
 
@@ -149,20 +163,18 @@ describe('downloadCompletedTask', () => {
     expect(removeSpy).toHaveBeenCalled();
   });
 
-  it('throws and logs error with response data', async () => {
+  it('throws an error', async () => {
     const error = { response: { data: 'Download failed' } };
     mockApiInstance.get.mockRejectedValueOnce(error);
-
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     await expect(downloadCompletedTask(123, 'mock-token')).rejects.toEqual(error);
     expect(consoleSpy).toHaveBeenCalledWith('Error downloading PDF:', 'Download failed');
     consoleSpy.mockRestore();
   });
 
-  it('throws and logs error with fallback message', async () => {
+  it('displays fallback error', async () => {
     const error = new Error('Fallback error');
     mockApiInstance.get.mockRejectedValueOnce(error);
-
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     await expect(downloadCompletedTask(999, 'mock-token')).rejects.toThrow('Fallback error');
     expect(consoleSpy).toHaveBeenCalledWith('Error downloading PDF:', 'Fallback error');

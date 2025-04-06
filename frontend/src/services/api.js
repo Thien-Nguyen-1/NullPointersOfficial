@@ -117,23 +117,13 @@ export async function loginUser(username, password){
       username,
       password,
     });
-  
-        
-    // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
-
-    // ONLY FOR DEBUGGING
     localStorage.getItem('token', response.data.token)
     console.log('token after login:', response.data.token);
-
-
-    // Check if the response contains JWT tokens
     if (response.data.access && response.data.refresh) {
-      // Store JWT tokens
       localStorage.setItem('token', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
     } else if (response.data.token) {
-      // Fall back to old token format
       localStorage.setItem('token', response.data.token);
     }
     
@@ -198,19 +188,6 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 export async function getUserSettings(){
   
   try{
-    // const token = localStorage.getItem('token');
-    
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    
-    // const response = await api.get(`/worker/settings/` , {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
     const response = await api.get(`/worker/settings/`);
 
     return response.data;
@@ -223,17 +200,6 @@ export async function getUserSettings(){
 
 export async function deleteUserSettings(){
   try{
-    // const token = localStorage.getItem('token');
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    // const response = await api.delete(`/api/worker/settings/`, {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
     const response = await api.delete(`/worker/settings/`);
     return response.data;
   }
@@ -251,16 +217,6 @@ export async function changeUserPassword(oldPassword, newPassword, confirmNewPas
       old_password:  oldPassword,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword});
-    // const response = await api.put(`/api/worker/password-change/`, {
-    // old_password:  oldPassword,
-    // new_password: newPassword,
-    // confirm_new_password: confirmNewPassword,
-    
-    // } , {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
     return response.data;
   }
   catch(error){

@@ -18,12 +18,11 @@ vi.mock("react-router-dom", async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  global.fetch = undefined; // important
+  global.fetch = undefined; 
 });
 
-
 describe("VerifyEmail component", () => {
-  it("renders initial verification message", async () => {
+  it("shows initial verification message", async () => {
     global.fetch = vi.fn(() =>
       new Promise((resolve) => {
         setTimeout(() => {
@@ -40,7 +39,7 @@ describe("VerifyEmail component", () => {
     expect(message).toBeInTheDocument();
   });
   
-    it("shows success message and navigates to /login on successful verification", async () => {
+    it("shows success message and goes to login page on successful verification", async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ detail: "Success" }),
@@ -54,7 +53,7 @@ describe("VerifyEmail component", () => {
       });
     });
   
-    it("shows fallback message and navigates to /login on failed verification", async () => {
+    it("shows fallback message and goes to login page", async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         json: () => Promise.resolve({ detail: "Invalid or expired token" }),

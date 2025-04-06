@@ -13,21 +13,20 @@ vi.mock("../../services/api", () => ({
     redirectBasedOnUserType: vi.fn(),
 }));
 
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom"; 
 
-// Mock useNavigate
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
-    useNavigate: () => mockNavigate, // Mocking useNavigate
+    useNavigate: () => mockNavigate, 
   };
 });
 
 
 describe("Login component", () => {
-    it("Should render the correct login form" , () => {
+    it("display correct login form" , () => {
         render(
             <BrowserRouter> <Login/> </BrowserRouter>
         );
@@ -36,7 +35,7 @@ describe("Login component", () => {
         expect(screen.getByRole("button", {name: "Login"})).to.exist;
     });
 
-    it("Should update the username and password fields on change", () => {
+    it("update the username and password fields on change", () => {
         render(
             <BrowserRouter> <Login/> </BrowserRouter>
         );
@@ -49,30 +48,6 @@ describe("Login component", () => {
         expect(usernameInput.value).toBe("testUser");
         expect(passwordInput.value).toBe("password123");
 
-    });
-
-    it("should go back to welcome page when the back button is clicked", () => {
-        render(
-            <BrowserRouter> <Login/> </BrowserRouter>
-        );
-        const backButton =screen.getByText("Back");
-        expect(backButton).to.exist;
-    });
-
-    it("should go to forgot password page when the button is clicked", () => {
-        render(
-            <BrowserRouter> <Login/> </BrowserRouter>
-        );
-        const forgotPasswordButton =screen.getByText("Forgot password");
-        expect(forgotPasswordButton).to.exist;
-    });
-
-    it("should go to sign up page when the button is clicked", () => {
-        render(
-            <BrowserRouter> <Login/> </BrowserRouter>
-        );
-        const signUpButton =screen.getByText("Don't have an account");
-        expect(signUpButton).to.exist;
     });
 
     it("should call loginUser and redirect on successful login", async () => {
@@ -125,7 +100,7 @@ describe("Login component", () => {
         });
       });
 
-      it("should navigate to '/' when the Back button is clicked", () => {
+      it("should go to welocme page when ack button is clicked", () => {
         render(
           <BrowserRouter>
             <AuthContext.Provider value={{ loginUser: vi.fn() }}>
@@ -138,7 +113,7 @@ describe("Login component", () => {
         expect(mockNavigate).toHaveBeenCalledWith("/");
       });
       
-      it("should navigate to '/password-reset' when the Forgot password button is clicked", () => {
+      it("should go to forgot pasword page when button is clicked", () => {
         render(
           <BrowserRouter>
             <AuthContext.Provider value={{ loginUser: vi.fn() }}>
@@ -151,7 +126,7 @@ describe("Login component", () => {
         expect(mockNavigate).toHaveBeenCalledWith("/password-reset");
       });
       
-      it("should navigate to '/signup' when the Don't have an account button is clicked", () => {
+      it("should go to dign up page when don't have an account button is clicked", () => {
         render(
           <BrowserRouter>
             <AuthContext.Provider value={{ loginUser: vi.fn() }}>

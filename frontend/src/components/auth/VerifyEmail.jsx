@@ -20,7 +20,6 @@ const VerifyEmail = () => {
           setMessage( "Loading log in page...");
           navigate("/login")
         }
-        // setTimeout(() => navigate("/login"), 3000); 
       } catch (error) {
         setMessage("An error occurred. Please try again.");
       }

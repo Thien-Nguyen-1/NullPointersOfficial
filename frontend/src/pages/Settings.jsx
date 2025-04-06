@@ -9,7 +9,6 @@ function Settings() {
   const [showModal, setShowModal] = useState (false);
   const navigate = useNavigate();
   const [completedCourses, setCompletedCourses] = useState([]);
-  // const [taskId, setTaskId] = useState("");
   const token = localStorage.getItem("token");
 
   const [passwordData,setPasswordData] = useState ({
@@ -32,9 +31,6 @@ function Settings() {
   
     loadCompletedTasks();
   }, []);
-  
-
-
 const handleDownload = async(taskId) => {
   if(!token){
     alert("user isnt authenticated");
@@ -168,7 +164,6 @@ function renderPasswordForm() {
     </div>
   );
 }
-
 
 return (
   <div className="settings-container">

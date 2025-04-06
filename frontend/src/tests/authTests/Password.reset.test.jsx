@@ -1,11 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import { useParams, useNavigate } from "react-router-dom";
-import PasswordReset from "../../components/auth/PasswordReset"; // Adjust path
+import PasswordReset from "../../components/auth/PasswordReset"; 
 import { AuthContext } from "../../services/AuthContext";
 
-// Mock useParams and useNavigate
+
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
@@ -17,7 +16,7 @@ vi.mock("react-router-dom", async () => {
 });
 
 describe("PasswordReset component", () => {
-    it("renders the reset form correctly", () => {
+    it("display correct password chnage form", () => {
       render(
         <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
           <PasswordReset />
@@ -29,7 +28,7 @@ describe("PasswordReset component", () => {
       expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
     });
   
-    it("updates input fields correctly", () => {
+    it("updates fields correctly", () => {
       render(
         <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
           <PasswordReset />
@@ -68,7 +67,7 @@ describe("PasswordReset component", () => {
       });
     });
   
-    it("displays error message on failed reset", async () => {
+    it("should show error message when password reset fails", async () => {
       const mockResetPassword = vi.fn().mockRejectedValue(new Error("Failure"));
   
       render(
@@ -90,7 +89,7 @@ describe("PasswordReset component", () => {
       });
     });
   
-    it("navigates to '/' when Back button is clicked", () => {
+    it("should go to home when back button is clicked", () => {
       render(
         <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
           <PasswordReset />
@@ -101,7 +100,7 @@ describe("PasswordReset component", () => {
       expect(mockNavigate).toHaveBeenCalledWith("/");
     });
   
-    it("navigates to '/login' when Login button is clicked", () => {
+    it("should go to login page when button is clicked", () => {
       render(
         <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
           <PasswordReset />

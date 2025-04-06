@@ -1,6 +1,5 @@
 import { useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-//import { ResetPassword } from "../services/api";
 import '../../styles/PasswordReset.css';
 
 import { AuthContext } from "../../services/AuthContext";
@@ -18,7 +17,6 @@ const PasswordReset = () => {
 
     const handlePasswordReset = async(e) => {
             e.preventDefault();
-            // setMessage("");
             try{
                 const data = await ResetPassword(newPassword, confirmNewPassword, uidb64, token);
                 console.log("Password reset succesful:" , data);
