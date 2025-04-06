@@ -521,25 +521,25 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
 
 
 export const fetchCompletedInteractiveContent = async () => {
-  // const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-  // if (!token) {
-  //   console.error("No token found");
-  //   return [];
-  // }
+  if (!token) {
+    console.error("No token found");
+    return [];
+  }
 
   try {
-    const response = await api.get('/api/completed-interactive-content/');
-    //   headers: {
-    //     Authorization: `Token ${token}`
-    //   }
-    // });
+    const response = await api.get('/api/completed-interactive-content/',{
+      headers: {
+        Authorization: `Token ${token}`
+      }
+    });
 
     return response.data;
     
   } catch (error) {
     console.error("Error fetching completed interactive content:", error);
-    // return [];
+    return [];
   }
 };
 

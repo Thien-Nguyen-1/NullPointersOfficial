@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import { loginUser, changeUserPassword, deleteServiceUser } from '../../services/api';
+import { loginUser, changeUserPassword, deleteServiceUser } from '../../../services/api';
 
 // Global mock of axios
 vi.mock('axios', () => {

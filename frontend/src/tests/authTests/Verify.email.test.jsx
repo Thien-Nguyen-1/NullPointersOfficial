@@ -18,13 +18,27 @@ vi.mock("react-router-dom", async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  global.fetch = undefined; // important
 });
 
+
 describe("VerifyEmail component", () => {
-    it("renders initial verification message", () => {
-      render(<VerifyEmail />);
-      expect(screen.getByText("Verifying...")).toBeInTheDocument();
-    });
+  it("renders initial verification message", async () => {
+    global.fetch = vi.fn(() =>
+      new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            ok: true,
+            json: () => Promise.resolve({ detail: "Success" }),
+          });
+        }, 10);
+      })
+    );
+
+    render(<VerifyEmail />);
+    const message = await screen.findByText("Verifying...");
+    expect(message).toBeInTheDocument();
+  });
   
     it("shows success message and navigates to /login on successful verification", async () => {
       global.fetch = vi.fn().mockResolvedValue({

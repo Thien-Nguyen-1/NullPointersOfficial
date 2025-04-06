@@ -1,8 +1,8 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import '../../styles/Login.css';
-import { AuthContext } from "../services/AuthContext";
-import {redirectBasedOnUserType } from "../services/api";
+import { AuthContext } from "../../services/AuthContext";
+import {redirectBasedOnUserType } from "../../services/api";
 
 
 const Login = () => {

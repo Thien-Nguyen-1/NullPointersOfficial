@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { deleteUserSettings, changeUserPassword, downloadCompletedTask , fetchCompletedInteractiveContent} from "../../services/api";
 import { useNavigate } from "react-router-dom";
-import '../styles/Settings.css';
+import '../../styles/Settings.css';
 import {AuthContext} from "../../services/AuthContext";
 
 function Settings() {
