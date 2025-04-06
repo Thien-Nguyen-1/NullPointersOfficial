@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor,act } from '@testing-library/react';
+import { render, screen, waitFor,act ,fireEvent} from '@testing-library/react';
 import QuestionAndAnswerForm from '../../components/quizzes/QuestionAndAnswerForm';
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 
@@ -45,5 +45,55 @@ describe('QuestionAndAnswerForm', async () => {
         const errorText = await screen.findByText(/failed to load questions/i);
         expect(errorText).toBeInTheDocument();
     });
+
+    test('handles answer changes correctly', async () => {
+        QuizApiUtils.getQuestions.mockResolvedValue([{ id: 1, text: 'What is your name?' }]);
+    
+        render(<QuestionAndAnswerForm taskId={1} onComplete={() => {}} />);
+        await waitFor(() => screen.findByDisplayValue('What is your name?'));
+    
+        const input = screen.getByDisplayValue('');
+        fireEvent.change(input, { target: { value: 'Alice' } });
+        expect(input.value).toBe('Alice');
+    });
+
+    test('submits the form when all answers are provided', async () => {
+        QuizApiUtils.getQuestions.mockResolvedValue([{ id: 1, text: 'What is your name?' }]);
+        const onComplete = vi.fn();
+    
+        render(<QuestionAndAnswerForm taskId={1} onComplete={onComplete} />);
+        await waitFor(() => screen.findByDisplayValue('What is your name?'));
+    
+        const input = screen.getByDisplayValue('');
+        fireEvent.change(input, { target: { value: 'Alice' } });
+    
+        const submitButton = screen.getByRole('button', { name: /submit all answers/i });
+        fireEvent.click(submitButton);
+    
+        await waitFor(() => {
+            expect(onComplete).toHaveBeenCalledWith({ "1": "Alice" });
+
+            expect(screen.getByText(/restart quiz/i)).toBeInTheDocument();
+        });
+    });
+
+    test('restarts the quiz when restart button is clicked', async () => {
+        QuizApiUtils.getQuestions.mockResolvedValue([{ id: 1, text: 'What is your name?' }]);
+        render(<QuestionAndAnswerForm taskId={1} onComplete={() => {}} />);
+        await waitFor(() => screen.findByDisplayValue('What is your name?'));
+    
+        const input = screen.getByDisplayValue('');
+        fireEvent.change(input, { target: { value: 'Alice' } });
+    
+        const submitButton = screen.getByRole('button', { name: /submit all answers/i });
+        fireEvent.click(submitButton);
+    
+        fireEvent.click(screen.getByText(/restart quiz/i));
+    
+        expect(screen.queryByText(/submit all answers/i)).toBeInTheDocument();
+    });
+    
+    
+    
 });
 
