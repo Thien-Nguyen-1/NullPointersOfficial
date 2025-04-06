@@ -47,6 +47,11 @@ global.MockUserAuthContext = {
   user: { id: 1, name: "Test User", user_type: "service user" }
 };
 
+global.MockAdminAuthContext = {
+  token: "test-token",
+  user: { id: 1, name: "Test Admin", user_type: "admin" }
+};
+
 global.SharedWorker = vi.fn().mockImplementation(() => {
   return {
     port: {

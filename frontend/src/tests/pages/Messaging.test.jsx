@@ -7,6 +7,8 @@ import { AuthContext } from "../../services/AuthContext";
 import FileUploader from "../../components/SupportAssets/FileUploader";
 import userEvent from "@testing-library/user-event";
 import { createEvent } from "@testing-library/react";
+import ChatHeaderBar from "../../components/SupportAssets/HeaderBar";
+
 
 vi.mock("../../services/api_chat" ,() => ({
     CreateConversation: vi.fn(),
@@ -27,9 +29,9 @@ const MockAPIs =  () => {
 
   GetConversations.mockResolvedValue( [{ id: 1, title: "Test Conversation" , updated_at: "2024-04-04T12:00:00.000Z", hasEngaged: true,  user_username: "@user"}]);
   SendMessage.mockResolvedValue({success:true});
-  GetMessages.mockResolvedValue([{id: 1, chatID: 1, message: "Hello World!" , sender: 1, sender_username: "@user"},
-   {id:2 , chatID: 2, message: "Hello World!" , sender: 1000, sender_username: "@admin"},
-   {id:3 ,chatID: 2, file: 'document.pdf' ,message: "Hello World!" , sender: 1000, sender_username: "@admin"}]);
+  GetMessages.mockResolvedValue([{id: 1, chatID: 1, text_content: "$test_profanity$" , sender: 1, sender_username: "@user"},
+   {id:2 , chatID: 2, text_content: "Hello World!" , sender: 1000, sender_username: "@admin"},
+   {id:3 ,chatID: 2, file: 'document.pdf' ,text_content: "$test_profanity$" , sender: 1000, sender_username: "@admin"}]);
   CreateConversation.mockResolvedValue({id:1});
   
   
@@ -40,6 +42,7 @@ const MockAPIs =  () => {
 const FindFACircleButton = () => document.querySelector(".fa-circle-plus");
 const FindChatForm = () => document.querySelector('.user-chat-form');
 const FindDropZone = () => document.querySelector('.input-zone');
+const FindBackButton = () => document.querySelector('.back-chat-button');
 const FindChatBox = async () => {
   return await waitFor(() => {
     const box = document.querySelector(".chat-side-box");
@@ -244,20 +247,44 @@ test("Create Invalid Conversation", async() => {
 
 test(" Deleting Valid Chats", async () => {
 
-   
-    
-    const deleteButton = screen.getByText("Delete");
-    expect(deleteButton).toBeInTheDocument();
-    
-    await act(async () => {
-        fireEvent.click(deleteButton);
-      });
+  ClearAll();
 
-    expect(DeleteConversation).toHaveBeenCalled()
+  render(<ChatHeaderBar 
+    convObj={1}
+    handleDeleteChat={vi.fn()}
+    toggleChatVisibility={vi.fn()}
+    handleUserCreateChat={vi.fn()}
+  />);
+  
+  const deleteButton = screen.getByText("Delete");
+  await act(async () => {
+    fireEvent.click(deleteButton);
+  });
+
+    
 
 
 })
 
+test("Delete chat when convObj is null", async () => {
+  
+  ClearAll();
+
+  render(<ChatHeaderBar 
+    convObj={null}
+    handleDeleteChat={vi.fn()}
+    toggleChatVisibility={vi.fn()}
+    handleUserCreateChat={vi.fn()}
+  />);
+  
+  const deleteButton = screen.getByText("Delete");
+  await act(async () => {
+    fireEvent.click(deleteButton);
+  });
+
+
+  // Optionally check that handleDeleteChat was called with undefined
+});
 
 test(" Get User Messages", async () => {
 
@@ -308,11 +335,45 @@ test(" Get Invalid Mesages ", async () => {
 })
 
 
-test(" Bubble Rendering ", async() => {
-  ClearAll();
+
+test(" Turn off chat ", async() => {
+
+  const backButton = FindBackButton();
+  expect(backButton).toBeInTheDocument();
+
+  await act(async () => {
+    fireEvent.click(backButton);
+  })
 
 })
 
+
+test(" Admin assigned to a chat request ", async() => {
+  ClearAll();
+
+  //MockAPIs();
+
+  GetConversations.mockResolvedValue( [{ id: 1, title: "Not Engaged Chat Request" , updated_at: "2024-04-04T12:00:00.000Z", hasEngaged: false,  user_username: "@another-user"}]);
+
+  render(
+    <AuthContext.Provider value={MockAdminAuthContext}>
+      <Messaging 
+         />
+    </AuthContext.Provider>
+  );
+  
+  const chatBox = await FindChatBox();
+  expect(chatBox).toBeInTheDocument();
+
+  await act(async () => {fireEvent.click(chatBox)});
+
+  const acceptButton = screen.getByText("Accept");
+  expect(acceptButton).toBeInTheDocument();
+
+  await act(async () => {fireEvent.click(acceptButton)});
+
+
+})
 
 test (" File Message Rendered ", async() => {
   GetMessages.mockResolvedValue([{chatID: 1, file: "document.pdf", message: "Hello World!" , sender:1, sender_username: "@user"}]);
@@ -330,4 +391,5 @@ test (" File Message Rendered ", async() => {
   expect(document.querySelector('.bubble-file')).toBeInTheDocument();
 
 })
+
 

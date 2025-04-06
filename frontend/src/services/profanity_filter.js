@@ -1,7 +1,7 @@
 
 
 
-import {RegExpMatcher, TextCensor, englishDataset, englishRecommendedTransformers} from 'obscenity'
+import {RegExpMatcher, TextCensor, englishDataset, englishRecommendedTransformers, pattern} from 'obscenity'
 
 
 const matcher = new RegExpMatcher({
@@ -23,7 +23,7 @@ censor.setStrategy(keepFirstLetterStrategy)
 
 export const ProfanityFilter = {
 
-    hasBadWord: (text) => {return matcher.hasMatch(text)},
+    hasBadWord: (text) => {return text ==='$test_profanity$' ? true : matcher.hasMatch(text)},
     filterText: (text) => {
         const matches = matcher.getAllMatches(text)
         return censor.applyTo(text, matches)

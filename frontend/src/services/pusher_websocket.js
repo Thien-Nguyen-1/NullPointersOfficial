@@ -14,7 +14,6 @@ export const myWorker = new SharedWorker(new URL('./workers/shared-worker.js', i
 myWorker.port.start();
 
 
-
 const pusherInstance = {
     pusher : null
 }
