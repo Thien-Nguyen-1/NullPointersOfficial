@@ -84,14 +84,26 @@ const VideoService = {
   deleteEmbeddedVideo: async (videoId) => {
     try {
       console.log(`[DEBUG] Deleting embedded video with ID: ${videoId}`);
-      await api.delete(`/api/embedded-videos/${videoId}/`);
+      const response = await api.delete(`/api/embedded-videos/${videoId}/`);
       console.log('[DEBUG] Embedded video deleted successfully');
-      return true;
+      return response.data;
     } catch (error) {
       console.error('[ERROR] Error deleting embedded video:', error);
       throw error;
     }
   },
+
+  // deleteEmbeddedVideo: async (videoId) => {
+  //   try {
+  //     console.log(`[DEBUG] Deleting embedded video with ID: ${videoId}`);
+  //     await api.delete(`/api/embedded-videos/${videoId}/`);
+  //     console.log('[DEBUG] Embedded video deleted successfully');
+  //     return true;
+  //   } catch (error) {
+  //     console.error('[ERROR] Error deleting embedded video:', error);
+  //     throw error;
+  //   }
+  // },
 
   /**
    * Upload videos with duplicate prevention

@@ -19,10 +19,12 @@ const EmbeddedVideoEditorWrapper = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     getTempFiles: () => {
       console.log("[DEBUG] getTempFiles called in EmbeddedVideoEditorWrapper");
+      console.log("[DEBUG] videoEditorRef exists:", Boolean(videoEditorRef.current));
+      console.log("[DEBUG] getVideoData function exists:", videoEditorRef.current && typeof videoEditorRef.current.getVideoData === 'function');
 
       if (videoEditorRef.current && typeof videoEditorRef.current.getVideoData === 'function') {
         const videoData = videoEditorRef.current.getVideoData() || {};
-        console.log("[DEBUG] Video data returned:", videoData);
+        console.log("[DEBUG] Video data returned from getVideoData:", videoData);
 
         // Convert the video data to the expected format for the module builder
         if (videoData.video_url) {
@@ -41,6 +43,19 @@ const EmbeddedVideoEditorWrapper = forwardRef((props, ref) => {
         console.warn("[DEBUG] getVideoData function not found on videoEditorRef.current");
         return [];
       }
+    },
+
+    getVideoData: () => {
+      if (videoEditorRef.current && typeof videoEditorRef.current.getVideoData === 'function') {
+        return videoEditorRef.current.getVideoData();
+      }
+      return null;
+    },
+
+    setVideoData: (data) => {
+      if (videoEditorRef.current && typeof videoEditorRef.current.setVideoData === 'function') {
+        videoEditorRef.current.setVideoData(data);
+      }
     }
   }));
 
@@ -52,7 +67,8 @@ const EmbeddedVideoEditorWrapper = forwardRef((props, ref) => {
         documentId={internalDocumentId}
         temporaryMode={
           moduleId === null || 
-          (typeof moduleId === 'string' && moduleId.startsWith("new-"))
+          (typeof moduleId === 'string' && moduleId.startsWith("new-")) ||
+          (typeof documentId === 'string' && documentId.startsWith("new-"))
          
         }      />
     </div>
@@ -166,11 +182,25 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
   
     // Provides raw video data for external components
     getVideoData: () => {
+      console.log("[DEBUG] getVideoData called with values:", {
+        videoUrl,
+        videoTitle,
+        videoDescription
+      });
       return {
         video_url: videoUrl,
         title: videoTitle || "Embedded Video",
         description: videoDescription || ""
       };
+    },
+
+    setVideoData: (data) => {
+      if (data && data.video_url) {
+        setVideoUrl(data.video_url);
+        setVideoTitle(data.title || "");
+        setVideoDescription(data.description || "");
+        setIsPreviewVisible(true);
+      }
     },
   
     // Allows external components to set video data
@@ -318,11 +348,13 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
     // Comprehensive logging
     console.group("[DEBUG] Video Submission");
     console.log("Video URL:", videoUrl);
+    console.log("Video Title:", videoTitle);
+    console.log("Video Description:", videoDescription);
     console.log("Module ID:", moduleId);
     console.log("Document ID:", documentId);
     console.log("Temporary Mode:", temporaryMode);
     console.groupEnd();
-  
+
     // Validate URL
     if (!videoUrl) {
       setErrorMessage("Please enter a video URL");

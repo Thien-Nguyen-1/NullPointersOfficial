@@ -257,13 +257,21 @@ const AddModule = () => {
         } 
         else if (module.mediaType === "video") {
           const editor = editorRefs.current[module.id];
+          console.log("[DEBUG] Video editor ref:", editor);
+          console.log("[DEBUG] Video editor getVideoData exists:", editor && typeof editor.getVideoData === 'function');
+  
+
           const videoData = editor?.getVideoData?.() || {};
+          console.log("[DEBUG] Video data retrieved for preview:", videoData);
           
           // Cache video data
           setCachedVideos(prev => ({
             ...prev,
             [module.id]: videoData
           }));
+
+          console.log("[DEBUG] Is video_url present:", Boolean(videoData.video_url));
+          console.log("[DEBUG] Video URL value:", videoData.video_url);
           
           if (videoData.video_url) {
             resourceItems.push({
@@ -275,6 +283,9 @@ const AddModule = () => {
               moduleId: editId || "preview",
               order: index
             });
+            console.log("[DEBUG] Added video to resourceItems:", videoData);
+          } else {
+            console.log("[DEBUG] Video NOT added to resourceItems - missing video_url");
           }
         }
       }
@@ -385,12 +396,20 @@ const AddModule = () => {
           if (module.componentType === "template" && cachedQuestions[module.id]) {
             const editor = editorRefs.current[module.id];
             
-            if (editor && typeof editor.setQuestions === 'function') {
-              console.log(`Restoring ${cachedQuestions[module.id].length} questions to editor for ${module.id}`);
-              editor.setQuestions(cachedQuestions[module.id]);
-            } else {
-              console.log(`Editor for ${module.id} doesn't have setQuestions method, storing in initialQuestionsRef`);
-              initialQuestionsRef.current[module.id] = cachedQuestions[module.id];
+            if (module.componentType === "media" && module.mediaType === "video" && 
+              cachedVideos[module.id]) {
+              console.log("[DEBUG] Restoring video data:", cachedVideos[module.id]);
+              console.log("[DEBUG] Video data has video_url:", Boolean(cachedVideos[module.id].video_url));
+              const editor = editorRefs.current[module.id];
+              
+              if (editor && typeof editor.setVideoData === 'function') {
+                console.log("[DEBUG] Calling setVideoData on video component");
+                editor.setVideoData(cachedVideos[module.id]);
+              } else {
+                console.log("[DEBUG] Cannot restore video data - editor or setVideoData missing");
+                console.log("[DEBUG] Editor exists:", Boolean(editor));
+                console.log("[DEBUG] setVideoData exists:", editor && typeof editor.setVideoData === 'function');
+              }
             }
           }
         });
@@ -691,6 +710,7 @@ const AddModule = () => {
 
       // process VIDEO deletions
       if (pendingDeletions.video.length > 0) {
+          console.log("[DEBUG] Calling processMediaDeletion for VIDEO")
           for (const videoId of pendingDeletions.video) {
             try {
               const allVideos = await VideoService.getModuleVideos(moduleId);
@@ -706,6 +726,40 @@ const AddModule = () => {
       }
 
     }
+
+    // process IMAGE deletions
+    if (pendingDeletions.image.length > 0) {
+      for (const imageId of pendingDeletions.image) {
+        try {
+          const allImages = await ImageService.getModuleImages(moduleId);
+          const imagesToDelete = allImages.filter(image => image.contentID === imageId);
+
+          for (const image of imagesToDelete) {
+            await ImageService.deleteImage(image.contentID);
+          }
+        } catch (err) {
+          console.error(`[ERROR] Failed to delete images for component ${imageId}:`, err);
+        }
+      }
+  }
+
+  // process VIDEO deletions
+  if (pendingDeletions.video.length > 0) {
+      for (const videoId of pendingDeletions.video) {
+        try {
+          const allVideos = await VideoService.getModuleVideos(moduleId);
+          const videosToDelete = allVideos.filter(video => video.contentID === videoId);
+
+          for (const video of videosToDelete) {
+            await VideoService.deleteVideo(video.contentID);
+          }
+        } catch (err) {
+          console.error(`[ERROR] Failed to delete videos for component ${videoId}:`, err);
+        }
+      }
+  }
+
+
     
     // Clear pending deletions
     setPendingDeletions({ document: [], audio: [], images: [], videos: [] });
