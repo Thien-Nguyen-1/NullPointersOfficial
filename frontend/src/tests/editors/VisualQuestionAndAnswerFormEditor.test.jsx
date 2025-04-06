@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, screen, waitFor,act } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import VisualQuestionAndAnswerFormEditor from '../../components/editors/VisualQuestionAndAnswerFormEditor';
-
+import QuizApiUtils from '../../services/QuizApiUtils';
 describe('VisualQuestionAndAnswerFormEditor', () => {
     console.log = vi.fn();
 
@@ -130,7 +130,6 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
     test('updates displayed questions when initialQuestions prop changes', async () => {
         const { rerender, findAllByText } = renderComponent();
       
-        // Check initial render off questions
         let questions = await findAllByText(/How are you feeling today?|Describe your confidence./);
         expect(questions).toHaveLength(2);
       
@@ -139,7 +138,6 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
         ];
         rerender(<VisualQuestionAndAnswerFormEditor ref={React.createRef()} {...mockProps} initialQuestions={newQuestions} />);
       
-        // Check if component updates correctly
         questions = await findAllByText(/What is your favorite color?/);
         expect(questions).toHaveLength(1);
       });
