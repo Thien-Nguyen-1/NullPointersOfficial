@@ -223,21 +223,137 @@ const AddModule = () => {
             });
           });
         } 
+        // else if (module.mediaType === "image") {
+        //   const editor = editorRefs.current[module.id];
+        //   const tempFiles = editor?.getTempFiles?.() || [];
+
+        //   // Cache image files
+        //   setCachedImages(prev => ({
+        //     ...prev,
+        //     [module.id]: tempFiles.map(fileData => ({
+        //       ...fileData,
+        //       // Ensure width and height are preserved
+        //       width: fileData.width || fileData.originalWidth,
+        //       height: fileData.height || fileData.originalHeight
+        //     }))
+        //   }));
+          
+        //   tempFiles.forEach(fileData => {
+        //     let fileUrl;
+    
+        //     // Safely create object URL
+        //     if (fileData.file instanceof File || fileData.file instanceof Blob) {
+        //       try {
+        //         fileUrl = URL.createObjectURL(fileData.file);
+        //       } catch (error) {
+        //         console.error("[DEBUG] Failed to create object URL for image:", error);
+        //         fileUrl = fileData.file_url || ''; // Fallback to existing URL or empty string
+        //       }
+        //     } else if (fileData.file_url) {
+        //       fileUrl = fileData.file_url;
+        //     } else {
+        //       console.warn("[DEBUG] No valid file or URL found for image:", fileData);
+        //       return; // Skip this iteration if no valid URL
+        //     }
+
+        //     resourceItems.push({
+        //       id: fileData.id || module.id,
+        //       type: 'image',
+        //       title: fileData.filename || "Image",
+        //       content: `View image: ${fileData.filename || "Image"}`,
+        //       imageData: {
+        //         contentID: fileData.id || module.id,
+        //         filename: fileData.filename || (fileData.file ? fileData.file.name : "image"),
+        //         file_url: fileUrl,
+        //         width: fileData.width || fileData.originalWidth,
+        //         height: fileData.height || fileData.originalHeight
+        //       },
+        //       moduleId: editId || "preview",
+        //       order: index
+        //     });
+        //   });
+        // } 
+
         else if (module.mediaType === "image") {
           const editor = editorRefs.current[module.id];
-          const tempFiles = editor?.getTempFiles?.() || [];
-
+          console.log("[CRITICAL DEBUG] Image Module Details:", {
+            moduleId: module.id,
+            mediaType: module.mediaType,
+            editorRef: editor,
+            editorRefExists: !!editor,
+            getTempFilesFunctionExists: editor && typeof editor.getTempFiles === 'function'
+          });
+        
+          // Check if getTempFiles method exists
+          if (!editor || typeof editor.getTempFiles !== 'function') {
+            console.error("[CRITICAL DEBUG] No getTempFiles method found for image module:", module);
+            return; // Skip this module
+          }
+        
+          const tempFiles = editor.getTempFiles() || [];
+          console.log("[CRITICAL DEBUG] TempFiles for Image Module:", {
+            moduleId: module.id,
+            tempFilesCount: tempFiles.length,
+            tempFiles: tempFiles.map(file => ({
+              id: file.id,
+              filename: file.filename,
+              width: file.width,
+              height: file.height,
+              fileExists: !!file.file,
+              fileType: file.file ? file.file.type : 'No file',
+              fileSize: file.file ? file.file.size : 'No file'
+            }))
+          });
+        
           // Cache image files
           setCachedImages(prev => ({
             ...prev,
-            [module.id]: tempFiles
+            [module.id]: tempFiles.map(fileData => {
+              console.log("[CRITICAL DEBUG] Caching Image File:", {
+                id: fileData.id,
+                filename: fileData.filename,
+                width: fileData.width || fileData.originalWidth,
+                height: fileData.height || fileData.originalHeight,
+                fileData: fileData
+              });
+              return {
+                ...fileData,
+                width: fileData.width || fileData.originalWidth,
+                height: fileData.height || fileData.originalHeight
+              };
+            })
           }));
           
           tempFiles.forEach(fileData => {
-            const fileUrl = fileData.file 
-              ? URL.createObjectURL(fileData.file) 
-              : fileData.file_url;
-
+            let fileUrl;
+        
+            console.log("[CRITICAL DEBUG] Processing Image File URL:", {
+              filename: fileData.filename,
+              fileDataType: typeof fileData.file,
+              isFile: fileData.file instanceof File,
+              isBlob: fileData.file instanceof Blob,
+              hasFileUrl: !!fileData.file_url
+            });
+        
+            // Safely create object URL
+            if (fileData.file instanceof File || fileData.file instanceof Blob) {
+              try {
+                fileUrl = URL.createObjectURL(fileData.file);
+                console.log("[CRITICAL DEBUG] Created Object URL for File:", fileUrl);
+              } catch (error) {
+                console.error("[CRITICAL DEBUG] Failed to create object URL for image:", {
+                  error: error.message,
+                  fileData: fileData
+                });
+                fileUrl = fileData.file_url || ''; 
+              }
+            } else if (fileData.file_url) {
+              fileUrl = fileData.file_url;
+            } else {
+              console.warn("[CRITICAL DEBUG] No valid file or URL found for image:", fileData);
+              return; 
+            }
+        
             resourceItems.push({
               id: fileData.id || module.id,
               type: 'image',
@@ -245,16 +361,16 @@ const AddModule = () => {
               content: `View image: ${fileData.filename || "Image"}`,
               imageData: {
                 contentID: fileData.id || module.id,
-                filename: fileData.filename || fileData.file.name,
+                filename: fileData.filename || (fileData.file ? fileData.file.name : "image"),
                 file_url: fileUrl,
-                width: fileData.width,
-                height: fileData.height
+                width: fileData.width || fileData.originalWidth,
+                height: fileData.height || fileData.originalHeight
               },
               moduleId: editId || "preview",
               order: index
             });
           });
-        } 
+        }
         else if (module.mediaType === "video") {
           const editor = editorRefs.current[module.id];
           console.log("[DEBUG] Video editor ref:", editor);

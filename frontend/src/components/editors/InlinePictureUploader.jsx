@@ -56,7 +56,7 @@ const InlinePictureEditorWrapper = React.forwardRef((props, ref) => {
           moduleId={actualModuleId}
           documentId={documentId}
           allowDirectUpload={true}
-          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-"))}
+          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-")) || documentId.startsWith("new-")}
         />
       </div>
     );
@@ -221,8 +221,11 @@ const InlinePictureUploader = React.forwardRef(({
   }, [editMode, originalDimensions]);
 
   const fetchImages = async () => {
-    console.log("[DEBUG] fetchImages called with moduleId:", moduleId, "documentId:", documentId);
-
+    console.log("[CRITICAL DEBUG] fetchImages called with:", {
+      moduleId: moduleId,
+      documentId: documentId,
+      temporaryMode: temporaryMode
+    });
     try {
       // Fetch all images for this module
       const response = await ImageService.getModuleImages(moduleId);
@@ -246,17 +249,74 @@ const InlinePictureUploader = React.forwardRef(({
 
   React.useImperativeHandle(ref, () => ({
     getTempFiles: () => {
-      console.log("[DEBUG] InlinePictureUploader.getTempFiles called, returning:", tempFiles);
+      console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+      
+      console.log("[CRITICAL DEBUG] getTempFiles called for InlinePictureUploader", {
+        moduleId: moduleId,
+        temporaryMode: temporaryMode,
+        imagesLength: images.length,
+        tempFilesLength: tempFiles.length
+      });
+
+      tempFiles.forEach(file => {
+        console.log(`[CRITICAL DEBUG] Temp File Details:`, {
+          id: file.id,
+          filename: file.filename,
+          width: file.width,
+          height: file.height,
+          fileExists: !!file.file,
+          fileType: file.file ? file.file.type : 'No file',
+          fileSize: file.file ? file.file.size : 'No file'
+        });
+      });
+
       // Log the current dimensions of each file for debugging
       tempFiles.forEach(file => {
           console.log(`[DEBUG] File ${file.filename} dimensions: ${file.width}×${file.height}`);
       });
+
+      const tempFileIds = new Set(tempFiles.map(file => file.id));
+      
+      // If we're in edit mode and already have displayed images, include them
+      if (moduleId && images.length > 0) {
+        const existingFiles = images.filter(image => !tempFileIds.has(image.contentID)).map(image => ({
+          id: image.contentID,
+          file: {
+            name: image.filename,
+            size: image.file_size || 0,
+            type: getMimeType(image.filename)
+          },
+          originalImage: image // Keep reference to original image
+        }));
+        
+        // Return both temporary and existing files
+        return [...tempFiles, ...existingFiles];
+      }
+      
       return tempFiles;
     },
 
     setTempFiles: (files) => {
-      console.log("[DEBUG] InlinePictureUploader.setTempFiles called with:", files);
-      setTempFiles(files);
+      console.log("[DEBUG] setTempFiles called with files:", files);
+      
+      // If files are from preview mode restoration, they might have originalImage
+      const processedFiles = files.map(file => {
+        if (file.originalImage) {
+          return {
+            ...file,
+            file: {
+              name: file.originalImage.filename,
+              size: file.originalImage.file_size || 0
+            },
+            width: file.originalImage.width,
+            height: file.originalImage.height,
+            filename: file.originalImage.filename
+          };
+        }
+        return file;
+      });
+      
+      setTempFiles(processedFiles);
     }
   }));
 
@@ -740,6 +800,27 @@ const InlinePictureUploader = React.forwardRef(({
         return <FiImage className={styles.imageIcon} />;
       default:
         return <FiImage />;
+    }
+  };
+
+  const getMimeType = (filename) => {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'bmp':
+        return 'image/bmp';
+      case 'svg':
+        return 'image/svg+xml';
+      default:
+        return 'application/octet-stream'; // fallback for unknown types
     }
   };
 
