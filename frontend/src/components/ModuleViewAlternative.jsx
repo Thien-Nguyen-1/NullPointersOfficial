@@ -115,6 +115,17 @@ const ModuleViewAlternative = () => {
           // add future media
           })),
         ];
+
+        const assessmentItems = [
+          ...moduleTasks.map(task => ({
+            id: task.contentID,
+            type: 'quiz',
+            quiz_type: task.quizType,
+            title: task.type,
+          }))
+        ]
+          
+
         
         // Create a structured content from the tasks
         // This transforms flat task data into sections with content
@@ -144,24 +155,23 @@ const ModuleViewAlternative = () => {
           });
         }
 
-        // Add Assessment section
-        structuredContent.push({
-          id: 'section-assessment',
-          type: 'section',
-          title: 'Assessment',
-          content: moduleTasks.map(task => ({
-            id: task.contentID,
-            type: 'quiz',
-            quiz_type: task.quiz_type,
-            title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
-            taskData: task
-          }))
-        });
+        // Add Assessment section if there are assesment items 
+        if (assessmentItems.length > 0) {
+          structuredContent.push({
+            id: 'section-assessment',
+            type: 'section',
+            title: 'Assessment',
+            content: moduleTasks.map(task => ({
+              id: task.contentID,
+              type: 'quiz',
+              quiz_type: task.quiz_type,
+              title: task.title || QuizApiUtils.getUITypeFromAPIType(task.quiz_type),
+              taskData: task
+            }))
+          });
+        }
 
 
-        
-
-        
         setModuleContent(structuredContent);
         
         // Fetch tags
