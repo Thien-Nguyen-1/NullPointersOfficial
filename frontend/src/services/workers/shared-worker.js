@@ -7,7 +7,7 @@ const isWebsocketConnected = []
 
 
 //check for existing connection 
-const IsActiveConnection = () => {
+export const IsActiveConnection = () => {
     //{"isWebsocketConnected": true}
     const returnObj = {
         "isWebsocketConnected" : false
@@ -22,7 +22,7 @@ const IsActiveConnection = () => {
 
 
 //Update isWebsocketConnected
-const UpdateWebsocketStatus = (isActive) => {
+export const UpdateWebsocketStatus = (isActive) => {
     if(isActive){
         isWebsocketConnected.push(true);
     } else {
@@ -34,7 +34,7 @@ const UpdateWebsocketStatus = (isActive) => {
 
 
 //Send all messages to all ports so every tab is synchronised
-const SendMessagesAllTabs = (data, currPort) => {
+export const SendMessagesAllTabs = (data, currPort) => {
     console.log("Sendin all mesage")
     console.log(tabConnections)
     tabConnections.forEach( (port) => {
@@ -52,7 +52,7 @@ const SendMessagesAllTabs = (data, currPort) => {
 
 
 
-self.onconnect =  (event) => {
+export const handleConnectEvent =  (event) => {
 
     console.log("TAB CONNECTIONS ARE")
     console.log(tabConnections)
@@ -100,6 +100,7 @@ self.onconnect =  (event) => {
 
     // port.postMessage("Worker: Staritng port")
 
+    self.onconnect = handleConnectEvent;
 
     port.start()
 
@@ -111,3 +112,7 @@ self.onconnect =  (event) => {
     data: {...}
 
 */
+
+// Only for testing:
+export const __getWebsocketStatus = () => isWebsocketConnected;
+export const __resetWebsocketStatus = () => { isWebsocketConnected.length = 0; };

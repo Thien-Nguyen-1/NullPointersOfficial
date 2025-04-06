@@ -94,7 +94,7 @@ afterEach(() => {
 
 
 
-test(" Send Valid Messages ", async () => {
+test(" Send Messages ", async () => {
 
     const plusIcon = FindFACircleButton();
     expect(plusIcon).toBeInTheDocument();
@@ -123,6 +123,8 @@ test(" Send Valid Messages ", async () => {
 
    const bubble = document.querySelector(".bubble-item")
     expect(bubble).toBeInTheDocument();
+
+    await SendClientMessage(inputField, formBar,  '');
    
 })
 
@@ -329,69 +331,3 @@ test (" File Message Rendered ", async() => {
 
 })
 
-
-
-// test(" Deleting Invalid Chats", async () => {
-
-//     await waitFor( () => {
-//         GetConversations.mockResolvedValue([{id:1, title: "Hello"}])
-//     })
-   
-
-    
-//     const mockError = new Error("Failed to delete chat") ;
-//     DeleteConversation.mockRejectedValue(mockError );
-
-//     const deleteButton = screen.getByText("Delete");
-//     expect(deleteButton).toBeInTheDocument();
-
-//     await act(async () => {
-//         fireEvent.click(deleteButton);
-//       });
-
-//     //await waitFor(() => expect(DeleteConversation).toHaveBeenCalled());
-
-//     expect(DeleteConversation).toHaveBeenCalled();
-
-     
-
-// })
-
-
-
-
-
-
-
-// test(" Get User Messages", async () => {
-
-
-//     // GetConversations.mockResolvedValue([
-//     //     { id: 1, title: "Test Chat", user_username: "Tester", updated_at: "2024-04-04T12:00:00.000Z", hasEngaged: true }
-//     // ]);
-
-//     //  CreateConversation.mockResolvedValue({id:1})
-
-//     const plusIcon = document.querySelector(".fa-circle-plus");
-//     expect(plusIcon).toBeInTheDocument();
-    
-
-//     // const plusIcon = await screen.findByTestId("plus-icon");
-//     // expect(plusIcon).toBeInTheDocument();
-
-//     // fireEvent.click(plusIcon);
-
-    
-//     // const chatbox = await waitFor(() => {
-//     //     const box = document.querySelector(".chat-side-box");
-//     //     if (!box) throw new Error("Box not found in DOM");
-//     //     return box;
-//     //   });
-
-
-//     // expect(chatbox).toBeInTheDocument();
-//     // fireEvent.click(chatbox);
-
-
-
-// })

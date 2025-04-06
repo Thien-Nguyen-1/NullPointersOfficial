@@ -12,7 +12,7 @@ export async function GetConversations(token, objConvoReq = {}){
         return response.data
        
     } catch(error){
-        return response.error
+        return error
     }
 }
 
@@ -23,7 +23,7 @@ export async function CreateConversation(token, objConvoReq = {}) {
 
         return response.data
     }catch(error){
-        return response.error
+        return error
     }
 }
 
@@ -35,7 +35,7 @@ export async function GetMessages(token, id=-10){
 
         return response.data
     }  catch(error){
-        return response.error
+        return error
     }
 }
 
@@ -61,7 +61,7 @@ export async function SendMessage(token, id=-10, objMessage = {"message": "", "f
         
 
     } catch(error){
-        return response.error
+        return error
     }
 }
 
@@ -82,7 +82,7 @@ export async function DeleteConversation(token, id){
         return response.data
 
     }catch(error){
-        return response.error
+        return error
     }
 }
 

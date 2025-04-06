@@ -9,7 +9,9 @@ const connections = {}
 const background_connections = {}
 const callbacks = []
 
-const myWorker = new SharedWorker('/shared-worker.js');
+// const myWorker = new SharedWorker('/shared-worker.js');
+
+const myWorker = new SharedWorker(new URL('./workers/shared-worker.js', import.meta.url) , {type:'module'});
 myWorker.port.start();
 
 
