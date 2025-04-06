@@ -6,6 +6,7 @@ import InfosheetContent from "./InfosheetContent";
 import QuizContent from "./QuizContent";
 import HeadingContent from "./HeadingContent";
 import ParagraphContent from "./ParagraphContent";
+import AudioContent from "./AudioContent";
 import { markContentAsViewed } from "../../services/api";
 
 /**
@@ -89,6 +90,12 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete }) => {
         completedContentIds={completedContentIds} 
         onComplete={handleContentComplete} 
       />;
+    case 'audio': 
+      return <AudioContent 
+      audioData={item} 
+      completedContentIds={completedContentIds} 
+      onComplete={handleContentComplete} 
+    />;
     case 'quiz':
       return <QuizContent 
         quizData={item} 
