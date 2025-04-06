@@ -31,7 +31,6 @@ describe('QuestionAndAnswerForm', async () => {
 
         render(<QuestionAndAnswerForm taskId={1} onComplete={() => {}} />);
 
-        // Using findByText to wait for the elements to appear
         const question1 = await screen.findByDisplayValue('What is your name?', {}, { timeout: 1000 });
         const question2 = await screen.findByDisplayValue('What is your quest?', {}, { timeout: 1000 });
 
