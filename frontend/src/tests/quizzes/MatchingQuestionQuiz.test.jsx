@@ -55,23 +55,6 @@ describe('MatchingQuestionsQuiz', () => {
     });
 
 
-    // test('handles drag and drop interaction correctly', async () => {
-    //     const onComplete = vi.fn();
-    //     const { getByText } = renderWithDnd(<MatchingQuestionsQuiz taskId="1" onComplete={onComplete} />);
-
-    //     const question = getByText('What is the capital?');
-    //     const answer = getByText('Paris');
-
-    //     // Simulate drag and drop
-    //     fireEvent.dragStart(question);
-    //     fireEvent.dragEnter(answer);
-    //     fireEvent.dragOver(answer);
-    //     fireEvent.drop(answer);
-    //     fireEvent.dragEnd(question);
-
-    //     // Perform submission and assertions
-    //     fireEvent.click(getByText('Submit Answers'));
-    //     expect(onComplete).toHaveBeenCalledWith({ "1": "Paris" });
-    // });
+   
     
 });
