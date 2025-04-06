@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor, getElementError } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import VisualMatchingQuestionsQuizEditor from '../../components/editors/VisualMatchingQuestionsQuizEditor';
 import QuizApiUtils from '../../services/QuizApiUtils';
@@ -150,6 +150,30 @@ describe('VisualMatchingQuestionsQuizEditor', () => {
             expect(questions).toEqual(expect.arrayContaining([
                 expect.objectContaining({ question_text: 'New Question', answers: ['Answer1', 'Answer2'] })
             ]));
+        });
+    });
+
+    test('handleAddOrUpdatePair should set error when question or answers are empty', async () => {
+        const { getByText, getByPlaceholderText, getByRole } = renderComponent();
+
+        const questionInput = getByPlaceholderText('Enter question');
+        const answersInput = getByPlaceholderText('Enter answers separated by commas');
+        fireEvent.change(questionInput, { target: { value: '' } });
+        fireEvent.change(answersInput, { target: { value: 'Red, Green, Blue' } });
+
+        fireEvent.click(getByText('Add Pair'));
+
+        await waitFor(() => {
+            expect(getElementError("Both question and at least one answer must be filled."));
+        });
+
+        fireEvent.change(questionInput, { target: { value: 'What is your favorite color?' } });
+        fireEvent.change(answersInput, { target: { value: '' } });
+
+        fireEvent.click(getByText('Add Pair'));
+
+        await waitFor(() => {
+            expect(getElementError("Both question and at least one answer must be filled."));
         });
     });
     
