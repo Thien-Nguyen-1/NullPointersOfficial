@@ -55,7 +55,7 @@ const DocumentEditorWrapper = React.forwardRef((props, ref) => {
           moduleId={actualModuleId} 
           documentId={documentId}
           allowDirectUpload={true}
-          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-"))}
+          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-")) || documentId.startsWith("new-")}
         />
       </div>
     );
@@ -134,8 +134,12 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       
       // If we're in edit mode and already have displayed documents, include them
       if (moduleId && documents.length > 0) {
+        // Get IDs of files already in tempFiles to avoid duplicates
+        const tempFileIds = new Set(tempFiles.map(file => file.id));
+
         // Create objects that mimic the structure of temp files
-        const existingFiles = documents.map(doc => ({
+        const existingFiles = documents.filter(doc => !tempFileIds.has(doc.contentID)) // avoid duplicates
+        .map(doc => ({
           id: doc.contentID,
           file: {
             name: doc.filename,
@@ -157,6 +161,12 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
 
     setTempFiles: (files) => {
       console.log("[DEBUG] setTempFiles called with files:", files);
+      // For new components, also update the documents state to show these files
+      if (documentId && documentId.toString().startsWith('new-')) {
+        console.log("[DEBUG] New component, updating documents state with cached files");
+        setDocuments(files);
+      }
+      
       setTempFiles(files);
     }
   }));

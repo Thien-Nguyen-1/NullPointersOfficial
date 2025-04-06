@@ -57,7 +57,7 @@ const AudioEditorWrapper = React.forwardRef((props, ref) => {
           moduleId={actualModuleId} 
           documentId={documentId}
           allowDirectUpload={true}
-          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-"))}
+          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-")) || documentId.startsWith("new-")}
         />
       </div>
     );
