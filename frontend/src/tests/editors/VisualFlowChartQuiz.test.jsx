@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, getElementError } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import VisualFlowChartQuiz from '../components/editors/VisualFlowChartQuiz';
+import VisualFlowChartQuiz from '../../components/editors/VisualFlowChartQuiz';
 
 // Mock window.confirm to always return true for tests
 //global.confirm = vi.fn(() => true);
@@ -136,15 +136,15 @@ describe('VisualFlowChartQuiz Component', () => {
       button.textContent === '×'
     );
     
-    // Click the delete button
+    //Click the delete button
     fireEvent.click(deleteButtons[0]);
     // Check that alert was called
-    // await waitFor(() => {
-    // expect(global.alert).toHaveBeenCalledWith(
-    //   "You must have at least one statement in the flowchart. Add another statement before deleting this one."
-    // );
-    // });
-    // Check that the statement still exists
+    await waitFor(() => {
+    expect(getElementError(
+      "You must have at least one statement in the flowchart. Add another statement before deleting this one."
+    ));
+    });
+    //Check that the statement still exists
     expect(getByText('S1')).toBeTruthy();
   });
 });
