@@ -58,6 +58,7 @@ export async function SendMessage(token, id=-10, objMessage = {"message": "", "f
         
         )
 
+        return response.data;
         
 
     } catch(error){
