@@ -772,39 +772,6 @@ const AddModule = () => {
         }
       }
 
-      // process IMAGE deletions
-      if (pendingDeletions.image.length > 0) {
-          for (const imageId of pendingDeletions.image) {
-            try {
-              const allImages = await ImageService.getModuleImages(moduleId);
-              const imagesToDelete = allImages.filter(image => image.contentID === imageId);
-
-              for (const image of imagesToDelete) {
-                await ImageService.deleteImage(image.contentID);
-              }
-            } catch (err) {
-              console.error(`[ERROR] Failed to delete images for component ${imageId}:`, err);
-            }
-          }
-      }
-
-      // process VIDEO deletions
-      if (pendingDeletions.video.length > 0) {
-          console.log("[DEBUG] Calling processMediaDeletion for VIDEO")
-          for (const videoId of pendingDeletions.video) {
-            try {
-              const allVideos = await VideoService.getModuleVideos(moduleId);
-              const videosToDelete = allVideos.filter(video => video.contentID === videoId);
-
-              for (const video of videosToDelete) {
-                await VideoService.deleteVideo(video.contentID);
-              }
-            } catch (err) {
-              console.error(`[ERROR] Failed to delete videos for component ${videoId}:`, err);
-            }
-          }
-      }
-
     }
 
     // process IMAGE deletions
@@ -838,7 +805,6 @@ const AddModule = () => {
         }
       }
   }
-
 
     
     // Clear pending deletions
