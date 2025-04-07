@@ -117,7 +117,8 @@ function App() {
                               <Route path="settings" element={<Settings />} />
                               <Route path="support" element={<Support />} />
                               <Route path="courses" element={<Courses />} />
-                              <Route path="/service-users" element={<ServiceUsersPage />} />
+                              <Route path="service-users" element={<ServiceUsersPage />} />
+                              <Route path="set-questionnaire" element={<QuestionnaireAdmin />} />
 
                               {/* to be deleted */}
                               <Route path="all-courses" element={<CoursesList role="admin" />} />

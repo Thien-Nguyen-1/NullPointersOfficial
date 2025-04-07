@@ -44,7 +44,6 @@ const Sidebar = ({ role }) => {
   const adminItems = [
     { path: "service-users", icon: <FaUsers size={24} />, label: "Manage Users" },
     { path: "courses", icon: <PiBooksBold size={24} />, label: "Courses" },
-    { path: "set-questionnaire", icon: <RiQuestionnaireLine size={24} />, label: "Set Quesionnaire"},
     { path: "all-courses/create-and-manage-module", icon: <PiColumnsPlusLeftFill size={24} />, label: "Create Module" }
   ];
 
@@ -58,6 +57,7 @@ const Sidebar = ({ role }) => {
   // SuperAdmin-specific menu items
   const superAdminItems = [
     { path: "superadmin-settings", icon: <FaUserShield size={24} />, label: "Super Admin Settings" },
+    { path: "set-questionnaire", icon: <RiQuestionnaireLine size={24} />, label: "Set Quesionnaire"},
   ];
 
   const menuItems = [...commonItems];
