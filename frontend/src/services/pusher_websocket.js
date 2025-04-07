@@ -67,6 +67,8 @@ const SetUpBackgroundConnections = async () => {
 
      
         if(pusherInstance.pusher){
+
+            console.log("yip yip")
         const channel = pusherInstance.pusher.subscribe(`chat-room-${convObj.id}`)
 
         channel.bind('new-message', (data) => {
@@ -75,6 +77,8 @@ const SetUpBackgroundConnections = async () => {
 
             }
         )
+        } else {
+            console.log("Pusher instance not active")
         }
             
     });
@@ -86,7 +90,6 @@ const SetUpBackgroundConnections = async () => {
 export const subscribeToChatRoom = (room_id, callback, isBackground) => {
 
     myWorker.port.postMessage({cmd: "SUBSCRIBE-CHAT", data: {"chatID": room_id}})
-
 
 
 }
@@ -108,7 +111,12 @@ export const AddCallback = (callback) => {
 
 
 export const RefreshSubscriptions = () => {
-    SetUpBackgroundConnections()
+
+    if(!pusherInstance.pusher){
+        InitializePusher();
+    }
+
+    SetUpBackgroundConnections();
 }
 
 

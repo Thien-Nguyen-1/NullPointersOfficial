@@ -11,32 +11,30 @@ class UserSupportViewTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
 
-        # Create a service user
+      
         self.service_user = User.objects.create_user(username='serviceuser', password='password123', user_type='service user', email='test@gmail.com')
 
-        # Create an admin user
         self.admin_user = User.objects.create_user(username='adminuser', password='password123', user_type='admin', email='test2@gmail.com')
 
-        # Authenticate by default with service user
         self.client.force_authenticate(user=self.service_user)
 
         self.url_ = reverse('user-support-view')
 
     def test_get_conversations_as_service_user(self):
-        # Create a conversation for the service user
+   
         Conversation.objects.create(user=self.service_user)
 
-        response = self.client.get(self.url_)  # Replace with actual URL
+        response = self.client.get(self.url_)  
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(response.data) >= 1)
 
     def test_post_conversation_service_user_under_limit(self):
-        response = self.client.post(self.url_, {})  # Replace with actual URL
+        response = self.client.post(self.url_, {}) 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Conversation.objects.filter(user=self.service_user).count(), 1)
 
     def test_post_conversation_service_user_over_limit(self):
-        # Create MAX_LIMIT (5) conversations
+       
         for _ in range(5):
             Conversation.objects.create(user=self.service_user)
 
@@ -94,7 +92,7 @@ class UserSupportViewTests(APITestCase):
          Conversation.objects.all().delete()
     
          data = {
-                "conversation_id": 99999  # ID that doesn't exist
+                "conversation_id": 99999  
          }
 
          response = self.client.get(self.url_, data)
@@ -105,7 +103,7 @@ class UserSupportViewTests(APITestCase):
          self.client.force_authenticate(user=self.admin_user)
     
          data = {
-                "conversation_id": 99999  # ID that doesn't exist
+                "conversation_id": 99999
          }
 
          response = self.client.post(self.url_, data)

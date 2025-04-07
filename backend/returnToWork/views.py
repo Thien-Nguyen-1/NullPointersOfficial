@@ -58,7 +58,6 @@ class ProgressTrackerView(APIView):
 
     def get(self, request):
 
-        
         progressTrackerObjects = ProgressTracker.objects.all() #(filter user request and commpleted = true)
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
@@ -1213,7 +1212,7 @@ class UserSupportView(APIView):
         info_chats = info_chats.order_by('-updated_at')
 
         if not info_chats:
-            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_200_OK)
         
         serialized_info = ConversationSerializer(info_chats, many=True)
         

@@ -1,14 +1,26 @@
 
 import { fireEvent, render, screen, waitFor, cleanup, act } from "@testing-library/react";
-import Messaging from "../../pages/Messaging";
+import { createEvent } from "@testing-library/react";
 import { afterEach, beforeEach, expect } from "vitest";
 import { vi } from "vitest";
-import { AuthContext } from "../../services/AuthContext";
-import FileUploader from "../../components/SupportAssets/FileUploader";
 import userEvent from "@testing-library/user-event";
-import { createEvent } from "@testing-library/react";
-import ChatHeaderBar from "../../components/SupportAssets/HeaderBar";
 
+const mockCallbackList = [];
+
+
+vi.mock('../../services/pusher_websocket', () => ({
+  AddCallback: (cb) => mockCallbackList.push(cb),
+  subscribeToChatRoom: vi.fn(),
+  RefreshSubscriptions: vi.fn()
+}));
+
+
+
+import FileUploader from "../../components/SupportAssets/FileUploader";
+
+import { AuthContext } from "../../services/AuthContext";
+import ChatHeaderBar from "../../components/SupportAssets/HeaderBar";
+import Messaging from "../../pages/Messaging";
 
 vi.mock("../../services/api_chat" ,() => ({
     CreateConversation: vi.fn(),
@@ -286,6 +298,7 @@ test("Delete chat when convObj is null", async () => {
   // Optionally check that handleDeleteChat was called with undefined
 });
 
+
 test(" Get User Messages", async () => {
 
 
@@ -393,3 +406,52 @@ test (" File Message Rendered ", async() => {
 })
 
 
+
+test("Delete chat", async () => {
+  const chatBox = await FindChatBox()
+  expect(chatBox).toBeInTheDocument();
+
+  await act(async () => {fireEvent.click(chatBox)})
+
+  const deleteButton = document.querySelector('.delete-chat-button')
+  expect(deleteButton).toBeInTheDocument();
+
+  await act(async () => {fireEvent.click(deleteButton)})
+
+})
+
+test("Delete Invalid Chat" , async () => {
+  DeleteConversation.mockRejectedValue(new Error("Unable to delete chat"));
+
+  const chatBox = await FindChatBox()
+  expect(chatBox).toBeInTheDocument();
+
+  await act(async () => {fireEvent.click(chatBox)})
+
+  const deleteButton = document.querySelector('.delete-chat-button')
+  expect(deleteButton).toBeInTheDocument();
+
+  await act(async () => {fireEvent.click(deleteButton)})
+
+
+})
+
+test("Receiving message via pusher triggers message refresh", async () => {
+  
+  const chatBox = await FindChatBox();
+  expect(chatBox).toBeInTheDocument();
+
+  await act(async () => {
+    fireEvent.click(chatBox);
+  });
+
+  GetMessages.mockClear();
+
+
+  await act(async () => {
+ 
+    mockCallbackList[0]({ chatID: 1 });
+  });
+
+  expect(GetMessages).toHaveBeenCalled();
+});
