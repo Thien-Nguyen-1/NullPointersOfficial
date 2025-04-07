@@ -61,12 +61,9 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete }) => {
     };
 
     const handleSubmitAnswers = () => {
-        if (validateQuiz()) {
             onComplete(userAnswers);
             setQuizCompleted(true);
-        } else {
-            console.error("Validation failed, not all questions answered.");
-        }
+        
     };
 
     const resetQuiz = () => {

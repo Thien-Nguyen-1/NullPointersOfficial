@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser,Group,Permission
 from django.db import models
 from django.contrib.auth.models import User
 import uuid
+import os
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db.models import JSONField
@@ -190,7 +191,26 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.full_name()} - {self.username} - {self.user_id}"
+
+# adding this since the implementation now is ONLY superadmin is allowed to create admin (admin cant simply sign up using the signup page)
+# so this separates verification data --> to avoid redundancy since service user and superadmin dont need this
+class AdminVerification(models.Model):
+    """Model to track admin verification status and token information separately from User model"""
+    admin = models.OneToOneField(User, on_delete=models.CASCADE, related_name='verification')
+    is_verified = models.BooleanField(default=False)
+    verification_token = models.CharField(max_length=255, null=True, blank=True)
+    token_created_at = models.DateTimeField(auto_now_add=True)
     
+    def __str__(self):
+        return f"Verification for {self.admin.username}"
+        
+    def is_token_expired(self):
+        """Check if token is expired (older than 48 hours)"""
+        if not self.verification_token or not self.token_created_at:
+            return True
+        expiration = self.token_created_at + timezone.timedelta(hours=48)
+        return timezone.now() > expiration
+
 
 #task has a module id - but 
 
@@ -291,19 +311,78 @@ class InlinePicture(Content):
     """Model for Inline Picture content type"""
     image_file = models.ImageField(upload_to="inline_pictures/")
 
+def audio_file_path(instance, filename):
+    """Generate file path for new audio file"""
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('uploads/audios/', filename)
+
 class AudioClip(Content):
     """Model for Audio Clip content type"""
-    question_text = models.TextField(null=True, blank=True)
-    audio_file = models.FileField(upload_to="audio_clips/")
-    user_response = models.TextField(blank=True, null=True)
-
+    audio_file = models.FileField(upload_to=audio_file_path)
+    filename = models.CharField(max_length=255, null=True, blank=True)
+    file_type = models.CharField(max_length=50, null=True, blank=True)
+    file_size = models.PositiveIntegerField(null=True, blank=True)  # size in bytes
+    duration = models.FloatField(null=True, blank=True)  # in seconds
+    
     def __str__(self):
-        return f"Audio Clip : {self.question_test}"
+        return self.title or self.filename or "Audio Clip"
+    
+    @property
+    def file_url(self):
+        return self.audio_file.url if self.audio_file else None
+    
+    @property
+    def file_size_formatted(self):
+        """Return human-readable file size."""
+        size = self.file_size
+        if not size:
+            return None
+            
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+    
+    def delete(self, *args, **kwargs):
+        # Delete the file from storage when model instance is deleted
+        if self.audio_file:
+            if os.path.isfile(self.audio_file.path):
+                os.remove(self.audio_file.path)
+        super().delete(*args, **kwargs)
 
 class Document(Content):
     """Model for Attach PDF/Documents/Infosheet content type"""
-    documents = models.JSONField()  # Stores document metadata as JSON
+    # documents = models.JSONField()  # Stores document metadata as JSON
     # Each document will have: name, title, url, fileType
+    file = models.FileField(upload_to="documents/", null=True, blank=True)
+    filename = models.CharField(max_length=255, null=True, blank=True)
+    file_type = models.CharField(max_length=50, null=True, blank=True)
+    file_size = models.PositiveIntegerField(null=True, blank=True)  # size in bytes
+    upload_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return self.filename or ""
+    
+    @property
+    def file_url(self):
+        return self.file.url if self.file else None
+    
+    @property
+    def file_size_formatted(self):
+        """Return human-readable file size."""
+        size = self.file_size
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024 or unit == 'GB':
+                return f"{size:.2f} {unit}"
+            size /= 1024
+    
+    def delete(self, *args, **kwargs):
+        # Delete the file from storage when model instance is deleted
+        if self.file:
+            if os.path.isfile(self.file.path):
+                os.remove(self.file.path)
+        super().delete(*args, **kwargs)
 
 class EmbeddedVideo(Content):
     """Model for Embedded Video content type"""
@@ -416,7 +495,7 @@ class ContentProgress(models.Model):
     
     # Using Django's ContentType framework
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()  # Using UUID for your Content subclasses
+    object_id = models.UUIDField()  # Using UUID for Content subclasses
     content_object = GenericForeignKey('content_type', 'object_id')
     
     # Progress tracking

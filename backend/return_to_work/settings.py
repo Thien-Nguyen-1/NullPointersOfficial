@@ -14,6 +14,7 @@ from pathlib import Path
 import dj_database_url
 import os
 from datetime import timedelta
+import os
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -142,6 +143,8 @@ STATIC_URL = 'static/'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Where collectstatic will put files
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -181,7 +184,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         # 'rest_framework.permissions.IsAuthenticated',  # Restrict API to authenticated users
-        'rest_framework.permissions.AllowAny',  # ✅ Allows public access
+        'rest_framework.permissions.AllowAny',  # Allows public access
     ),
 
 }

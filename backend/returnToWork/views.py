@@ -3,6 +3,7 @@
 
 import json
 import random
+import os
 import uuid
 from io import BytesIO
 
@@ -16,6 +17,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from rest_framework.decorators import action
 
 from rest_framework import generics, status, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -37,7 +39,7 @@ from .models import (
     Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
     RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
     AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
-    Conversation, Message, TermsAndConditions
+    Conversation, Message, TermsAndConditions, AdminVerification
 )
 from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
@@ -46,7 +48,7 @@ from .serializers import (
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    VideoSerializer, MessageSerializer, ConversationSerializer
+    VideoSerializer, MessageSerializer, ConversationSerializer, AdminVerificationSerializer
 )
 
 User = get_user_model()
@@ -261,16 +263,211 @@ class InlinePictureViewSet(viewsets.ModelViewSet):
 class AudioClipViewSet(viewsets.ModelViewSet):
     queryset = AudioClip.objects.all()
     serializer_class = AudioClipSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Filter by module ID if provided in query params
+        module_id = self.request.query_params.get('module_id')
+        if module_id:
+            try:
+                # convert string to integer since Module.id is an AutoField
+                module_id_int = int(module_id)
+                return AudioClip.objects.filter(moduleID=module_id_int)
+            except (ValueError, TypeError) as e:
+                # Log the error for debugging
+                print(f"Error filtering audio clips by module_id {module_id}: {str(e)}")
+                return AudioClip.objects.none()  # return empty queryset on error
+        
+        # If user is admin/superadmin, they can see all audio clips
+        if self.request.user.is_staff or self.request.user.is_superuser or self.request.user.user_type in ['admin', 'superadmin']:
+            return AudioClip.objects.all()
+        
+        # Regular users can only see published audio clips
+        return AudioClip.objects.filter(is_published=True)
+    
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        print("===== AUDIO UPLOAD REQUEST STARTED =====")
+        print(f"Files in request: {request.FILES}")
+        print(f"Request data: {request.data}")
+        
+        files = request.FILES.getlist('files')
+        print(f"Number of files: {len(files)}")
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        module_id = request.data.get('module_id')
+        print(f"Module ID: {module_id}")
+        
+        if not files:
+            print("No files found in request")
+            return Response({'error': 'No files to upload'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        module = None
+        if module_id:
+            try:
+                # convert module_id to integer since it's an AutoField
+                module_id_int = int(module_id)
+                print(f"Converted module_id to int: {module_id_int}")
+
+                module = Module.objects.get(id=module_id_int)
+                print(f"Found module: {module.title}")
+            except (Module.DoesNotExist, ValueError, TypeError) as e:
+                print(f"Error getting module {module_id}: {str(e)}")
+                return Response({'error': 'Module not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        uploaded_audios = []
+        
+        for file in files:
+            print(f"Processing file: {file.name}, size: {file.size} bytes")
+
+            # check file type and size
+            filename = file.name
+            file_extension = os.path.splitext(filename)[1][1:].lower()
+            
+            allowed_extensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a']
+            if file_extension not in allowed_extensions:
+                print(f"File extension {file_extension} not allowed, skipping")
+                continue  # skip unsupported files
+            
+            try:
+                print(f"Creating AudioClip object for {filename}")
+
+                # create audio clip object
+                audio = AudioClip(
+                    moduleID=module,
+                    audio_file=file,
+                    filename=filename,
+                    file_type=file_extension,
+                    file_size=file.size,
+                    author=request.user,
+                    title=filename,  # set title to filename by default
+                    description=f"Uploaded audio: {filename}",
+                    is_published=True  # set as published by default
+                )
+                
+                # Try to get audio duration
+                try:
+                    import mutagen
+                    print("Using mutagen to get audio duration")
+                    audio_data = mutagen.File(file)
+                    if audio_data and hasattr(audio_data.info, 'length'):
+                        audio.duration = audio_data.info.length
+                        print(f"Duration: {audio.duration} seconds")
+                    else:
+                        print("Could not extract duration from audio file")
+                except Exception as e:
+                    print(f"Error getting audio duration: {e}")
+                
+                print("Saving audio to database")
+                audio.save()
+                print(f"Audio saved successfully with content ID: {audio.contentID}")
+                uploaded_audios.append(audio)
+            except Exception as e:
+                print(f"Error saving audio {filename}: {str(e)}")
+        
+        if not uploaded_audios:
+            print("No valid audio files were uploaded")
+            return Response({'error': 'No valid audio files were uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+        print(f"Successfully uploaded {len(uploaded_audios)} audio files")
+        serializer = AudioClipSerializer(uploaded_audios, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        audio = self.get_object()
+        
+        # Only allow admins or the audio author to delete
+        if request.user.user_type in ['admin', 'superadmin'] or audio.author == request.user:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Filter by module ID if provided in query params
+        module_id = self.request.query_params.get('module_id')
+        if module_id:
+            try:
+                # convert string to integer since Module.id is an AutoField
+                module_id_int = int(module_id)
+                return Document.objects.filter(moduleID=module_id_int)
+            except (ValueError, TypeError) as e:
+                # Log the error for debugging
+                print(f"Error filtering documents by module_id {module_id}: {str(e)}")
+                return Document.objects.none()  # return empty queryset on error
+        
+        # If user is admin/superadmin, they can see all documents
+        if self.request.user.is_staff or self.request.user.is_superuser or self.request.user.user_type in ['admin', 'superadmin']:
+            return Document.objects.all()
+        
+        # Regular users can only see published documents
+        return Document.objects.filter(is_published=True)
+    
+    @action(detail=False, methods=['post'])
+    def upload(self, request):
+        files = request.FILES.getlist('files')
+        module_id = request.data.get('module_id')
+        
+        if not files:
+            return Response({'error': 'No files to upload'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        module = None
+        if module_id:
+            try:
+                # convert module_id to integer since it's an AutoField
+                module_id_int = int(module_id)
+                module = Module.objects.get(id=module_id)
+            except Module.DoesNotExist:
+                print(f"Error getting module {module_id}: {str(e)}")
+                return Response({'error': 'Module not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        uploaded_documents = []
+        
+        for file in files:
+            # check file type and size
+            filename = file.name
+            file_extension = os.path.splitext(filename)[1][1:].lower()
+            
+            allowed_extensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']
+            if file_extension not in allowed_extensions:
+                continue  # skip unsupported files
+            
+            try:
+                # create document object
+                document = Document(
+                    moduleID=module,
+                    file=file,
+                    filename=filename,
+                    file_type=file_extension,
+                    file_size=file.size,
+                    author=request.user,
+                    title=filename,  # set title to filename by default
+                    description=f"Uploaded document: {filename}",
+                    is_published=True  # set as published by default
+                )
+                document.save()
+                uploaded_documents.append(document)
+            except Exception as e:
+                print(f"Error saving document {filename}: {str(e)}")
+        
+        if not uploaded_documents:
+            return Response({'error': 'No valid documents were uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer = DocumentSerializer(uploaded_documents, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        document = self.get_object()
+        
+        # Only allow admins or the document author to delete
+        if request.user.user_type in ['admin', 'superadmin'] or document.author == request.user:
+            return super().destroy(request, *args, **kwargs)
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
 
 class EmbeddedVideoViewSet(viewsets.ModelViewSet):
     queryset = EmbeddedVideo.objects.all()
@@ -910,8 +1107,7 @@ class TaskPdfView(APIView):
 
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
-    # permission_classes = [IsAuthenticated]
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Get the current terms and conditions"""
@@ -984,11 +1180,195 @@ class AdminUsersView(APIView):
         data['user_type'] = 'admin'
         
         # Use the existing SignUpSerializer for validation
-        serializer = SignUpSerializer(data=data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # serializer = SignUpSerializer(data=data)
+        # if serializer.is_valid():
+        #     user = serializer.save()
+        #     return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if email verification is required:
+        require_verification = data.get('require_verification', True)
+        try:
+            #convert string value to boolean
+            if isinstance(require_verification, str):
+                require_verification = require_verification.lower() == 'true'
+        except:
+            require_verification == True
+
+        try: 
+            # Extract required fields
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            first_name = data.get('first_name', '')
+            last_name = data.get('last_name', '')
+
+            # validate required fields:
+            if not all([username, email, password]):
+                return Response({'error': 'Username, email and password are required'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            
+            # check if user already exists
+            if User.objects.filter(username=username).exists(): # usrname checking
+                return Response({'error': 'Username already exists'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+            
+            if User.objects.filter(email=email).exists(): # email checking
+                return Response({'error': 'Email already exists'}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create user with create_user to properly hash password
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                user_type='admin',
+                terms_accepted=True  # Default for admin users
+            )
+            
+            if require_verification:
+                # Create verification entry
+                verification_token = str(uuid.uuid4())
+                AdminVerification.objects.create(
+                    admin=user,
+                    is_verified=False,
+                    verification_token=verification_token
+                )
+                
+                # === VERIFICATION EMAIL FOR ADMIN IS OPTIONAL SINCE SUPERADMIN CREATES THEM === #
+                # Send verification email
+                verification_url = f"{request.build_absolute_uri('/').rstrip('/')}/verify-admin-email/{verification_token}/"
+                
+                send_mail(
+                    subject="Verify your admin account",
+                    message=f"Dear {user.first_name},\n\nYou've been added as an admin by a superadmin. Please verify your email by clicking the following link: {verification_url}",
+                    from_email="readiness.to.return.to.work@gmail.com",
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            else:
+                # If verification not required, create verified admin
+                AdminVerification.objects.create(
+                    admin=user,
+                    is_verified=True
+                )
+            
+            # Return the created user with JWT tokens for immediate login if not requiring verification
+            if not require_verification:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'user': UserSerializer(user).data,
+                    'tokens': {
+                        'access': str(refresh.access_token),
+                        'refresh': str(refresh)
+                    }
+                }, status=status.HTTP_201_CREATED)
+            else:
+                # Just return the user data without tokens
+                return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminEmailVerificationView(APIView):
+    """API view for admin email verification"""
+    permission_classes = []  # no authentication required for verification
+    
+    def get(self, request, token):
+        """Verify admin email using token"""
+        try:
+            # find verification record with this token
+            verification = AdminVerification.objects.get(verification_token=token)
+            
+            # check if token is expired
+            if verification.is_token_expired():
+                return Response({
+                    'error': 'Verification token has expired. Please request a new one.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # ensure the user is actually an admin
+            if verification.admin.user_type != 'admin':
+                return Response({
+                    'error': 'This verification link is only valid for admin users.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Mark as verified and clear token
+            verification.is_verified = True
+            verification.verification_token = None
+            verification.save()
+            
+            # Generate JWT tokens for immediate login
+            refresh = RefreshToken.for_user(verification.admin)
+            
+            # Redirect to login or a success page
+            return Response({
+                'message': 'Email verified successfully. You can now log in as an admin.',
+                'tokens': {
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh)
+                },
+                'redirect_url': '/login'
+            })
+        except AdminVerification.DoesNotExist:
+            return Response({
+                'error': 'Invalid or expired verification token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+class ResendAdminVerificationView(APIView):
+    """API view to resend admin verification emails"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, user_id):
+        """Resend verification email to admin"""
+        # Check if user is a superadmin
+        if request.user.user_type != 'superadmin':
+            return Response({'error': 'Only superadmins can resend verification emails'}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            # Get the admin user
+            admin = User.objects.get(id=user_id, user_type='admin')
+            
+            # Get or create verification record
+            verification, created = AdminVerification.objects.get_or_create(
+                admin=admin,
+                defaults={'is_verified': False}
+            )
+            
+            # Check if already verified
+            if verification.is_verified:
+                return Response({'error': 'User is already verified'}, 
+                               status=status.HTTP_400_BAD_REQUEST)
+            
+            # Generate new verification token
+            verification.verification_token = str(uuid.uuid4())
+            verification.token_created_at = timezone.now()
+            verification.save()
+            
+            # Send verification email
+            verification_url = f"{request.build_absolute_uri('/').rstrip('/')}/verify-admin-email/{verification.verification_token}/"
+            
+            send_mail(
+                subject="Verify your admin account - Reminder",
+                message=f"Dear {admin.first_name},\n\nThis is a reminder to verify your admin account. Please click the following link to verify your email: {verification_url}",
+                from_email="readiness.to.return.to.work@gmail.com",
+                recipient_list=[admin.email],
+                fail_silently=False,
+            )
+            
+            return Response({
+                'message': f'Verification email resent to {admin.email}',
+                'email': admin.email
+            })
+            
+        except User.DoesNotExist:
+            return Response({'error': 'Admin user not found'}, 
+                           status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, 
+                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AdminUserDetailView(APIView):
     """API view for managing individual admin users"""

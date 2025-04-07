@@ -1,59 +1,89 @@
-import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
+// Main Component File: AddModule.jsx
+// MAIN PAGE FOR CREATING AND EDITING COURSE MODULES 
+
+/**
+ * REFACTORED
+ * 
+ * How the refactored files work together:
+ * 
+ * - AddModule.jsx (this file): 
+ *   - core orchestration of the module creation/editing flow
+ *   - contains the main state and rendering logic
+ *   - delegates specific functionality to child components and hooks
+ * 
+ * - Components:
+ *   - ModuleEditorComponent: this renders the appropriate editor based on module type
+ *     and handles the refs for accessing editor methods
+ *   - ModuleDropdown: manages the dropdown menu for adding new components
+ *   - TagsManager: handles tag display, addition and removal
+ * 
+ * - Custom Hooks:
+ *   - useModuleData: manages module data fetching and state 
+ *     (used for loading existing modules in edit mode)
+ *   - useEditorRefs: manages references to editor components so we can call
+ *     methods like getQuestions() on them
+ *   - useTags: handles tag related API calls and state management
+ *   - useMediaDeletions: tracks media items that need to be deleted when
+ *     a user removes media in edit mode
+ * 
+ * TO ADD A NEW MODULE TYPE:
+ * 1. Add your new module type to moduleOptions or media in this file
+ * 2. Create the editor component in the components directory
+ * 3. Update ModuleEditorComponent to render your new component
+ * 4. Add any special processing logic to handleTemplateModule or handleMediaModule
+ * 
+ * to store new types of data, consider creating a new custom hook.
+ */
+
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import VisualFlashcardEditor from "../components/editors/VisualFlashcardEditor";
-import VisualFillTheFormEditor from "../components/editors/VisualFillTheFormEditor";
-import VisualFlowChartQuiz from "../components/editors/VisualFlowChartQuiz";
-import AudioQuestionEditor from "../components/editors/AudioQuestionEditor";
-import VisualQuestionAndAnswerFormEditor from "../components/editors/VisualQuestionAndAnswerFormEditor";
-import HeadingsComponent from "../components/editors/Headings";
-import api from "../services/api";
-import { QuizApiUtils } from "../services/QuizApiUtils";
 import { AuthContext } from "../services/AuthContext";
+import { QuizApiUtils } from "../services/QuizApiUtils";
+import DocumentService from "../services/DocumentService";
+import AudioService from "../services/AudioService";
+
+import { ModuleEditorComponent } from "../components/module-builder/ModuleEditorComponent";
+import { ModuleDropdown } from "../components/module-builder/ModuleDropdown";
+import { TagsManager } from "../components/module-builder/TagsManager";
+
+import { useModuleData } from "../hooks/useModuleData";
+import { useEditorRefs } from "../hooks/useEditorRefs";
+import { useTags } from "../hooks/useTags";
+import { useMediaDeletions } from "../hooks/useMediaDeletions";
 
 import styles from "../styles/AddModule.module.css";
-import VisualMatchingQuestionsQuizEditor from "../components/editors/VisualMatchingQuestionsQuizEditor";
+import "../styles/AlternativeModuleView.css"; 
 
 const AddModule = () => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [tags, setTags] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]);
-  const [modules, setModules] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isPreview, setIsPreview] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [error, setError] = useState(null);
-  // const [currentUser, setCurrentUser] = useState(null);
-  const [headingSize, setHeadingSize] = useState("heading1");
-
-  
-  // Use AuthContext to get the current user
-  const { user: currentUser } = useContext(AuthContext);
-  
-  // Create a ref to store references to editor components
-  const editorRefs = useRef({});
-  // Store initial questions for each module
-  const initialQuestionsRef = useRef({});
-  
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
+  const { user: currentUser } = useContext(AuthContext);
+  
+  const params = new URLSearchParams(location.search);
+  const editId = params.get('edit');
+  const isEditing = Boolean(editId);
 
-//to change size of heading for title
-  const handleHeadingChange = (event) => {
-    setHeadingSize(event.target.value);
-  };
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [headingSize, setHeadingSize] = useState("heading1");
+  const [isPreview, setIsPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
+  const { modules, setModules, fetchModuleData } = useModuleData(editId);
+  const { editorRefs, initialQuestionsRef } = useEditorRefs();
+  const { tags, setTags, availableTags, setAvailableTags, fetchTags, addTag, removeTag } = useTags();
+  const { pendingDeletions, setPendingDeletions } = useMediaDeletions();
 
-  // Module types and their corresponding components
+  // Module and component type definitions // 
   const moduleOptions = {
-    "Flashcard Quiz": { component: VisualFlashcardEditor, type: "flashcard" },
-    "Fill in the Blanks": { component: VisualFillTheFormEditor, type: "text_input" },
-    "Flowchart Quiz": { component: VisualFlowChartQuiz, type: "statement_sequence" },
-    'Question and Answer Form': { component: VisualQuestionAndAnswerFormEditor, type:'question_input'},
-    'Matching Question Quiz': {component: VisualMatchingQuestionsQuizEditor, type:'pair_input'}
+    "Flashcard Quiz": { component: "VisualFlashcardEditor", type: "flashcard" },
+    "Fill in the Blanks": { component: "VisualFillTheFormEditor", type: "text_input" },
+    "Flowchart Quiz": { component: "VisualFlowChartQuiz", type: "statement_sequence" },
+    'Question and Answer Form': { component: "VisualQuestionAndAnswerFormEditor", type:'question_input'},
+    'Matching Question Quiz': {component: "VisualMatchingQuestionsQuizEditor", type:'pair_input'}
   };
 
   const headings = [
@@ -62,517 +92,116 @@ const AddModule = () => {
     {name:"Heading 3", size: "heading3"}
   ];
 
-  // For development, use a prototype author
-  // useEffect(() => {
-  //   // Set a prototype author for development
-  //   const prototypeAuthor = { id: 1, user_id: 1 };
-  //   setCurrentUser(prototypeAuthor);
-  //   console.log("Using prototype author for development:", prototypeAuthor);
+  const media = {
+    'Upload Document': {component: "DocumentEditorWrapper", type:'document'},
+    'Upload Audio': {component: "AudioEditorWrapper", type:'audio'}
+    // future media
+  };
+  
+  // initialize components
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
     
-  //   // Optional: Still try to load from localStorage if available
-  //   try {
-  //     const userString = localStorage.getItem('user');
-  //     if (userString) {
-  //       const userData = JSON.parse(userString);
-  //       setCurrentUser(userData);
-  //       console.log("Loaded user from localStorage:", userData);
-  //     }
-  //   } catch (err) {
-  //     console.warn("Could not parse user data from localStorage:", err);
-  //   }
-  // }, []);
-
-  useEffect(() => {
-    if (!currentUser)
-      navigate('/login')
-    // Rely on AuthContext to provide the user
-    console.log("Current user from AuthContext:", currentUser);
-  }, [currentUser, navigate]);
-
-  // Fetch available tags
-  const fetchTags = useCallback(async () => {
-    try {
-      const response = await api.get('/api/tags/');
-      setAvailableTags(response.data);
-    } catch (err) {
-      console.error("Error fetching tags:", err);
-      setError("Failed to load tags. Please try again.");
-    }
-  }, []);
-
-  // Fetch module data for editing
-  const fetchModuleData = useCallback(async (moduleId) => {
-    try {
-      setIsLoading(true);
-      
-      const moduleData = await QuizApiUtils.getModule(moduleId);
-      console.log("[DEBUG] Fetched Module Data:",moduleData);
-      setTitle(moduleData.title);
-      setDescription(moduleData.description || "");
-      setTags(moduleData.tags || []);
-      
-      // Use the new module-specific task function
-      const tasks = await QuizApiUtils.getModuleSpecificTasks(moduleId);
-      console.log("[DEBUG] Fetched Tasks for Module :",tasks);
-
-
-      // Reset the initialQuestionsRef to avoid any stale data
-      initialQuestionsRef.current = {};
-
-      const moduleTemplates = await Promise.all(tasks.map(async (task) => {
-        let type = QuizApiUtils.getUITypeFromAPIType(task.quiz_type);
-
-        try {
-          const questions = await QuizApiUtils.getQuestions(task.contentID);
-          console.log(`[DEBUG] Fetched Questions for Task ID (${task.contentID}) - Type: ${task.quiz_type}:`, questions);
-
-          // Store initial questions in the ref using task.contentID as the key
-          initialQuestionsRef.current[task.contentID] = questions;
-          
-          return {
-            id: task.contentID,
-            type,
-            quizType: task.quiz_type,
-            taskId: task.contentID, // Store the actual task ID for referencing
-            moduleId: moduleId // Store the module ID to maintain relationship
-          };
-        } catch (error) {
-          console.error(`Error fetching questions for task ${task.contentID}:`, error);
-          initialQuestionsRef.current[task.contentID] = [];
-          
-          return {
-            id: task.contentID,
-            type,
-            quizType: task.quiz_type,
-            taskId: task.contentID,
-            moduleId: moduleId
-          };
+    if (isEditing) {
+      fetchModuleData(editId, initialQuestionsRef).then(moduleData => {
+        if (moduleData) {
+          setTitle(moduleData.title);
+          setDescription(moduleData.description || "");
+          setTags(moduleData.tags || []);
         }
-      }));
 
-      setModules(moduleTemplates);
-      console.log("[DEBUG] Final Module Templates :",moduleTemplates);
-
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching module data:", err);
-      setError(`Failed to load module data: ${err.response?.data?.detail || err.message}`);
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Load data when the component mounts
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const editModuleId = params.get('edit');
-
-    if (editModuleId) {
-      setEditId(editModuleId);
-      setIsEditing(true);
-      fetchModuleData(editModuleId);
+        
+      }).catch(error => {
+        console.error("Error loading module data:", error);
+        setError("Failed to load module data. Please try again.");
+      });
     }
 
     fetchTags();
-  }, [location, fetchModuleData, fetchTags]);
+  }, [currentUser, navigate, isEditing, editId, fetchModuleData, fetchTags, initialQuestionsRef]);
 
   // Add a module to the list
   const addModule = (moduleType, componentType) => {
     const newModuleId = `new-${Date.now()}`;
+    let newModule = { id: newModuleId };
 
-    if (componentType == "heading") {
-      const newHeading = {
-        id: newModuleId,
-        componentType: componentType,
+    if (componentType === "heading") {
+      newModule = {
+        ...newModule,
+        componentType,
         size: moduleType.size,
-      }
-
-      setModules([...modules, newHeading]);
+      };
     } else if (componentType === "template") {
-      
-      
-      const newModule = { 
-        id: newModuleId,
+      newModule = {
+        ...newModule,
         type: moduleType,
-        componentType: componentType, 
+        componentType,
         quizType: QuizApiUtils.getQuizTypeValue(moduleType),
       };
-
-      setModules([...modules, newModule]);
+    } else if (componentType === "media") {
+      newModule = {
+        ...newModule, 
+        type: moduleType,
+        componentType,
+        mediaType: media[moduleType].type,
+        moduleId: editId || null
+      };
     }
-    
-    
 
-    // Initialize empty questions for this module
+    setModules([...modules, newModule]);
     initialQuestionsRef.current[newModuleId] = [];
-
     setShowDropdown(false);
   };
 
   // Remove a module
   const removeModule = (id) => {
+    const moduleToRemove = modules.find(module => module.id === id);
+    
+    if (moduleToRemove && moduleToRemove.componentType === "media") {
+      handleMediaModuleRemoval(moduleToRemove, id);
+    }
+    
     setModules(modules.filter(module => module.id !== id));
-
-    // Clean up refs
     delete editorRefs.current[id];
     delete initialQuestionsRef.current[id];
   };
 
-  // Add a new tag
-  const addTag = async () => {
-    const newTag = prompt('Enter a new tag:');
-    if (!newTag || newTag.trim() === '') return;
+  // Handle media module removal
+  const handleMediaModuleRemoval = (module, id) => {
+    // Only mark for deletion if in edit mode and not a new module
+    if (!editId || id.toString().startsWith('new-')) return;
     
-    // Convert to lowercase for case-insensitive comparison
-    const newTagLower = newTag.toLowerCase().trim();
-    
-    // Check if the tag already exists in availableTags (case-insensitive)
-    const existingTag = availableTags.find(
-      tag => tag.tag.toLowerCase() === newTagLower
-    );
-    
-    if (existingTag) {
-      // Check if this tag is already selected
-      if (tags.includes(existingTag.id)) {
-        alert("This tag is already added to the module.");
-        return;
-      }
-      // Add the existing tag
-      setTags([...tags, existingTag.id]);
-    } else {
-      // Create a new tag
-      try {
-        const response = await api.post('/api/tags/', { tag: newTagLower });
-        setAvailableTags([...availableTags, response.data]);
-        setTags([...tags, response.data.id]);
-      } catch (err) {
-        // Handle errors including unique constraint violations
-        if (err.response?.data?.tag?.includes("already exists")) {
-          alert("This tag already exists in the system.");
-          
-          // Try to fetch all tags again to get the updated list
-          fetchTags();
-        } else {
-          console.error("Error creating tag:", err);
-          setError(`Failed to create tag: ${err.response?.data?.detail || err.message}`);
-        }
-      }
+    if (module.mediaType === "document") {
+      setPendingDeletions(prev => ({
+        ...prev,
+        document: [...prev.document, id]
+      }));
+    } else if (module.mediaType === "audio") {
+      setPendingDeletions(prev => ({
+        ...prev,
+        audio: [...prev.audio, id]
+      }));
+      // future media ...
     }
   };
 
-  // Remove a tag
-  const removeTag = (tagId) => {
-    setTags(tags.filter(t => t !== tagId));
-  };
-
+  // Publish or update the module
   const publishModule = async () => {
     // Validate inputs
-    if (!title.trim()) {
-      setError("Module title is required");
-      return;
-    }
-
-    if (modules.length === 0) {
-      setError("At least one template is required");
-      return;
-    }
-
-    // Make sure we have a valid author ID
-    let authorId = 1; // Default fallback
-    if (currentUser) {
-      console.log("[DEBUG] Current User Object:", currentUser);
-      
-      
-      if (currentUser.id) {
-        authorId = currentUser.id;
-      } else if (currentUser.user_id) {
-        authorId = currentUser.user_id;
-      } else if (currentUser.pk) {
-        authorId = currentUser.pk;
-      } else {
-        console.error("Could not extract user ID from:", currentUser);
-        setError("Unable to determine user identity");
-        return;
-      }
-
-    } else {
-      console.error("[DEBUG]Could not extract user ID from:", currentUser);
-      setError("Unable to determine user identity");
-      return;
-    }
+    if (!validateModuleInputs()) return;
     
-    console.log("[DEBUG] Using Author ID:", authorId);
-
-  
+    const authorId = getAuthorId();
+    if (!authorId) return;
+    
     setIsLoading(true);
     setError(null);
 
     try {
-      let moduleId;
-      // Array to track updated task IDs
-      const updatedTaskIds = [];
+      const moduleId = await handleModuleCreationOrUpdate(authorId);
       
-      if (isEditing) {
-        // Update existing module
-        const moduleData = {
-          title: title,
-          description: description || title,
-          tags: tags
-        };
-        
-        await QuizApiUtils.updateModule(editId, moduleData);
-        moduleId = editId;
-        
-        // Handle existing tasks/modules
-        // First, get current tasks
-        const existingTasks = await QuizApiUtils.getModuleTasks(moduleId);
-        
-        // Update or create tasks
-        for (const module of modules) {
-          // Get the current questions from the editor component using the ref
-          let currentQuestions = [];
-          const editorComponent = editorRefs.current[module.id];
-          
-
-          
-          if (editorComponent && typeof editorComponent.getQuestions === 'function') {
-            // If the editor component exposes a getQuestions method, use it
-            currentQuestions = editorComponent.getQuestions();
-            
-            // Make sure we have valid data
-            if (Array.isArray(currentQuestions) && currentQuestions.length > 0) {
-              // Check if the questions have the expected format
-              if (!currentQuestions[0].question_text && currentQuestions[0].text) {
-                // Convert from {text: "..."} format to {question_text: "..."} format
-                currentQuestions = currentQuestions.map(q => ({
-                  ...q,
-                  question_text: q.text,
-                  hint_text: q.hint || "",
-                  answers: q.answers || []
-                }));
-              }
-            }
-          } else {
-            // Fallback to the initial questions if we can't get them from the component
-            currentQuestions = initialQuestionsRef.current[module.id] || [];
-          }
-          
-          // Determine if this is an existing task or a new one
-          const isExistingTask = !module.id.toString().startsWith("new-");
-          const existingTask = isExistingTask 
-            ? existingTasks.find(task => task.contentID === module.id)
-            : null;
-          
-          
-          if (existingTask) {
-            // Update existing task
-            const taskData = {
-              title: `${module.type} for ${title}`,
-              moduleID: moduleId, // Explicitly set module ID to maintain relationship
-              description: `${module.type} content for ${title}`,
-              quiz_type: module.quizType,
-              text_content: "Updated by admin interface",
-              author: authorId, // Use the retrieved user ID
-              is_published: true
-            };
-            
-            await QuizApiUtils.updateTask(existingTask.contentID, taskData);
-            updatedTaskIds.push(existingTask.contentID);
-            
-            // Get existing questions
-            const existingQuestions = await QuizApiUtils.getQuestions(existingTask.contentID);
-            
-            // Delete all existing questions (simpler than trying to update)
-            for (const question of existingQuestions) {
-              await QuizApiUtils.deleteQuestion(question.id);
-            }
-            
-            // Inside the for loop where you process currentQuestions
-            console.log("[DEBUG] Processing questions for task:", existingTask.contentID);
-            console.log("[DEBUG] Current questions:", currentQuestions);
-
-            // Create new questions
-            for (let i = 0; i < currentQuestions.length; i++) {
-              const question = currentQuestions[i];
-              console.log("[DEBUG] Creating question:", i + 1);
-              console.log("[DEBUG] Question data:", question);
-
-              const questionData = {
-                task: existingTask.contentID,
-                question_text: question.question_text || question.text || "",
-                hint_text: question.hint_text || question.hint || "",
-                order: i,
-                answers: question.answers || []
-              };
-
-              console.log("[DEBUG] Formatted question data for API:", questionData);
-
-              try {
-                await QuizApiUtils.createQuestion(questionData);
-              } catch (questionError) {
-                console.error(`Error creating question ${i+1}:`, questionError);
-              }
-
-
-            }
-          } else {
-            // Create new task
-            const taskData = {
-              title: `${module.type} for ${title}`,
-              moduleID: moduleId,
-              description: `${module.type} content for ${title}`,
-              quiz_type: module.quizType,
-              text_content: "Generated by admin interface",
-              author: authorId, // Use the retrieved user ID
-              is_published: true
-            };
-            
-            // Use the new function that ensures module-task relationship
-            const taskResponse = await QuizApiUtils.createModuleTask(moduleId, taskData);
-            const taskId = taskResponse.contentID;
-            updatedTaskIds.push(taskId);
-            
-            // Create questions for this new task
-            for (let i = 0; i < currentQuestions.length; i++) {
-              const question = currentQuestions[i];
-              const questionData = {
-                task_id: taskId,
-                question_text: question.question_text || question.text || "",
-                hint_text: question.hint_text || question.hint || "",
-                order: i,
-                answers:question.answers || []
-              };
-              await QuizApiUtils.createQuestion(questionData);
-            }
-          }
-        }
-        
-        // Delete tasks that weren't updated
-        try {
-          const deletedCount = await QuizApiUtils.cleanupOrphanedTasks(moduleId, updatedTaskIds);
-        } catch (cleanupError) {
-          console.error(`[ERROR] Error cleaning up orphaned tasks: ${cleanupError}`);
-        }
-        
-      } else {
-        // Create a new module
-        const moduleData = {
-          title: title,
-          description: description || title,
-          tags: tags,
-          pinned: false,
-          upvotes: 0
-        };
-        
-        const moduleResponse = await QuizApiUtils.createModule(moduleData);
-        moduleId = moduleResponse.id;
-        
-        // Create tasks for each module
-        for (const module of modules) {
-          // Get the current questions from the editor component using the ref
-          let currentQuestions = [];
-          const editorComponent = editorRefs.current[module.id];
-          
-          
-          if (editorComponent && typeof editorComponent.getQuestions === 'function') {
-            // If the editor component exposes a getQuestions method, use it
-            currentQuestions = editorComponent.getQuestions();
-          } else {
-            // Fallback to the initial questions if we can't get them from the component
-            currentQuestions = initialQuestionsRef.current[module.id] || [];
-          }
-          
-          const taskData = {
-            title: `${module.type} for ${title}`,
-            moduleID: moduleId,
-            description: `${module.type} content for ${title}`,
-            quiz_type: module.quizType,
-            text_content: "Generated by admin interface",
-            author: authorId, // Use the retrieved user ID
-            is_published: true
-          };
-          
-          // Create the task
-          const taskResponse = await QuizApiUtils.createModuleTask(moduleId, taskData);
-          const taskId = taskResponse.contentID;
-          
-          // Create questions for this task
-          if (currentQuestions && currentQuestions.length > 0) {
-            for (let i = 0; i < currentQuestions.length; i++) {
-              const question = currentQuestions[i];
-              const questionData = {
-                task_id: taskId,
-                question_text: question.question_text || question.text || "",
-                hint_text: question.hint_text || question.hint || "",
-                order: i,
-                answers: question.answers || []
-              };
-              await QuizApiUtils.createQuestion(questionData);
-            }
-          }
-        }
-      }
-      
-      // Verify the data by fetching it again
-      try {
-        const verifyTasks = await QuizApiUtils.getModuleTasks(moduleId);
-        
-        for (const task of verifyTasks) {
-          const questions = await QuizApiUtils.getQuestions(task.contentID);
-        }
-      } catch (verifyErr) {
-      }
-      // for (const module of modules) {
-      //   if (module.type === 'Question and Answer Form') {
-      //     const editorRef = editorRefs.current[module.id];
-      //     const questionAnswers = editorRef?.getSubmittedData?.() || [];
-      //     for (const qa of questionAnswers){
-      //     let formData = {
-      //       title: `${module.type} for ${title}`,
-      //       description: `${module.type} content for ${title}`,
-      //       question:qa.question,
-      //       answer:qa.answer,
-      //       moduleID: moduleId,
-      //       author: authorId
-      //     };
-      //     try {
-      //       await QuizApiUtils.createQuestionAnswerFormTask(formData);
-      //       console.log('Question Answer Form task created successfully');
-      //     } catch (error) {
-      //       console.error('Error creating Question Answer Form task:', error);
-      //     }
-      //   }
-      //   }
-      // }
-
-      // for (const module of modules) {
-      //   if (module.type === 'Matching Question Quiz') {
-      //     const editorRef = editorRefs.current[module.id];
-      //     const matchingQuestionAnswers = editorRef?.getPairs?.() || [];
-      //     console.log(`[DEBUG] Saving Matching Question Pairs for Module ID: ${moduleId}`, matchingQuestionAnswers);
-
-      //     for (const qa of matchingQuestionAnswers){
-      //     let pairData = {
-      //       title: `${module.type} for ${title}`,
-      //       description: `${module.type} content for ${title}`,
-      //       question:qa.question,
-      //       answer:qa.answer,
-      //       moduleID: moduleId,
-      //       author: authorId
-      //     };
-      //     try {
-      //       await QuizApiUtils.createMatchingQuestionsTask(pairData);
-      //       console.log('matching question pairs task created successfully');
-      //     } catch (error) {
-      //       console.error('Error creating matching question pairs task:', error);
-      //     }
-      //   }
-      //   }
-      // }
-
-
-
-
-
       alert(isEditing ? "Module updated successfully!" : "Module published successfully!");
       navigate("/admin/all-courses");
     } catch (err) {
@@ -583,13 +212,341 @@ const AddModule = () => {
     }
   };
 
+  // Input validation
+  // this checks if all required fields are filled before saving!
+  const validateModuleInputs = () => {
+    if (!title.trim()) {
+      setError("Module title is required");
+      return false;
+    }
+
+    if (modules.length === 0) {
+      setError("At least one template is required");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Gets the current user's ID for authorship of the module
+  const getAuthorId = () => {
+    if (!currentUser) {
+      setError("Unable to determine user identity");
+      return null;
+    }
+    
+    const authorId = currentUser.id || currentUser.user_id || currentUser.pk;
+    
+    if (!authorId) {
+      console.error("Could not extract user ID from:", currentUser);
+      setError("Unable to determine user identity");
+      return null;
+    }
+    
+    return authorId;
+  };
+
+  // Handle module creation or update
+  const handleModuleCreationOrUpdate = async (authorId) => {
+    if (isEditing) {
+      return await updateExistingModule(editId, authorId);
+    } else {
+      return await createNewModule(authorId);
+    }
+  };
+
+  // Update an existing module
+  const updateExistingModule = async (moduleId, authorId) => {
+    const moduleData = {
+      title,
+      description: description || title,
+      tags
+    };
+    
+    await QuizApiUtils.updateModule(moduleId, moduleData);
+    
+    // process pending media deletions
+    await processMediaDeletions(moduleId);
+    
+    // update or create tasks for each module
+    const updatedTaskIds = await processModules(moduleId, authorId);
+    
+    // clean up orphaned tasks and media
+    await cleanupOrphanedContent(moduleId, updatedTaskIds);
+    
+    return moduleId;
+  };
+
+  // Process media deletions
+  const processMediaDeletions = async (moduleId) => {
+    // process DOCUMENT deletions
+    if (pendingDeletions.document.length > 0) {
+      for (const docId of pendingDeletions.document) {
+        try {
+          const allDocs = await DocumentService.getModuleDocuments(moduleId);
+          const docsToDelete = allDocs.filter(doc => doc.contentID === docId);
+          
+          for (const doc of docsToDelete) {
+            await DocumentService.deleteDocument(doc.contentID);
+          }
+        } catch (err) {
+          console.error(`[ERROR] Failed to delete documents for component ${docId}:`, err);
+        }
+      }
+    }
+    
+    // process AUDIO deletions
+    if (pendingDeletions.audio.length > 0) {
+      for (const audioId of pendingDeletions.audio) {
+        try {
+          const allAudios = await AudioService.getModuleAudios(moduleId);
+          const audiosToDelete = allAudios.filter(audio => audio.contentID === audioId);
+          
+          for (const audio of audiosToDelete) {
+            await AudioService.deleteAudio(audio.contentID);
+          }
+        } catch (err) {
+          console.error(`[ERROR] Failed to delete audio files for component ${audioId}:`, err);
+        }
+      }
+
+      // add future media... 
+    }
+    
+    // Clear pending deletions
+    setPendingDeletions({ document: [], audio: [] });
+  };
+
+  // Create a new module
+  const createNewModule = async (authorId) => {
+    const moduleData = {
+      title,
+      description: description || title,
+      tags,
+      pinned: false,
+      upvotes: 0
+    };
+    
+    const moduleResponse = await QuizApiUtils.createModule(moduleData);
+    const moduleId = moduleResponse.id;
+    
+    // create tasks for each module
+    await processModules(moduleId, authorId);
+    
+    return moduleId;
+  };
+
+  // Process all modules to create/update tasks and questions
+  const processModules = async (moduleId, authorId) => {
+    // track updated task IDs
+    const updatedTaskIds = [];
+    
+    // get existing tasks if in 'edit' mode
+    let existingTasks = [];
+    if (isEditing) {
+      existingTasks = await QuizApiUtils.getModuleTasks(moduleId);
+    }
+    
+    for (const module of modules) {
+      // handle media components separately
+      if (module.componentType === "media") {
+        await handleMediaModule(module, moduleId);
+        continue;
+      }
+      
+      // handle regular module (QUIZ) components
+      if (module.componentType === "template") {
+        const taskId = await handleTemplateModule(module, moduleId, authorId, existingTasks);
+        if (taskId) updatedTaskIds.push(taskId);
+      }
+      
+      // Headings don't require backend processing
+    }
+    
+    return updatedTaskIds;
+  };
+
+  // Handle MEDIA module processing
+  const handleMediaModule = async (module, moduleId) => {
+    const editor = editorRefs.current[module.id];
+    if (!editor || !editor.getTempFiles) return;
+    
+    const tempFiles = editor.getTempFiles();
+    if (!tempFiles || tempFiles.length === 0) return;
+    
+    try {
+      const formData = new FormData();
+      formData.append('module_id', moduleId);
+      
+      tempFiles.forEach(fileData => {
+        formData.append('files', fileData.file);
+      });
+      
+      if (module.mediaType === "document") {
+        await DocumentService.uploadDocuments(formData);
+      } else if (module.mediaType === "audio") {
+        await AudioService.uploadAudios(formData);
+      }
+      // add future media ..
+    } catch (error) {
+      console.error(`Error uploading ${module.mediaType}:`, error);
+      setError(`Failed to upload ${module.mediaType}: ${error.message}`);
+    }
+  };
+
+  // Handle template module processing
+  const handleTemplateModule = async (module, moduleId, authorId, existingTasks) => {
+    // Get questions from editor component
+    let currentQuestions = getQuestionsFromEditor(module.id);
+    
+    // Determine if this is an existing task
+    const isExistingTask = !module.id.toString().startsWith("new-");
+    const existingTask = isExistingTask 
+      ? existingTasks.find(task => task.contentID === module.id)
+      : null;
+    
+    const taskData = {
+      title: `${module.type} for ${title}`,
+      moduleID: moduleId,
+      description: `${module.type} content for ${title}`,
+      quiz_type: module.quizType,
+      text_content: isEditing ? "Updated by admin interface" : "Generated by admin interface",
+      author: authorId,
+      is_published: true
+    };
+    
+    if (existingTask) {
+      // Update existing task
+      await QuizApiUtils.updateTask(existingTask.contentID, taskData);
+      
+      // Get existing questions and delete them
+      const existingQuestions = await QuizApiUtils.getQuestions(existingTask.contentID);
+      for (const question of existingQuestions) {
+        await QuizApiUtils.deleteQuestion(question.id);
+      }
+      
+      // Create new questions
+      for (let i = 0; i < currentQuestions.length; i++) {
+        const question = currentQuestions[i];
+        const questionData = {
+          task: existingTask.contentID,
+          question_text: question.question_text || question.text || "",
+          hint_text: question.hint_text || question.hint || "",
+          order: i,
+          answers: question.answers || []
+        };
+        
+        try {
+          await QuizApiUtils.createQuestion(questionData);
+        } catch (questionError) {
+          console.error(`Error creating question ${i+1}:`, questionError);
+        }
+      }
+      
+      return existingTask.contentID;
+    } else {
+      // Create new task
+      const taskResponse = await QuizApiUtils.createModuleTask(moduleId, taskData);
+      const taskId = taskResponse.contentID;
+      
+      // Create questions for this new task
+      for (let i = 0; i < currentQuestions.length; i++) {
+        const question = currentQuestions[i];
+        const questionData = {
+          task_id: taskId,
+          question_text: question.question_text || question.text || "",
+          hint_text: question.hint_text || question.hint || "",
+          order: i,
+          answers: question.answers || []
+        };
+        await QuizApiUtils.createQuestion(questionData);
+      }
+      
+      return taskId;
+    }
+  };
+
+  // Get questions from editor component
+  const getQuestionsFromEditor = (moduleId) => {
+    const editorComponent = editorRefs.current[moduleId];
+    let questions = [];
+    
+    if (editorComponent && typeof editorComponent.getQuestions === 'function') {
+      questions = editorComponent.getQuestions();
+      
+      // Format questions if needed
+      if (Array.isArray(questions) && questions.length > 0 && 
+          !questions[0].question_text && questions[0].text) {
+        questions = questions.map(q => ({
+          ...q,
+          question_text: q.text,
+          hint_text: q.hint || "",
+          answers: q.answers || []
+        }));
+      }
+    } else {
+      questions = initialQuestionsRef.current[moduleId] || [];
+    }
+    
+    return questions;
+  };
+
+  // Clean up orphaned content
+  const cleanupOrphanedContent = async (moduleId, updatedTaskIds) => {
+    // Clean up orphaned tasks
+    try {
+      await QuizApiUtils.cleanupOrphanedTasks(moduleId, updatedTaskIds);
+    } catch (cleanupError) {
+      console.error(`[ERROR] Error cleaning up orphaned tasks: ${cleanupError}`);
+    }
+    
+    // Clean up orphaned documents if no document components are left
+    await cleanupOrphanedMedia(
+      moduleId, 
+      "document", 
+      modules.filter(m => m.componentType === "media" && m.mediaType === "document"),
+      DocumentService.getModuleDocuments,
+      DocumentService.deleteDocument
+    );
+    
+    // Clean up orphaned audio if no audio components are left
+    await cleanupOrphanedMedia(
+      moduleId,
+      "audio",
+      modules.filter(m => m.componentType === "media" && m.mediaType === "audio"),
+      AudioService.getModuleAudios,
+      AudioService.deleteAudio
+    );
+
+    // add future mediaa
+  };
+
+  // Clean up orphaned media (documents or audio)
+  const cleanupOrphanedMedia = async (moduleId, mediaType, remainingComponents, getMediaFn, deleteMediaFn) => {
+    if (remainingComponents.length > 0) return;
+    
+    try {
+      const existingMedia = await getMediaFn(moduleId);
+      
+      if (existingMedia.length > 0) {
+        for (const media of existingMedia) {
+          await deleteMediaFn(media.contentID);
+        }
+      }
+    } catch (error) {
+      console.error(`Error cleaning up orphaned ${mediaType} files:`, error);
+    }
+
+    // add future media
+  };
+
+  // Render function
   return (
     <div className={styles["module-editor-container"]}>
       <h1 className="page-title">{isEditing ? "Edit Module" : "Add Course"}</h1>
       
       {isLoading && <div className="loading-overlay">Loading...</div>}
       
-
       <div className={styles["module-creator-container"]}>
         {/* Module Title */}
         <div className={styles["module-title-container"]}>
@@ -600,8 +557,8 @@ const AddModule = () => {
             onChange={(e) => setTitle(e.target.value)}
             className={styles["module-title-input"]}
           />
-
         </div>
+        
         {/* Module Description */}
         <input
           placeholder="Module Description"
@@ -611,20 +568,13 @@ const AddModule = () => {
         />
 
         {/* Tags */}
-        <div className={styles["tags-container"]}>
-          {tags.map((tagId) => {
-            const tagObj = availableTags.find(t => t.id === tagId);
-            return tagObj ? (
-              <span key={tagId} className={styles["tag"]}>
-                {tagObj.tag} <button className={styles["remove-tag-btn"]} onClick={() => removeTag(tagId)}>x</button>
-              </span>
-            ) : null;
-          })}
-          <div className={styles["tag-button-wrapper"]}>
-            <button className={styles["plus-button"]} onClick={addTag}>+</button>
-            <span className={styles["tag-label"]}>Add module tags</span>
-          </div>
-        </div>
+        <TagsManager 
+          tags={tags} 
+          availableTags={availableTags} 
+          addTag={addTag} 
+          removeTag={removeTag}
+          styles={styles}
+        />
 
         {/* Error Display */}
         {error && (
@@ -636,102 +586,51 @@ const AddModule = () => {
 
         {/* Modules List */}
         <div className={styles["modules-list"]}>
-          {modules.map((module) => {
-            let EditorComponent = null;
-            if (module.componentType === "template") {
-              EditorComponent = moduleOptions[module.type]?.component
-            } else if (module.componentType === "heading") {
-              EditorComponent = HeadingsComponent;
-            }
-
-            // Skip if no component is found for this type
-            if (!EditorComponent) {
-              console.error(`[ERROR] No editor component found for type: ${module.type}`);
-              return (
-                <div key={module.id} className={`${styles["module-item"]} ${styles["error"]}`}>
-                  <h3>{module.type} (ID: {module.id.substring(0, 6)}...) - Error: No editor found</h3>
-                </div>
-              );
-            } 
-            
-            if (module.componentType === "heading") {
-              return (
-                <div key={module.id} className={styles["module-item"]}>
-                    <EditorComponent
-                      headingSize={module.size}
-                      key={`editor-${module.id}`}
-                    />  
-                    <button onClick={() => removeModule(module.id)} className={styles["remove-module-btn"]}>Remove</button>
-                </div>
-              )
-            }
-            
-            return (
-              <div key={module.id} className={styles["module-item"]}>
-                <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
-                <EditorComponent
-                  ref={(el) => { 
-                    editorRefs.current[module.id] = el;
-                  }}
-                  moduleId={module.id}
-                  quizType={module.quizType}
-                  initialQuestions={initialQuestionsRef.current[module.id] || []}
-                  key={`editor-${module.id}`} // Add a key to force re-render when questions change
-                />
-                <button onClick={() => removeModule(module.id)} className={styles["remove-module-btn"]}>Remove</button>
-              </div>
-            );
-          })}
+          {modules.map((module) => (
+            <ModuleEditorComponent
+              key={module.id}
+              module={module}
+              editorRefs={editorRefs}
+              initialQuestionsRef={initialQuestionsRef}
+              removeModule={removeModule}
+              moduleOptions={moduleOptions}
+              media={media}
+              styles={styles}
+              title={title}
+            />
+          ))}
         </div>
 
         {/* Add Module Templates Button */}
-        <div className={styles["dropdown-wrapper"]}>
-          <div className={styles["templates-button-wrapper"]}>
-            <button ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)} className={styles["plus-button"]}>+</button>
-            <span className={styles["templates-label"]}>Add Template</span>
-          </div>
-
-          {/* Templates Dropdown */}
-          {showDropdown && (
-            <div className={styles["dropdown-menu"]} style={{ position: "absolute", top: dropdownRef.current?.offsetTop + 40, left: dropdownRef.current?.offsetLeft }}>
-              <h4 className={styles["dropdown-title"]}>Headings</h4>
-              <div className={styles["dropdown-options"]}>
-                {headings.map((heading, index) => (
-                  <div
-                    key={index}
-                    className={styles["dropdown-item"]}
-                    onClick={() => addModule(heading, "heading")}
-                  >
-                    {heading.name}
-                  </div> 
-                ))}
-              </div>           
-              <h4 className={styles["dropdown-title"]}>Basic Blocks</h4>
-              <div className={styles["dropdown-options"]}>
-                {Object.keys(moduleOptions).map((moduleType, index) => (
-                  <div
-                    key={index}
-                    value={index}
-                    className={styles["dropdown-item"]}
-                    onClick={() => addModule(moduleType, "template")}
-                  >
-                    {moduleType}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <ModuleDropdown
+          showDropdown={showDropdown}
+          setShowDropdown={setShowDropdown}
+          dropdownRef={dropdownRef}
+          headings={headings}
+          moduleOptions={moduleOptions}
+          media={media}
+          addModule={addModule}
+          styles={styles}
+        />
       </div>
+      
       {/* Action Buttons */}
-      {!isPreview && (
+      {!isPreview ? (
         <div className={styles["button-container"]}>
           <div className={styles["preview-container"]}>
-            <button className={styles["preview-btn"]} onClick={() => setIsPreview(true)} disabled={isLoading}>
+            <button 
+              className={styles["preview-btn"]} 
+              onClick={() => setIsPreview(true)} 
+              disabled={isLoading}
+            >
               Preview
             </button>
           </div>
-          <button className={styles["publish-btn"]} onClick={publishModule} disabled={isLoading}>
+          <button 
+            className={styles["publish-btn"]} 
+            onClick={publishModule} 
+            disabled={isLoading}
+          >
             {isLoading ? 
               (isEditing ? "Updating..." : "Publishing...") : 
               (isEditing ? "Update" : "Publish")
@@ -739,10 +638,7 @@ const AddModule = () => {
           </button>
           {!isEditing && <button className={styles["edit-btn"]}>Edit</button>}
         </div>
-      )}
-
-      {/* Preview Mode */}
-      {isPreview && (
+      ) : (
         <div className={styles["preview-container"]}>
           <h2>{title}</h2>
           <p>{description}</p>
@@ -774,7 +670,10 @@ const AddModule = () => {
               );
             })}
           </div>
-          <button className={styles["exit-preview-btn"]} onClick={() => setIsPreview(false)}>
+          <button 
+            className={styles["exit-preview-btn"]} 
+            onClick={() => setIsPreview(false)}
+          >
             Exit Preview
           </button>
         </div>
