@@ -9,7 +9,6 @@ function Settings() {
   const [showModal, setShowModal] = useState (false);
   const navigate = useNavigate();
   const [completedCourses, setCompletedCourses] = useState([]);
-  // const [taskId, setTaskId] = useState("");
   const token = localStorage.getItem("token");
 
   const [passwordData,setPasswordData] = useState ({
@@ -32,9 +31,6 @@ function Settings() {
   
     loadCompletedTasks();
   }, []);
-  
-
-
 const handleDownload = async(taskId) => {
   if(!token){
     alert("user isnt authenticated");
@@ -116,102 +112,115 @@ const handleDelete = async () => {
   }
 };
 
+function renderUserInfo() {
+  return (
+    <div className="settings-card user-info-card">
+      <h1>Welcome, {user?.first_name} {user?.last_name}</h1>
+      <p className="mt-2 text-gray-600">Username: {user?.username}</p>
+    </div>
+  );
+}
+
+function renderCompletedCourses() {
+  return (
+    <div className="settings-card">
+      <h2>Completed Courses</h2>
+      {completedCourses.length > 0 ? (
+        <div className="completed-courses-container">
+          {completedCourses.map((task, index) => (
+            <div key={index} className="course-card">
+              <h3>{task.title}</h3>
+              <p><strong>Type:</strong> {task.quiz_type}</p>
+              <p><strong>Completed on:</strong> {new Date(task.viewed_at).toLocaleString()}</p>
+              <button onClick={() => handleDownload(task.content_id)}>Download PDF</button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p>No completed content yet.</p>
+      )}
+    </div>
+  );
+}
+
+function renderPasswordForm() {
+  return (
+    <div className="settings-card">
+      <h2>Change Password</h2>
+
+      <label>Old Password</label>
+      <input type="password" value={passwordData.old_password}
+        onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })} />
+
+      <label>New Password</label>
+      <input type="password" value={passwordData.new_password}
+        onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })} />
+
+      <label>Confirm New Password</label>
+      <input type="password" value={passwordData.confirm_new_password}
+        onChange={(e) => setPasswordData({ ...passwordData, confirm_new_password: e.target.value })} />
+
+      <button onClick={handlePasswordChange}>Confirm Change</button>
+
+    </div>
+  );
+}
 
 return (
   <div className="settings-container">
-  <div>
     <h1 className="page-title">Settings</h1>
-   <div className = "settings-card">
-        <h1>Welcome, {user?.first_name} {user?.last_name}</h1>
-        <p className="mt-2 text-gray-600">Username: {user?.username}</p>
-    </div>
-    {user?.user_type === "service user" && (
-      <div className="settings-card">
-      <h1>Completed Courses</h1>
-      {completedCourses.length > 0 ? (
-    <div className="completed-courses-container">
-      {completedCourses.map((task, index) => (
-        <div key={index} className="course-card">
-          <h3>{task.title}</h3> <br />
-          <p><strong>Type:</strong> {task.quiz_type} </p>
-          <p><strong>Completed on:</strong> {new Date(task.viewed_at).toLocaleString()}</p>
-          <button onClick={() => handleDownload(task.content_id)}>
-            Download PDF
-          </button>
+
+    {user?.user_type === "service user" ? (
+      <>
+        <div className="service-user-stack">
+          <div className="card-row welcome-card service-welcome">
+            {renderUserInfo()}
+          </div>
+
+          <div className="settings-layout">
+            {renderCompletedCourses()}
+            {renderPasswordForm()}
+          </div>
+
+          <div className="card delete-card">
+            <button className="delete-btn" onClick={() => setShowModal(true)}>
+              Delete Account
+            </button>
+          </div>
         </div>
-      ))}
-    </div>
-  ) : (
-    <p>No completed content yet.</p>
-  )}
-    </div>
-    
+      </>
+    ) : (
+      <>
+        <div className="card-row welcome-card">
+          {renderUserInfo()}
+        </div>
+
+        <div className="admin-stack">
+          <div>{renderPasswordForm()}</div>
+          <div className="card delete-card">
+            <button className="delete-btn" onClick={() => setShowModal(true)}>
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </>
     )}
-    <div className="settings-card">
-      <h1>Change Password</h1>
-
-      <div>
-        <label htmlFor="old_password">Old Password:   </label>
-        <input
-          id = "old_password"
-          type="password"
-          value={passwordData.old_password}
-          onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="new_password">New Password:   </label>
-        <input
-          id = "new_password"
-          type="password"
-          value={passwordData.new_password}
-          onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-        />
-      </div>
-
-      <div className="extra-space">
-        <label htmlFor="confirm_new_password">Confirm New Password:   </label>
-        <input
-          id = "confirm_new_password"
-          type="password"
-          value={passwordData.confirm_new_password}
-          onChange={(e) => setPasswordData({ ...passwordData, confirm_new_password: e.target.value })}
-        />
-      </div>
-
-      <button onClick={handlePasswordChange}>
-        Confirm change
-      </button>
-    </div>
-
-    <div className="delete-container">
-    <button onClick={() => setShowModal(true)} >
-      Delete Account
-    </button>
-    </div>
 
     {showModal && (
       <div className="modal-overlay">
         <div className="modal-content">
           <h1>Confirm Deletion</h1>
-          <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+          <p>This action cannot be undone.</p>
           <div className="modal-buttons">
-            <button onClick={() => setShowModal(false)}>
-              Cancel
-            </button>
-            <button  onClick={handleDelete}>
-              Confirm Delete
-            </button>
+            <button onClick={() => setShowModal(false)}>Cancel</button>
+            <button onClick={handleDelete}>Confirm Delete</button>
           </div>
         </div>
       </div>
     )}
   </div>
-  </div>
 );
+
 }
 
-  
 export default Settings;
-  

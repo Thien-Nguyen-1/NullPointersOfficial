@@ -58,7 +58,7 @@ function MessageBar(props) {
             }
 
             props.sendNewMessage(objData)
-          
+            
 
         }
     }

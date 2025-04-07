@@ -21,10 +21,10 @@ function ChatSideBox(props){
     
 
 
-    async function assign_chat(){
-        props.handleUserCreateChat(chatReqObj)
+    // async function assign_chat(){
+    //     props.handleUserCreateChat(chatReqObj)
    
-    }
+    // }
 
     async function render_chat(){
      

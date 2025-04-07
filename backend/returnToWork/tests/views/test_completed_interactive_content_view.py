@@ -49,3 +49,17 @@ class CompletedInteractiveContentViewTest(APITestCase):
         self.assertEqual(task_data["quiz_type"], self.task.get_quiz_type_display())
         self.assertEqual(task_data["module_title"], self.module.title)
 
+    def test_skips_invalid_content_object(self):
+        broken_content_id = uuid4()  
+        ContentProgress.objects.create(
+            user=self.user,
+            content_type=self.content_type,
+            object_id=broken_content_id,
+            viewed=True
+        )
+
+        url = "/api/completed-interactive-content/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["content_id"], str(self.task.contentID))

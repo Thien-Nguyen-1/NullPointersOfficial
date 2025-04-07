@@ -1,0 +1,103 @@
+/* Preview Mode Styles */
+.preview-mode {
+    position: relative;
+    border: 2px dashed #ff9800;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.2);
+  }
+  
+  .preview-banner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #ff9800;
+    color: white;
+    padding: 5px 15px;
+    font-weight: bold;
+    border-radius: 0 0 0 8px;
+    z-index: 10;
+  }
+  
+  .preview-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  
+  .preview-item-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    pointer-events: none;
+  }
+  
+  .preview-message {
+    background-color: rgba(255, 152, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    max-width: 80%;
+  }
+  
+  .preview-notice-container {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #ff9800;
+  }
+  
+  .preview-notice {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+  }
+  
+  /* Disable interactivity in preview mode */
+  .preview-mode .alt-component button,
+  .preview-mode .alt-like-button,
+  .preview-mode .alt-pin-button,
+  .preview-mode .mark-complete-button {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  
+  /* Preview-specific exit button */
+  .exit-preview-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .exit-preview-btn:hover {
+    background-color: #e68a00;
+  }
+  
+  /* Preview exit button container */
+  .exit-preview-container {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+  }

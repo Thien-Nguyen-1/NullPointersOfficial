@@ -3,26 +3,64 @@ import '../../styles/VisualMatchingQuestionsEditor.css';
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 
 const VisualMatchingQuestionsQuizEditor = forwardRef((props, ref) => {
+    const { moduleId, quizType, initialQuestions = [] } = props;
+
     const [currentPair, setCurrentPair] = useState({ question_text: '', answers: '', order: 0 });
     const [submittedPairs, setSubmittedPairs] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editIndex, setEditIndex] = useState(null);
     const [error, setError] = useState('');
 
+    // useEffect(() => {
+    //     if (props.initialQuestions && props.initialQuestions.length > 0) {
+    //         const loadedQuestions = props.initialQuestions.map(q => ({
+    //             ...q,
+    //             question_text: q.text,
+    //             answers: q.answers, // Convert answers array back to string for editing
+    //             order: q.order
+    //         }));
+    //         setSubmittedPairs(loadedQuestions);
+    //     }
+    // }, [props.initialQuestions]);
+
     useEffect(() => {
-        if (props.initialQuestions && props.initialQuestions.length > 0) {
-            const loadedQuestions = props.initialQuestions.map(q => ({
-                ...q,
-                question_text: q.text,
-                answers: q.answers, // Convert answers array back to string for editing
-                order: q.order
+        if (initialQuestions && initialQuestions.length > 0) {
+            const loadedQuestions = initialQuestions.map(q => ({
+                id: q.id || Date.now(),
+                question_text: q.question_text || q.text || '',
+                answers: q.answers || [],
+                order: q.order || 0
             }));
             setSubmittedPairs(loadedQuestions);
         }
-    }, [props.initialQuestions]);
+    }, [initialQuestions]);
+
+    // useImperativeHandle(ref, () => ({
+    //     getQuestions: () => submittedPairs
+    // }));
 
     useImperativeHandle(ref, () => ({
-        getQuestions: () => submittedPairs
+        getQuestions: () => {
+            // Format questions for API compatibility
+            return submittedPairs.map((pair, index) => ({
+                id: pair.id || Date.now() + index,
+                question_text: pair.question_text,
+                hint_text: '', // Matching quiz doesn't use hint_text
+                answers: pair.answers,
+                order: index
+            }));
+        },
+        setQuestions: (newQuestions) => {
+            // Normalize and set questions
+            const formattedPairs = newQuestions.map(q => ({
+                id: q.id || Date.now(),
+                question_text: q.question_text || q.text || '',
+                answers: q.answers || [],
+                order: q.order || 0
+            }));
+            
+            setSubmittedPairs(formattedPairs);
+        }
     }));
 
     const handleInputChange = (event) => {

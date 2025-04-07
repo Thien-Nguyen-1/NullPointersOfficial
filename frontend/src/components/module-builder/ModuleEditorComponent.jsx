@@ -8,9 +8,12 @@ import VisualFillTheFormEditor from "../editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../editors/VisualFlowChartQuiz";
 import VisualQuestionAndAnswerFormEditor from "../editors/VisualQuestionAndAnswerFormEditor";
 import VisualMatchingQuestionsQuizEditor from "../editors/VisualMatchingQuestionsQuizEditor";
+import RankingQuizEditor from "../editors/RankingQuizEditor";
 import HeadingsComponent from "../editors/Headings";
 import { DocumentEditorWrapper } from "../editors/DocumentUploader";
 import { AudioEditorWrapper } from "../editors/AudioUploader";
+import { InlinePictureEditorWrapper } from "../editors/InlinePictureUploader";
+import { EmbeddedVideoEditorWrapper } from '../editors/EmbeddedVideoEditor';
 
 export const ModuleEditorComponent = ({ 
   module, 
@@ -29,9 +32,12 @@ export const ModuleEditorComponent = ({
     "Flowchart Quiz": VisualFlowChartQuiz,
     "Question and Answer Form": VisualQuestionAndAnswerFormEditor,
     "Matching Question Quiz": VisualMatchingQuestionsQuizEditor,
+    "Ranking Quiz": RankingQuizEditor,
     // Media
     "Upload Document": DocumentEditorWrapper,
     "Upload Audio": AudioEditorWrapper,
+    "Upload Image": InlinePictureEditorWrapper,
+    "Link Video": EmbeddedVideoEditorWrapper,
     // add future media
 
     // Heading

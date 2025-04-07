@@ -7,7 +7,6 @@ export const ModuleDropdown = ({
   showDropdown, 
   setShowDropdown, 
   dropdownRef, 
-  headings, 
   moduleOptions, 
   media, 
   addModule, 
@@ -35,22 +34,26 @@ export const ModuleDropdown = ({
             left: dropdownRef.current?.offsetLeft 
           }}
         >
-          {/* Headings section */}
-          <h4 className={styles["dropdown-title"]}>Headings</h4>
+          
+
+          
+          {/* Media section */}
+          <h4 className={styles["dropdown-title"]}>Resources</h4>
           <div className={styles["dropdown-options"]}>
-            {headings.map((heading, index) => (
+            {Object.keys(media).map((mediaType, index) => (
               <div
                 key={index}
                 className={styles["dropdown-item"]}
-                onClick={() => addModule(heading, "heading")}
+                onClick={() => addModule(mediaType, "media")}
               >
-                {heading.name}
-              </div> 
+                {mediaType}
+              </div>
             ))}
           </div>
-          
+
+                    
           {/* Basic blocks section */}
-          <h4 className={styles["dropdown-title"]}>Basic Blocks</h4>
+          <h4 className={styles["dropdown-title"]}>Assessment</h4>
           <div className={styles["dropdown-options"]}>
             {Object.keys(moduleOptions).map((moduleType, index) => (
               <div
@@ -60,20 +63,6 @@ export const ModuleDropdown = ({
                 onClick={() => addModule(moduleType, "template")}
               >
                 {moduleType}
-              </div>
-            ))}
-          </div>
-          
-          {/* Media section */}
-          <h4 className={styles["dropdown-title"]}>Media</h4>
-          <div className={styles["dropdown-options"]}>
-            {Object.keys(media).map((mediaType, index) => (
-              <div
-                key={index}
-                className={styles["dropdown-item"]}
-                onClick={() => addModule(mediaType, "media")}
-              >
-                {mediaType}
               </div>
             ))}
           </div>

@@ -15,7 +15,7 @@ import { UNSAFE_ErrorResponseImpl } from "react-router-dom";
 
 import "../styles/SupportStyles/Messaging.css"
 
-import { subscribeToChatRoom, unsubscribeToChatRoom, AddCallback, RefreshSubscriptions  } from "../services/pusher_websocket";
+import { subscribeToChatRoom, AddCallback, RefreshSubscriptions  } from "../services/pusher_websocket";
 
 
 
@@ -59,25 +59,25 @@ function Messaging() {
 
 
  
-  async function saveFCMToken(token_in){
+  // async function saveFCMToken(token_in){
 
-    if(user && token_in){
+  //   if(user && token_in){
       
-      const updatedUser = {...user, "firebase_token": token_in}
+  //     const updatedUser = {...user, "firebase_token": token_in}
 
-      try{
-        await updateUser(updatedUser)
+  //     try{
+  //       await updateUser(updatedUser)
 
-        console.log("SAVED USER")
+  //       console.log("SAVED USER")
 
 
-      } catch(error){
+  //     } catch(error){
        
-       }  
-    } else {
-      console.log("THAT SUCKS")
-    }
-  }
+  //      }  
+  //   } else {
+  //     console.log("THAT SUCKS")
+  //   }
+  // }
 
 
   /* ========== LOGIC FUNCTIONALITIES ========== */
@@ -99,12 +99,7 @@ function Messaging() {
       //subscribeToChatRoom(chatID, handleMsg, false)
 
       chatIDRef.current = chatID
-      return () => {
-        
-        unsubscribeToChatRoom(chatID)
-
-      }
-
+   
 
    }, [chatID])
 
@@ -201,7 +196,6 @@ function Messaging() {
       if(chatID){
         try{
             
-
             await SendMessage(token, chatID, objMessage)
 
             await getUserMessages(chatID)
@@ -211,9 +205,7 @@ function Messaging() {
 
         }
 
-      } else {
-        console.log("NO CHAT ID SET")
-      }
+      } 
         
    }
 
@@ -253,7 +245,7 @@ function Messaging() {
               <p> Create A New Chat</p>
 
               
-              {user?.user_type =="service user" && (<FaCirclePlus 
+              {user?.user_type =="service user" && (<FaCirclePlus className="fa-circle-plus" data-testid="plus-icon"
                 onClick={()=>{handleUserCreateChat()}}
               />)}
               
