@@ -72,56 +72,119 @@ const ModuleViewAlternative = () => {
 
         // add future media ...
 
+        // Combine all resources into a single array with a type identifier
+        const allResources = [
+          ...moduleDocuments.map(item => ({ ...item, mediaType: 'document' })),
+          ...moduleAudios.map(item => ({ ...item, mediaType: 'audio' })),
+          ...moduleVideos.map(item => ({ ...item, mediaType: 'video' })),
+          ...moduleImages.map(item => ({ ...item, mediaType: 'image' }))
+        ];
+        // Sort all resources by creation time
+        allResources.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB;  // Oldest first
+        });
 
         // Create a resources section if there are media types: documents, etc...
-        const resourcesItems = [
-          // Documents
-          ...moduleDocuments.map(doc => ({
-            id: doc.contentID,
-            type: 'infosheet',
-            title: doc.title || doc.filename,
-            content: `View or download: ${doc.filename}`,
-            documents: [doc],
-            moduleId: moduleId
-          })),
+        // const resourcesItems = [
+        //   // Documents
+        //   ...moduleDocuments.map(doc => ({
+        //     id: doc.contentID,
+        //     type: 'infosheet',
+        //     title: doc.title || doc.filename,
+        //     content: `View or download: ${doc.filename}`,
+        //     documents: [doc],
+        //     moduleId: moduleId
+        //   })),
           
-          // Audio files
-          ...moduleAudios.map(audio => ({
-            id: audio.contentID,
-            type: 'audio',
-            title: audio.title || audio.filename,
-            content: `Listen to: ${audio.filename}`,
-            audioFiles: [audio],
-            moduleId: moduleId
-          })),
-          // Avideos
-          ...moduleVideos.map(video => ({
-            id: video.contentID,
-            type: 'video',
-            title: video.title || 'Embedded Video',
-            content: `Watch: ${video.title || 'Video'}`,
-            video_url: video.video_url, // Platform video URL
-            videos: [video], // Include full video data for downloads
-            moduleId: moduleId
-          })),
-          // Image
-          ...moduleImages.map(image => ({
-            id: image.contentID,
-            type: 'image',
-            title: image.title || 'Image',
-            content: `Check out: ${image.title || 'Image'}`,
-            file_url: image.file_url,
-            source: image.file_url ? 
-            (image.file_url.startsWith('http') ? image.file_url : `http://localhost:8000${image.file_url}`) : null,
-            // the image URLs in the system were relative paths -> need to be converted to absolute URLs for the browser to properly load them
-            filename: image.filename,
-            width: image.width,
-            height: image.height,
-            imageFiles: [image], 
-            moduleId: moduleId
-          // add future media
-          })),
-        ];
+        //   // Audio files
+        //   ...moduleAudios.map(audio => ({
+        //     id: audio.contentID,
+        //     type: 'audio',
+        //     title: audio.title || audio.filename,
+        //     content: `Listen to: ${audio.filename}`,
+        //     audioFiles: [audio],
+        //     moduleId: moduleId
+        //   })),
+        //   // Avideos
+        //   ...moduleVideos.map(video => ({
+        //     id: video.contentID,
+        //     type: 'video',
+        //     title: video.title || 'Embedded Video',
+        //     content: `Watch: ${video.title || 'Video'}`,
+        //     video_url: video.video_url, // Platform video URL
+        //     videos: [video], // Include full video data for downloads
+        //     moduleId: moduleId
+        //   })),
+        //   // Image
+        //   ...moduleImages.map(image => ({
+        //     id: image.contentID,
+        //     type: 'image',
+        //     title: image.title || 'Image',
+        //     content: `Check out: ${image.title || 'Image'}`,
+        //     file_url: image.file_url,
+        //     source: image.file_url ? 
+        //     (image.file_url.startsWith('http') ? image.file_url : `http://localhost:8000${image.file_url}`) : null,
+        //     // the image URLs in the system were relative paths -> need to be converted to absolute URLs for the browser to properly load them
+        //     filename: image.filename,
+        //     width: image.width,
+        //     height: image.height,
+        //     imageFiles: [image], 
+        //     moduleId: moduleId
+        //   // add future media
+        //   })),
+        // ];
+
+        const resourcesItems = allResources.map(resource => {
+          switch (resource.mediaType) {
+            case 'document':
+              return {
+                id: resource.contentID,
+                type: 'infosheet',
+                title: resource.title || resource.filename,
+                content: `View or download: ${resource.filename}`,
+                documents: [resource],
+                moduleId: moduleId
+              };
+            case 'audio':
+              return {
+                id: resource.contentID,
+                type: 'audio',
+                title: resource.title || resource.filename,
+                content: `Listen to: ${resource.filename}`,
+                audioFiles: [resource],
+                moduleId: moduleId
+              };
+            case 'video':
+              return {
+                id: resource.contentID,
+                type: 'video',
+                title: resource.title || 'Embedded Video',
+                content: `Watch: ${resource.title || 'Video'}`,
+                video_url: resource.video_url,
+                videos: [resource],
+                moduleId: moduleId
+              };
+            case 'image':
+              return {
+                id: resource.contentID,
+                type: 'image',
+                title: resource.title || 'Image',
+                content: `Check out: ${resource.title || 'Image'}`,
+                file_url: resource.file_url,
+                source: resource.file_url ? 
+                  (resource.file_url.startsWith('http') ? resource.file_url : `http://localhost:8000${resource.file_url}`) : null,
+                filename: resource.filename,
+                width: resource.width,
+                height: resource.height,
+                imageFiles: [resource],
+                moduleId: moduleId
+              };
+            default:
+              return null;
+          }
+        }).filter(Boolean);
 
         const assessmentItems = [
           ...moduleTasks.map(task => ({

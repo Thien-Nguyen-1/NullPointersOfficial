@@ -109,6 +109,13 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       if (documentId && !documentId.toString().startsWith('new-')) {
         // For existing documents, only show the document that matches this ID
         const filteredDocs = response.filter(doc => doc.contentID === documentId);
+
+        // Sort documents by creation time (oldest first)
+        filteredDocs.sort((a, b) => {
+          const dateA = new Date(a.created_at || a.upload_date);
+          const dateB = new Date(b.created_at || b.upload_date);
+          return dateA - dateB;
+        });
         console.log(`[DEBUG] Filtered documents for ID ${documentId}:`, filteredDocs);
         setDocuments(filteredDocs);
       } else {

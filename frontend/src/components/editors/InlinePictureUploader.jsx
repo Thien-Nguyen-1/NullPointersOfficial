@@ -235,6 +235,14 @@ const InlinePictureUploader = React.forwardRef(({
         // For existing documents, only show the images that matches this ID
         const filteredImages = response.filter(image => image.contentID === documentId);
         console.log(`[DEBUG] Filtered image files for ID ${documentId}:`, filteredImages);
+        
+        // Sort images by creation time (oldest first)
+        filteredImages.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB;
+        });
+
         setImages(filteredImages);
       } else {
         // For new components or if no documentId is provided, show empty

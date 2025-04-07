@@ -114,46 +114,6 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
     }
   }, [moduleId, documentId, temporaryMode, videoUrl]);
 
-  // Expose getVideoData method for parent component
-  // useImperativeHandle(ref, () => ({
-  //   // getVideoData: () => {
-  //   //   console.log("[DEBUG] getVideoData called, returning:", {
-  //   //     video_url: videoUrl,
-  //   //     title: "Embedded Video",
-  //   //     description: ""
-  //   //   });
-  //   //   return {
-  //   //     video_url: videoUrl,
-  //   //     title: "Embedded Video", // Default title
-  //   //     description: "" // Empty description
-  //   //   };
-  //   // },
-
-  //   getTempFiles: () => {
-  //     if (videoUrl) {
-  //       return [{
-  //         file: new File(
-  //           [JSON.stringify({ video_url: videoUrl, title: videoTitle })],
-  //           "video_data.json",
-  //           { type: "application/json" }
-  //         ),
-  //         filename: "video_data.json",
-  //         videoData: { video_url: videoUrl, title: videoTitle }
-  //       }];
-  //     }
-  //     return [];
-  //   },
-
-  //   setVideoData: (data) => {
-  //     console.log("[DEBUG] setVideoData called with:", data);
-  //     if (data && data.video_url) {
-  //       setVideoUrl(data.video_url);
-  //       setVideoTitle(data.title || "");
-  //       setVideoDescription(data.description || "");
-  //       setIsPreviewVisible(true);
-  //     }
-  //   }
-  // }));
 
   useImperativeHandle(ref, () => ({
     // Converts video data to a file-like object for module builder
@@ -252,7 +212,7 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
       try {
         const response = await VideoService.getEmbeddedVideo(documentId);
         console.log('[DEBUG] Video data for document:', response);
-
+        
         if (response) {
           setVideoData(response);
           setVideoUrl(response.video_url || "");

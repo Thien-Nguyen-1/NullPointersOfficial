@@ -111,6 +111,12 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
       if (documentId && !documentId.toString().startsWith('new-')) {
         // For existing documents, only show the audio that matches this ID
         const filteredAudios = response.filter(audio => audio.contentID === documentId);
+        // Sort documents by creation time (oldest first)
+        filteredAudios.sort((a, b) => {
+          const dateA = new Date(a.created_at || a.upload_date);
+          const dateB = new Date(b.created_at || b.upload_date);
+          return dateA - dateB;
+        });
         console.log(`[DEBUG] Filtered audio files for ID ${documentId}:`, filteredAudios);
         setAudios(filteredAudios);
       } else {
