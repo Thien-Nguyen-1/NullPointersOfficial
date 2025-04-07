@@ -84,16 +84,6 @@ function App() {
                     <DndProvider backend={HTML5Backend}>
                       <ModuleViewAlternative />
                     </DndProvider>
-                    <SessionManager />
-                    <Routes>
-                      <Route path="home" element={<WorkerDashboard />} />
-                      <Route path="settings" element={<Settings />} />
-                      <Route path="support" element={<Messaging />} />
-                      <Route path="courses" element={<Courses/>} />
-                      
-                      {/* to be deleted */}
-                      <Route path="all-courses" element={<CoursesList/>} />
-                    </Routes>
                   </DashboardLayout>
                 } />
 
@@ -104,17 +94,15 @@ function App() {
                   element={
                     <DashboardLayout>
                       <SessionManager />
-                      <Routes>
-                        <Route path="home" element={<WorkerDashboard />} />
-                        <Route path="settings" element={<Settings />} />
-                        <Route path="support" element={<Messaging />} />
-                        <Route path="courses" element={<Courses/>} />
-                        
-                        {/* to be deleted */}
-                        <Route path="all-courses" element={<CoursesList/>} />
-                        <Route path="KnowValuesModule" element={<Module2/>} />
-
-                      </Routes>
+                        <Routes>
+                          <Route path="home" element={<WorkerDashboard />} />
+                          <Route path="settings" element={<Settings />} />
+                          <Route path="support" element={<Messaging />} />
+                          <Route path="courses" element={<Courses/>} />
+                          
+                          {/* to be deleted */}
+                          <Route path="all-courses" element={<CoursesList/>} />
+                        </Routes>
                     </DashboardLayout>
                   } />
 
