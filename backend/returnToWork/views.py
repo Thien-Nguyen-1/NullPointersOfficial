@@ -599,8 +599,9 @@ class EmbeddedVideoViewSet(viewsets.ModelViewSet):
         """Handle updates to embedded videos"""
         instance = self.get_object()
 
-        # Check if the user is the author or has edit permissions
-        if instance.author != request.user and not request.user.is_staff:
+        if (instance.author != request.user and 
+            not request.user.is_staff and
+            request.user.user_type not in ['admin', 'superadmin']):
             return Response(
                 {"detail": "You do not have permission to edit this video."},
                 status=status.HTTP_403_FORBIDDEN
@@ -612,8 +613,9 @@ class EmbeddedVideoViewSet(viewsets.ModelViewSet):
         """Handle deletion of embedded videos"""
         instance = self.get_object()
 
-        # Check if the user is the author or has delete permissions
-        if instance.author != request.user and not request.user.is_staff:
+        if (instance.author != request.user and 
+            not request.user.is_staff and 
+            request.user.user_type not in ['admin', 'superadmin']):
             return Response(
                 {"detail": "You do not have permission to delete this video."},
                 status=status.HTTP_403_FORBIDDEN
