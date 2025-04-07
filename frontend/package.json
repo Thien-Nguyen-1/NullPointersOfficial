@@ -13,7 +13,6 @@
     "coverage:open": "npm run coverage && open coverage/index.html"
   },
   "dependencies": {
-    "@testing-library/user-event": "^14.6.1",
     "axios": "^1.7.9",
     "d3-scale": "^4.0.2",
     "firebase": "^11.4.0",
@@ -35,6 +34,7 @@
     "@eslint/js": "^9.21.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
