@@ -51,6 +51,47 @@ describe('FlashcardQuiz Component', () => {
     expect(screen.getByText('This question requires an answer.')).toBeInTheDocument();
   });
 
+
+  test('toggleFlip toggles the flipped state', async () => {
+    QuizApiUtils.getQuestions.mockResolvedValue(mockQuestions);
+
+    const { container } = render(<FlashcardQuiz taskId={taskId} onComplete={() => {}} />);
   
+    await screen.findByText('Question 1');
+  
+    const flipCard = container.querySelector('.flashcard');
+  
+    fireEvent.click(flipCard);
+  
+    expect(flipCard).toHaveClass('flipped');
+  
+    fireEvent.click(flipCard);
+  
+    expect(flipCard).not.toHaveClass('flipped');
+  });
+  
+  
+  
+  test('handleSubmitAnswers sets errors and does not complete if answers are missing', async () => {
+    QuizApiUtils.getQuestions.mockResolvedValue(mockQuestions);
+
+    render(<FlashcardQuiz taskId={taskId} onComplete={() => {}} />);
+    await screen.findByText('Question 1');
+
+    const inputFirst = screen.getByPlaceholderText('Write your answer here...').closest('textarea');
+    fireEvent.change(inputFirst, { target: { value: '4' } });
+    fireEvent.click(screen.getByText('Next')); 
+
+    fireEvent.click(screen.getByText('Finish')); 
+
+    await waitFor(() => {
+      const errorMessages = screen.queryAllByText('This question requires an answer.');
+      expect(errorMessages.length).toBe(1); 
+    });
+
+    expect(screen.queryByText('Quiz Completed')).not.toBeInTheDocument(); 
+  });
   
 });
+  
+  
