@@ -21,7 +21,6 @@ import Welcome from './components/Welcome';
 import PasswordReset from './components/PasswordReset.jsx';
 import RequestPasswordReset from './components/RequestPasswordReset.jsx';
 import Tag from './components/Tag';
-import Module2 from './pages/KnowValuesModule';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
@@ -85,6 +84,16 @@ function App() {
                     <DndProvider backend={HTML5Backend}>
                       <ModuleViewAlternative />
                     </DndProvider>
+                    <SessionManager />
+                    <Routes>
+                      <Route path="home" element={<WorkerDashboard />} />
+                      <Route path="settings" element={<Settings />} />
+                      <Route path="support" element={<Messaging />} />
+                      <Route path="courses" element={<Courses/>} />
+                      
+                      {/* to be deleted */}
+                      <Route path="all-courses" element={<CoursesList/>} />
+                    </Routes>
                   </DashboardLayout>
                 } />
 

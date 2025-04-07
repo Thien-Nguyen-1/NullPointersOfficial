@@ -96,7 +96,7 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
         setSubmittedData(submittedData.filter(entry => entry.id !== id));
       }
     } catch (error) {
-      console.log('Failed to delete question from backend:', submittedData.id);
+      console.log('Failed to delete question from backend: with ID:',id);
 
       console.error('Failed to delete question from backend:', error);
     }
