@@ -1,13 +1,9 @@
 import React from "react";
 
-/**
- * Component for rendering image content in the module
- * 
- * @param {Object} imageData - The image data to render
- * @param {Set} completedContentIds - Set of IDs of completed content items
- * @param {Function} onComplete - Callback function when content is completed
- */
 const ImageContent = ({ imageData, completedContentIds, onComplete }) => {
+  console.log("ImageContent rendering with source:", imageData.source);
+  console.log("Image dimensions:", imageData.width, "x", imageData.height);
+  
   return (
     <div className="alt-component">
       <div className="alt-component-header">
@@ -22,6 +18,17 @@ const ImageContent = ({ imageData, completedContentIds, onComplete }) => {
             src={imageData.source} 
             alt={imageData.title}
             className="alt-image"
+            style={{
+              width: imageData.width ? `${imageData.width}px` : 'auto',
+              height: imageData.height ? `${imageData.height}px` : 'auto',
+              maxWidth: '100%' // Ensure image doesn't overflow container
+            }}
+            onError={(e) => {
+              console.error("Image failed to load:", imageData.source);
+              e.target.onerror = null;
+              e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f0f0f0'/%3E%3Cpath d='M35,30 L65,70 M65,30 L35,70' stroke='%23999' stroke-width='2'/%3E%3C/svg%3E";
+              e.target.style.opacity = "0.5";
+            }}
           />
         </div>
         

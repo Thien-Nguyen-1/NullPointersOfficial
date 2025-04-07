@@ -223,57 +223,6 @@ const AddModule = () => {
             });
           });
         } 
-        // else if (module.mediaType === "image") {
-        //   const editor = editorRefs.current[module.id];
-        //   const tempFiles = editor?.getTempFiles?.() || [];
-
-        //   // Cache image files
-        //   setCachedImages(prev => ({
-        //     ...prev,
-        //     [module.id]: tempFiles.map(fileData => ({
-        //       ...fileData,
-        //       // Ensure width and height are preserved
-        //       width: fileData.width || fileData.originalWidth,
-        //       height: fileData.height || fileData.originalHeight
-        //     }))
-        //   }));
-          
-        //   tempFiles.forEach(fileData => {
-        //     let fileUrl;
-    
-        //     // Safely create object URL
-        //     if (fileData.file instanceof File || fileData.file instanceof Blob) {
-        //       try {
-        //         fileUrl = URL.createObjectURL(fileData.file);
-        //       } catch (error) {
-        //         console.error("[DEBUG] Failed to create object URL for image:", error);
-        //         fileUrl = fileData.file_url || ''; // Fallback to existing URL or empty string
-        //       }
-        //     } else if (fileData.file_url) {
-        //       fileUrl = fileData.file_url;
-        //     } else {
-        //       console.warn("[DEBUG] No valid file or URL found for image:", fileData);
-        //       return; // Skip this iteration if no valid URL
-        //     }
-
-        //     resourceItems.push({
-        //       id: fileData.id || module.id,
-        //       type: 'image',
-        //       title: fileData.filename || "Image",
-        //       content: `View image: ${fileData.filename || "Image"}`,
-        //       imageData: {
-        //         contentID: fileData.id || module.id,
-        //         filename: fileData.filename || (fileData.file ? fileData.file.name : "image"),
-        //         file_url: fileUrl,
-        //         width: fileData.width || fileData.originalWidth,
-        //         height: fileData.height || fileData.originalHeight
-        //       },
-        //       moduleId: editId || "preview",
-        //       order: index
-        //     });
-        //   });
-        // } 
-
         else if (module.mediaType === "image") {
           const editor = editorRefs.current[module.id];
           console.log("[CRITICAL DEBUG] Image Module Details:", {
@@ -335,39 +284,54 @@ const AddModule = () => {
               hasFileUrl: !!fileData.file_url
             });
         
-            // Safely create object URL
+            // Create the proper URL based on the file type
             if (fileData.file instanceof File || fileData.file instanceof Blob) {
-              try {
-                fileUrl = URL.createObjectURL(fileData.file);
-                console.log("[CRITICAL DEBUG] Created Object URL for File:", fileUrl);
-              } catch (error) {
-                console.error("[CRITICAL DEBUG] Failed to create object URL for image:", {
-                  error: error.message,
-                  fileData: fileData
-                });
-                fileUrl = fileData.file_url || ''; 
-              }
+              // For temporary files, create a blob URL
+              fileUrl = URL.createObjectURL(fileData.file);
+              console.log("[DEBUG] Created blob URL for preview:", fileUrl);
             } else if (fileData.file_url) {
-              fileUrl = fileData.file_url;
-            } else {
-              console.warn("[CRITICAL DEBUG] No valid file or URL found for image:", fileData);
-              return; 
+              // For server files, ensure the URL is absolute
+              fileUrl = fileData.file_url.startsWith('http') 
+                ? fileData.file_url 
+                : `http://localhost:8000${fileData.file_url}`;
+              console.log("[DEBUG] Using server file URL for preview:", fileUrl);
+            } else if (fileData.originalImage && fileData.originalImage.file_url) {
+              // For files with originalImage reference
+              fileUrl = fileData.originalImage.file_url.startsWith('http')
+                ? fileData.originalImage.file_url
+                : `http://localhost:8000${fileData.originalImage.file_url}`;
+              console.log("[DEBUG] Using originalImage URL for preview:", fileUrl);
             }
-        
+
+            const imageWidth = fileData.width || 
+                   (fileData.metadata && fileData.metadata.width) || 
+                   fileData.originalWidth || null;
+                   
+            const imageHeight = fileData.height || 
+                                (fileData.metadata && fileData.metadata.height) || 
+                                fileData.originalHeight || null;
+
+            
+                                
             resourceItems.push({
               id: fileData.id || module.id,
               type: 'image',
               title: fileData.filename || "Image",
               content: `View image: ${fileData.filename || "Image"}`,
-              imageData: {
+              // Match the structure ImageContent expects
+              source: fileUrl,
+              caption: fileData.filename || "Image",
+              width: fileData.width || fileData.originalWidth,
+              height: fileData.height || fileData.originalHeight,
+              // Keep the original data for reference
+              imageFiles: [{
                 contentID: fileData.id || module.id,
                 filename: fileData.filename || (fileData.file ? fileData.file.name : "image"),
                 file_url: fileUrl,
-                width: fileData.width || fileData.originalWidth,
-                height: fileData.height || fileData.originalHeight
-              },
-              moduleId: editId || "preview",
-              order: index
+                width: imageWidth,
+                height: imageHeight,
+              }],
+              moduleId: editId || "preview"
             });
           });
         }

@@ -104,10 +104,24 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
     case 'paragraph':
       return <ParagraphContent paragraphData={item} />;
     case 'image':
+      const processedImageData = {
+        ...item,
+        // Make sure the source property exists (try multiple possible locations)
+        source: item.source || 
+        (item.file_url ? (item.file_url.startsWith('http') ? item.file_url : `http://localhost:8000${item.file_url}`) : null) || 
+        (item.imageFiles && item.imageFiles[0] && item.imageFiles[0].file_url ? 
+          (item.imageFiles[0].file_url.startsWith('http') ? item.imageFiles[0].file_url : `http://localhost:8000${item.imageFiles[0].file_url}`) : null),
+        // Ensure other required properties are available
+        width: item.width || (item.imageFiles && item.imageFiles[0] && item.imageFiles[0].width) || null,
+        height: item.height || (item.imageFiles && item.imageFiles[0] && item.imageFiles[0].height) || null,
+        id: item.id,
+        title: item.title || "Image"
+      };
+      console.log("Processed image data for display:", processedImageData);
       return (
         <PreviewWrapper type="image">
             <ImageContent
-            imageData={item} 
+            imageData={processedImageData} 
             completedContentIds={completedContentIds} 
             onComplete={handleContentComplete} 
           />

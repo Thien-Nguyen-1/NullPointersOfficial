@@ -110,6 +110,13 @@ const ModuleViewAlternative = () => {
             type: 'image',
             title: image.title || 'Image',
             content: `Check out: ${image.title || 'Image'}`,
+            file_url: image.file_url,
+            source: image.file_url ? 
+            (image.file_url.startsWith('http') ? image.file_url : `http://localhost:8000${image.file_url}`) : null,
+            // the image URLs in the system were relative paths -> need to be converted to absolute URLs for the browser to properly load them
+            filename: image.filename,
+            width: image.width,
+            height: image.height,
             imageFiles: [image], 
             moduleId: moduleId
           // add future media
