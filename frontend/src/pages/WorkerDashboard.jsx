@@ -29,6 +29,8 @@ export default function WorkerDashboard() {
           in_progress_modules: response.data.in_progress_modules || 0,
           total_modules: response.data.total_modules || 0
         });
+
+        
         
         // Transform modules into course-like format
         const transformedCourses = response.data.modules.map(module => ({
