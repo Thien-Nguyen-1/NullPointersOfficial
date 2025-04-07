@@ -474,7 +474,7 @@ class Conversation(models.Model): #one-to-many relationship with Messages
         return f"Conversation created for: {self.user} and {self.admin}"
 
 
-class Message(models.Model):
+class Message(models.Model):    
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     text_content = models.TextField()

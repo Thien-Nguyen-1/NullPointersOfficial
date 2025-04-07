@@ -13,6 +13,7 @@
     "coverage:open": "npm run coverage && open coverage/index.html"
   },
   "dependencies": {
+    "@testing-library/user-event": "^14.6.1",
     "axios": "^1.7.9",
     "d3-scale": "^4.0.2",
     "firebase": "^11.4.0",

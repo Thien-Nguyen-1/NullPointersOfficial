@@ -97,7 +97,7 @@ urlpatterns = [
 
     path('api/user-interaction/<int:module_id>/', UserInteractionView.as_view(), name='user-interaction'),
     path('api/user-interaction/', UserInteractionView.as_view(), name='user-interaction'),
-    path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'), 
+    path('api/progress-tracker/', ProgressTrackerView.as_view(), name='progress-tracker'),
     # Quiz question endpoints
     path('api/quiz/questions/', QuizQuestionView.as_view(), name='quiz_questions'),
     path('api/quiz/questions/<int:question_id>/', QuizQuestionView.as_view(), name='quiz_question_detail'),

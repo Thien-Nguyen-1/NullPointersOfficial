@@ -17,6 +17,7 @@ const renderWithDnd = (component) => {
 };
 
 describe('MatchingQuestionsQuiz', () => {
+    
     beforeEach(() => {
         QuizApiUtils.getQuestions.mockReset();
     });
