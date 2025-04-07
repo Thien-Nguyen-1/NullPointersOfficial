@@ -18,7 +18,6 @@ vi.mock('../services/api', () => {
 
   const token = "test-token"
 
-
   afterAll( () => {
     cleanup()
     vi.clearAllMocks();
