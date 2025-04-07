@@ -124,8 +124,6 @@ export const RefreshSubscriptions = () => {
 
 addEventListener("beforeunload", (event) => {
 
-   
-
     if(pusherInstance.pusher){
        pusherInstance.pusher.disconnect();
 
@@ -134,10 +132,8 @@ addEventListener("beforeunload", (event) => {
    
     myWorker.port.postMessage({cmd: "DELETE-PORT"})
 
-    event.preventDefault();  // Required for showing a warning in some browsers
-    event.returnValue = "";  // Some browsers require this for confirmation dialog
-
-
+   // event.preventDefault();  // Required for showing a warning in some browsers
+  //  event.returnValue = "";  // Some browsers require this for confirmation dialog
 
 });
 
