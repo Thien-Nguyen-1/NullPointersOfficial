@@ -76,10 +76,10 @@ class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    user_type = serializers.CharField()
+    # user_type = serializers.CharField()
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password','email']
+        fields = ['user_id', 'username', 'first_name', 'last_name','password','confirm_password','email']
         read_only_fields = ["user_id"]
 
     def validate(self,data):
@@ -89,6 +89,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     
     def create(self,validated_data):
         validated_data.pop("confirm_password")
+        validated_data["user_type"] = "service user"
         verification_token = str(uuid.uuid4())
         cache.set(verification_token, validated_data, timeout=86400)
         verification_url = f"http://localhost:5173/verify-email/{verification_token}/"

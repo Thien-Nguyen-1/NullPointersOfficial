@@ -1,6 +1,6 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../services/AuthContext";
+import { AuthContext } from "../../services/AuthContext";
 
 const RequestPasswordReset = () => { 
     const [email,setEmail] = useState("");

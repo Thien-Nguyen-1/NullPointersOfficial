@@ -1,9 +1,8 @@
 import { useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-//import { ResetPassword } from "../services/api";
-import '../styles/PasswordReset.css';
+import '../../styles/PasswordReset.css';
 
-import { AuthContext } from "../services/AuthContext";
+import { AuthContext } from "../../services/AuthContext";
 
 const PasswordReset = () => {
 
@@ -18,7 +17,6 @@ const PasswordReset = () => {
 
     const handlePasswordReset = async(e) => {
             e.preventDefault();
-            // setMessage("");
             try{
                 const data = await ResetPassword(newPassword, confirmNewPassword, uidb64, token);
                 console.log("Password reset succesful:" , data);
@@ -39,14 +37,14 @@ const PasswordReset = () => {
                 type ="password"
                 value = {newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder=" New Password"
+                placeholder="New Password"
                 required
             />
             <input 
                 type ="password"
                 value = {confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
-                placeholder=" Confirm New Password"
+                placeholder="Confirm New Password"
                 required
             />
             <button type ="submit">Confirm</button>

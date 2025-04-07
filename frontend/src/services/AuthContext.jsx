@@ -2,7 +2,6 @@ import axios from 'axios';
 import { createContext, useContext, useEffect, useState } from 'react';
 //import { ApiContextProvider } from './api_context';
 import { useSearchParams } from 'react-router-dom';
-import api from './api';
 
 /* const baseURL =
   typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
@@ -10,10 +9,10 @@ import api from './api';
     : 'http://localhost:8000';   */ //just why?
 
     
-// const api = axios.create({
-//   baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
-//   withCredentials: true,
-// });
+const api = axios.create({
+  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
 
 const AuthContext = createContext("")
 
@@ -50,7 +49,11 @@ const AuthContextProvider = ({children}) => {
      console.log(newUserObj)
       try {
         
-        const response = await api.put('/api/user/', newUserObj)
+        const response = await api.put('/api/user/', newUserObj, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        })
         
         if(response && response.data.user){
           console.log(response.data.user)
@@ -66,11 +69,6 @@ const AuthContextProvider = ({children}) => {
       }
     }
 
-    // {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // }
 
 
     // ===== LOGGING IN ====== //
@@ -180,13 +178,12 @@ const AuthContextProvider = ({children}) => {
 
      // ===== SIGNING IN ===== //
     //  Please complete this //
-    async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword,email){
+    async function SignUpUser(username, firstName, lastName, password, confirmPassword,email){
         try {
           const response = await api.post(`/api/signup/`, {
             username,
             first_name: firstName,
             last_name: lastName,
-            user_type: userType,
             password,
             confirm_password: confirmPassword,
             email,
@@ -225,24 +222,21 @@ const AuthContextProvider = ({children}) => {
 
   
 
-
     // ===== RESET PASSWORD ===== //
 
     async function ResetPassword(new_password , confirm_new_password,uidb64,token){
-
         try {
-
           const response = await api.post(`/api/password-reset/${uidb64}/${token}/`, {
             new_password,
             confirm_new_password
           });
-
+          
 
           return response.data;
         }
         catch(error) {
           throw new Error("Reset of password failed:" + error.response?.data?.detail || "Unkown error");
-          
+      
         }
       }
 

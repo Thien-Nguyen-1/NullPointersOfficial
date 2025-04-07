@@ -1,20 +1,17 @@
 import { useContext, useState, useEffect } from "react";
-//import { SignUpUser } from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../services/AuthContext";
-import api from '../services/api';
-import '../styles/Signup.css';
+import { AuthContext } from "../../services/AuthContext";
+import api from '../../services/api';
+import '../../styles/Signup.css';
 
 const Signup = () => {
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [userType, setUserType] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
-
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsContent, setTermsContent] = useState("");
   const [showTerms, setShowTerms] = useState(false);
@@ -24,8 +21,6 @@ const Signup = () => {
 
 
   const navigate = useNavigate();
-
-  // Fetch terms and conditions when component mounts
   useEffect(() => {
     const fetchTermsAndConditions = async () => {
       setIsLoadingTerms(true);
@@ -84,11 +79,9 @@ const Signup = () => {
     }
     
     try{
-      const data = await SignUpUser(username, firstName, lastName, userType, password, confirmPassword, email);
+      const data = await SignUpUser(username, firstName, lastName, password, confirmPassword, email);
       console.log("Sign Up successful:", data);
-      alert("Sign up succesfull " + username + "Please check your email for verification.");
-
-      // navigate("/login")
+      alert("Sign up succesfull " + username + " Please check your email for verification.");
     }
     catch(err){
       setError(err.message);
@@ -133,15 +126,6 @@ const Signup = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <select 
-            value={userType} 
-            onChange={(e) => setUserType(e.target.value)}
-            required
-          >
-            <option value="" disabled>Select user type</option>
-            <option value="admin">Admin</option>
-            <option value="service user">Service user</option>
-          </select>
           <input
             type="password"
             value={password}
