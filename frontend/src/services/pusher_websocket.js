@@ -3,12 +3,14 @@
 import Pusher from 'pusher-js'
 import { GetConversations } from './api_chat';
 
+import { useContext } from 'react';
 
-const connections = {}
-const background_connections = {}
+
 const callbacks = []
 
-const myWorker = new SharedWorker('/shared-worker.js');
+// const myWorker = new SharedWorker('/shared-worker.js');
+
+export const myWorker = new SharedWorker(new URL('./workers/shared-worker.js', import.meta.url) , {type:'module'});
 myWorker.port.start();
 
 
@@ -20,7 +22,6 @@ const pusherInstance = {
 myWorker.port.onmessage = (e) => {
     const isWebsocketConnected = e.data.isWebsocketConnected;
     const messageObj = e.data.message;
-    
 
     console.log("WE ARE CHECKING WE ARE CHECKING - leclerc's engineer", e.data.message)
 
@@ -28,10 +29,11 @@ myWorker.port.onmessage = (e) => {
 
         callbacks.forEach( (callback) => callback(messageObj));
         return;
+
     }
 
     if (isWebsocketConnected === false){
-         console.log("Setting up background connections")
+
         InitializePusher()
 
         myWorker.port.postMessage({cmd: "UPDATE-WEBSOCKET", data: {"isActive": true}});
@@ -39,11 +41,7 @@ myWorker.port.onmessage = (e) => {
         SetUpBackgroundConnections();
 
         return;
-
-
     } 
-
-
 }
 
 
@@ -64,21 +62,26 @@ const SetUpBackgroundConnections = async () => {
 
     console.log("Initializing all connections", allConvos)
 
-    allConvos.forEach(convObj => {
-        
+
+    allConvos?.forEach(convObj => {
+
+     
+        if(pusherInstance.pusher){
+
+            console.log("yip yip")
         const channel = pusherInstance.pusher.subscribe(`chat-room-${convObj.id}`)
 
         channel.bind('new-message', (data) => {
              
                 myWorker.port.postMessage({cmd:"SEND-MESSAGES-TABS", data: data})
 
-                
             }
         )
+        } else {
+            console.log("Pusher instance not active")
+        }
             
-
     });
-
 
 }
 
@@ -87,7 +90,6 @@ const SetUpBackgroundConnections = async () => {
 export const subscribeToChatRoom = (room_id, callback, isBackground) => {
 
     myWorker.port.postMessage({cmd: "SUBSCRIBE-CHAT", data: {"chatID": room_id}})
-
 
 
 }
@@ -109,28 +111,18 @@ export const AddCallback = (callback) => {
 
 
 export const RefreshSubscriptions = () => {
-    SetUpBackgroundConnections()
-}
 
-
-export const unsubscribeToChatRoom = (room_id, callback) => {
-
-   
-
-    if (connections[room_id] && room_id){
-
-         pusherInstance.pusher.unsubscribe(`chat-room-${room_id}`)
-         delete connections[room_id]
-      
+    if(!pusherInstance.pusher){
+        InitializePusher();
     }
+
+    SetUpBackgroundConnections();
 }
 
 
 
 
 addEventListener("beforeunload", (event) => {
-
-   
 
     if(pusherInstance.pusher){
        pusherInstance.pusher.disconnect();
@@ -140,12 +132,24 @@ addEventListener("beforeunload", (event) => {
    
     myWorker.port.postMessage({cmd: "DELETE-PORT"})
 
-    event.preventDefault();  // Required for showing a warning in some browsers
-    event.returnValue = "";  // Some browsers require this for confirmation dialog
-
-
+   // event.preventDefault();  // Required for showing a warning in some browsers
+  //  event.returnValue = "";  // Some browsers require this for confirmation dialog
 
 });
 
 
 
+
+//for testing - helper methods:
+
+export const _StopAllConnections = () => {
+    if(pusherInstance.pusher){
+        pusherInstance.pusher.disconnect();
+        pusherInstance.pusher = null;
+    } 
+    callbacks.length = 0;
+}
+
+export const _GetCallbackSize = () => {
+    return callbacks.length;
+}

@@ -63,7 +63,6 @@ class ProgressTrackerView(APIView):
 
     def get(self, request):
 
-        
         progressTrackerObjects = ProgressTracker.objects.all() #(filter user request and commpleted = true)
         serializer = ProgressTrackerSerializer(progressTrackerObjects,many = True)
         return Response(serializer.data)
@@ -1751,21 +1750,23 @@ class UserSupportView(APIView):
 
         
 
-        try:
+       
           
-            info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
-            info_chats = info_chats.order_by('-updated_at')
-            
-            serialized_info = ConversationSerializer(info_chats, many=True)
-            
-            
-            updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
-            
+        info_chats = Conversation.objects.filter(user = user_) if user_.user_type == "service user" else Conversation.objects.filter(Q(hasEngaged = False) | Q(admin=user_))
+        info_chats = info_chats.order_by('-updated_at')
 
-            return Response(updated_data, status=status.HTTP_200_OK)
+        if not info_chats:
+            return Response([], status=status.HTTP_200_OK)
+        
+        serialized_info = ConversationSerializer(info_chats, many=True)
+        
+        
+        updated_data = [ {**chat, "user_username": User.objects.get(id=chat.get('user')).username}  for chat in serialized_info.data]
+        
 
-        except:
-            return Response({"message": "Unable to source user conversation"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(updated_data, status=status.HTTP_200_OK)
+
+       
     
         
 
@@ -1780,23 +1781,27 @@ class UserSupportView(APIView):
 
 
         elif((user_.user_type == "admin") and data):
-         
-            conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+            
+             try:
+                conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
+             except Conversation.DoesNotExist:
+                 return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+                
+            
 
-            if conversation_:
-                if not conversation_.hasEngaged:
+         
+             if not conversation_.hasEngaged:
 
                     conversation_.hasEngaged = True
                     conversation_.admin = user_
 
                     conversation_.save()
                     
-                else:
+             else:
                     return Response({"message": "Conversation already occupied"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-            else:
-                return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+            
 
     
         else:
@@ -1835,39 +1840,28 @@ class UserChatView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def getFcmToken(self, usr_type, conv_Obj):
-      
-        if usr_type == "service user": # user -> admin
-           
-            if getattr(conv_Obj.admin, "firebase_token", False):
-                return conv_Obj.admin.firebase_token
-               
-        elif usr_type == "admin":  # admin -> user
-            if getattr(conv_Obj.user, "firebase_token", False):
-                return conv_Obj.user.firebase_token
-
-        
-        return None
-
+    
         
     def get(self, request, room_id):
         user_ = request.user
         data = request.data
-       
-        conv_Obj = Conversation.objects.get(id = room_id)
 
-        if conv_Obj:
-            
-            all_Messages = Message.objects.filter(conversation=conv_Obj)
-            
+        try:
+            conv_Obj = Conversation.objects.get(id = room_id)
+        except Conversation.DoesNotExist:
+            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
 
-            serialized_messages = MessageSerializer(all_Messages, many=True)
-           
-            return Response(serialized_messages.data, status=status.HTTP_200_OK)
+
+      
+            
+        all_Messages = Message.objects.filter(conversation=conv_Obj)
+        
+        serialized_messages = MessageSerializer(all_Messages, many=True)
+        
+        return Response(serialized_messages.data, status=status.HTTP_200_OK)
 
         
-        else:
-            return Response({"message":"Unable to find conversation"}, status=status.HTTP_404_NOT_FOUND)
+     
 
             
 
@@ -1876,77 +1870,52 @@ class UserChatView(APIView):
         user_ = request.user
         data = request.data
 
-        conv_Obj = Conversation.objects.get(id = room_id)
+        try:
+            conv_Obj = Conversation.objects.get(id = room_id)
+        except Conversation.DoesNotExist:
+            return Response({"message": "Conversation NOT found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+            
+        message_content = data["message"]
+        uploaded_file = data.get("file", None)
+
         
-    
-  
-        if conv_Obj:
+            #Create a new message object
+        Message.objects.create(
+            conversation=conv_Obj,
+            sender=user_,
+            text_content = message_content,
+            file = uploaded_file
+        )
+
+        conv_Obj.save() 
+
+        
+        pusher_client = pusher.Pusher(
+            app_id='1963499',
+            key='d32d75089ef19c7a1669',
+            secret='6523d0f19e5a5a6db9b3',
+            cluster='eu',
+            ssl=True
+        )
+
+        messageObj = {
+            "message": message_content,
+            "sender": user_.id,
+            "chatID": room_id,
+            "sender_username": user_.username,
+
+        }
+
+        pusher_client.trigger(f"chat-room-{room_id}", "new-message", messageObj)
             
-            token = self.getFcmToken(user_.user_type, conv_Obj)
-
-            admin = conv_Obj.admin
-
-            message_content = data["message"]
-            uploaded_file = data.get("file", None)
-
             
-                #Create a new message object
-            Message.objects.create(
-                conversation=conv_Obj,
-                sender=user_,
-                text_content = message_content,
-                file = uploaded_file
-            )
 
-            conv_Obj.save() 
-
-            if token:
-
-                message = messaging.Message(
-                     notification=messaging.Notification(
-                         title= user_.username ,
-                         body = message_content,
-                        
-                     ),
-                     token=token
-                 )
-                
-                pusher_client = pusher.Pusher(
-                    app_id='1963499',
-                    key='d32d75089ef19c7a1669',
-                    secret='6523d0f19e5a5a6db9b3',
-                    cluster='eu',
-                    ssl=True
-                )
-
-                messageObj = {
-                    "message": message_content,
-                    "sender": user_.id,
-                    "chatID": room_id,
-                    "sender_username": user_.username,
-
-                }
-
-                pusher_client.trigger(f"chat-room-{room_id}", "new-message", messageObj)
-                
-                try:
-                    response = messaging.send(message)
-                   
-                except:
-                    pass
-
-                
- 
-            else:
-                return Response({"message": "token unlocated"}, status=status.HTTP_200_OK)
+        return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
 
 
-
-            return Response({"message": "Converation found"}, status=status.HTTP_200_OK)
-
-
-        else:
-            return Response({"message": "Conversation NOT found"}, status=status.HTTP_200_OK)
+        
 
 
     
