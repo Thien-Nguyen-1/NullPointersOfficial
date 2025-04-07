@@ -1,3 +1,5 @@
+// use for documents (should i rename it....)
+
 import React, { useState } from "react";
 import { FiFile, FiDownload, FiEye } from "react-icons/fi";
 import PDFViewer from "../PDFViewer";

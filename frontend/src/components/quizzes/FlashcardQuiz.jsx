@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 import "../../styles/Quizzes.css";
 
-const FlashcardQuiz = ({ taskId, onComplete }) => {
+const FlashcardQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions = null }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -19,6 +19,32 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
+
+        // If we're in preview mode and have preview questions, use them directly
+        if (isPreview && previewQuestions) {
+          console.log("Using preview questions in FlashcardQuiz:", previewQuestions);
+          
+          // Normalize question data
+          const normalizedQuestions = previewQuestions.map(q => ({
+            id: q.id,
+            question_text: q.question_text || q.text || "",
+            hint_text: q.hint_text || q.hint || "",
+            order: q.order || 0
+          }));
+          
+          setQuestions(normalizedQuestions);
+          
+          // Initialize userAnswers with empty strings
+          const initialAnswers = {};
+          normalizedQuestions.forEach(q => {
+            initialAnswers[q.id] = '';
+          });
+          setUserAnswers(initialAnswers);
+          setIsLoading(false);
+          return;
+        }
+
+        // Regular API fetching if not in preview mode
         console.log("Fetching questions for taskId:", taskId);
         const fetchedQuestions = await QuizApiUtils.getQuestions(taskId);
         console.log("Fetched questions:", fetchedQuestions);
@@ -53,15 +79,19 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
         setIsLoading(false);
       }
     };
+
+
     
-    if (taskId) {
+    if (isPreview && previewQuestions) {
+      fetchQuestions();
+    } else if (taskId) {
       fetchQuestions();
     } else {
       console.error("No taskId provided to FlashcardQuiz component");
       setError("Quiz configuration error. Please contact support.");
       setIsLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, isPreview, previewQuestions]);
 
   // Move to the next question
   const nextQuestion = () => {
@@ -83,6 +113,12 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
 
   // Validate all answers before completing the quiz
   const validateAndCompleteQuiz = () => {
+
+    // skip validation in preview mode
+    if (isPreview) {
+      completeQuiz();
+      return;
+    }
     const errors = {};
     let hasErrors = false;
     
@@ -143,6 +179,15 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
 
   // Handle final submission after review
   const handleSubmitAnswers = () => {
+    // If in preview mode, just call onComplete with empty results
+    if (isPreview) {
+      if (onComplete) {
+        onComplete({ preview: true });
+      }
+      return;
+    }
+
+
     // Final validation before sending to parent component
     const errors = {};
     let hasErrors = false;
@@ -195,7 +240,7 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
         <h3>Flashcard Exercise Complete!</h3>
         <p>You've gone through all the flashcards in this section.</p>
         
-        {Object.keys(validationErrors).length > 0 && (
+        {!isPreview && Object.keys(validationErrors).length > 0 && (
           <div className="validation-error-summary">
             <p>Please go back and answer all questions.</p>
           </div>
@@ -261,7 +306,7 @@ const FlashcardQuiz = ({ taskId, onComplete }) => {
                 onClick={(e) => e.stopPropagation()} // Prevent flip when typing
               ></textarea>
               
-              {currentQuestionHasError && attemptedSubmit && (
+              {currentQuestionHasError && attemptedSubmit && !isPreview && (
                 <div className="validation-error">{validationErrors[currentQuestion.id]}</div>
               )}
             </div>

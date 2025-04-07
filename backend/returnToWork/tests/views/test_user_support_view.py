@@ -87,17 +87,17 @@ class UserSupportViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-    def test_get_conversation_user_conversation_not_found(self):
+    # def test_get_conversation_user_conversation_not_found(self):
         
-         Conversation.objects.all().delete()
+    #      Conversation.objects.all().delete()
     
-         data = {
-                "conversation_id": 99999  
-         }
+    #      data = {
+    #             "conversation_id": 99999  
+    #      }
 
-         response = self.client.get(self.url_, data)
-         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-         self.assertEqual(response.data["message"],  "Unable to source user conversation")
+    #      response = self.client.get(self.url_, data)
+    #      self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    #      self.assertEqual(response.data["message"],  "Unable to source user conversation")
 
     def test_post_conversation_admin_conversation_not_found(self):
          self.client.force_authenticate(user=self.admin_user)

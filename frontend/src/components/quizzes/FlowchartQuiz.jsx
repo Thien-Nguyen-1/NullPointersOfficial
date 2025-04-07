@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 import "../../styles/Quizzes.css";
 
-const FlowchartQuiz = ({ taskId, onComplete }) => {
+const FlowchartQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions = null  }) => {
   const [questions, setQuestions] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
@@ -17,6 +17,35 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
+
+        // If in preview mode and preview questions are provided, use them
+        if (isPreview && previewQuestions) {
+          console.log("Using preview questions in FlowchartQuiz:", previewQuestions);
+          
+          // Normalize question data
+          const normalizedQuestions = previewQuestions.map(q => ({
+            id: q.id,
+            // Handle both data structures (text or question_text)
+            question_text: q.question_text || q.text || "",
+            hint_text: q.hint_text || q.hint || "",
+            order: q.order || 0
+          }));
+          
+          // Sort questions by order to ensure proper sequence
+          const sortedQuestions = normalizedQuestions.sort((a, b) => a.order - b.order);
+          setQuestions(sortedQuestions);
+          
+          // Initialize userAnswers
+          const initialAnswers = {};
+          sortedQuestions.forEach(q => {
+            initialAnswers[q.id] = '';
+          });
+          setUserAnswers(initialAnswers);
+          setIsLoading(false);
+          return;
+        }
+
+        // Regular API call (NON PREVIEW MODE)
         console.log("Fetching questions for taskId:", taskId);
         const fetchedQuestions = await QuizApiUtils.getQuestions(taskId);
         console.log("Fetched questions for flowchart:", fetchedQuestions);
@@ -54,14 +83,16 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
       }
     };
     
-    if (taskId) {
+    if (isPreview && previewQuestions) {
+      fetchQuestions();
+    } else if (taskId) {
       fetchQuestions();
     } else {
       console.error("No taskId provided to FlowchartQuiz component");
       setError("Quiz configuration error. Please contact support.");
       setIsLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, isPreview, previewQuestions]);
 
   // Handle answer for current statement
   const handleAnswerChange = (e) => {
@@ -158,6 +189,14 @@ const FlowchartQuiz = ({ taskId, onComplete }) => {
 
   // Handle final submission - validate one more time
   const handleFinalSubmit = () => {
+    // Skip validation in preview mode
+    if (isPreview) {
+      if (onComplete) {
+        onComplete({ preview: true });
+      }
+      return;
+    }
+    
     if (validateAllAnswers()) {
       if (onComplete) {
         onComplete(userAnswers);// Answers are passed to the ModuleView
