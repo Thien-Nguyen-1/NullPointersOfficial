@@ -200,7 +200,7 @@ export async function getUserSettings(){
 
 export async function deleteUserSettings(){
   try{
-    const response = await api.delete(`/worker/settings/`);
+    const response = await api.delete(`/api/worker/settings/`);
     return response.data;
   }
   catch(error){
@@ -213,7 +213,7 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`/worker/password-change/`, {
+    const response = await api.put(`/api/worker/password-change/`, {
       old_password:  oldPassword,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword});
