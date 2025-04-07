@@ -39,6 +39,12 @@ const DocumentEditorWrapper = React.forwardRef((props, ref) => {
           console.warn("[DEBUG] getTempFiles function not found on documentUploaderRef.current");
           return [];
         }
+      },
+
+      setTempFiles: (files) => {
+        if (documentUploaderRef.current && typeof documentUploaderRef.current.setTempFiles === 'function') {
+          documentUploaderRef.current.setTempFiles(files);
+        }
       }
     }));
     
@@ -49,7 +55,7 @@ const DocumentEditorWrapper = React.forwardRef((props, ref) => {
           moduleId={actualModuleId} 
           documentId={documentId}
           allowDirectUpload={true}
-          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-"))}
+          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-")) || documentId.startsWith("new-")}
         />
       </div>
     );
@@ -103,6 +109,13 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       if (documentId && !documentId.toString().startsWith('new-')) {
         // For existing documents, only show the document that matches this ID
         const filteredDocs = response.filter(doc => doc.contentID === documentId);
+
+        // Sort documents by creation time (oldest first)
+        filteredDocs.sort((a, b) => {
+          const dateA = new Date(a.created_at || a.upload_date);
+          const dateB = new Date(b.created_at || b.upload_date);
+          return dateA - dateB;
+        });
         console.log(`[DEBUG] Filtered documents for ID ${documentId}:`, filteredDocs);
         setDocuments(filteredDocs);
       } else {
@@ -116,10 +129,52 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
     }
   };
 
+  // React.useImperativeHandle(ref, () => ({
+  //   getTempFiles: () => {
+  //     console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+  //     return tempFiles;
+  //   }
+  // }));
   React.useImperativeHandle(ref, () => ({
     getTempFiles: () => {
       console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+      
+      // If we're in edit mode and already have displayed documents, include them
+      if (moduleId && documents.length > 0) {
+        // Get IDs of files already in tempFiles to avoid duplicates
+        const tempFileIds = new Set(tempFiles.map(file => file.id));
+
+        // Create objects that mimic the structure of temp files
+        const existingFiles = documents.filter(doc => !tempFileIds.has(doc.contentID)) // avoid duplicates
+        .map(doc => ({
+          id: doc.contentID,
+          file: {
+            name: doc.filename,
+            size: doc.file_size || 0,
+            // Create a placeholder for preview purposes
+            type: doc.filename.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'
+          },
+          originalDocument: doc // Keep reference to original document
+        }));
+        
+        console.log('[DEBUG] Including existing documents in getTempFiles:', existingFiles);
+        
+        // Return both temporary and existing files
+        return [...tempFiles, ...existingFiles];
+      }
+      
       return tempFiles;
+    },
+
+    setTempFiles: (files) => {
+      console.log("[DEBUG] setTempFiles called with files:", files);
+      // For new components, also update the documents state to show these files
+      if (documentId && documentId.toString().startsWith('new-')) {
+        console.log("[DEBUG] New component, updating documents state with cached files");
+        setDocuments(files);
+      }
+      
+      setTempFiles(files);
     }
   }));
 

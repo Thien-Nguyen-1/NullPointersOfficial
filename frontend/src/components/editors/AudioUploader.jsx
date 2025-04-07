@@ -19,7 +19,6 @@ const AudioEditorWrapper = React.forwardRef((props, ref) => {
     console.log("[DEBUG] AudioEditorWrapper props:", { moduleId, quizType, documentId });
     console.log("[DEBUG] AudioEditorWrapper actualModuleId:", actualModuleId);
 
-    // this matches the API expected by AddModule.jsx
     React.useImperativeHandle(ref, () => ({
       getQuestions: () => {
         // return empty array to satisfy the interface
@@ -39,6 +38,15 @@ const AudioEditorWrapper = React.forwardRef((props, ref) => {
           console.warn("[DEBUG] getTempFiles function not found on audioUploaderRef.current");
           return [];
         }
+      },
+
+
+      // CRITICAL : To maintain state between preview mode transitions 
+      // ensures that files added before entering preview mode dont disappear when exiting preview mode
+      setTempFiles: (files) => {
+        if (audioUploaderRef.current && typeof audioUploaderRef.current.setTempFiles === 'function') {
+          audioUploaderRef.current.setTempFiles(files);
+        }
       }
     }));
     
@@ -49,7 +57,7 @@ const AudioEditorWrapper = React.forwardRef((props, ref) => {
           moduleId={actualModuleId} 
           documentId={documentId}
           allowDirectUpload={true}
-          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-"))}
+          temporaryMode={moduleId === null || (typeof moduleId === 'string' && moduleId.startsWith("new-")) || documentId.startsWith("new-")}
         />
       </div>
     );
@@ -103,6 +111,12 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
       if (documentId && !documentId.toString().startsWith('new-')) {
         // For existing documents, only show the audio that matches this ID
         const filteredAudios = response.filter(audio => audio.contentID === documentId);
+        // Sort documents by creation time (oldest first)
+        filteredAudios.sort((a, b) => {
+          const dateA = new Date(a.created_at || a.upload_date);
+          const dateB = new Date(b.created_at || b.upload_date);
+          return dateA - dateB;
+        });
         console.log(`[DEBUG] Filtered audio files for ID ${documentId}:`, filteredAudios);
         setAudios(filteredAudios);
       } else {
@@ -116,10 +130,42 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
     }
   };
 
+  // React.useImperativeHandle(ref, () => ({
+  //   getTempFiles: () => {
+  //     console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+  //     return tempFiles;
+  //   }
+  // }));
   React.useImperativeHandle(ref, () => ({
     getTempFiles: () => {
       console.log("[DEBUG] getTempFiles called, returning:", tempFiles);
+      
+      // If we're in edit mode and already have displayed audios, include them
+      if (moduleId && audios.length > 0) {
+        // Create objects that mimic the structure of temp files
+        const existingFiles = audios.map(audio => ({
+          id: audio.contentID,
+          file: {
+            name: audio.filename,
+            size: audio.file_size || 0,
+            // Create a placeholder for preview purposes
+            type: 'audio/mpeg'
+          },
+          originalAudio: audio // Keep reference to original audio
+        }));
+        
+        console.log('[DEBUG] Including existing audio files in getTempFiles:', existingFiles);
+        
+        // Return both temporary and existing files
+        return [...tempFiles, ...existingFiles];
+      }
+      
       return tempFiles;
+    },
+
+    setTempFiles: (files) => {
+      console.log("[DEBUG] setTempFiles called with files:", files);
+      setTempFiles(files);
     }
   }));
 

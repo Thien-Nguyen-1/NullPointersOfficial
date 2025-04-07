@@ -304,6 +304,130 @@ const FlowchartPreview = ({ questions }) => {
   );
 };
 
+const RankingPreview = ({ questions }) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [rankOrder, setRankOrder] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+
+  if (!questions || questions.length === 0) {
+    return <div className="empty-quiz">No ranking questions available.</div>;
+  }
+
+  useEffect(() => {
+    // Initialize ranking order for each question
+    const initialRankings = {};
+    questions.forEach((question, index) => {
+      initialRankings[index] = question.answers || [];
+    });
+    setRankOrder(initialRankings);
+  }, [questions]);
+
+  const handleNext = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+  };
+
+  const handleMove = (direction, itemIndex) => {
+    if (submitted) return;
+
+    const currentItems = [...rankOrder[currentQuestion]];
+    if (direction === 'up' && itemIndex > 0) {
+      // Swap with the item above
+      [currentItems[itemIndex], currentItems[itemIndex - 1]] =
+        [currentItems[itemIndex - 1], currentItems[itemIndex]];
+    } else if (direction === 'down' && itemIndex < currentItems.length - 1) {
+      // Swap with the item below
+      [currentItems[itemIndex], currentItems[itemIndex + 1]] =
+        [currentItems[itemIndex + 1], currentItems[itemIndex]];
+    }
+
+    setRankOrder({
+      ...rankOrder,
+      [currentQuestion]: currentItems
+    });
+  };
+
+  return (
+    <div className="ranking-preview">
+      <div className="ranking-navigation">
+        <span>Question {currentQuestion + 1} of {questions.length}</span>
+        <div className="ranking-nav-buttons">
+          <button
+            onClick={handlePrev}
+            disabled={currentQuestion === 0}
+            className="nav-button"
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNext}
+            disabled={currentQuestion === questions.length - 1}
+            className="nav-button"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      <div className="ranking-container">
+        <h3>Ranking Exercise:</h3>
+        <p className="ranking-instructions">
+          {questions[currentQuestion].question_text || "Rank the following items:"}
+        </p>
+
+        <div className="ranking-items">
+          {rankOrder[currentQuestion]?.map((item, index) => (
+            <div key={index} className="ranking-item">
+              <div className="ranking-item-number">{index + 1}</div>
+              <div className="ranking-item-content">{item}</div>
+              <div className="ranking-item-controls">
+                <button
+                  onClick={() => handleMove('up', index)}
+                  disabled={index === 0 || submitted}
+                  className="move-button"
+                >
+                  ↑
+                </button>
+                <button
+                  onClick={() => handleMove('down', index)}
+                  disabled={index === rankOrder[currentQuestion].length - 1 || submitted}
+                  className="move-button"
+                >
+                  ↓
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {!submitted ? (
+          <button
+            className="submit-button"
+            onClick={handleSubmit}
+          >
+            Submit Ranking
+          </button>
+        ) : (
+          <div className="submission-message">
+            <p>Your ranking has been submitted!</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const ModulePreview = ({ module, onClose }) => {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -371,6 +495,11 @@ const ModulePreview = ({ module, onClose }) => {
                 {module.modules[activeTab].quizType === 'statement_sequence' && (
                   <FlowchartPreview questions={module.modules[activeTab].questions} />
                 )}
+
+                {module.modules[activeTab].quizType === 'ranking_quiz' && (
+                  <RankingPreview questions={module.modules[activeTab].questions} />
+                )}
+
               </div>
             </>
           ) : (

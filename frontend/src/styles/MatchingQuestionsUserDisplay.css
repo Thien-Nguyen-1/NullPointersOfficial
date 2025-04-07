@@ -84,3 +84,30 @@
 .restart-button:hover {
     background-color: #cc5a62; /* Darker shade for hover */
 }
+
+.matching-quiz-review {
+    /* Base styling */
+  }
+  
+  .review-pair {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .review-question, .review-answer {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .review-arrow {
+    margin: 0 15px;
+    font-weight: bold;
+  }
+  
+  .matching-quiz-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
