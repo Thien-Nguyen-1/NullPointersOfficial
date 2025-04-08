@@ -108,7 +108,63 @@ class SignUpView(APIView):
     
 class LogInView(APIView):
     def post(self, request):
+        print(f"[DEBUG] Login attempt with data: {request.data}")
         serializer = LogInSerializer(data = request.data)
+
+        if not serializer.is_valid():
+            print(f"[DEBUG] Login serializer errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = serializer.validated_data["user"]
+        print(f"[DEBUG] User authenticated: {user.username}, user_type: {user.user_type}")
+
+        if user.user_type == 'admin':
+            try:
+                verification = AdminVerification.objects.get(admin=user)
+                print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
+                if not verification.is_verified:
+                    print(f"[DEBUG] Admin not verified, preventing login")
+                    return Response({
+                        'error': 'Please verify your email before logging in. Check your inbox for a verification link.',
+                        'verification_required': True
+                    }, status=status.HTTP_403_FORBIDDEN)
+            except AdminVerification.DoesNotExist:
+                print(f"[DEBUG] No verification record found for admin")
+                # If no verification record exists, create one requiring verification
+                verification_token = str(uuid.uuid4())
+                AdminVerification.objects.create(
+                    admin=user,
+                    is_verified=False,
+                    verification_token=verification_token
+                )
+
+                # Send verification email
+                verification_url = f"http://localhost:5173/verify-admin-email/{verification_token}/"
+                send_mail(
+                    subject="Verify your admin account",
+                    message=f"Dear {user.first_name},\n\nPlease verify your email by clicking the following link: {verification_url}\n\nThis link will expire in 3 days.",
+                    from_email="readiness.to.return.to.work@gmail.com",
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+
+                return Response({
+                    'error': 'Please verify your email before logging in. A verification link has been sent to your email.',
+                    'verification_required': True
+                }, status=status.HTTP_403_FORBIDDEN)
+
+        login(request,user) # If verification passed or not required, proceed with login
+        # token, created = Token.objects.get_or_create(user=user)
+        print(f"[DEBUG] Login successful, generating tokens")
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response({"message": "Login Successful",
+                        "user": UserSerializer(user).data,
+                        "token": str(refresh.access_token),  # For backward compatibility
+                        "refreshToken": str(refresh)}) # refresh token to get new access
+
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             login(request,user)
@@ -1501,26 +1557,39 @@ class AdminEmailVerificationView(APIView):
     
     def get(self, request, token):
         """Verify admin email using token"""
+        print(f"[DEBUG] Admin verification requested with token: {token}")
         try:
             # find verification record with this token
             verification = AdminVerification.objects.get(verification_token=token)
+            admin_user = verification.admin
+            print(f"[DEBUG] Found verification record for admin: {admin_user.username}, is_verified: {verification.is_verified}")
+
+            # If already verified, return a success message
+            if verification.is_verified:
+                print(f"[DEBUG] Admin already verified: {admin_user.username}")
+                return Response({
+                    'message': 'Email already verified. You can now log in as an admin.',
+                    'redirect_url': '/login'
+                })
             
             # check if token is expired
             if verification.is_token_expired():
+                print(f"[DEBUG] Token expired")
                 return Response({
                     'error': 'Verification token has expired. Please request a new one.'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # ensure the user is actually an admin
             if verification.admin.user_type != 'admin':
+                print(f"[DEBUG] User is not admin: {admin_user.user_type}")
                 return Response({
                     'error': 'This verification link is only valid for admin users.'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Mark as verified and clear token
             verification.is_verified = True
-            verification.verification_token = None
             verification.save()
+            print(f"[DEBUG] Admin verified successfully: {admin_user.username}")
             
             # Generate JWT tokens for immediate login
             refresh = RefreshToken.for_user(verification.admin)
@@ -1535,6 +1604,7 @@ class AdminEmailVerificationView(APIView):
                 'redirect_url': '/login'
             })
         except AdminVerification.DoesNotExist:
+            print(f"[DEBUG] Invalid or expired verification token: {token}")
             return Response({
                 'error': 'Invalid or expired verification token'
             }, status=status.HTTP_400_BAD_REQUEST)
