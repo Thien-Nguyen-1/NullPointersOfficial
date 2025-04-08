@@ -265,20 +265,18 @@ const SuperAdminSettings = () => {
                       </span>
                     </td>
                     <td>
-                      <button 
-                        className="btn-delete" 
-                        onClick={() => handleRemoveAdmin(admin.id)}
-                      >
-                        Remove
-                      </button>
-                      {admin.is_verified === false && (
-                        <button 
-                          className="btn-resend-verification" 
-                          onClick={() => handleResendVerification(admin.id)}
-                        >
-                          Resend Verification
-                        </button>
-                      )}
+                        <div className="admin-actions">
+                          <button className="admin-btn btn-delete" onClick={() => handleRemoveAdmin(admin.id)}>
+                            Remove
+                          </button>
+
+                          {admin.is_verified === false && (
+                            <button className="admin-btn btn-resend-verification" onClick={() => handleResendVerification(admin.id)}>
+                              Resend Verification
+                            </button>
+                          )}
+
+                        </div>
                     </td>
                   </tr>
                   ): null)} 
@@ -387,13 +385,16 @@ const SuperAdminSettings = () => {
                 </div>
 
                 <div className="form-group verification-toggle">
-                <label htmlFor="require_verification" className="toggle-label">
-                  Require Email Verification
-                  <div className='toggle-description'>
-                    When enabled, the admin will need to verify their email before they can login.
+                  <div className="toggle-content">
+                    <label className="verification-label">
+                      <strong>Require Email Verification</strong>
+                    </label>
+                    <div className="toggle-description">
+                      When enabled, the admin will need to verify their email address before they can log in to the system.
+                      A verification email will be sent automatically when creating the account.
+                    </div>
                   </div>
-                </label>
-                  <div className='toggle-switch'>
+                  <div className="checkbox-container">
                     <input
                       type="checkbox"
                       id="require_verification"
@@ -401,8 +402,6 @@ const SuperAdminSettings = () => {
                       checked={requireVerification}
                       onChange={() => setRequireVerification(!requireVerification)}
                     />
-                    <label htmlFor='require_verification' className='toggle-slider'>
-                    </label>
                   </div>
                 </div>
                 
@@ -433,6 +432,7 @@ const SuperAdminSettings = () => {
           )}
         </div>
       </section>
+      <div style={{ height: '60px' }}></div>
     </div>
   );
 };

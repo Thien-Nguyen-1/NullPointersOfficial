@@ -117,7 +117,7 @@ function App() {
                             <Routes>
                                 <Route path="home" element={<AdminDashboard />} />
                               <Route path="settings" element={<Settings />} />
-                              <Route path="support" element={<Support />} />
+                              <Route path="support" element={<Messaging />} />
                               <Route path="courses" element={<Courses />} />
                               <Route path="service-users" element={<ServiceUsersPage />} />
                               <Route path="set-questionnaire" element={<QuestionnaireAdmin />} />
