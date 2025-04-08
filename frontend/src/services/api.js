@@ -158,8 +158,8 @@ export function redirectBasedOnUserType(userData) {
             break;
         case 'service user':
           if(isFirstLogin){
-            console.log("Redirecting to worker/questionnaire");
-            window.location.href = '/worker/questionnaire';
+            console.log("Redirecting to /questionnaire");
+            window.location.href = '/questionnaire';
           }
           else {
             console.log("Redirecting to worker/home");

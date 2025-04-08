@@ -15,7 +15,6 @@ import Support from "./pages/Support";
 import Courses from "./pages/Courses";
 import CoursesList from './pages/CoursesList.jsx';
 import Questionnaire from "./components/Questionnaire";
-import UserQuestionnaire from './pages/UserQuestionnaire.jsx';
 import Login from './components/auth/Login';
 import Signup from './components/auth/SignUp';
 import Welcome from './components/auth/Welcome';
@@ -75,7 +74,6 @@ function App() {
                 <Route path="/tag" element={<Tag />} />
                 <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/worker/questionnaire" element={<UserQuestionnaire />} />
 
                 {/* Quiz Route */}
                 <Route path="/quiz/:taskId" element={<QuizContainer />} />
