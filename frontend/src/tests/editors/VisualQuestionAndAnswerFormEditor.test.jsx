@@ -143,8 +143,53 @@ describe('VisualQuestionAndAnswerFormEditor', () => {
       });
        
       
-      
-      
+      it('sets and updates questions programmatically via setQuestions method', async () => {
+        const ref = React.createRef();
+        render(<VisualQuestionAndAnswerFormEditor ref={ref} {...mockProps} />);
+
+        // Define new questions to be set
+        const newQuestions = [
+            { id: 3, question_text: 'What is your favorite color?', hint_text: 'Example: Blue', order: 2 },
+            { id: 4, question_text: 'What is your hobby?', hint_text: 'Example: Reading', order: 3 }
+        ];
+
+        act(() => {
+            ref.current.setQuestions(newQuestions);
+        });
+
+        // Wait for the component to update and check for new questions
+        await waitFor(() => {
+            const question1 = screen.getByText('What is your favorite color?');
+            const hint1 = screen.getByText('Example: Blue');
+            const question2 = screen.getByText('What is your hobby?');
+            const hint2 = screen.getByText('Example: Reading');
+            expect(question1).toBeInTheDocument();
+            expect(hint1).toBeInTheDocument();
+            expect(question2).toBeInTheDocument();
+            expect(hint2).toBeInTheDocument();
+        });
+    });
+    
+    
+    it('uses empty string as fallback for undefined question_text and hint_text', async () => {
+        const ref = React.createRef();
+        render(<VisualQuestionAndAnswerFormEditor ref={ref} {...mockProps} />);
+        const newQuestions = [
+            { id: 1, question_text: undefined, hint_text: undefined, order: 1 },
+            { id: 2, question_text: null, hint_text: null, order: 2 } // testing null values as well
+        ];
+
+        act(() => {
+            ref.current.setQuestions(newQuestions);
+        });
+
+        const questions = ref.current.getQuestions();
+
+        expect(questions[0].question_text).toBe('');
+        expect(questions[0].hint_text).toBe('');
+        expect(questions[1].question_text).toBe('');
+        expect(questions[1].hint_text).toBe('');
+    });
 });
 
 describe.skip('VisualQuestionAndAnswerFormEditor', () => {

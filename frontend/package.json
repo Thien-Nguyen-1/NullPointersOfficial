@@ -13,11 +13,11 @@
     "coverage:open": "npm run coverage && open coverage/index.html"
   },
   "dependencies": {
-    "@testing-library/user-event": "^14.6.1",
     "axios": "^1.7.9",
     "d3-scale": "^4.0.2",
     "firebase": "^11.4.0",
     "form-data": "^2.5.1",
+    "history": "^5.3.0",
     "lucide-react": "^0.477.0",
     "obscenity": "^0.4.3",
     "pusher-js": "^8.4.0",
@@ -35,6 +35,7 @@
     "@eslint/js": "^9.21.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",

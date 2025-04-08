@@ -136,7 +136,10 @@ export async function loginUser(username, password){
     
   }
   catch(error) {
-    throw new Error("Login failed:" + (error.response?.data?.detail || "Unkown error"));
+    if (error.response?.status === 403 && error.response?.data?.verification_required) {
+      throw new Error(error.response.data.error || "Please verify your email before logging in.");
+    }
+    throw new Error("Login failed:" + (error.response?.data?.detail || error.response?.data?.error || "Unknown error"));
 
   }
 }
@@ -166,7 +169,7 @@ export function redirectBasedOnUserType(userData) {
 
 export async function GetQuestion(id = null) {
   try {
-    const response = await api.get("/questionnaire/", { params: { id }});
+    const response = await api.get("/api/questionnaire/", { params: { id }});
 
     return response.data;
 
@@ -177,7 +180,7 @@ export async function GetQuestion(id = null) {
 
 export async function SubmitQuestionAnswer(question_id, answer) {
   try {
-    const response = await api.post("/questionnaire/", {
+    const response = await api.post("/api/questionnaire/", {
       question_id: question_id,
       answer: answer,
     });
@@ -191,6 +194,22 @@ export async function SubmitQuestionAnswer(question_id, answer) {
     throw new Error("Failed to submit answer");
   } 
 };
+
+export async function SubmitQuestionnaire(questions_){
+  try {
+
+    const response = await api.put('/api/questionnaire/', {
+      questions: questions_
+    })
+
+
+  } catch(err){
+    throw new Error("Failed to save questionnaire")
+  }
+  
+
+}
+
 
   
 export async function getUserSettings(){
@@ -208,7 +227,7 @@ export async function getUserSettings(){
 
 export async function deleteUserSettings(){
   try{
-    const response = await api.delete(`/worker/settings/`);
+    const response = await api.delete(`/api/worker/settings/`);
     return response.data;
   }
   catch(error){
@@ -221,7 +240,7 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`/worker/password-change/`, {
+    const response = await api.put(`/api/worker/password-change/`, {
       old_password:  oldPassword,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword});
