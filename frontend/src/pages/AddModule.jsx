@@ -331,7 +331,8 @@ const AddModule = () => {
                 width: imageWidth,
                 height: imageHeight,
               }],
-              moduleId: editId || "preview"
+              moduleId: editId || "preview",
+              order: index
             });
           });
         }
@@ -423,6 +424,10 @@ const AddModule = () => {
     const structuredContent = [
       introductionSection
     ];
+
+    // Sort items by order before creating content sections
+    resourceItems.sort((a, b) => a.order - b.order);
+    assessmentItems.sort((a, b) => a.order - b.order);
   
     // Add Resources section if there are any resources
     if (resourceItems.length > 0) {
@@ -889,22 +894,22 @@ const AddModule = () => {
     //   }
     // }
     // Process modules in order (iterate with index to track order)
-  for (let i = 0; i < modules.length; i++) {
-    const module = modules[i];
-    const orderIndex = i; // Capture the order index
-    
-    // handle media components separately
-    if (module.componentType === "media") {
-      await handleMediaModule(module, moduleId, orderIndex);
-      continue;
+    for (let i = 0; i < modules.length; i++) {
+        const module = modules[i];
+        const orderIndex = i; // Capture the order index
+
+        // handle media components separately
+        if (module.componentType === "media") {
+          await handleMediaModule(module, moduleId, orderIndex);
+          continue;
+        }
+
+        // handle regular module (QUIZ) components
+        if (module.componentType === "template") {
+          const taskId = await handleTemplateModule(module, moduleId, authorId, existingTasks, orderIndex);
+          if (taskId) updatedTaskIds.push(taskId);
+        }
     }
-    
-    // handle regular module (QUIZ) components
-    if (module.componentType === "template") {
-      const taskId = await handleTemplateModule(module, moduleId, authorId, existingTasks, orderIndex);
-      if (taskId) updatedTaskIds.push(taskId);
-    }
-  }
     
     return updatedTaskIds;
   };
@@ -987,10 +992,11 @@ const AddModule = () => {
     }
   };
 
-  // Handle template module processing
-  const handleTemplateModule = async (module, moduleId, authorId, existingTasks) => {
+  // Handles creating or updating a quiz task and its questions, based on module type
+  const handleTemplateModule = async (module, moduleId, authorId, existingTasks, orderIndex = 0) => {
     // Get questions from editor component
     let currentQuestions = getQuestionsFromEditor(module.id);
+    console.log(`[DEBUG] Retrieved questions for module ${module.id}:`, currentQuestions);
     
     // Determine if this is an existing task
     const isExistingTask = !module.id.toString().startsWith("new-");
@@ -1011,14 +1017,24 @@ const AddModule = () => {
 
     // Special handling for ranking quizzes
     if (module.quizType === 'ranking_quiz') {
-      console.log("Special handling for ranking quiz");
+      console.log("Processing ranking quiz with", currentQuestions.length, "questions");
       let rankingTaskId;
-      
+
+       // Use editorComponent.getContentId() if available to get the most reliable content ID
+      const editorComponent = editorRefs.current[module.id];
+      const componentContentId = editorComponent && typeof editorComponent.getContentId === 'function'
+        ? editorComponent.getContentId()
+        : null;
+
+
       if (existingTask) {
         // Update existing task
         await QuizApiUtils.updateTask(existingTask.contentID, taskData);
         rankingTaskId = existingTask.contentID;
-        
+
+        // Store the contentID on the module for future reference
+        module.contentID = existingTask.contentID;
+
         // Get existing questions and delete them
         const existingQuestions = await QuizApiUtils.getQuestions(existingTask.contentID);
         for (const question of existingQuestions) {
@@ -1028,28 +1044,62 @@ const AddModule = () => {
         // Create new task
         const taskResponse = await QuizApiUtils.createModuleTask(moduleId, taskData);
         rankingTaskId = taskResponse.contentID;
+
+        // Store the new contentID on the module for future reference
+        module.contentID = rankingTaskId;
       }
 
-      // Create questions for ranking quiz - with special handling for tiers
+      // Avoid creating a task with no valid questions
+      if (currentQuestions.length === 0) {
+        console.log("No ranking questions to create - returning with taskId:", rankingTaskId);
+        return rankingTaskId;
+      }
+
+      // Create ranking quiz questions
       for (let i = 0; i < currentQuestions.length; i++) {
         const question = currentQuestions[i];
+        console.log(`[DEBUG] Processing ranking question ${i+1}:`, question);
+
+        // Filter out empty or invalid tiers
+        let rankingTiers = [];
+        if (question.tiers && Array.isArray(question.tiers) && question.tiers.length > 0) {
+          console.log("[DEBUG] Found tiers array:", question.tiers);
+          rankingTiers = question.tiers.filter(tier => tier && tier.trim());
+        } else if (question.answers && Array.isArray(question.answers) && question.answers.length > 0) {
+          console.log("[DEBUG] Found answers array:", question.answers);
+          rankingTiers = question.answers.filter(answer => answer && answer.trim());
+        }
+
+        console.log("[DEBUG] Filtered ranking tiers:", rankingTiers);
+
+        // Skip creating questions with no valid tiers
+        if (rankingTiers.length === 0) {
+          console.warn("[WARNING] Skipping ranking question with no valid tiers:", question);
+          continue;
+        }
+
+        // Prepare the question data in the expected format
         const questionData = {
           task_id: rankingTaskId,
           question_text: question.question_text || question.text || "",
           hint_text: question.hint_text || question.hint || "",
           order: i,
-          answers: question.tiers || [] // Use tiers for ranking quiz
+          answers: rankingTiers
         };
-        
+
         try {
-          await QuizApiUtils.createQuestion(questionData);
+          console.log("Sending ranking question data to API:", questionData);
+          const response = await QuizApiUtils.createQuestion(questionData);
+          console.log("Ranking question created successfully:", response);
         } catch (questionError) {
-          console.error(`Error creating ranking quiz question:`, questionError);
+          console.error("Error creating ranking quiz question:", questionError);
+          if (questionError.response) {
+            console.error("API error response:", questionError.response.data);
+          }
         }
       }
-      
-      return rankingTaskId;
 
+      return rankingTaskId;
     } else { // OTHER QUIZ TYPES - ELSE THAN RANKING 
 
       if (existingTask) {
@@ -1116,27 +1166,74 @@ const AddModule = () => {
 
   // Get questions from editor component
   const getQuestionsFromEditor = (moduleId) => {
-    const editorComponent = editorRefs.current[moduleId];
-    let questions = [];
-    
-    if (editorComponent && typeof editorComponent.getQuestions === 'function') {
-      questions = editorComponent.getQuestions();
-      
-      // Format questions if needed
-      if (Array.isArray(questions) && questions.length > 0 && 
-          !questions[0].question_text && questions[0].text) {
-        questions = questions.map(q => ({
-          ...q,
-          question_text: q.text,
-          hint_text: q.hint || "",
-          answers: q.answers || []
-        }));
+      const editorComponent = editorRefs.current[moduleId];
+      let questions = [];
+
+      // Get module and check quiz type
+      const module = modules.find(m => m.id === moduleId);
+      const isRankingQuiz = module && module.quizType === 'ranking_quiz';
+
+      console.log(`[DEBUG] Getting questions for module ${moduleId} (${isRankingQuiz ? 'ranking quiz' : 'regular quiz'})`);
+      console.log(`[DEBUG] Editor component exists: ${!!editorComponent}`);
+
+      if (editorComponent && typeof editorComponent.getQuestions === 'function') {
+        try {
+          // For ranking quizzes, check and log the component ID and cache key for debugging
+          if (isRankingQuiz &&
+              typeof editorComponent.getComponentId === 'function' &&
+              typeof editorComponent.getCacheKey === 'function') {
+            const componentId = editorComponent.getComponentId();
+            const cacheKey = editorComponent.getCacheKey();
+            console.log(`[DEBUG] Ranking quiz component ID: ${componentId}, Cache Key: ${cacheKey}`);
+          }
+
+          // Use a direct function call to get questions
+          questions = editorComponent.getQuestions();
+          console.log(`[DEBUG] Got ${questions.length} questions directly from editor component`);
+
+          // Special handling for ranking quiz data
+          if (isRankingQuiz) {
+            // Format questions specifically for ranking quizzes
+            questions = questions.map(q => {
+              return {
+                ...q,
+                question_text: q.question_text || q.text || "",
+                hint_text: q.hint_text || q.hint || "",
+                // Preserve both tiers and answers for flexibility
+                tiers: q.tiers || q.answers || [],
+                answers: q.answers || q.tiers || []
+              };
+            });
+
+            console.log(`[DEBUG] Formatted ${questions.length} ranking quiz questions for moduleId: ${moduleId}`,
+            questions.map(q => ({id: q.id, text: q.question_text, tierCount: (q.tiers || []).length})));
+          }
+          else if (Array.isArray(questions) && questions.length > 0) {
+            // Format regular quiz questions
+            questions = questions.map(q => ({
+              ...q,
+              question_text: q.question_text || q.text || "",
+              hint_text: q.hint_text || q.hint || "",
+              answers: q.answers || []
+            }));
+          }
+        } catch (error) {
+          console.error(`[ERROR] Failed to get questions from editor component for moduleId: ${moduleId}:`, error);
+          // Fall back to initialQuestionsRef
+          questions = initialQuestionsRef.current[moduleId] || [];
+          console.log(`[DEBUG] Falling back to initialQuestionsRef: ${questions.length} questions found for moduleId: ${moduleId}`);
+        }
+      } else if (initialQuestionsRef.current && initialQuestionsRef.current[moduleId]) {
+        questions = initialQuestionsRef.current[moduleId] || []; // Use fallback if no editor component
+        console.log(`[DEBUG] Used initialQuestionsRef: ${questions.length} questions found for moduleId: ${moduleId}`);
+      } else {
+        console.warn(`[WARNING] No editor component or initialQuestionsRef available for module ${moduleId}`);
+        questions = []; // No questions found at all
       }
-    } else {
-      questions = initialQuestionsRef.current[moduleId] || [];
-    }
-    
-    return questions;
+
+      // Log the final questions count
+      console.log(`[DEBUG] Returning ${questions.length} questions for module ${moduleId}`);
+      return questions;
   };
 
   // Clean up orphaned content (quiz)

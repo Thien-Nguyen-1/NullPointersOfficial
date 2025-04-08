@@ -7,6 +7,11 @@ export const AudioService = {
    * @returns {Promise} - Promise resolving to uploaded audio data
    */
   uploadAudios: async (formData) => {
+    // Ensure order_index is present
+      if (!formData.has('order_index')) {
+          console.warn("No order_index provided for audio upload, defaulting to 0");
+          formData.append('order_index', '0');
+      }
     const response = await api.post('/api/audios/upload/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
