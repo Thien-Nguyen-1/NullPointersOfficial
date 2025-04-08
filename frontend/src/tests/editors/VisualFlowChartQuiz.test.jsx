@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, getElementError } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, getElementError,act } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import VisualFlowChartQuiz from '../../components/editors/VisualFlowChartQuiz';
 
@@ -19,6 +19,16 @@ describe('VisualFlowChartQuiz Component', () => {
       { id: 2, text: 'S2', hint: 'Q2', order: 1 }
     ],
     onUpdateQuestions: vi.fn()
+
+  };
+  const mockEmptyProps = {
+    moduleId: 'test-module-123',
+    quizType: 'statement_sequence',
+    initialQuestions: [
+      { id: 1, text: '', hint: '', order: 0 },
+    ]
+    ,
+    onUpdateQuestions: vi.fn()
   };
 
   const renderComponent = (props = mockProps) => {
@@ -26,6 +36,14 @@ describe('VisualFlowChartQuiz Component', () => {
     const result = render(<VisualFlowChartQuiz {...props} ref={ref} />);
     return { ...result, ref };
   };
+
+
+  const renderComponentWithEmptyQuestions = () => {
+    const ref = React.createRef();
+    const utils = render(<VisualFlowChartQuiz {...mockEmptyProps} initialQuestions={[]} ref={ref} />);
+    return { ...utils, ref };
+  };
+
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -128,26 +146,69 @@ describe('VisualFlowChartQuiz Component', () => {
       expect(getByText('S1')).toBeTruthy();
     });
     
-    // Mock window.alert
-    //global.alert = vi.fn();
     
-    // Get the delete button - it's the one with '×' content
+    
     const deleteButtons = getAllByRole('button').filter(button => 
       button.textContent === '×'
     );
     
-    //Click the delete button
     fireEvent.click(deleteButtons[0]);
-    // Check that alert was called
     await waitFor(() => {
     expect(getElementError(
       "You must have at least one statement in the flowchart. Add another statement before deleting this one."
     ));
     });
-    //Check that the statement still exists
     expect(getByText('S1')).toBeTruthy();
   });
+
+test('setQuestions method updates and selects statements correctly', async () => {
+  const { ref } = renderComponent();
+
+  await waitFor(() => {
+    expect(ref.current).toBeDefined();
+  });
+
+  const newQuestions = [
+    { id: 3, text: 'New Statement 1', hint_text: 'New Question 1', order: 2 },
+    { id: 4, text: 'New Statement 2', hint_text: 'New Question 2', order: 3 }
+  ];
+
+  act(() => {
+    ref.current.setQuestions(newQuestions);
+  });
+
+  await waitFor(() => {
+    const statements = ref.current.getQuestions();
+    expect(statements.length).toBe(2);
+    expect(statements[0].question_text).toBe('New Statement 1');
+    expect(statements[1].question_text).toBe('New Statement 2');
+
+  });
+  
 });
+
+it('creates a default statement when initialQuestions is empty', async () => {
+  const { ref } = renderComponentWithEmptyQuestions();
+  
+ 
+  await waitFor(() => {
+    expect(ref.current).toBeDefined();
+
+    const questions = ref.current.getQuestions();
+    
+    expect(screen.getByDisplayValue('Sample Answer')).toBeInTheDocument();
+
+  });
+});
+
+
+
+
+
+});
+
+
+
 
 
 describe.skip('VisualFlowChartQuiz Component', () => {
