@@ -3,27 +3,49 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import RequestPasswordReset from "../../components/auth/RequestPasswordReset"; 
 import { AuthContext } from "../../services/AuthContext";
+import { BrowserRouter } from "react-router-dom";
+
+const mockNavigate = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+// Wrapper component that provides both Router and AuthContext
+const TestWrapper = ({ children }) => {
+  return (
+    <BrowserRouter>
+      <AuthContext.Provider value={{ RequestPasswordReset: vi.fn() }}>
+        {children}
+      </AuthContext.Provider>
+    </BrowserRouter>
+  );
+};
 
 describe("RequestPasswordReset component", () => {
     it("display correct page", () => {
       render(
-        <AuthContext.Provider value={{ RequestPasswordReset: vi.fn() }}>
+         <TestWrapper>
           <RequestPasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
-      expect(screen.getByPlaceholderText("email")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
     });
   
     it("should update the email on change", () => {
       render(
-        <AuthContext.Provider value={{ RequestPasswordReset: vi.fn() }}>
+         <TestWrapper>
           <RequestPasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
-      const emailInput = screen.getByPlaceholderText("email");
+      const emailInput = screen.getByPlaceholderText("Email");
       fireEvent.change(emailInput, { target: { value: "test@example.com" } });
       expect(emailInput.value).toBe("test@example.com");
     });
@@ -32,12 +54,14 @@ describe("RequestPasswordReset component", () => {
       const mockRequest = vi.fn().mockResolvedValue({ message: "Email sent" });
   
       render(
-        <AuthContext.Provider value={{ RequestPasswordReset: mockRequest }}>
-          <RequestPasswordReset />
-        </AuthContext.Provider>
+        <BrowserRouter>
+          <AuthContext.Provider value={{ RequestPasswordReset: mockRequest }}>
+            <RequestPasswordReset />
+          </AuthContext.Provider>
+        </BrowserRouter>
       );
   
-      const emailInput = screen.getByPlaceholderText("email");
+      const emailInput = screen.getByPlaceholderText("Email");
       fireEvent.change(emailInput, { target: { value: "user@example.com" } });
       fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
   
@@ -51,12 +75,14 @@ describe("RequestPasswordReset component", () => {
       const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     
       render(
-        <AuthContext.Provider value={{ RequestPasswordReset: mockRequest }}>
-          <RequestPasswordReset />
-        </AuthContext.Provider>
+        <BrowserRouter>
+          <AuthContext.Provider value={{ RequestPasswordReset: mockRequest }}>
+            <RequestPasswordReset />
+          </AuthContext.Provider>
+        </BrowserRouter>
       );
     
-      const emailInput = screen.getByPlaceholderText("email");
+      const emailInput = screen.getByPlaceholderText("Email");
       fireEvent.change(emailInput, { target: { value: "invalid" } });
       fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     

@@ -52,7 +52,7 @@ describe("Settings Component", () => {
       ]);
 
       renderWithContext();
-      expect(await screen.findByText("Welcome, John Doe")).toBeInTheDocument();
+      expect(await screen.findByText("Welcome John Doe")).toBeInTheDocument();
       expect(await screen.findByText("Quiz 1")).toBeInTheDocument();
     });
 
