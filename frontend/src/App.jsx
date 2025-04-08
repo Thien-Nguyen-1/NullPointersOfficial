@@ -20,7 +20,7 @@ import Signup from './components/auth/SignUp';
 import Welcome from './components/auth/Welcome';
 import PasswordReset from './components/auth/PasswordReset.jsx';
 import RequestPasswordReset from './components/auth/RequestPasswordReset.jsx';
-//
+
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
@@ -71,7 +71,7 @@ function App() {
                 <Route path="/verify-admin-email/:token" element={<VerifyAdminEmail />} />
                 <Route path="/password-reset" element={<RequestPasswordReset />} />
                 <Route path="/password-reset/:uidb64/:token" element={<PasswordReset />} />
-                {/*  */}
+                
                 <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route path="/settings" element={<Settings />} />
 

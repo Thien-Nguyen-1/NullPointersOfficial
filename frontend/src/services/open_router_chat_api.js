@@ -18,7 +18,6 @@ export async function GetResult(userResponses, tags_) {
     const repsonse = await SendTest()
 
     return repsonse;
-
 }
 
 

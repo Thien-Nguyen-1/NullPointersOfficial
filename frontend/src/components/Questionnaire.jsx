@@ -44,10 +44,8 @@ const Questionnaire = () => {
 
         alert(nextQuestion.message); // "End of questionnaire" message
       
-
         const tagsData = await tagApi.getAll();
         const tags = tagsData?.data.map(item => item.tag);
-
 
         const response = await GetResult(tags, all_responses.current)
 
