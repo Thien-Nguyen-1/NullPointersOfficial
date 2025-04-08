@@ -68,7 +68,7 @@ class DocumentSerializerTest(TestCase):
         serializer = DocumentSerializer(instance=self.document)
         expected_fields = [
             'contentID', 'title', 'filename', 'file_type', 'file_size',
-            'file_url', 'file_size_formatted', 'upload_date', 'description'
+            'file_url', 'file_size_formatted', 'upload_date', 'description', 'order_index'
         ]
         self.assertEqual(set(serializer.data.keys()), set(expected_fields))
     
