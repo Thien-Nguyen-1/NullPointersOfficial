@@ -159,7 +159,7 @@ function Courses({ role }) {
                
                 
                 {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
-                    <Link to="/admin/create-module" className={styles.createModuleBtn}>
+                    <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
                         Create Module
                     </Link>
                 )}
