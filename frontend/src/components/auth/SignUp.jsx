@@ -81,7 +81,8 @@ const Signup = () => {
     try{
       const data = await SignUpUser(username, firstName, lastName, password, confirmPassword, email);
       console.log("Sign Up successful:", data);
-      alert("Sign up succesfull " + username + "Please check your email for verification.");
+      alert("Sign up successful " + firstName + "! Check your inbox and spam folder for the verification email.");
+
     }
     catch(err){
       setError(err.message);
