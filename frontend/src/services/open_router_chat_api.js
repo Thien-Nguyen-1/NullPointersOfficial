@@ -54,7 +54,8 @@ export async function SendTest() {
         }
 
     }
-
+    console.log(messageContent.msg)
+    
     return messageContent.msg;
 
   }
