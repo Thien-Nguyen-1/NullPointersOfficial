@@ -1,90 +1,79 @@
+import random
+import uuid
 from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
-from returnToWork.models import Tags
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from returnToWork.models import User, Tags  # Adjust 'myapp' to your actual app name
+
+TAGS_LIST = [
+    "Depression",
+    "Anxiety disorders",
+    "Bipolar disorder",
+    "Substance use disorders",
+    "Schizophrenia",
+    "Obsessive-compulsive disorder (OCD)",
+    "Post-traumatic stress disorder (PTSD)",
+    "Eating disorders",
+    "Attention-deficit/hyperactivity disorder (ADHD)",
+    "Generalized anxiety disorder (GAD)",
+    "Panic disorder",
+    "Social anxiety disorder",
+    "Specific phobias",
+    "Borderline personality disorder",
+    "Dissociative disorders"
+]
+
+USER_COUNT = 10  # Change this to set the number of random users
 
 class Command(BaseCommand):
-    help = "Creates a default user if it doesn't exist with enhanced security and validation."
+    help = "Seed the database with sample users"
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '--username',
-            default='@John',
-            help='Specify a custom username for the default user'
-        )
-        parser.add_argument(
-            '--password',
-            default='12345',
-            help='Specify a custom password for the default user'
-        )
-        parser.add_argument(
-            '--email',
-            default='john.doe@example.com',
-            help='Specify a custom email for the default user'
-        )
+    def handle(self, *args, **kwargs):
+        self.stdout.write("Seeding database...")
 
-    def handle(self, *args, **options):
-        User = get_user_model()
-        default_password = "12345"
-
-        # Create default admin user
-        default_username = "@John"
-        admin_user, admin_created = User.objects.get_or_create(
-            username=default_username,
-            defaults={
-                "first_name": "John",
-                "last_name": "Doe",
-                "email": "john.doe@example.com",
-                "user_type": "admin",
-            }
-        )
-
-        if admin_created:
-            admin_user.set_password(default_password)
-            admin_user.save()
-            self.stdout.write(self.style.SUCCESS("Default admin @John user created."))
-        else:
-            self.stdout.write("Default admin user already exists.")
-
-        # Create or get tags from A to J
-        tag_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+        # Ensure all tags exist in the database
         tag_objects = {}
+        for tag in TAGS_LIST:
+            tag_obj, created = Tags.objects.get_or_create(tag=tag)
+            tag_objects[tag] = tag_obj
 
-        for letter in tag_letters:
-            tag, created = Tags.objects.get_or_create(tag=letter)
-            tag_objects[letter] = tag
-            if created:
-                self.stdout.write(self.style.SUCCESS(f"Created tag '{letter}'"))
-            else:
-                self.stdout.write(f"Tag '{letter}' already exists")
+        predefined_users = [
+            {"username": "@admin", "first_name": "Admin", "last_name": "User", "user_type": "admin"},
+            {"username": "@service", "first_name": "Service", "last_name": "User", "user_type": "service user"},
+        ]
 
-        # Create 10 service users
-        users_created = 0
+        created_users = []
 
-        for i in range(1, 11):
-            username = f"@user{i}"
-            user, created = User.objects.get_or_create(
-                username=username,
-                defaults={
-                    "first_name": f"User{i}",
-                    "last_name": f"Test",
-                    "email": f"user{i}@example.com",
-                    "user_type": "service user",
-                }
-            )
-
-            if created:
-                user.set_password(default_password)
-                # Add a corresponding tag (A for user1, B for user2, etc.)
-                tag_letter = tag_letters[i - 1] if i <= len(tag_letters) else tag_letters[0]
-                user.tags.add(tag_objects[tag_letter])
+        for user_data in predefined_users:
+            user, created = User.objects.get_or_create(username=user_data["username"], defaults={
+                "user_id": uuid.uuid4(),
+                "first_name": user_data["first_name"],
+                "last_name": user_data["last_name"],
+                "user_type": user_data["user_type"],
+                "email": f"{user_data['username'].strip('@')}@example.com"
+            })
+            if created and user.user_type != "admin":
+                user.tags.set(random.sample(list(tag_objects.values()), 2))  # Assign 2 random tags
                 user.save()
-                users_created += 1
-                self.stdout.write(self.style.SUCCESS(
-                    f"Created service user '{username}' with tag '{tag_letter}'"))
-            else:
-                self.stdout.write(f"Service user '{username}' already exists")
+            created_users.append(user)
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Completed: 1 admin user and {users_created} new service users created with letter tags"))
+        # Generate additional random users
+        for i in range(USER_COUNT):
+            user_type = "service user"
+            user = User.objects.create(
+                user_id=uuid.uuid4(),
+                username=f"@user{i + 2}",
+                first_name=f"First{i + 2}",
+                last_name=f"Last{i + 2}",
+                user_type=user_type
+            )
+            user.tags.set(random.sample(list(tag_objects.values()), 2))  # Assign 2 random tags
+            user.save()
+            created_users.append(user)
+
+        self.stdout.write(self.style.SUCCESS("Database seeding complete!"))
+
+        # Print details of created users
+        self.stdout.write("\nCreated Users:")
+        for user in created_users:
+            tag_names = ", ".join(user.tags.values_list("tag", flat=True))
+            self.stdout.write(
+                f"- Username: {user.username}, Type: {user.user_type}, Tags: {tag_names if tag_names else 'None'}")

@@ -81,6 +81,31 @@ export const ModuleEditorComponent = ({
     );
   }
 
+  // Special handling for ranking quiz to ensure it has a stable editorKey
+  if (module.componentType === "template" && module.quizType === "ranking_quiz") {
+    return (
+      <div className={styles["module-item"]}>
+        <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
+        <RankingQuizEditor
+          ref={(el) => {
+            editorRefs.current[module.id] = el;
+          }}
+          moduleId={module.moduleId}
+          // Pass the contentID as editorKey if it exists (for edit mode)
+          editorKey={module.contentID || module.id}
+          initialQuestions={initialQuestionsRef.current[module.id] || []}
+          key={`editor-${module.id}`}
+        />
+        <button
+          onClick={() => removeModule(module.id)}
+          className={styles["remove-module-btn"]}
+        >
+          Remove
+        </button>
+      </div>
+    );
+  }
+
   // Handle regular and media components
   return (
     <div className={styles["module-item"]}>
