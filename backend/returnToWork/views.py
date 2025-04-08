@@ -1288,9 +1288,6 @@ class TaskPdfView(APIView):
     
 
 # ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
-
-# Add these views to your returnToWork/views.py file
-
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
     # permission_classes = [IsAuthenticated]
@@ -1425,15 +1422,19 @@ class AdminUsersView(APIView):
                 
                 # === VERIFICATION EMAIL FOR ADMIN IS OPTIONAL SINCE SUPERADMIN CREATES THEM === #
                 # Send verification email
-                verification_url = f"{request.build_absolute_uri('/').rstrip('/')}/verify-admin-email/{verification_token}/"
+                verification_url = f"http://localhost:5173/verify-admin-email/{verification_token}/"
+                print(f"Sending admin verification email to: {email}")
+                print(f"Verification URL: {verification_url}")
                 
                 send_mail(
                     subject="Verify your admin account",
-                    message=f"Dear {user.first_name},\n\nYou've been added as an admin by a superadmin. Please verify your email by clicking the following link: {verification_url}",
+                    message=f"Dear {user.first_name},\n\nYou've been added as an admin by a superadmin. Please verify your email by clicking the following link: {verification_url}\n\nThis link will expire in 3 days.",
                     from_email="readiness.to.return.to.work@gmail.com",
                     recipient_list=[email],
                     fail_silently=False,
                 )
+
+                print("Email sent successfully")
             else:
                 # If verification not required, create verified admin
                 AdminVerification.objects.create(
@@ -1534,11 +1535,11 @@ class ResendAdminVerificationView(APIView):
             verification.save()
             
             # Send verification email
-            verification_url = f"{request.build_absolute_uri('/').rstrip('/')}/verify-admin-email/{verification.verification_token}/"
+            verification_url = f"http://localhost:5173/verify-admin-email/{verification.verification_token}/"
             
             send_mail(
                 subject="Verify your admin account - Reminder",
-                message=f"Dear {admin.first_name},\n\nThis is a reminder to verify your admin account. Please click the following link to verify your email: {verification_url}",
+                message=f"Dear {admin.first_name},\n\nThis is a reminder to verify your admin account. Please click the following link to verify your email: {verification_url}\n\nThis link will expire in 3 days.",
                 from_email="readiness.to.return.to.work@gmail.com",
                 recipient_list=[admin.email],
                 fail_silently=False,
@@ -1846,16 +1847,6 @@ class UserSupportView(APIView):
                 return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
         except:
             return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
-
-       
-        
-
-
-
-
-
-
-
 
 
 class UserChatView(APIView):

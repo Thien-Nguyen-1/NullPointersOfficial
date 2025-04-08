@@ -7,6 +7,11 @@ export const DocumentService = {
    * @returns {Promise} - Promise resolving to uploaded document data
    */
   uploadDocuments: async (formData) => {
+    // Ensure order_index is present
+      if (!formData.has('order_index')) {
+          console.warn("No order_index provided for document upload, defaulting to 0");
+          formData.append('order_index', '0');
+      }
     const response = await api.post('/api/documents/upload/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
