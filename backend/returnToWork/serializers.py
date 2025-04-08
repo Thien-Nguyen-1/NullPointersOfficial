@@ -45,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'email', 'date_joined', 'module', 'tags',
-                   'firebase_token', 'terms_accepted', 'is_verified']
+                   'firebase_token', 'terms_accepted', 'is_verified', 'is_first_login']
 
     def get_is_verified(self, obj):
         """Get verification status from AdminVerification model"""

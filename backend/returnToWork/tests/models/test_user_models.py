@@ -13,7 +13,6 @@ class UserModelTestCase(TestCase):
 
     
     def setUp(self):
-        # self.user = User.objects.get(username='@johndoe')
         self.user = User.objects.create_user(
             username = '@jackdoe',
             first_name = 'Jack',
@@ -22,6 +21,7 @@ class UserModelTestCase(TestCase):
             password = 'SecurePass123',
             user_type ='admin',
             firebase_token='test_token_123',
+            is_first_login = 'True'
         )
 
     def test_valid_user(self):
