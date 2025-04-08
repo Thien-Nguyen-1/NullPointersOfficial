@@ -8,7 +8,7 @@ import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
 import ModuleFiltering from "../components/ModuleFiltering";
 import { GetModule, SaveUserModuleInteract, GetUserModuleInteract, tagApi} from "../services/api";
-
+import CoursesTagList from "../components/CoursesTagList";
 
 
 function Courses({ role }) {
@@ -17,8 +17,8 @@ function Courses({ role }) {
     
     const [filterOption, setFilter] = useState("All Courses")
     const [modules, setModules] = useState([])
-    const [tags, setTags] = useState(null);
-   
+    const [tags, setTags] = useState([]);
+    const [selectedTag, setSelectedTag] = useState(null);
     const [userInteractions, setInteract] = useState([])
 
     if(!user){
@@ -40,7 +40,8 @@ function Courses({ role }) {
         async function fetchInteractions(){
             
             const allInteractions = await GetUserModuleInteract(token)
-           
+            
+            console.log(`all interactions: ${allInteractions}`);
             setInteract(allInteractions || [])
 
         }
@@ -49,8 +50,10 @@ function Courses({ role }) {
             try {
                 if (user?.user_type === "admin" || user?.user_type === "superadmin") {
                     const response = await tagApi.getAll();
+                    console.log(`all tags: ${response.data}`)
                     setTags(response.data);
                 } else {
+                    console.log(`user tags: ${user.tags}`)
                     setTags(user.tags);
                 }
             } catch (err) {
@@ -58,38 +61,42 @@ function Courses({ role }) {
             }
         };
 
+
         fetchModules()
         fetchInteractions()
         fetchTags(user)
-        
 
-        console.log(modules);
     }, [filterOption] )
 
+     // Filter courses by selected tag
+     const filteredModules = selectedTag 
+        ? modules.filter(module => module.tags && module.tags.includes(selectedTag)) 
+        : modules;
 
     const FILTER_MAP = {
         
         "Your Courses": user ? render_user_list() : (<div>NOHING</div>),
-        "All Courses": user ? render_list(modules) : (<div>NOHING</div>),
+        "All Courses": user ? render_list(filteredModules) : (<div>NOHING</div>),
         "Popular" : user ? render_order_list() : (<div>NOHING</div>),
 
     }
 
+
+
     function render_user_list(){
         
         const user_mods = userInteractions
-            .map( (trck) => modules.filter( (mod) => (trck.module === mod.id) && (trck.hasPinned === true))).flat()
-          
+            .map( (trck) => filteredModules.filter( (mod) => (trck.module === mod.id) && (trck.hasPinned === true))).flat()
+        
         return render_list(user_mods)
     }
 
     function render_order_list(){
-        const like_mods = [...modules].sort( (a,b) => b.upvotes - a.upvotes)
+        const like_mods = [...filteredModules].sort( (a,b) => b.upvotes - a.upvotes)
         return render_list(like_mods)
     }
 
     function render_list(mods){
-        console.log(`mods ${mods}`);
 
         return mods.map( (module) => (
             
@@ -119,44 +126,26 @@ function Courses({ role }) {
 
 
 
+   
     
     return (
         <div className={styles.courseContainer}>
         
-            <h1 className={styles.pageTitle}> Your Tags </h1>
-           
-            <section className={styles.tagCourseContainer}>
-        
-                { tags && tags.map(
-                    (obj, index)=> (
-                        <div className={styles.tagCourse} key={index}>
-                            <p> {obj.tag} </p>
-                        </div>
-                    )
-                   )}
-
-                <div className={`${styles.tagCourse} ${styles.editButton}`} data-testid="edit-button" onClick={(e) => {}}> 
-                    <GrAdd />
-                </div>
-                
-            </section>
             
+            <CoursesTagList tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} isUser={user.user_type==="service user"}/>
 
             <section className={styles.courseSelectionContainer}>
 
-                <h1 className={styles.pageTitle}>Courses</h1>
+                <h1 className={styles.subheading}>Courses</h1>
                 
                 <div className={styles.filterContainer}>
 
                     <ModuleFiltering handleSort={setFilter} currentSortOption={filterOption} />
 
-
                 </div>
                 
 
                 { FILTER_MAP[filterOption] }
-                
-               
                 
                 {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
                     <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
@@ -173,4 +162,4 @@ function Courses({ role }) {
     );
 }
     
-export default Courses;299
+export default Courses;

@@ -13,7 +13,6 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from './pages/Settings';
 import Support from "./pages/Support";
 import Courses from "./pages/Courses";
-import CoursesCopy from './pages/CoursesCopy.jsx';
 import CoursesList from './pages/CoursesList.jsx';
 import Questionnaire from "./components/Questionnaire";
 import Login from './components/auth/Login';
