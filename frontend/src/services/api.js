@@ -238,7 +238,7 @@ export async function changeUserPassword(oldPassword, newPassword, confirmNewPas
 export async function GetModule(id){
   try {
 
-    const response = await api.get(`/modules/${ id !== undefined ? id : ""}`)
+    const response = await api.get(`/api/modules/${ id !== undefined ? id : ""}`)
 
     if (response.error) {
       throw new Error(response.error);

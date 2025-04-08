@@ -30,6 +30,7 @@ function Courses({ role }) {
         
         async function fetchModules(){
             const allModules = await GetModule();
+            console.log(`api response all modules : ${allModules}`)
            
             setModules(allModules || [])
             
@@ -61,6 +62,8 @@ function Courses({ role }) {
         fetchInteractions()
         fetchTags(user)
         
+
+        console.log(modules);
     }, [filterOption] )
 
 
@@ -86,6 +89,7 @@ function Courses({ role }) {
     }
 
     function render_list(mods){
+        console.log(`mods ${mods}`);
 
         return mods.map( (module) => (
             
@@ -131,7 +135,7 @@ function Courses({ role }) {
                     )
                    )}
 
-                <div className={`${styles.tagCourse} ${styles.editButton}`} onClick={(e) => {}}> 
+                <div className={`${styles.tagCourse} ${styles.editButton}`} data-testid="edit-button" onClick={(e) => {}}> 
                     <GrAdd />
                 </div>
                 
@@ -151,8 +155,6 @@ function Courses({ role }) {
                 
 
                 { FILTER_MAP[filterOption] }
-
-                <h4> Feel free to change the styling Im </h4>
                 
                
                 
@@ -171,4 +173,4 @@ function Courses({ role }) {
     );
 }
     
-export default Courses;
+export default Courses;299
