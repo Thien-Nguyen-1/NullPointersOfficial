@@ -29,7 +29,7 @@ function FileUploader(props){
     return (
         
 
-            <div  {...getRootProps({className:"dropzone"})}>
+            <div  {...getRootProps({className:"dropzone"})}  data-testid="dropzone-div">
                 <input className="input-zone" {...getInputProps()} />
 
 

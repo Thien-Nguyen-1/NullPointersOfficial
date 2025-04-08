@@ -1,14 +1,20 @@
 .settings-container {
-    display: flex;
+    /* display: flex;
     flex-direction: column;
-    /* justify-content: center;   */
     align-items: center;      
     height: 100%;            
     width: 100%;             
     background-color: var(--secondary-green); 
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow-y: auto; */
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+    padding: 30px;
+    padding-bottom: 10px;
+    overflow: visible;
+    align-items: center; 
 }
 
 .settings-card {
@@ -33,7 +39,7 @@
 }
 
 
-.settings-card h1 {
+.settings-card h1,h2 {
     color: var(--primary-green);
     font-size: 28px;
     margin: 0 0 10px 0;
@@ -108,5 +114,80 @@ input {
     
 }
 
+.settings-layout {
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
   
+  .completed-section,
+  .account-section {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+.card-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .card {
+    background-color: var(--secondary-green);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 900px;
+    min-width: 400px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    box-sizing: border-box;
+  }
+  
+  .welcome-card .card h1 {
+    font-size: 32px;
+    font-weight: bold;
+  }
+  
+  .delete-card .card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .admin-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    
+  }
+  
+  
+
+  
+  .service-user-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    /* margin-top: 2rem; */
+  }
+  
+  .settings-layout {
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  .service-welcome {
+    margin-bottom: -3rem; 
+  }
   

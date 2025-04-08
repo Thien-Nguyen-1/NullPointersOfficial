@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../services/AuthContext';
-import { useSuperAdmin } from '../services/SuperAdminContext';
-import InlineRichTextEditor from '../components/RichTextEditor';
+import { useSuperAdmin } from '../contexts/SuperAdminContext';
+import InlineRichTextEditor from '../components/superadmin-settings/RichTextEditor';
 import '../styles/SuperAdminSettings.css';
 
 const SuperAdminSettings = () => {
@@ -15,7 +15,8 @@ const SuperAdminSettings = () => {
     error, 
     updateTermsAndConditions, 
     addAdminUser, 
-    removeAdminUser 
+    removeAdminUser,
+    resendAdminVerification
   } = useSuperAdmin();
   
   // Terms and Conditions state
@@ -35,6 +36,12 @@ const SuperAdminSettings = () => {
   });
   const [showAddAdminForm, setShowAddAdminForm] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [requireVerification, setRequireVerification] = useState(true);
+
+  // JUST TO DEBUG
+  useEffect(() => {
+    console.log('adminUsers:', adminUsers);
+  }, [adminUsers]);
 
   // Load terms and conditions data
   useEffect(() => {
@@ -117,7 +124,13 @@ const SuperAdminSettings = () => {
     }
     
     try {
-      await addAdminUser(newAdmin);
+
+      // include the verification requirement
+      const adminData = {
+        ...newAdmin,
+        require_verification: requireVerification
+      };
+      await addAdminUser(adminData);
       setNewAdmin({ 
         username: '', 
         first_name: '', 
@@ -127,7 +140,7 @@ const SuperAdminSettings = () => {
         confirm_password: '' 
       });
       setShowAddAdminForm(false);
-      setSuccessMessage('Admin user added successfully');
+      setSuccessMessage(`Admin user added successfully${requireVerification ? '. Verification email has been sent.' : ' and this user can log in immediately.'}`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Failed to add admin:', err);
@@ -146,6 +159,18 @@ const SuperAdminSettings = () => {
       }
     }
   };
+
+  const handleResendVerification = async (adminId) => {
+    try {
+      await resendAdminVerification(adminId);
+      setSuccessMessage('Verification email has been resent successfully');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Failed to resend verification:', err);
+      alert('Failed to resend verification email: ' + (err.message || 'Unknown error'));
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -206,14 +231,14 @@ const SuperAdminSettings = () => {
         </div>
       </section>
       
-      {/* Admin Management Section */}
+      {/*=================== Admin Management Section ========================*/}
       <section className="settings-section">
         <div className="section-header">
           <h2>Admin Management</h2>
         </div>
         
         <div className="admin-container">
-          {adminUsers && adminUsers.length > 0 ? (
+          {Array.isArray(adminUsers) && adminUsers.length > 0 ? (
             <div className="admin-list">
               <table>
                 <thead>
@@ -222,26 +247,41 @@ const SuperAdminSettings = () => {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Created Date</th>
+                    <th>Email Verified</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {adminUsers.map((admin) => (
+                  {adminUsers.map((admin) => admin && admin.id ? (
+                    // Admin Email verification
                     <tr key={admin.id}>
-                      <td>{admin.username}</td>
-                      <td>{admin.first_name} {admin.last_name}</td>
-                      <td>{admin.email}</td>
-                      <td>{new Date(admin.date_joined).toLocaleDateString()}</td>
-                      <td>
+                    <td>{admin.username}</td>
+                    <td>{admin.first_name} {admin.last_name}</td>
+                    <td>{admin.email}</td>
+                    <td>{new Date(admin.date_joined).toLocaleDateString()}</td>
+                    <td>
+                      <span className={`verification-status ${admin.is_verified ? 'verified' : 'not-verified'}`}>
+                        {admin.is_verified ? '✓ Verified' : '✗ Not Verified'}
+                      </span>
+                    </td>
+                    <td>
+                      <button 
+                        className="btn-delete" 
+                        onClick={() => handleRemoveAdmin(admin.id)}
+                      >
+                        Remove
+                      </button>
+                      {admin.is_verified === false && (
                         <button 
-                          className="btn-delete" 
-                          onClick={() => handleRemoveAdmin(admin.id)}
+                          className="btn-resend-verification" 
+                          onClick={() => handleResendVerification(admin.id)}
                         >
-                          Remove
+                          Resend Verification
                         </button>
-                      </td>
-                    </tr>
-                  ))}
+                      )}
+                    </td>
+                  </tr>
+                  ): null)} 
                 </tbody>
               </table>
             </div>
@@ -344,6 +384,26 @@ const SuperAdminSettings = () => {
                   {validationErrors.confirm_password && (
                     <span className="field-error">{validationErrors.confirm_password}</span>
                   )}
+                </div>
+
+                <div className="form-group verification-toggle">
+                <label htmlFor="require_verification" className="toggle-label">
+                  Require Email Verification
+                  <div className='toggle-description'>
+                    When enabled, the admin will need to verify their email before they can login.
+                  </div>
+                </label>
+                  <div className='toggle-switch'>
+                    <input
+                      type="checkbox"
+                      id="require_verification"
+                      name="require_verification"
+                      checked={requireVerification}
+                      onChange={() => setRequireVerification(!requireVerification)}
+                    />
+                    <label htmlFor='require_verification' className='toggle-slider'>
+                    </label>
+                  </div>
                 </div>
                 
                 <div className="button-group">

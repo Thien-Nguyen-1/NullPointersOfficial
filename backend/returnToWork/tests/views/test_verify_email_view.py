@@ -29,3 +29,11 @@ class VerifyEmailViewTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'Invalid or expired verification token')
+
+    def test_verify_email_already_verified(self):
+        User.objects.create_user(**self.user_data)
+        url = reverse('verify-sign-up', kwargs={'token': self.token})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'This email is already verified. You can log in')
+        self.assertEqual(User.objects.filter(email=self.user_data['email']).count(), 1)

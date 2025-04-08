@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 import "../../styles/Quizzes.css";
 
-const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
+const FillInTheBlanksQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions = null }) => {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,6 +17,39 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
     const fetchQuestions = async () => {
       try {
         setIsLoading(true);
+
+        // If in preview mode and preview questions are provided, use them
+        if (isPreview && previewQuestions) {
+          console.log("Using preview questions in FillInTheBlanksQuiz:", previewQuestions);
+          
+          // Normalize question data
+          const normalizedQuestions = previewQuestions.map(q => ({
+            id: q.id,
+            // Handle both data structures (text or question_text)
+            question_text: q.question_text || q.text || "",
+            hint_text: q.hint_text || q.hint || "",
+            order: q.order || 0
+          }));
+          
+          setQuestions(normalizedQuestions);
+          
+          // Initialize userAnswers for each blank in each question
+          const initialAnswers = {};
+          normalizedQuestions.forEach(question => {
+            const questionText = question.question_text || '';
+            // Make sure we only match exact '____' patterns
+            const blankMatches = questionText.match(/\b____\b/g);
+            const blankCount = blankMatches ? blankMatches.length : 0;
+            
+            initialAnswers[question.id] = Array(blankCount).fill('');
+          });
+          
+          setUserAnswers(initialAnswers);
+          setIsLoading(false);
+          return;
+        }
+
+        // Regular API when in not preview mode
         console.log("Fetching questions for taskId:", taskId);
         const fetchedQuestions = await QuizApiUtils.getQuestions(taskId);
         console.log("Fetched questions:", fetchedQuestions);
@@ -58,14 +91,16 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
       }
     };
     
-    if (taskId) {
+    if (isPreview && previewQuestions) {
+      fetchQuestions();
+    } else if (taskId) {
       fetchQuestions();
     } else {
       console.error("No taskId provided to FillInTheBlanksQuiz component");
       setError("Quiz configuration error. Please contact support.");
       setIsLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, isPreview, previewQuestions]);
 
   // Handle user input for a specific blank in a question
   const handleBlankChange = (questionId, blankIndex, value) => {
@@ -133,6 +168,13 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
 
   // Submit the quiz and show review
   const submitQuiz = () => {
+    // Skip validation in preview mode
+    if (isPreview) {
+      setQuizSubmitted(true);
+      setShowReview(true);
+      return;
+    }
+    
     if (validateQuiz()) {
       setQuizSubmitted(true);
       setShowReview(true);
@@ -150,6 +192,14 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
 
   // Continue after review - final validation before completing
   const handleContinue = () => {
+    // Skip validation in preview mode
+    if (isPreview) {
+      if (onComplete) {
+        onComplete({ preview: true });
+      }
+      return;
+    }
+
     // Double-check validation before sending to parent component
     if (validateQuiz()) {
       if (onComplete) {
@@ -161,6 +211,8 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete }) => {
       setQuizSubmitted(false);
     }
   };
+
+  
 
   // Reset the quiz
   const resetQuiz = () => {

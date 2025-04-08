@@ -1,0 +1,279 @@
+/* Styles for the InlinePictureUploader component */
+
+.inlinePictureUploader {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #f8fafc;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.errorMessage {
+  background-color: #fecaca;
+  color: #b91c1c;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.errorMessage button {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.successMessage {
+  background-color: #bbf7d0;
+  color: #16a34a;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.imagesList {
+  margin-top: 20px;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.imageItem {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+}
+
+.imagePreview {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-right: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background-color: #f8fafc;
+}
+
+.imagePreview img {
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.imageInfo {
+  flex: 1;
+  overflow: hidden;
+}
+
+.imageName {
+  display: block;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.imageMeta {
+  display: block;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.imageActions {
+  display: flex;
+  gap: 8px;
+}
+
+.imageActions button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.editButton:hover {
+  background-color: #e2e8f0;
+  color: #0284c7;
+}
+
+.downloadButton:hover {
+  background-color: #e2e8f0;
+  color: #0284c7;
+}
+
+.deleteButton:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.noImages {
+  color: #64748b;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* Editor modal styles */
+.editorModal {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.editorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.editorHeader h4 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.dimensionsInfo {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.editorActions {
+  display: flex;
+  gap: 8px;
+}
+
+.saveButton, .cancelButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveButton {
+  background-color: #0284c7;
+  color: white;
+  border: none;
+}
+
+.saveButton:hover {
+  background-color: #0369a1;
+}
+
+.cancelButton {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.cancelButton:hover {
+  background-color: #e2e8f0;
+}
+
+.editorContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.resizableContainer {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+  margin: 20px;
+}
+
+.resizableImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.resizeHandle {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  background-color: #4a90e2;
+  border-radius: 50%;
+  cursor: nwse-resize; /* Show resize cursor */
+  border: 2px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+/* Make the handle more visible/obvious */
+.resizeHandle:hover {
+  background-color: #2a70c2;
+  transform: scale(1.1);
+}
+
+/* Visual indicator that resize is active */
+.resizableContainer.resizing .resizeHandle {
+  background-color: #ff6b6b;
+}
+
+.resizeInstructions {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-align: center;
+  max-width: 400px;
+}
+
+.dimensionsOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 3px;
+}

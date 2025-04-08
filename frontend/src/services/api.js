@@ -1,14 +1,12 @@
 import axios from 'axios';
 
 
-const baseURL =
-  import.meta.env && import.meta.env.VITE_API_URL 
-    ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000'; 
+// Determine the base URL using environment variables
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-    
+// Create axios instance with the determined baseURL
 const api = axios.create({
-  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json', // headers property sets default http headers that will be included in all requests made by this api instance
@@ -32,6 +30,10 @@ const getAuthHeader = () => {
 // A REQUEST interceptor to include the auth token in all requests 
 api.interceptors.request.use(
   (config) => {
+    // ONLY FOR DEBUGGING
+    const token = localStorage.getItem('token')
+    console.log('token:', localStorage.getItem('token'));
+
     const authHeader = getAuthHeader();
     if (authHeader) {
       // If a token exists, it adds it to the Authorization header of the request.
@@ -114,13 +116,18 @@ export async function loginUser(username, password){
     const response = await api.post(`/api/login/`, {
       username,
       password,
-    })
-  
-        
-    // Store user data in localStorage
+    });
     localStorage.setItem('user', JSON.stringify(response.data.user));
-    localStorage.setItem('token', response.data.token);
-  
+    localStorage.getItem('token', response.data.token)
+    console.log('token after login:', response.data.token);
+    if (response.data.access && response.data.refresh) {
+      localStorage.setItem('token', response.data.access);
+      localStorage.setItem('refreshToken', response.data.refresh);
+    } else if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
+    
+    
     if(response.data){
       localStorage.setItem("user_type",response.data.user_type);
       return response.data;
@@ -129,21 +136,29 @@ export async function loginUser(username, password){
     
   }
   catch(error) {
-    throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
+    throw new Error("Login failed:" + (error.response?.data?.detail || "Unkown error"));
 
   }
 }
 
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
+  console.log("userType detected:", userType); // See what it finds
     switch(userType) {
+        case 'superadmin':
+            console.log("Redirecting to superadmin/home");
+            window.location.href = '/superadmin/home';
+            break;
         case 'admin':
+            console.log("Redirecting to admin/home");
             window.location.href = '/admin/home';
             break;
         case 'service user':
+            console.log("Redirecting to worker/home");
             window.location.href = '/worker/home';
             break;
         default:
+            console.log("Default case, redirecting to worker/home. User type:", userType);
             window.location.href = '/worker/home';
     }
 
@@ -181,43 +196,19 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 export async function getUserSettings(){
   
   try{
-    // const token = localStorage.getItem('token');
-    
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    
-    // const response = await api.get(`/worker/settings/` , {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
     const response = await api.get(`/worker/settings/`);
 
     return response.data;
   }
   catch(error){
-    throw new Error ("Failed to get user settings", error.response?.data || error.message);
+    throw new Error ("Failed to get user settings", (error.response?.data || error.message));
   }
 }
 
 
 export async function deleteUserSettings(){
   try{
-    // const token = localStorage.getItem('token');
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    // const response = await api.delete(`/api/worker/settings/`, {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
-    const response = await api.delete(`/api/worker/settings/`);
+    const response = await api.delete(`/worker/settings/`);
     return response.data;
   }
   catch(error){
@@ -230,20 +221,10 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`/api/worker/password-change/`, {
+    const response = await api.put(`/worker/password-change/`, {
       old_password:  oldPassword,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword});
-    // const response = await api.put(`/api/worker/password-change/`, {
-    // old_password:  oldPassword,
-    // new_password: newPassword,
-    // confirm_new_password: confirmNewPassword,
-    
-    // } , {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
     return response.data;
   }
   catch(error){
@@ -396,15 +377,12 @@ export const quizApi = {
 //get the task that needs downloading nd the authentication token
 export const downloadCompletedTask = async(taskId, token) => {
   try {
-    // const response = await api.get('/api/download-completed-task/<uuid:task_id>/',{
-    //   headers:{
-    //     Authorization: `Token ${token}`,
-    //     Accept: "application/pdf",
-    //   },
-    //   responseType: "blob", //dowlaod pdf in blob format
-    // });
-
-    const response = await api.get('/api/download-completed-task/<uuid:task_id>/');
+    const response = await api.get(`/api/download-completed-task/${taskId}/`,{
+      headers:{
+        Authorization: `Token ${token}`,
+      },
+      responseType: "blob", 
+    });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -484,7 +462,7 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Token ${token}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         content_id: contentId,
@@ -502,6 +480,30 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
   } catch (error) {
     console.error("Failed to mark content as viewed:", error);
     throw error;
+  }
+};
+
+
+export const fetchCompletedInteractiveContent = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    console.error("No token found");
+    return [];
+  }
+
+  try {
+    const response = await api.get('/api/completed-interactive-content/',{
+      headers: {
+        Authorization: `Token ${token}`
+      }
+    });
+
+    return response.data;
+    
+  } catch (error) {
+    console.error("Error fetching completed interactive content:", error);
+    return [];
   }
 };
 

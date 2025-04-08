@@ -100,7 +100,11 @@ export const QuizApiUtils = {
           taskData.moduleID = parseInt(taskData.moduleID, 10);
         }
       }
-      
+      // Make sure order_index is included
+      if (typeof taskData.order_index === 'undefined') {
+          console.warn("No order_index provided for update, defaulting to 0");
+          taskData.order_index = 0;
+      }
       const response = await api.put(`/api/tasks/${taskId}/`, taskData);
       console.log("Task update response:", response.data);
       return response.data;
@@ -124,9 +128,11 @@ export const QuizApiUtils = {
   // Quiz question related functions
   getQuestions: async (taskId) => {
     try {
+      console.log(`Fetching questions for task ID: ${taskId}`);
       const response = await api.get('/api/quiz/questions/', { 
         params: { task_id: taskId } 
       });
+      console.log(`Questions response for ${taskId}:`, response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -143,16 +149,6 @@ export const QuizApiUtils = {
       throw error;
     }
   },
-
-  // createQuestion: async (questionData) => {
-  //   try {
-  //     const response = await api.post('/api/quiz/questions/', questionData);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error creating question:', error);
-  //     throw error;
-  //   }
-  // },
 
   createQuestion: async (questionData) => {
     try {
@@ -182,12 +178,16 @@ export const QuizApiUtils = {
       
       // Make the API call
       const response = await api.post('/api/quiz/questions/', apiData);
+      console.log("[DEBUG] Question creation response:", response.data);
       return response.data;
 
     } catch (error) {
       // Enhanced error logging
       console.error("Error creating question:", error);
-      console.error("Error response data:", error.response?.data);
+      if (error.response) {
+        console.error("Error response status:", error.response.status);
+        console.error("Error response data:", error.response.data);
+      }
       
       // Rethrow the error for the caller to handle
       throw error;
@@ -221,10 +221,21 @@ export const QuizApiUtils = {
       'Fill in the Blanks': 'text_input',
       'Flowchart Quiz': 'statement_sequence',
       'Question and Answer Form': 'question_input',
-      'Matching Question Quiz': 'pair_input'
-
+      'Matching Question Quiz': 'pair_input',
+      'Ranking Quiz': 'ranking_quiz'
     };
     return typeMap[uiType] || 'text_input';
+  },
+
+  getComponentType: (quizType) => {
+    // Map quiz types to component types
+    const mediaTypes = ['document', 'audio', 'image', 'video', 'embed'];
+    
+    if (mediaTypes.includes(quizType)) {
+      return 'media';
+    } else {
+      return 'template';
+    }
   },
 
   // Get UI type from API type -  retrieves quiz types from the database and maps them to frontend components.
@@ -234,13 +245,58 @@ export const QuizApiUtils = {
       'text_input': 'Fill in the Blanks',
       'statement_sequence': 'Flowchart Quiz',
       'question_input':'Question and Answer Form',
-      'pair_input':'Matching Question Quiz'
+      'pair_input':'Matching Question Quiz',
+      'ranking_quiz': 'Ranking Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
 
+  getUIMediaTypeFromAPIType: (apiType) => {
+    const typeMap = {
+      'document': 'Upload Document',
+      'audio': 'Upload Audio',
+      'image' : 'Upload Image',
+      'video' : 'Link Video'
+      // Add other media types as needed
+    };
+    return typeMap[apiType] || null;
+  },
+
+    /**
+   * Get only MEDIA CONTENT specific to a module
+   */
+  getModuleContents: async (moduleId, mediaType = 'document') => {
+    try {
+       console.log(`Fetching ${mediaType} for module ID: ${moduleId}`);
+       
+       // Use different endpoints based on media type
+       const endpoints = {
+           'document': '/api/documents/',
+           'audio': '/api/audios/',
+           'image' : '/api/images/',
+           'video' : '/api/embedded-videos/'
+           // add future media here
+       };
+   
+       // Select the correct endpoint
+       const endpoint = endpoints[mediaType];
+       
+       if (!endpoint) {
+           throw new Error(`Unsupported media type: ${mediaType}`);
+       }
+   
+       const response = await api.get(endpoint, {
+           params: { module_id: moduleId }
+       });
+       
+       return response.data;
+    } catch (error) {
+       console.error(`Error fetching ${mediaType} contents:`, error);
+       throw error;
+    }
+   },
   /**
-   * Get only tasks specific to a module
+   * Get only TASKS/QUIZ specific to a module
    */
   getModuleSpecificTasks: async (moduleId) => {
     try {
@@ -261,22 +317,6 @@ export const QuizApiUtils = {
     }
   },
 
-  // Also add a function to create the module-task relationship in the backend
-  // createModuleTask: async (moduleId, taskData) => {
-  //   try {
-  //     // Ensure the moduleID is explicitly set to this module
-  //     const data = {
-  //       ...taskData,
-  //       moduleID: moduleId
-  //     };
-      
-  //     const response = await api.post('/api/tasks/', data);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error creating module task:', error);
-  //     throw error;
-  //   }
-  // },
 
   createModuleTask: async (moduleId, taskData) => {
     try {
@@ -288,6 +328,12 @@ export const QuizApiUtils = {
         ...taskData,
         moduleID: parseInt(moduleId, 10) // Ensure moduleID is a number
       };
+
+      // Make sure order_index is included
+      if (typeof data.order_index === 'undefined') {
+          console.warn("No order_index provided, defaulting to 0");
+          data.order_index = 0;
+      }
       
       console.log("Prepared task data:", data);
       
@@ -350,7 +396,7 @@ export const QuizApiUtils = {
         });
       }
       
-      // Make separate API calls for each answer (matching your backend structure)
+      // Make separate API calls for each answer (matching backend structure)
       const results = [];
       for (const submission of submissions) {
         const headers = token ? { 'Authorization': `Token ${token}` } : {};
