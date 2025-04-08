@@ -9,7 +9,8 @@
         "email": "janedoe@example.org",
         "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
         "is_active": true,
-        "user_type": "admin"
+        "user_type": "admin",
+        "is_first_login": true
       }
     },
     {
@@ -22,7 +23,8 @@
         "email": "petrapickles@example.org",
         "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
         "is_active": true,
-        "user_type": "service user"
+        "user_type": "service user",
+        "is_first_login": true
       }
     },
     {
@@ -35,7 +37,8 @@
         "email": "peterpickles@example.org",
         "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
         "is_active": true,
-        "user_type": "mental health profesional"
+        "user_type": "mental health profesional",
+        "is_first_login": true
       }
     }
   ]
