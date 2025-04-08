@@ -7,6 +7,7 @@ const RequestPasswordReset = () => {
     const {RequestPasswordReset} =useContext(AuthContext);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
     const handleResetRequest = async(e) => {
         e.preventDefault();
@@ -15,7 +16,7 @@ const RequestPasswordReset = () => {
         try {
             const response = await RequestPasswordReset(email);
             setMessage(response.message);
-            alert("A password reset link has been sent to your email. Please check your inbox and junk.");
+            alert("A password reset link has been sent to your email. Please check your inbox and spaam folder.");
         }
         catch (error){
             console.error("Error:", error);
@@ -30,19 +31,22 @@ const RequestPasswordReset = () => {
     return (
         <div className = "changepassword-container">
         <div className = "changepassword-box">
-            <h4>Please input your email.</h4>
-        <form onSubmit={handleResetRequest}>
+            <h4>Please input your email</h4>
+            <form onSubmit={handleResetRequest} style={{width: '100%'}}>
             <input
                 type ="text"
                 value ={ email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="email"
+                placeholder="Email"
                 required
             />
             <button type ="submit">Confirm</button>
             </form>
-            
+            <div className="reset-links">
+                <button onClick={() => navigate("/")}> Back </button>
+            </div>
         </div>
+
         </div>
     );
 };
