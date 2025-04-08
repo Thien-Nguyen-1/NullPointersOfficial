@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, screen, waitFor, getElementError } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor, getElementError,act } from '@testing-library/react';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import VisualMatchingQuestionsQuizEditor from '../../components/editors/VisualMatchingQuestionsQuizEditor';
 import QuizApiUtils from '../../services/QuizApiUtils';
@@ -154,17 +154,17 @@ describe('VisualMatchingQuestionsQuizEditor', () => {
     });
 
     test('handleAddOrUpdatePair should set error when question or answers are empty', async () => {
-        const { getByText, getByPlaceholderText, getByRole } = renderComponent();
+        const { getByText,getByPlaceholderText } = renderComponent();
 
         const questionInput = getByPlaceholderText('Enter question');
         const answersInput = getByPlaceholderText('Enter answers separated by commas');
         fireEvent.change(questionInput, { target: { value: '' } });
         fireEvent.change(answersInput, { target: { value: 'Red, Green, Blue' } });
 
-        fireEvent.click(getByText('Add Pair'));
+       fireEvent.click(getByText('Add Pair'));
 
         await waitFor(() => {
-            expect(getElementError("Both question and at least one answer must be filled."));
+           expect(getElementError("Both question and at least one answer must be filled."));
         });
 
         fireEvent.change(questionInput, { target: { value: 'What is your favorite color?' } });
@@ -176,6 +176,32 @@ describe('VisualMatchingQuestionsQuizEditor', () => {
             expect(getElementError("Both question and at least one answer must be filled."));
         });
     });
+
+    test('setQuestions method updates submittedPairs with formatted new questions', async () => {
+        const ref = React.createRef();
+        render(<VisualMatchingQuestionsQuizEditor ref={ref} {...mockProps} />);
+        const { getByText } = renderComponent();
+        const newQuestions = [
+            { text: 'New question 1', answers: ['Answer1', 'Answer2'], order: 2 },
+            { text: 'New question 2', answers: ['Answer3', 'Answer4'], order: 3 }
+        ];
+    
+        act(() => {
+            const instance = ref.current;
+            instance.setQuestions(newQuestions);
+        });
+    
+        await waitFor(() => {
+            // Check if the state has been updated with formatted questions
+            newQuestions.forEach(q => {
+                expect(document.body.textContent).toMatch(q.text);
+                q.answers.forEach(answer => {
+                    expect(document.body.textContent).toMatch(answer);
+                });
+            });
+        });
+    });
+    
     
 });
 
