@@ -1,6 +1,7 @@
 // QuestionnaireAdmin.jsx
 import React, { useState, useEffect } from 'react';
 import '../styles/QuestionnaireAdmin.css';
+import {SubmitQuestionnaire} from '../services/api';
 
 const QuestionnaireAdmin = () => {
   // Sample data - this would be fetched from your Django backend
@@ -94,8 +95,12 @@ const QuestionnaireAdmin = () => {
     setLoading(true);
     try {
       // Mock API call - replace with your actual API
-      // await api.post('/api/questionnaire/', questions);
+      //await api.post('/api/questionnaire/', questions);
       console.log("Saving questions:", questions);
+
+      await SubmitQuestionnaire(questions);
+
+    
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
       

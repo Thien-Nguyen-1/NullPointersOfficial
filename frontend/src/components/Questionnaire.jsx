@@ -14,6 +14,7 @@ const Questionnaire = () => {
 
   const fetchQuestion = async (id = null) => {
     try {
+      console.log("Fetching questions")
       setLoading(true);
       const fetchedQuestion = await GetQuestion(id);
       

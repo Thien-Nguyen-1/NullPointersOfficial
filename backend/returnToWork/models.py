@@ -208,7 +208,8 @@ class AdminVerification(models.Model):
         """Check if token is expired (older than 48 hours)"""
         if not self.verification_token or not self.token_created_at:
             return True
-        expiration = self.token_created_at + timezone.timedelta(hours=48)
+        expiration = self.token_created_at + timezone.timedelta(hours=72)
+        # verification link expires after 3 days 
         return timezone.now() > expiration
 
 

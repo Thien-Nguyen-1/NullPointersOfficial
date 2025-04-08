@@ -112,6 +112,11 @@ const VideoService = {
    * @returns {Promise} - API response
    */
   uploadVideos: async (formData) => {
+    // Ensure order_index is present
+      if (!formData.has('order_index')) {
+          console.warn("No order_index provided for video upload, defaulting to 0");
+          formData.append('order_index', '0');
+      }
     try {
       console.log('[DEBUG] Processing video data with duplicate prevention');
 

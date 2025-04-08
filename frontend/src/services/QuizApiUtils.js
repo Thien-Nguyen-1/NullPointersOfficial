@@ -100,7 +100,11 @@ export const QuizApiUtils = {
           taskData.moduleID = parseInt(taskData.moduleID, 10);
         }
       }
-      
+      // Make sure order_index is included
+      if (typeof taskData.order_index === 'undefined') {
+          console.warn("No order_index provided for update, defaulting to 0");
+          taskData.order_index = 0;
+      }
       const response = await api.put(`/api/tasks/${taskId}/`, taskData);
       console.log("Task update response:", response.data);
       return response.data;
@@ -324,6 +328,12 @@ export const QuizApiUtils = {
         ...taskData,
         moduleID: parseInt(moduleId, 10) // Ensure moduleID is a number
       };
+
+      // Make sure order_index is included
+      if (typeof data.order_index === 'undefined') {
+          console.warn("No order_index provided, defaulting to 0");
+          data.order_index = 0;
+      }
       
       console.log("Prepared task data:", data);
       

@@ -235,6 +235,28 @@ class QuestionnaireView(APIView):
         except Questionnaire.DoesNotExist:
             # returns error if not (realistically should never run)
             return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def put(self, request):
+        questions = request.data.get("questions")
+        Questionnaire.objects.all().delete()
+        
+        if(questions):
+            for qObj in reversed(questions):
+
+        
+                Questionnaire.objects.create(
+                    id = qObj.get('id'),
+                    question = qObj.get('question'),
+                    yes_next_q= Questionnaire.objects.filter(id = qObj.get('yes_next_q')).first(),
+                    no_next_q = Questionnaire.objects.filter(id = qObj.get('no_next_q')).first()
+                    
+                )
+
+        print("The questions are successfully saved")
+     
+
+        return Response("", status=status.HTTP_200_OK)
 
 class InfoSheetViewSet(viewsets.ModelViewSet):
     queryset = InfoSheet.objects.all()
@@ -1266,12 +1288,9 @@ class TaskPdfView(APIView):
     
 
 # ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
-
-# Add these views to your returnToWork/views.py file
-
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Get the current terms and conditions"""
@@ -1403,15 +1422,19 @@ class AdminUsersView(APIView):
                 
                 # === VERIFICATION EMAIL FOR ADMIN IS OPTIONAL SINCE SUPERADMIN CREATES THEM === #
                 # Send verification email
-                verification_url = f"{request.build_absolute_uri('/').rstrip('/')}/verify-admin-email/{verification_token}/"
+                verification_url = f"http://localhost:5173/verify-admin-email/{verification_token}/"
+                print(f"Sending admin verification email to: {email}")
+                print(f"Verification URL: {verification_url}")
                 
                 send_mail(
                     subject="Verify your admin account",
-                    message=f"Dear {user.first_name},\n\nYou've been added as an admin by a superadmin. Please verify your email by clicking the following link: {verification_url}",
+                    message=f"Dear {user.first_name},\n\nYou've been added as an admin by a superadmin. Please verify your email by clicking the following link: {verification_url}\n\nThis link will expire in 3 days.",
                     from_email="readiness.to.return.to.work@gmail.com",
                     recipient_list=[email],
                     fail_silently=False,
                 )
+
+                print("Email sent successfully")
             else:
                 # If verification not required, create verified admin
                 AdminVerification.objects.create(
@@ -1512,11 +1535,11 @@ class ResendAdminVerificationView(APIView):
             verification.save()
             
             # Send verification email
-            verification_url = f"{request.build_absolute_uri('/').rstrip('/')}/verify-admin-email/{verification.verification_token}/"
+            verification_url = f"http://localhost:5173/verify-admin-email/{verification.verification_token}/"
             
             send_mail(
                 subject="Verify your admin account - Reminder",
-                message=f"Dear {admin.first_name},\n\nThis is a reminder to verify your admin account. Please click the following link to verify your email: {verification_url}",
+                message=f"Dear {admin.first_name},\n\nThis is a reminder to verify your admin account. Please click the following link to verify your email: {verification_url}\n\nThis link will expire in 3 days.",
                 from_email="readiness.to.return.to.work@gmail.com",
                 recipient_list=[admin.email],
                 fail_silently=False,
@@ -1824,16 +1847,6 @@ class UserSupportView(APIView):
                 return Response({"message" : "Conversation Deleted!"}, status=status.HTTP_200_OK)
         except:
             return Response({"message" : "Conversation Not Found!"}, status=status.HTTP_400_BAD_REQUEST)
-
-       
-        
-
-
-
-
-
-
-
 
 
 class UserChatView(APIView):
