@@ -64,7 +64,7 @@ describe('deleteUserSettings', () => {
     mockApiInstance.delete.mockResolvedValueOnce(mockResponse);
 
     const result = await deleteUserSettings();
-    expect(mockApiInstance.delete).toHaveBeenCalledWith('/worker/settings/');
+    expect(mockApiInstance.delete).toHaveBeenCalledWith('/api/worker/settings/');
     expect(result).toEqual(mockResponse.data);
   });
 

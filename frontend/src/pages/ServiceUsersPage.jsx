@@ -70,8 +70,8 @@ const ServiceUsersPage = () => {
     }
 
     return (
-        <div className={styles.usersPage}>
-            <h1 className={styles.pageTitle}>Service User Directory</h1>
+        <div className="service-user-container">
+             <h1 className="page-title">Service User Directory</h1>
 
             {successMessage && (
                 <div className={styles.successMessage}>

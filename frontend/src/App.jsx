@@ -20,7 +20,7 @@ import Signup from './components/auth/SignUp';
 import Welcome from './components/auth/Welcome';
 import PasswordReset from './components/auth/PasswordReset.jsx';
 import RequestPasswordReset from './components/auth/RequestPasswordReset.jsx';
-import Tag from './components/Tag';
+
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
@@ -54,6 +54,8 @@ const LocationWrapper = () => {
 
 
 function App() {
+
+
   return (
     <AuthContextProvider> 
       <SuperAdminContextProvider>
@@ -69,7 +71,7 @@ function App() {
                 <Route path="/verify-admin-email/:token" element={<VerifyAdminEmail />} />
                 <Route path="/password-reset" element={<RequestPasswordReset />} />
                 <Route path="/password-reset/:uidb64/:token" element={<PasswordReset />} />
-                <Route path="/tag" element={<Tag />} />
+                
                 <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route path="/settings" element={<Settings />} />
 
@@ -115,7 +117,7 @@ function App() {
                             <Routes>
                                 <Route path="home" element={<AdminDashboard />} />
                               <Route path="settings" element={<Settings />} />
-                              <Route path="support" element={<Support />} />
+                              <Route path="support" element={<Messaging />} />
                               <Route path="courses" element={<Courses />} />
                               <Route path="service-users" element={<ServiceUsersPage />} />
                               <Route path="set-questionnaire" element={<QuestionnaireAdmin />} />

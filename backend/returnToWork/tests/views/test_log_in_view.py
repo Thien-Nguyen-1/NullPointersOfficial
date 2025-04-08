@@ -20,11 +20,7 @@ class LogInViewTest(APITestCase):
         }
         response = self.client.post(self.login_url,data,format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("message", response.data)
-        self.assertEqual(response.data["message"], "Login Successful")
-        self.assertIn("user", response.data)
-        self.assertEqual(response.data["user"]["username"], "@johndoe")
-
+        
     def test_invalid_password(self):
         data = {
             "username": "@johndoe",

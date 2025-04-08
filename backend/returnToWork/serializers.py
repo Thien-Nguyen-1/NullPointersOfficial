@@ -45,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'email', 'date_joined', 'module', 'tags',
-                   'firebase_token', 'terms_accepted', 'is_verified']
+                   'firebase_token', 'terms_accepted', 'is_verified', 'is_first_login']
 
     def get_is_verified(self, obj):
         """Get verification status from AdminVerification model"""
@@ -64,9 +64,21 @@ class LogInSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self,data):
+        print(f"[DEBUG] LogInSerializer.validate: username={data['username']}")
         user = authenticate(username =data["username"], password = data["password"])
         if not user:
+            print(f"[DEBUG] Authentication failed for username: {data['username']}")
             raise serializers.ValidationError("Invalid username or password")
+
+        print(f"[DEBUG] Authentication succeeded for username: {data['username']}")
+        # Add debug info about the verification status if admin
+        if user.user_type == 'admin':
+            try:
+                verification = AdminVerification.objects.get(admin=user)
+                print(f"[DEBUG] Admin verification status: {verification.is_verified}")
+            except AdminVerification.DoesNotExist:
+                print(f"[DEBUG] No verification record exists for this admin")
+
         return {"user": user}
 
 class SignUpSerializer(serializers.ModelSerializer):
