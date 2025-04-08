@@ -1,0 +1,303 @@
+
+/* Main form container */
+.qa-form-container {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: white;
+    padding: 24px;
+    margin-bottom: 30px;
+    border: 1px solid var(--secondary-green);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Form header */
+  .qa-form-header {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-green);
+    border-bottom: 2px solid var(--secondary-green);
+    padding-bottom: 12px;
+  }
+  
+  .qa-form-header h2 {
+    font-size: 1.5rem;
+    margin: 0 0 8px 0;
+  }
+  
+  /* Question and answer form styling */
+  .qa-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .qa-question-item {
+    background-color: var(--secondary-green);
+    border-radius: 6px;
+    padding: 16px;
+    border-left: 4px solid var(--primary-green);
+  }
+  
+  .qa-question-label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--primary-green);
+    font-size: 1rem;
+  }
+  
+  .qa-question-text {
+    padding: 12px;
+    background-color: white;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    border: 1px solid #e0eae2;
+    font-weight: normal;
+  }
+  
+  .qa-answer-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cde0d3;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+  }
+  
+  .qa-answer-input:focus {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px rgba(66, 103, 81, 0.1);
+    outline: none;
+  }
+  
+  .qa-error {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+  
+  /* Button styling */
+  .qa-button {
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-size: 1rem;
+    margin-top: 16px;
+    align-self: center;
+  }
+  
+  .qa-button:hover {
+    background-color: var(--primary-green-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .qa-button.secondary {
+    background-color: #687e73;
+  }
+  
+  .qa-button.secondary:hover {
+    background-color: #58695f;
+  }
+  
+  .qa-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  
+  /* Review state styling - completely different look from matching quiz */
+  .qa-review-container {
+    background: var(--secondary-green);
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    border: 1px solid var(--primary-green-light);
+  }
+  
+  .qa-review-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .qa-review-header h2 {
+    color: var(--primary-green);
+    font-size: 1.5rem;
+    margin: 0;
+  }
+  
+  .qa-review-header p {
+    color: var(--text-subtle);
+    font-size: 1rem;
+    margin: 8px 0 0 0;
+  }
+  
+  .qa-review-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .qa-review-item {
+    display: flex;
+    background-color: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .qa-review-question {
+    flex: 1;
+    padding: 16px;
+    background-color: #f5f9f5;
+    font-weight: normal;
+    color: var(--primary-green);
+    border-right: 1px dashed #cde0d3;
+  }
+  
+  .qa-review-answer {
+    flex: 1;
+    padding: 16px;
+    color: var(--text-subtle);
+    font-weight: normal;
+  }
+  
+  /* Completed state styling - distinctive from matching quiz */
+  .qa-completed-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    border: 1px solid var(--secondary-green);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Decorative elements */
+  .qa-completed-container:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--primary-green);
+  }
+  
+  .qa-completed-icon {
+    font-size: 50px;
+    color: var(--primary-green);
+    margin-bottom: 16px;
+    display: inline-block;
+    border-radius: 50%;
+    padding: 10px;
+    background-color: var(--secondary-green);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .qa-completed-header {
+    color: var(--primary-green);
+    font-size: 1.8rem;
+    margin: 0 0 12px 0;
+    font-weight: bold;
+  }
+  
+  .qa-completed-subheader {
+    color: var(--text-subtle);
+    font-size: 1.2rem;
+    margin: 0 0 24px 0;
+    font-weight: 500;
+  }
+  
+  .qa-completed-answers {
+    background-color: var(--secondary-green);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .qa-completed-answer-item {
+    display: flex;
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    align-items: center;
+  }
+  
+  .qa-completed-answer-item:last-child {
+    border-bottom: none;
+  }
+  
+  .qa-completed-question {
+    flex: 1;
+    text-align: left;
+    padding-right: 16px;
+    font-weight: normal;
+    color: var(--text-subtle);
+  }
+  
+  .qa-completed-answer {
+    flex: 1;
+    text-align: left;
+    padding: 8px 12px;
+    background-color: white;
+    border-radius: 4px;
+    color: var(--primary-green);
+    font-weight: normal;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .qa-review-item {
+      flex-direction: column;
+    }
+    
+    .qa-review-question {
+      border-right: none;
+      border-bottom: 1px dashed #cde0d3;
+    }
+    
+    .qa-completed-answer-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .qa-completed-question {
+      margin-bottom: 8px;
+      padding-right: 0;
+    }
+    
+    .qa-buttons-container {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }

@@ -19,12 +19,22 @@ const VisualFlashcardEditor = forwardRef((props, ref) => {
   const questionInputRef = useRef(null);
   const hintInputRef = useRef(null);
 
-  // Expose the getQuestions method to the parent component
+
   useImperativeHandle(ref, () => ({
     getQuestions: () => {
       return questions;
+    },
+    setQuestions: (newQuestions) => {
+      setQuestions(newQuestions);
     }
   }));
+
+  // Expose the getQuestions method to the parent component
+  // useImperativeHandle(ref, () => ({
+  //   getQuestions: () => {
+  //     return questions;
+  //   }
+  // }));
 
   // Load initial questions if provided
   useEffect(() => {

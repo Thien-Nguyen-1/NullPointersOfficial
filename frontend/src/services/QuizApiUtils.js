@@ -100,7 +100,11 @@ export const QuizApiUtils = {
           taskData.moduleID = parseInt(taskData.moduleID, 10);
         }
       }
-      
+      // Make sure order_index is included
+      if (typeof taskData.order_index === 'undefined') {
+          console.warn("No order_index provided for update, defaulting to 0");
+          taskData.order_index = 0;
+      }
       const response = await api.put(`/api/tasks/${taskId}/`, taskData);
       console.log("Task update response:", response.data);
       return response.data;
@@ -124,9 +128,11 @@ export const QuizApiUtils = {
   // Quiz question related functions
   getQuestions: async (taskId) => {
     try {
+      console.log(`Fetching questions for task ID: ${taskId}`);
       const response = await api.get('/api/quiz/questions/', { 
         params: { task_id: taskId } 
       });
+      console.log(`Questions response for ${taskId}:`, response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -143,16 +149,6 @@ export const QuizApiUtils = {
       throw error;
     }
   },
-
-  // createQuestion: async (questionData) => {
-  //   try {
-  //     const response = await api.post('/api/quiz/questions/', questionData);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Error creating question:', error);
-  //     throw error;
-  //   }
-  // },
 
   createQuestion: async (questionData) => {
     try {
@@ -182,12 +178,16 @@ export const QuizApiUtils = {
       
       // Make the API call
       const response = await api.post('/api/quiz/questions/', apiData);
+      console.log("[DEBUG] Question creation response:", response.data);
       return response.data;
 
     } catch (error) {
       // Enhanced error logging
       console.error("Error creating question:", error);
-      console.error("Error response data:", error.response?.data);
+      if (error.response) {
+        console.error("Error response status:", error.response.status);
+        console.error("Error response data:", error.response.data);
+      }
       
       // Rethrow the error for the caller to handle
       throw error;
@@ -221,8 +221,8 @@ export const QuizApiUtils = {
       'Fill in the Blanks': 'text_input',
       'Flowchart Quiz': 'statement_sequence',
       'Question and Answer Form': 'question_input',
-      'Matching Question Quiz': 'pair_input'
-
+      'Matching Question Quiz': 'pair_input',
+      'Ranking Quiz': 'ranking_quiz'
     };
     return typeMap[uiType] || 'text_input';
   },
@@ -246,6 +246,7 @@ export const QuizApiUtils = {
       'statement_sequence': 'Flowchart Quiz',
       'question_input':'Question and Answer Form',
       'pair_input':'Matching Question Quiz',
+      'ranking_quiz': 'Ranking Quiz'
     };
     return typeMap[apiType] || 'Flashcard Quiz';
   },
@@ -253,7 +254,9 @@ export const QuizApiUtils = {
   getUIMediaTypeFromAPIType: (apiType) => {
     const typeMap = {
       'document': 'Upload Document',
-      'audio': 'Upload Audio'
+      'audio': 'Upload Audio',
+      'image' : 'Upload Image',
+      'video' : 'Link Video'
       // Add other media types as needed
     };
     return typeMap[apiType] || null;
@@ -269,7 +272,9 @@ export const QuizApiUtils = {
        // Use different endpoints based on media type
        const endpoints = {
            'document': '/api/documents/',
-           'audio': '/api/audios/'
+           'audio': '/api/audios/',
+           'image' : '/api/images/',
+           'video' : '/api/embedded-videos/'
            // add future media here
        };
    
@@ -323,6 +328,12 @@ export const QuizApiUtils = {
         ...taskData,
         moduleID: parseInt(moduleId, 10) // Ensure moduleID is a number
       };
+
+      // Make sure order_index is included
+      if (typeof data.order_index === 'undefined') {
+          console.warn("No order_index provided, defaulting to 0");
+          data.order_index = 0;
+      }
       
       console.log("Prepared task data:", data);
       

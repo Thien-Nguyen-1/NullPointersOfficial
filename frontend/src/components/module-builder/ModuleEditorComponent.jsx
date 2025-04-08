@@ -8,9 +8,12 @@ import VisualFillTheFormEditor from "../editors/VisualFillTheFormEditor";
 import VisualFlowChartQuiz from "../editors/VisualFlowChartQuiz";
 import VisualQuestionAndAnswerFormEditor from "../editors/VisualQuestionAndAnswerFormEditor";
 import VisualMatchingQuestionsQuizEditor from "../editors/VisualMatchingQuestionsQuizEditor";
+import RankingQuizEditor from "../editors/RankingQuizEditor";
 import HeadingsComponent from "../editors/Headings";
 import { DocumentEditorWrapper } from "../editors/DocumentUploader";
 import { AudioEditorWrapper } from "../editors/AudioUploader";
+import { InlinePictureEditorWrapper } from "../editors/InlinePictureUploader";
+import { EmbeddedVideoEditorWrapper } from '../editors/EmbeddedVideoEditor';
 
 export const ModuleEditorComponent = ({ 
   module, 
@@ -29,9 +32,12 @@ export const ModuleEditorComponent = ({
     "Flowchart Quiz": VisualFlowChartQuiz,
     "Question and Answer Form": VisualQuestionAndAnswerFormEditor,
     "Matching Question Quiz": VisualMatchingQuestionsQuizEditor,
+    "Ranking Quiz": RankingQuizEditor,
     // Media
     "Upload Document": DocumentEditorWrapper,
     "Upload Audio": AudioEditorWrapper,
+    "Upload Image": InlinePictureEditorWrapper,
+    "Link Video": EmbeddedVideoEditorWrapper,
     // add future media
 
     // Heading
@@ -67,6 +73,31 @@ export const ModuleEditorComponent = ({
         />  
         <button 
           onClick={() => removeModule(module.id)} 
+          className={styles["remove-module-btn"]}
+        >
+          Remove
+        </button>
+      </div>
+    );
+  }
+
+  // Special handling for ranking quiz to ensure it has a stable editorKey
+  if (module.componentType === "template" && module.quizType === "ranking_quiz") {
+    return (
+      <div className={styles["module-item"]}>
+        <h3>{module.type} (ID: {module.id.substring(0, 6)}...)</h3>
+        <RankingQuizEditor
+          ref={(el) => {
+            editorRefs.current[module.id] = el;
+          }}
+          moduleId={module.moduleId}
+          // Pass the contentID as editorKey if it exists (for edit mode)
+          editorKey={module.contentID || module.id}
+          initialQuestions={initialQuestionsRef.current[module.id] || []}
+          key={`editor-${module.id}`}
+        />
+        <button
+          onClick={() => removeModule(module.id)}
           className={styles["remove-module-btn"]}
         >
           Remove

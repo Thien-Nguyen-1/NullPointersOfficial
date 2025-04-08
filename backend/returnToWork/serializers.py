@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification
+from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification, Image
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -76,10 +76,10 @@ class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    user_type = serializers.CharField()
+    # user_type = serializers.CharField()
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'first_name', 'last_name','user_type','password','confirm_password','email']
+        fields = ['user_id', 'username', 'first_name', 'last_name','password','confirm_password','email']
         read_only_fields = ["user_id"]
 
     def validate(self,data):
@@ -89,6 +89,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     
     def create(self,validated_data):
         validated_data.pop("confirm_password")
+        validated_data["user_type"] = "service user"
         verification_token = str(uuid.uuid4())
         cache.set(verification_token, validated_data, timeout=86400)
         verification_url = f"http://localhost:5173/verify-email/{verification_token}/"
@@ -218,6 +219,15 @@ class RankingQuestionSerializer(ContentSerializer):
         model = RankingQuestion
         fields  = ContentSerializer.Meta.fields + ['tiers']
 
+class ImageSerializer(ContentSerializer):
+    class Meta:
+        model = Image
+        fields = ContentSerializer.Meta.fields + [
+            'file_url', 'filename', 'file_size', 'file_size_formatted',
+            'file_type', 'width', 'height'
+        ]
+        read_only_fields = ContentSerializer.Meta.read_only_fields + ['file_size_formatted']
+
 class InlinePictureSerializer(ContentSerializer):
     class Meta:
         model = InlinePicture
@@ -268,6 +278,9 @@ class DocumentSerializer(ContentSerializer):
     def get_file_size_formatted(self, obj):
         """Return human-readable file size."""
         size = obj.file_size
+        if size is None:
+            return None
+        
         for unit in ['B', 'KB', 'MB', 'GB']:
             if size < 1024 or unit == 'GB':
                 return f"{size:.2f} {unit}"
@@ -280,6 +293,33 @@ class EmbeddedVideoSerializer(ContentSerializer):
     class Meta:
         model = EmbeddedVideo
         fields  = ContentSerializer.Meta.fields + ['video_url']
+        read_only_fields = ContentSerializer.Meta.read_only_fields
+
+        def validate_video_url(self, value):
+            """Validate the video URL to ensure it's from a supported platform"""
+            # List of supported video platforms
+            supported_domains = [
+                "youtube.com", "youtu.be",
+                "vimeo.com",
+                "dailymotion.com",
+                "wistia.com",
+                "loom.com"
+            ]
+
+            try:
+                from urllib.parse import urlparse
+                parsed_url = urlparse(value)
+                domain = parsed_url.netloc
+
+                # Check if the domain is from a supported platform
+                if not any(supported in domain for supported in supported_domains):
+                    raise serializers.ValidationError(
+                        f"URL must be from a supported video platform. Supported platforms: {', '.join(supported_domains)}"
+                    )
+
+                return value
+            except Exception as e:
+                raise serializers.ValidationError(f"Invalid URL: {str(e)}")
 
 class ContentPublishSerializer(serializers.Serializer):
     """Serializer to handle module and content creation"""

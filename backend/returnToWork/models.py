@@ -208,7 +208,8 @@ class AdminVerification(models.Model):
         """Check if token is expired (older than 48 hours)"""
         if not self.verification_token or not self.token_created_at:
             return True
-        expiration = self.token_created_at + timezone.timedelta(hours=48)
+        expiration = self.token_created_at + timezone.timedelta(hours=72)
+        # verification link expires after 3 days 
         return timezone.now() > expiration
 
 
@@ -311,6 +312,32 @@ class InlinePicture(Content):
     """Model for Inline Picture content type"""
     image_file = models.ImageField(upload_to="inline_pictures/")
 
+class Image(Content):
+    file_url = models.CharField(max_length=255)
+    filename = models.CharField(max_length=255)
+    file_size = models.PositiveIntegerField()
+    file_size_formatted = models.CharField(max_length=20, null=True, blank=True)
+    file_type = models.CharField(max_length=10)
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-updated_at']  # Using updated_at from Content model
+
+    def save(self, *args, **kwargs):
+        # Format file size for display (e.g., "2.5 MB")
+        if self.file_size:
+            size = self.file_size
+            for unit in ['B', 'KB', 'MB', 'GB']:
+                if size < 1024 or unit == 'GB':
+                    if unit == 'B':
+                        self.file_size_formatted = f"{size} {unit}"
+                    else:
+                        self.file_size_formatted = f"{size:.2f} {unit}"
+                    break
+                size /= 1024
+        super().save(*args, **kwargs)
+
 def audio_file_path(instance, filename):
     """Generate file path for new audio file"""
     ext = filename.split('.')[-1]
@@ -387,6 +414,15 @@ class Document(Content):
 class EmbeddedVideo(Content):
     """Model for Embedded Video content type"""
     video_url = models.URLField()
+    video_id = models.CharField(max_length=100, blank=True, null=True)   # extracted ID from URL
+
+    class Meta:
+        ordering = ['-created_at']  # Order by most recent first
+        verbose_name = "Embedded Video"
+        verbose_name_plural = "Embedded Videos"
+
+    def extract_video_id(self):
+        """Extracts video ID from URL - can be implemented for specific platforms"""
 
 # Extend Content class
 class InfoSheet(Content):
@@ -411,7 +447,8 @@ class Task(Content):
         ('statement_sequence', 'Statement Sequence Quiz'),
         ('text_input', 'Text Input Quiz'),
         ('question_input', 'Question Answer Form'),
-        ('pair_input', 'Matching Question Quiz')
+        ('pair_input', 'Matching Question Quiz'),
+        ('ranking_quiz', 'Ranking Quiz')
     ]
 
     quiz_type = models.CharField(
@@ -474,7 +511,7 @@ class Conversation(models.Model): #one-to-many relationship with Messages
         return f"Conversation created for: {self.user} and {self.admin}"
 
 
-class Message(models.Model):
+class Message(models.Model):    
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     text_content = models.TextField()

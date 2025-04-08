@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import "./FillInTheBlanks.css"; // Import the new CSS file
+import "./FillInTheBlanks.css"; // Import the CSS file
 import { FaTrash, FaPencilAlt } from "react-icons/fa";
 
 const AdminQuestionForm = ({ onSubmit }) => {
@@ -48,8 +48,9 @@ const AdminQuestionForm = ({ onSubmit }) => {
 };
 
 const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
-  // Add a check to make sure question is a string and not undefined
-  const questionText = typeof question === 'string' ? question : '';
+  // Get question text from either string or object format
+  const questionText = typeof question === 'object' ? question.question_text : question || '';
+  
   const parts = questionText.split("____");
   const [answers, setAnswers] = useState(Array(parts.length - 1).fill(""));
   const [isEditing, setIsEditing] = useState(false);
@@ -58,7 +59,7 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
 
   useEffect(() => {
     // Update when question prop changes
-    setEditedQuestion(typeof question === 'string' ? question : '');
+    setEditedQuestion(typeof question === 'object' ? question.question_text : question || '');
   }, [question]);
 
   const handleChange = (index, value) => {
@@ -90,7 +91,17 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
     }
 
     setEditError("");
-    onEdit(index, editedQuestion);
+    if (typeof question === 'object') {
+      // If question is an object, preserve its properties
+      const updatedQuestion = {
+        ...question,
+        question_text: editedQuestion
+      };
+      onEdit(index, updatedQuestion);
+    } else {
+      // Otherwise just update the text
+      onEdit(index, editedQuestion);
+    }
     setIsEditing(false);
   };
 
@@ -117,7 +128,6 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
         />
       ) : (
         <div className="fitb-question-content">
-          {/* Display the question text directly */}
           <p className="fitb-question-preview">
             {parts.map((part, idx) => (
               <span key={idx}>
@@ -142,47 +152,173 @@ const UserFillInTheBlanks = ({ question, index, onDelete, onEdit }) => {
 const VisualFillTheFormEditor = forwardRef((props, ref) => {
   const { moduleId, quizType, initialQuestions = [], onUpdateQuestions } = props;
   const [questions, setQuestions] = useState([]);
-  
-  // Expose getQuestions method to parent component
-  useImperativeHandle(ref, () => ({
-    getQuestions: () => {
-      // Format questions for API compatibility
-      return questions.map((question, index) => ({
-        id: Date.now() + index, // Temporary ID for UI
-        question_text: question || '',
-        hint_text: "", // Fill-in-the-blanks doesn't use hints
-        order: index
-      }));
-    }
-  }));
 
   // Load initial questions if provided
   useEffect(() => {
     if (initialQuestions && initialQuestions.length > 0) {
-      // Format questions for consistency - convert from API format to component format
+      console.log("[FITB] Received initialQuestions:", initialQuestions);
+      
+      // Ensure questions are in a consistent object format
       const formattedQuestions = initialQuestions.map(q => {
-        const questionText = q.question_text || q.text || '';
-        return questionText;
+        if (typeof q === 'string') {
+          return {
+            id: `temp-${Date.now()}-${Math.random()}`,
+            question_text: q,
+            hint_text: ""
+          };
+        } else {
+          return {
+            id: q.id || `temp-${Date.now()}-${Math.random()}`,
+            question_text: q.question_text || q.text || '',
+            hint_text: q.hint_text || q.hint || '',
+            order: q.order || 0
+          };
+        }
       });
       
+      console.log("[FITB] Formatted questions:", formattedQuestions);
       setQuestions(formattedQuestions);
-    } else {
-      setQuestions([]);
     }
   }, [initialQuestions]);
 
+  // Update parent component when questions change
+  useEffect(() => {
+    if (onUpdateQuestions) {
+      const formattedQuestions = questions.map((question, index) => {
+        if (typeof question === 'string') {
+          return {
+            id: `temp-${Date.now()}-${index}`,
+            question_text: question,
+            hint_text: "",
+            order: index
+          };
+        } else {
+          return {
+            id: question.id || `temp-${Date.now()}-${index}`,
+            question_text: question.question_text || '',
+            hint_text: question.hint_text || "",
+            order: index
+          };
+        }
+      });
+      
+      onUpdateQuestions(formattedQuestions);
+    }
+  }, [questions, onUpdateQuestions]);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    getQuestions: () => {
+      console.log("[FITB] Getting questions, current state:", questions);
+      
+      // Format questions for API compatibility
+      const formattedQuestions = questions.map((question, index) => {
+        if (typeof question === 'string') {
+          return {
+            id: `temp-${Date.now()}-${index}`,
+            question_text: question,
+            hint_text: "",
+            order: index
+          };
+        } else {
+          return {
+            id: question.id || `temp-${Date.now()}-${index}`,
+            question_text: question.question_text || '',
+            hint_text: question.hint_text || "",
+            order: index
+          };
+        }
+      });
+      
+      console.log("[FITB] Returning formatted questions:", formattedQuestions);
+      return formattedQuestions;
+    },
+    setQuestions: (newQuestions) => {
+      console.log("[FITB] Setting questions:", newQuestions);
+      
+      // Normalize the new questions
+      const formattedQuestions = newQuestions.map(q => {
+        if (typeof q === 'string') {
+          return {
+            id: `temp-${Date.now()}-${Math.random()}`,
+            question_text: q,
+            hint_text: ""
+          };
+        } else {
+          return {
+            id: q.id || `temp-${Date.now()}-${Math.random()}`,
+            question_text: q.question_text || q.text || '',
+            hint_text: q.hint_text || q.hint || '',
+            order: q.order || 0
+          };
+        }
+      });
+      
+      setQuestions(formattedQuestions);
+    }
+  }));
+
   const addQuestion = (newQuestion) => {
-    setQuestions(prevQuestions => [...prevQuestions, newQuestion]);
+    // Store question as object instead of string
+    const newQuestionObj = {
+      id: `temp-${Date.now()}-${questions.length}`,
+      question_text: newQuestion,
+      hint_text: "",
+      order: questions.length
+    };
+    
+    console.log("[FITB] Adding question:", newQuestionObj);
+    setQuestions(prevQuestions => [...prevQuestions, newQuestionObj]);
   };
 
   const deleteQuestion = (index) => {
+    console.log("[FITB] Deleting question at index:", index);
     setQuestions(prevQuestions => prevQuestions.filter((_, i) => i !== index));
   };
 
-  const editQuestion = (index, newQuestion) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[index] = newQuestion;
-    setQuestions(updatedQuestions);
+  const editQuestion = (index, updatedQuestion) => {
+    console.log("[FITB] Editing question at index:", index, updatedQuestion);
+    
+    setQuestions(prevQuestions => {
+      const newQuestions = [...prevQuestions];
+      
+      // If we're editing a question object, update it while preserving ID
+      if (typeof prevQuestions[index] === 'object' && typeof updatedQuestion === 'object') {
+        newQuestions[index] = {
+          ...updatedQuestion,
+          id: prevQuestions[index].id || `temp-${Date.now()}-${index}`
+        };
+      } 
+      // If updating from object to string
+      else if (typeof prevQuestions[index] === 'object' && typeof updatedQuestion === 'string') {
+        newQuestions[index] = {
+          id: prevQuestions[index].id || `temp-${Date.now()}-${index}`,
+          question_text: updatedQuestion,
+          hint_text: "",
+          order: index
+        };
+      }
+      // If updating from string to object
+      else if (typeof prevQuestions[index] === 'string' && typeof updatedQuestion === 'object') {
+        newQuestions[index] = {
+          id: updatedQuestion.id || `temp-${Date.now()}-${index}`,
+          question_text: updatedQuestion.question_text || "",
+          hint_text: updatedQuestion.hint_text || "",
+          order: index
+        };
+      }
+      // If updating string to string
+      else {
+        newQuestions[index] = {
+          id: `temp-${Date.now()}-${index}`,
+          question_text: updatedQuestion,
+          hint_text: "",
+          order: index
+        };
+      }
+      
+      return newQuestions;
+    });
   };
 
   return (
@@ -205,10 +341,8 @@ const VisualFillTheFormEditor = forwardRef((props, ref) => {
           </div>
         )}
       </div>
-
     </div>
   );
 });
-
 
 export default VisualFillTheFormEditor;

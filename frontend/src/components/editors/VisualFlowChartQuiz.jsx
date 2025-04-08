@@ -16,18 +16,6 @@ const VisualFlowChartQuiz = forwardRef((props, ref) => {
   const initializedRef = useRef(false); // Use a ref to track if we've already initialized
   const lastInitialQuestionsLength = useRef(0); // Track the last initialQuestions length
   
-  // Debug logging for props
-  console.log("[DEBUG] Component rendering with props:", { 
-    moduleId, 
-    quizType, 
-    initialQuestionsLength: initialQuestions?.length,
-    onUpdateQuestionsExists: !!onUpdateQuestions
-  });
-
-  // Log the raw initialQuestions to inspect field names
-  if (initialQuestions && initialQuestions.length > 0) {
-    console.log("[DEBUG] Raw initialQuestions:", JSON.stringify(initialQuestions));
-  }
 
   // Expose getQuestions method for parent component to access
   useImperativeHandle(ref, () => ({
@@ -63,6 +51,24 @@ const VisualFlowChartQuiz = forwardRef((props, ref) => {
       
       console.log("[DEBUG] Returning formatted questions:", formattedQuestions);
       return formattedQuestions;
+    },
+
+    setQuestions: (newQuestions) => {
+      // Normalize and format incoming questions
+      const formattedStatements = newQuestions.map(q => ({
+        id: q.id || Date.now() + Math.random(),
+        text: q.question_text || q.text || "",
+        question: q.hint_text || q.question || "",
+        answer: "Sample Answer",
+        order: q.order || 0
+      }));
+      
+      setStatements(formattedStatements);
+      
+      // Auto-select the first statement if available
+      if (formattedStatements.length > 0) {
+        setSelectedStatement(formattedStatements[0]);
+      }
     }
   }), [statements]);
 

@@ -6,6 +6,8 @@ export const useMediaDeletions = () => {
   const [pendingDeletions, setPendingDeletions] = useState({ 
     document: [], 
     audio: [],
+    image: [],
+    video : [],
     // future media
   });
   

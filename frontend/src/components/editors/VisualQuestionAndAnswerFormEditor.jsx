@@ -3,6 +3,7 @@ import '../../styles/VisualQuestionAndAnswerFormEditor.css';
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 
 const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
+  const { moduleId, quizType, initialQuestions = [] } = props;
   const [questionData, setQuestionData] = useState({
     question_text: '',
     hint_text: '',
@@ -12,21 +13,54 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
 
+  // useEffect(() => {
+  //   if (props.initialQuestions && props.initialQuestions.length > 0) {
+  //     const loadedQuestions = props.initialQuestions.map(q => ({
+  //       ...q,
+  //       id: q.id, 
+  //       question_text: q.text, 
+  //       hint_text: q.hint, 
+  //       order: q.order 
+  //     }));
+  //     setSubmittedData(loadedQuestions);
+  //   }
+  // }, [props.initialQuestions]);
   useEffect(() => {
-    if (props.initialQuestions && props.initialQuestions.length > 0) {
-      const loadedQuestions = props.initialQuestions.map(q => ({
-        ...q,
-        id: q.id, 
-        question_text: q.text, 
-        hint_text: q.hint, 
-        order: q.order 
+    if (initialQuestions && initialQuestions.length > 0) {
+      const loadedQuestions = initialQuestions.map(q => ({
+        id: q.id || Date.now(),
+        question_text: q.question_text || q.text || '',
+        hint_text: q.hint_text || q.hint || '',
+        order: q.order || 0
       }));
       setSubmittedData(loadedQuestions);
     }
-  }, [props.initialQuestions]);
+  }, [initialQuestions]);
 
+  // useImperativeHandle(ref, () => ({
+  //   getQuestions: () => submittedData
+  // }));
   useImperativeHandle(ref, () => ({
-    getQuestions: () => submittedData
+    getQuestions: () => {
+      // Format questions for API compatibility
+      return submittedData.map((q, index) => ({
+        id: q.id || Date.now() + index,
+        question_text: q.question_text,
+        hint_text: q.hint_text,
+        order: index
+      }));
+    },
+    setQuestions: (newQuestions) => {
+      // Normalize and set questions
+      const formattedQuestions = newQuestions.map(q => ({
+        id: q.id || Date.now(),
+        question_text: q.question_text || q.text || '',
+        hint_text: q.hint_text || q.hint || '',
+        order: q.order || 0
+      }));
+      
+      setSubmittedData(formattedQuestions);
+    }
   }));
 
   const handleQuestionChange = (event) => {
@@ -62,7 +96,7 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
         setSubmittedData(submittedData.filter(entry => entry.id !== id));
       }
     } catch (error) {
-      console.log('Failed to delete question from backend:', submittedData.id);
+      console.log('Failed to delete question from backend: with ID:',id);
 
       console.error('Failed to delete question from backend:', error);
     }
@@ -104,7 +138,7 @@ const VisualQuestionAndAnswerFormEditor = forwardRef((props, ref) => {
           </div>
           <div>
             <button onClick={() => handleEdit(data.id)} className="button">Edit</button>
-            <button onClick={() => handleRemoveEntry(data.id)} className="button delete-button">Delete</button>
+            <button onClick={() => handleRemoveEntry(data.id)} className="button">Delete</button>
           </div>
         </div>
       ))}

@@ -117,23 +117,13 @@ export async function loginUser(username, password){
       username,
       password,
     });
-  
-        
-    // Store user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.data.user));
-
-    // ONLY FOR DEBUGGING
     localStorage.getItem('token', response.data.token)
     console.log('token after login:', response.data.token);
-
-
-    // Check if the response contains JWT tokens
     if (response.data.access && response.data.refresh) {
-      // Store JWT tokens
       localStorage.setItem('token', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
     } else if (response.data.token) {
-      // Fall back to old token format
       localStorage.setItem('token', response.data.token);
     }
     
@@ -146,21 +136,29 @@ export async function loginUser(username, password){
     
   }
   catch(error) {
-    throw new Error("Login failed:" + error.response?.data?.detail || "Unkown error");
+    throw new Error("Login failed:" + (error.response?.data?.detail || "Unkown error"));
 
   }
 }
 
 export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
+  console.log("userType detected:", userType); // See what it finds
     switch(userType) {
+        case 'superadmin':
+            console.log("Redirecting to superadmin/home");
+            window.location.href = '/superadmin/home';
+            break;
         case 'admin':
+            console.log("Redirecting to admin/home");
             window.location.href = '/admin/home';
             break;
         case 'service user':
+            console.log("Redirecting to worker/home");
             window.location.href = '/worker/home';
             break;
         default:
+            console.log("Default case, redirecting to worker/home. User type:", userType);
             window.location.href = '/worker/home';
     }
 
@@ -198,43 +196,19 @@ export async function SubmitQuestionAnswer(question_id, answer) {
 export async function getUserSettings(){
   
   try{
-    // const token = localStorage.getItem('token');
-    
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    
-    // const response = await api.get(`/worker/settings/` , {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
     const response = await api.get(`/worker/settings/`);
 
     return response.data;
   }
   catch(error){
-    throw new Error ("Failed to get user settings", error.response?.data || error.message);
+    throw new Error ("Failed to get user settings", (error.response?.data || error.message));
   }
 }
 
 
 export async function deleteUserSettings(){
   try{
-    // const token = localStorage.getItem('token');
-    // if (!token) {
-    //   throw new Error('No authentication token found');
-
-    // }
-    // const response = await api.delete(`/api/worker/settings/`, {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
-
-    const response = await api.delete(`/api/worker/settings/`);
+    const response = await api.delete(`/worker/settings/`);
     return response.data;
   }
   catch(error){
@@ -247,20 +221,10 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`/api/worker/password-change/`, {
+    const response = await api.put(`/worker/password-change/`, {
       old_password:  oldPassword,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword});
-    // const response = await api.put(`/api/worker/password-change/`, {
-    // old_password:  oldPassword,
-    // new_password: newPassword,
-    // confirm_new_password: confirmNewPassword,
-    
-    // } , {
-    //   headers: {
-    //     'Authorization': `Token ${token}`
-    //   }
-    // });
     return response.data;
   }
   catch(error){
@@ -529,13 +493,14 @@ export const fetchCompletedInteractiveContent = async () => {
   }
 
   try {
-    const response = await api.get('/api/completed-interactive-content/', {
+    const response = await api.get('/api/completed-interactive-content/',{
       headers: {
         Authorization: `Token ${token}`
       }
     });
 
     return response.data;
+    
   } catch (error) {
     console.error("Error fetching completed interactive content:", error);
     return [];

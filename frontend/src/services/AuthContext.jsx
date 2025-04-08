@@ -145,31 +145,6 @@ const AuthContextProvider = ({children}) => {
     //   }
 
     async function loginUser(username, password) {
-      // try {
-        // First try JWT endpoint
-      //   const jwtResponse = await api.post(`/api/token/`, {
-      //     username,
-      //     password,
-      //   });
-    
-      //   // If successful, store JWT tokens
-      //   localStorage.setItem('token', jwtResponse.data.access);
-      //   localStorage.setItem('refreshToken', jwtResponse.data.refresh);
-        
-      //   // Fetch user profile using JWT
-      //   const userResponse = await api.get('/api/profile/');
-      //   localStorage.setItem('user', JSON.stringify(userResponse.data));
-        
-      //   setUser(userResponse.data);
-      //   setToken(jwtResponse.data.access);
-        
-      //   return {
-      //     user: userResponse.data,
-      //     token: jwtResponse.data.access
-      //   };
-      // } catch (jwtError) {
-      //   console.log("JWT auth failed, trying legacy endpoint");
-        
         // Fall back to old login
         try {
           const response = await api.post(`/api/login/`, {
@@ -203,13 +178,12 @@ const AuthContextProvider = ({children}) => {
 
      // ===== SIGNING IN ===== //
     //  Please complete this //
-    async function SignUpUser(username, firstName, lastName, userType, password, confirmPassword,email){
+    async function SignUpUser(username, firstName, lastName, password, confirmPassword,email){
         try {
           const response = await api.post(`/api/signup/`, {
             username,
             first_name: firstName,
             last_name: lastName,
-            user_type: userType,
             password,
             confirm_password: confirmPassword,
             email,
@@ -246,7 +220,7 @@ const AuthContextProvider = ({children}) => {
        }
     }
 
-  
+      
 
     // ===== RESET PASSWORD ===== //
 
