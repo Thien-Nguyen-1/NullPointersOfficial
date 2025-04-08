@@ -115,7 +115,7 @@ const handleDelete = async () => {
 function renderUserInfo() {
   return (
     <div className="settings-card user-info-card">
-      <h1>Welcome, {user?.first_name} {user?.last_name}</h1>
+      <h1>Welcome {user?.first_name} {user?.last_name}</h1>
       <p className="mt-2 text-gray-600">Username: {user?.username}</p>
     </div>
   );
@@ -182,11 +182,9 @@ return (
             {renderPasswordForm()}
           </div>
 
-          <div className="card delete-card">
             <button className="delete-btn" onClick={() => setShowModal(true)}>
               Delete Account
             </button>
-          </div>
         </div>
       </>
     ) : (
@@ -197,11 +195,9 @@ return (
 
         <div className="admin-stack">
           <div>{renderPasswordForm()}</div>
-          <div className="card delete-card">
             <button className="delete-btn" onClick={() => setShowModal(true)}>
               Delete Account
             </button>
-          </div>
         </div>
       </>
     )}
