@@ -290,6 +290,13 @@ class ImageViewSet(viewsets.ModelViewSet):
         module_id = request.data.get('module_id')
         component_id = request.data.get('component_id', None)
 
+        # Get the order_index from request data
+        order_index = request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
+
         if not module_id:
             return Response({"detail": "Module ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -326,7 +333,8 @@ class ImageViewSet(viewsets.ModelViewSet):
                 file_size=file.size,
                 file_type=os.path.splitext(file.name)[1][1:],  # Remove the dot from extension
                 width=width,  # Default width
-                height=height  # Default height
+                height=height,  # Default height
+                order_index=order_index # Save the order_index
             )
 
             # If a component ID was provided, link it to the image as a description field
@@ -391,6 +399,13 @@ class AudioClipViewSet(viewsets.ModelViewSet):
 
         module_id = request.data.get('module_id')
         print(f"Module ID: {module_id}")
+
+        # Get the order_index from request data
+        order_index = request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
         
         if not files:
             print("No files found in request")
@@ -436,7 +451,8 @@ class AudioClipViewSet(viewsets.ModelViewSet):
                     author=request.user,
                     title=filename,  # set title to filename by default
                     description=f"Uploaded audio: {filename}",
-                    is_published=True  # set as published by default
+                    is_published=True,  # set as published by default
+                    order_index=order_index  # Save the order_index
                 )
                 
                 # Try to get audio duration
@@ -505,6 +521,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def upload(self, request):
         files = request.FILES.getlist('files')
         module_id = request.data.get('module_id')
+        # Get the order_index from request data
+        order_index = request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
         
         if not files:
             return Response({'error': 'No files to upload'}, status=status.HTTP_400_BAD_REQUEST)
@@ -541,7 +563,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     author=request.user,
                     title=filename,  # set title to filename by default
                     description=f"Uploaded document: {filename}",
-                    is_published=True  # set as published by default
+                    is_published=True,  # set as published by default
+                    order_index=order_index  # Save the order_index
                 )
                 document.save()
                 uploaded_documents.append(document)
@@ -592,7 +615,17 @@ class EmbeddedVideoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Set the author when creating a new embedded video"""
-        serializer.save(author=self.request.user)
+        order_index = self.request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
+
+        # Save with both author and order_index
+        serializer.save(
+            author=self.request.user,
+            order_index=order_index
+        )
 
     def update(self, request, *args, **kwargs):
         """Handle updates to embedded videos"""

@@ -297,6 +297,7 @@ class Content(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     is_published= models.BooleanField(default=False)
+    order_index = models.IntegerField(default=0)  # to store order
 
     class Meta:
         abstract = True  # No separate table for Content Model, only the subclasses will have database tables

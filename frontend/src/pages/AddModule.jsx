@@ -139,7 +139,7 @@ const AddModule = () => {
     // Temporarily store cached questions
     const tempCachedQuestions = {};
     
-    // Create an introduction section
+    // Create an introduction section (description)
     const introductionSection = {
       id: 'section-introduction',
       type: 'section',
@@ -567,13 +567,7 @@ const AddModule = () => {
     const newModuleId = `new-${Date.now()}`;
     let newModule = { id: newModuleId };
 
-    if (componentType === "heading") {
-      newModule = {
-        ...newModule,
-        componentType,
-        size: moduleType.size,
-      };
-    } else if (componentType === "template") {
+    if (componentType === "template") {
       newModule = {
         ...newModule,
         type: moduleType,
