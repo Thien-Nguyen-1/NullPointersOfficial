@@ -13,6 +13,7 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from "./pages/Settings";
 import Support from "./pages/Support";
 import Courses from "./pages/Courses";
+import CoursesCopy from './pages/CoursesCopy.jsx';
 import CoursesList from './pages/CoursesList.jsx';
 import Questionnaire from "./components/Questionnaire";
 import Login from './components/Login';
@@ -85,6 +86,7 @@ function App() {
                       <Route path="settings" element={<Settings />} />
                       <Route path="support" element={<Support />} />
                       <Route path="courses" element={<Courses/>} />
+                      <Route path="courses-copy" element={<CoursesCopy/>} />
                       
                       {/* to be deleted */}
                       <Route path="all-courses" element={<CoursesList/>} />
@@ -128,6 +130,7 @@ function App() {
                       <Route path="settings" element={<Settings />} />
                       <Route path="support" element={<Support />} />
                       <Route path="courses" element={<Courses />} />
+                      <Route path="courses-copy" element={<CoursesCopy/>} />
                       <Route path="/service-users" element={<ServiceUsersPage />} />
 
                       {/* to be deleted */}

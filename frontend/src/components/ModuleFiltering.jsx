@@ -1,31 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import api from "../services/api";
+import React, { useContext} from "react";
 // import "../styles/Courses.css";
-import "../styles/ModuleFiltering.css";
+import styles from "../styles/ModuleFiltering.module.css";
+import { AuthContext } from "../services/AuthContext";
 
 const ModuleFiltering = ({ handleSort, currentSortOption }) => {
+    const {user, token} = useContext(AuthContext)
     return (
         <>
             {/* Sort options */}
-            {<div className="sort-container">
+            {<div className={styles["sort-container"]}>
+                { user?.user_type === "service user" && (
                 <div 
-                    className={`sort-option ${currentSortOption === 'newest' ? 'active' : ''}`}
-                    onClick={() => handleSort('newest')}
+                    className={`${styles["sort-option"]} ${styles[currentSortOption === 'Your Courses' ? 'active' : '']}`}
+                    onClick={() => handleSort("Your Courses")}
                 >
-                    Recently Added
+                    Your Courses
+                </div> 
+                )}
+                <div 
+                    className={`${styles["sort-option"]} ${styles[currentSortOption === 'All Courses' ? 'active' : '']}`}
+                    onClick={() => handleSort("All Courses")}
+                >
+                    All Courses
                 </div>
                 <div 
-                    className={`sort-option ${currentSortOption === 'oldest' ? 'active' : ''}`}
-                    onClick={() => handleSort('oldest')}
+                    className={`${styles["sort-option"]} ${styles[currentSortOption === 'Popular' ? 'active' : '']}`}
+                    onClick={() => handleSort("Popular")}
                 >
-                    Oldest Courses
-                </div>
-                <div 
-                    className={`sort-option ${currentSortOption === 'title' ? 'active' : ''}`}
-                    onClick={() => handleSort('title')}
-                >
-                    By Title
+                    Popular
                 </div>
             </div>}
         </>

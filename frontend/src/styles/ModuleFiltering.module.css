@@ -7,17 +7,20 @@
 }
 
 .sort-option {
-  color: var(--primary-green-light); /* Inactive state */
+  color: var(--primary-green-dark); /* Inactive state */
+  filter: opacity(0.3);
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .sort-option:hover {
   color: var(--primary-green-dark); /* Darken on hover */
   transform: scale(1.02); /* Slight pop effect */
+  filter: opacity(1);
   filter: brightness(1.8);
 }
 
 .sort-option.active {
   color: var(--primary-green-dark); /* Highlight active selection */
+  filter: opacity(1);
 }
 

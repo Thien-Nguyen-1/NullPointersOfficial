@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, {useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import api from "../services/api";
+import { AuthContext } from "../services/AuthContext";
+import { SaveUserModuleInteract, GetUserModuleInteract, tagApi, moduleApi} from "../services/api";
 import "../styles/Courses.css";
 import ModuleFiltering from "../components/ModuleFiltering";
 import { FaThumbsUp, FaBookmark, FaBook} from "react-icons/fa";
 
 
-function Courses({ role }) {
+function CoursesCopy() {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tags, setTags] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [sortOption, setSortOption] = useState("newest"); // Default sort: newest first
+    const {user, token} = useContext(AuthContext)
 
     // Fetch all modules/courses when component mounts
     useEffect(() => {
         const fetchCourses = async () => {
             try {
                 setLoading(true);
-                const response = await api.get('/api/modules/');
+                const response = await moduleApi.getAll();
                 
                 // Sort courses by created_at or id (newest first)
                 const sortedCourses = response.data.sort((a, b) => {
@@ -42,7 +44,7 @@ function Courses({ role }) {
 
         const fetchTags = async () => {
             try {
-                const response = await api.get('/api/tags/');
+                const response = await tagApi.getAll();
                 setTags(response.data);
             } catch (err) {
                 console.error("Error fetching tags:", err);
@@ -174,7 +176,7 @@ function Courses({ role }) {
                     
                     <div className="sort-bar">
                         <ModuleFiltering handleSort={handleSortChange} currentSortOption={sortOption} />
-                        {role === "admin" && ( 
+                        {user?.user_type === "admin" && ( 
                             <Link to="/admin/courses/create-and-manage-module" className="add-module-button">
                                 +
                             </Link>
@@ -225,12 +227,12 @@ function Courses({ role }) {
 
                                 <div className="course-actions">
                                     <Link 
-                                        to={`/${role}/courses/${course.id}`} 
+                                        to={`/${user.user_type}/courses/${course.id}`} 
                                         className="view-course-btn"
                                     >
                                         View Course
                                     </Link>
-                                    {role === "admin" && (
+                                    {user.user_type === "admin" && (
                                         <Link 
                                             to={`/admin/courses/create-and-manage-module?edit=${course.id}`}
                                             className="edit-course-btn"
@@ -248,4 +250,4 @@ function Courses({ role }) {
     );
 }
     
-export default Courses;
+export default CoursesCopy;

@@ -6,8 +6,8 @@ import { AuthContext } from "../services/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
-import { GetModule, SaveUserModuleInteract, GetUserModuleInteract} from "../services/api";
-
+import ModuleFiltering from "../components/ModuleFiltering";
+import { GetModule, SaveUserModuleInteract, GetUserModuleInteract, tagApi} from "../services/api";
 
 
 
@@ -16,9 +16,8 @@ function Courses({ role }) {
     const {user, token} = useContext(AuthContext)
     
     const [filterOption, setFilter] = useState("All Courses")
-    const [active, setActiveTab] = useState("")
     const [modules, setModules] = useState([])
-
+    const [tags, setTags] = useState(null);
    
     const [userInteractions, setInteract] = useState([])
 
@@ -45,9 +44,22 @@ function Courses({ role }) {
 
         }
        
+        async function fetchTags(user) {
+            try {
+                if (user?.user_type === "admin" || user?.user_type === "superadmin") {
+                    const response = await tagApi.getAll();
+                    setTags(response.data);
+                } else {
+                    setTags(user.tags);
+                }
+            } catch (err) {
+                console.error("Error fetching tags: ", err);
+            }
+        };
+
         fetchModules()
         fetchInteractions()
-       
+        fetchTags(user)
         
     }, [filterOption] )
 
@@ -58,12 +70,6 @@ function Courses({ role }) {
         "All Courses": user ? render_list(modules) : (<div>NOHING</div>),
         "Popular" : user ? render_order_list() : (<div>NOHING</div>),
 
-    }
-
-
-    function handle_option_chosen(option, index){
-        setActiveTab(index)
-        setFilter(option)
     }
 
     function render_user_list(){
@@ -117,15 +123,13 @@ function Courses({ role }) {
            
             <section className={styles.tagCourseContainer}>
         
-                {user && (
-                   user.tags.map(
+                { tags && tags.map(
                     (obj, index)=> (
                         <div className={styles.tagCourse} key={index}>
                             <p> {obj.tag} </p>
                         </div>
                     )
-                   )
-                )}
+                   )}
 
                 <div className={`${styles.tagCourse} ${styles.editButton}`} onClick={(e) => {}}> 
                     <GrAdd />
@@ -139,18 +143,9 @@ function Courses({ role }) {
                 <h1 className={styles.pageTitle}>Courses</h1>
                 
                 <div className={styles.filterContainer}>
-                    
-                    <div className={styles.tabsFilter}>
 
-                        {Object.keys(FILTER_MAP).map( (option, index) => (
-                            <button key={index} 
-                                    onClick={() => handle_option_chosen(option, index)}
-                                    className={active === index ? styles.active : ""}
-                                    
-                            > {option} </button>
-                        ))}
+                    <ModuleFiltering handleSort={setFilter} currentSortOption={filterOption} />
 
-                    </div>
 
                 </div>
                 
