@@ -96,63 +96,37 @@ class ProgressTrackerView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# AUTH VIEWS START
+
+class SignUpView(APIView):
+    def post(self,request):
+        serializer =SignUpSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    
 class LogInView(APIView):
     def post(self, request):
         serializer = LogInSerializer(data = request.data)
         if serializer.is_valid():
             user = serializer.validated_data["user"]
             login(request,user)
-            # token, created = Token.objects.get_or_create(user=user)
-
-            # when user is created set true then mark false else mark flase
-            is_first_login = False # assume its not their first lgon
+            is_first_login = False 
             if user.is_first_login:
                 is_first_login = True
-                user.is_first_login = False # update so its only true for the first time they log in
+                user.is_first_login = False 
                 user.save()
-
-            # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
-
-            #add flag to serisalized data
             user_data = UserSerializer(user).data
             user_data["is_first_login"] = is_first_login
-
             return Response({"message": "Login Successful", 
                             "user": user_data,
-                            "token": str(refresh.access_token),  # For backward compatibility
-                            "refreshToken": str(refresh)}) # refresh token to get new access
+                            "token": str(refresh.access_token), 
+                            "refreshToken": str(refresh)}) 
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class LogOutView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self,request):
-        # user=request.user
-        # Token.objects.filter(user=user).delete()
-        # logout(request)
 
-        # if hasattr(request.user, 'auth_token'):
-        #     request.user.auth_token.delete()
-        # return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
-        try: 
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            logout(request)
-            return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-class SignUpView(APIView):
-    def post(self,request):
-        serializer =SignUpSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            # login(request,user)
-            return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-    
 class VerifyEmailView(APIView):
     def get(self,request,token):
         user_data = cache.get(token)
@@ -163,6 +137,49 @@ class VerifyEmailView(APIView):
         user = User.objects.create_user(**user_data)
         cache.delete(token)
         return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
+
+class PasswordResetView(APIView):
+    permission_classes = []
+    def post(self,request,uidb64,token):
+        request.data["uidb64"] = uidb64
+        request.data["token"] = token
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"Password reset successfully"})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RequestPasswordResetView(APIView):
+    def post(self,request):
+        serialzer = RequestPasswordResetSerializer(data = request.data)
+        if serialzer.is_valid():
+            serialzer.save()
+            return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
+        return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
+    
+class LogOutView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self,request):
+        try: 
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            logout(request)
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class CheckUsernameView(APIView):
+    def get(self,request):
+        username = request.query_params.get('username',None)
+        if not username:
+            return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exists = User.objects.filter(username=username).exists()
+        return Response ({"exists":exists}, status=status.HTTP_200_OK)
+
+
+ #AUTH VIEWS END
     
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -174,17 +191,6 @@ class UserProfileView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class PasswordResetView(APIView):
-    permission_classes = []
-    def post(self,request,uidb64,token):
-        request.data["uidb64"] = uidb64
-        request.data["token"] = token
-        serializer = PasswordResetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"Password reset successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class TagViewSet(viewsets.ModelViewSet):
@@ -824,6 +830,9 @@ class ContentPublishView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+#SETTINGS VIEW START
+
 class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -869,6 +878,80 @@ class UserPasswordChangeView(APIView):
             serializer.save()
             return Response({"message": "Password uUpdated successfully"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CompletedInteractiveContentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # module = get_object_or_404(Module, pk=module_id)
+
+        content_type = ContentType.objects.get_for_model(Task)
+
+        # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
+
+        viewed_tasks = ContentProgress.objects.filter(
+            user=request.user,
+            content_type=content_type,
+            # object_id__in=module_task_ids,
+            viewed=True
+        )
+
+        results = []
+        for item in viewed_tasks:
+            try:
+                task = item.content_object
+                results.append({
+                    "content_id": str(item.object_id),
+                    "title": task.title,
+                    "viewed_at": item.viewed_at,
+                    "quiz_type": task.get_quiz_type_display(),
+                    "module_title": task.moduleID.title if task.moduleID else None
+                })
+            except:
+                continue
+
+        return Response(results)
+
+class TaskPdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id):
+        user = request.user
+        # get task details
+        try:
+            task = Task.objects.get(contentID = task_id)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # get related questions 
+        questions = QuizQuestion.objects.filter(task = task)
+        
+        if not questions.exists():
+            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+        pdf.drawString(100,800,f"Task:{task.title}")
+
+        y_position = 780
+        for question in questions:
+            response = UserResponse.objects.filter(user=user, question=question).first()
+            answer_text = response.response_text if response else "No response provided"
+            pdf.drawString(100, y_position, f"Question: {question.question_text}")
+            y_position -=20
+            pdf.drawString(120, y_position, f"Answer: {answer_text}")
+            y_position -=30
+
+        pdf.save()
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
+
+        return response
+
+
+
+#SETTINGS VIEW END
 
 
 
@@ -987,24 +1070,7 @@ class QuizDataView(APIView):
         }
 
         return Response(quiz_data, status=status.HTTP_200_OK)
-class CheckUsernameView(APIView):
-    def get(self,request):
-        username = request.query_params.get('username',None)
-        if not username:
-            return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        exists = User.objects.filter(username=username).exists()
-        return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
-
-
-class RequestPasswordResetView(APIView):
-    def post(self,request):
-        serialzer = RequestPasswordResetSerializer(data = request.data)
-        if serialzer.is_valid():
-            serialzer.save()
-            return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
-        return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 class UserInteractionView(APIView):
 
@@ -1254,48 +1320,7 @@ class QuizQuestionViewSet(viewsets.ModelViewSet):
     queryset = QuizQuestion.objects.all()
     serializer_class= QuizQuestionSerializer
 
-class TaskPdfView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request, task_id):
-        user = request.user
-        # get task details
-        try:
-            task = Task.objects.get(contentID = task_id)
-        except Task.DoesNotExist:
-            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # get related questions 
-        questions = QuizQuestion.objects.filter(task = task)
-        
-        if not questions.exists():
-            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
-
-        buffer = BytesIO()
-        pdf = canvas.Canvas(buffer)
-        pdf.drawString(100,800,f"Task:{task.title}")
-
-        y_position = 780
-        # get related response and create the pdf
-        for question in questions:
-            # try:
-            response = UserResponse.objects.filter(user=user, question=question).first()
-            answer_text = response.response_text if response else "No response provided"
-
-            # except UserResponse.DoesNotExist:
-            #     answer_text = "No response provided"
-
-            pdf.drawString(100, y_position, f"Question: {question.question_text}")
-            y_position -=20
-            pdf.drawString(120, y_position, f"Answer: {answer_text}")
-            y_position -=30
-
-        pdf.save()
-        buffer.seek(0)
-        response = HttpResponse(buffer, content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
-
-        return response
     
 
 # ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
@@ -2061,35 +2086,3 @@ class CompletedContentView(APIView):
         return Response(list(viewed_content))
     
 
-class CompletedInteractiveContentView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # module = get_object_or_404(Module, pk=module_id)
-
-        content_type = ContentType.objects.get_for_model(Task)
-
-        # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
-
-        viewed_tasks = ContentProgress.objects.filter(
-            user=request.user,
-            content_type=content_type,
-            # object_id__in=module_task_ids,
-            viewed=True
-        )
-
-        results = []
-        for item in viewed_tasks:
-            try:
-                task = item.content_object
-                results.append({
-                    "content_id": str(item.object_id),
-                    "title": task.title,
-                    "viewed_at": item.viewed_at,
-                    "quiz_type": task.get_quiz_type_display(),
-                    "module_title": task.moduleID.title if task.moduleID else None
-                })
-            except:
-                continue
-
-        return Response(results)
