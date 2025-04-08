@@ -1,0 +1,55 @@
+.subheading {
+    font-size: 2.0rem;
+    font-weight: bold;
+    margin-bottom: 0px;
+    text-align: left;
+    width: 100%;
+    color: #366b4b;
+}
+
+
+.filter-section {
+    flex: 1;
+    min-width: 200px;
+    margin-top: 0px;
+}
+
+.filter-label, .course-label{
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--text-subtle);
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+  
+.tag-btn {
+    padding: 6px 12px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    background-color: lightgray;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 20px;
+}
+  
+.tag-btn:hover {
+    background-color: var(--primary-green);
+    filter: brightness(0.8);
+}
+  
+.tag-btn.active {
+    background-color: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+}
+
+.editButton {
+    display: flex;
+    align-items: center;
+    background-color: grey;
+    color: white;
+}

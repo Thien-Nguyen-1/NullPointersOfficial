@@ -133,7 +133,9 @@ function CourseItem(props){
             </div>
             
 
-            <p> {module.title}</p>
+            <div className={styles.titleContainer}>
+                <p>{module.title}</p>
+            </div>
 
             <div className={styles.likeContainer}>
                 <button onClick={() => {toggleLike()}}>
@@ -144,7 +146,7 @@ function CourseItem(props){
 
             </div>
 
-            <button onClick={() => {toggleFavourite()}}>  
+            <button data-testid="pin-btn" onClick={() => {toggleFavourite()}}>  
                 {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
             </button>
            
