@@ -542,7 +542,7 @@ class ContentProgress(models.Model):
         progress.update_progress()
     
     def __str__(self):
-        return f"{self.user.username} - {self.content_type} - {self.content_id}"
+        return f"{self.user.username} - {self.content_type} - {self.object_id}"
 
 
 class LearningTimeLog(models.Model):

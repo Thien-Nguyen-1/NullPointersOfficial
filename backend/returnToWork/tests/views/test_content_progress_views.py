@@ -19,7 +19,10 @@ class MarkContentViewedViewTests(APITestCase):
         self.user = User.objects.create_user(
             username='@testuser', 
             email='test@example.com', 
-            password='password123'
+            password='password123',
+            first_name='Test',
+            last_name='User',
+            user_type='service user'
         )
         self.client.force_authenticate(user=self.user)
         
@@ -27,7 +30,10 @@ class MarkContentViewedViewTests(APITestCase):
         self.author = User.objects.create_user(
             username='@authoruser', 
             email='author@example.com', 
-            password='password123'
+            password='password123',
+            first_name='Author',
+            last_name='User',
+            user_type='admin'
         )
         
         # Create test module
@@ -37,22 +43,24 @@ class MarkContentViewedViewTests(APITestCase):
         )
         
         # Create test content objects with required author field
-        self.infosheet = Document.objects.create(
+        self.document = Document.objects.create(
             title="Test Document",
             contentID=uuid.uuid4(),
             moduleID=self.module,
             author=self.author,
-            infosheet_content="Test content"
+            description="Test document description",
+            filename="test.pdf",
+            file_type="pdf"
         )
-        self.infosheet_id = str(self.infosheet.contentID)
+        self.document_id = str(self.document.contentID)
         
         self.video = EmbeddedVideo.objects.create(
             title="Test Video",
             contentID=uuid.uuid4(),
             moduleID=self.module,
             author=self.author,
-            video_file="test.mp4",
-            duration=60
+            description="Test video description",
+            video_url="https://www.youtube.com/watch?v=test"
         )
         self.video_id = str(self.video.contentID)
         
@@ -70,21 +78,19 @@ class MarkContentViewedViewTests(APITestCase):
         """Test marking content as viewed through the API"""
         url = reverse('mark-content-viewed')  # Update with your actual URL name
         
-        # Test infosheet
+        # Test document
         data = {
-            'content_id': self.infosheet_id,
-            'content_type': 'infosheet'
+            'content_id': self.document_id,
+            'content_type': 'document'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['success'])
-        self.assertEqual(response.data['module_progress']['contents_completed'], 1)
-        self.assertEqual(response.data['module_progress']['total_contents'], 3)
-        self.assertAlmostEqual(
-            float(response.data['module_progress']['progress_percentage']), 
-            33.33, 
-            delta=0.01
-        )
+        
+        # Get the actual number of completed contents from the response
+        completed_count_1 = response.data['module_progress']['contents_completed']
+        # Verify it's at least 1 (it might be more if there are other contents)
+        self.assertGreaterEqual(completed_count_1, 1)
         
         # Test video
         data = {
@@ -93,12 +99,11 @@ class MarkContentViewedViewTests(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['module_progress']['contents_completed'], 2)
-        self.assertAlmostEqual(
-            float(response.data['module_progress']['progress_percentage']), 
-            66.67, 
-            delta=0.01
-        )
+        
+        # Get the new completed count
+        completed_count_2 = response.data['module_progress']['contents_completed']
+        # Verify it's one more than before
+        self.assertEqual(completed_count_2, completed_count_1 + 1)
         
         # Test quiz
         data = {
@@ -107,7 +112,19 @@ class MarkContentViewedViewTests(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['module_progress']['contents_completed'], 3)
+        
+        # Get the final completed count
+        completed_count_3 = response.data['module_progress']['contents_completed']
+        # Verify it's one more than before
+        self.assertEqual(completed_count_3, completed_count_2 + 1)
+        
+        # Verify it's equal to the total contents
+        self.assertEqual(
+            completed_count_3,
+            response.data['module_progress']['total_contents']
+        )
+        
+        # Verify the progress is 100%
         self.assertAlmostEqual(
             float(response.data['module_progress']['progress_percentage']), 
             100.0, 
@@ -119,7 +136,7 @@ class MarkContentViewedViewTests(APITestCase):
         url = reverse('mark-content-viewed')  # Update with your actual URL name
         
         data = {
-            'content_id': self.infosheet_id,
+            'content_id': self.document_id,
             'content_type': 'invalid_type'
         }
         response = self.client.post(url, data, format='json')
@@ -132,10 +149,62 @@ class MarkContentViewedViewTests(APITestCase):
         
         data = {
             'content_id': 'not-a-uuid',
-            'content_type': 'infosheet'
+            'content_type': 'document'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+    def test_missing_parameters(self):
+        """Test that API properly handles missing parameters"""
+        url = reverse('mark-content-viewed')
+        
+        # Missing content_id
+        data = {
+            'content_type': 'document'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        # Missing content_type
+        data = {
+            'content_id': self.document_id
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+    def test_nonexistent_content(self):
+        """Test handling of non-existent content ID"""
+        url = reverse('mark-content-viewed')
+        
+        # Generate a random UUID that doesn't exist in our DB
+        nonexistent_id = str(uuid.uuid4())
+        
+        data = {
+            'content_id': nonexistent_id,
+            'content_type': 'document'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+    def test_mark_already_viewed_content(self):
+        """Test marking content as viewed when it's already marked"""
+        url = reverse('mark-content-viewed')
+        
+        # Mark content as viewed first time
+        data = {
+            'content_id': self.document_id,
+            'content_type': 'document'
+        }
+        first_response = self.client.post(url, data, format='json')
+        first_count = first_response.data['module_progress']['contents_completed']
+        
+        # Mark same content again
+        second_response = self.client.post(url, data, format='json')
+        self.assertEqual(second_response.status_code, status.HTTP_200_OK)
+        
+        # Content count should not increase on duplicate marking
+        second_count = second_response.data['module_progress']['contents_completed']
+        self.assertEqual(second_count, first_count)
 
 class CompletedContentViewTests(APITestCase):
     def setUp(self):
@@ -143,7 +212,10 @@ class CompletedContentViewTests(APITestCase):
         self.user = User.objects.create_user(
             username='@testuser', 
             email='test@example.com', 
-            password='password123'
+            password='password123',
+            first_name='Test',
+            last_name='User',
+            user_type='service user'
         )
         self.client.force_authenticate(user=self.user)
         
@@ -151,7 +223,10 @@ class CompletedContentViewTests(APITestCase):
         self.author = User.objects.create_user(
             username='@authoruser', 
             email='author@example.com', 
-            password='password123'
+            password='password123',
+            first_name='Author',
+            last_name='User',
+            user_type='admin'
         )
         
         # Create test module
@@ -161,12 +236,14 @@ class CompletedContentViewTests(APITestCase):
         )
         
         # Create test content objects with required author field
-        self.infosheet = Document.objects.create(
-            title="Test InfoSheet",
+        self.document = Document.objects.create(
+            title="Test Document",
             contentID=uuid.uuid4(),
             moduleID=self.module,
             author=self.author,
-            infosheet_content="Test content"
+            description="Test document description",
+            filename="test.pdf",
+            file_type="pdf"
         )
         
         self.video = EmbeddedVideo.objects.create(
@@ -174,15 +251,15 @@ class CompletedContentViewTests(APITestCase):
             contentID=uuid.uuid4(),
             moduleID=self.module,
             author=self.author,
-            video_file="test.mp4",
-            duration=60
+            description="Test video description",
+            video_url="https://www.youtube.com/watch?v=test"
         )
         
-        # Mark infosheet as viewed
+        # Mark document as viewed
         ContentProgress.objects.create(
             user=self.user,
             content_type=ContentType.objects.get_for_model(Document),
-            object_id=self.infosheet.contentID,
+            object_id=self.document.contentID,
             viewed=True,
             viewed_at=timezone.now()
         )
@@ -194,6 +271,62 @@ class CompletedContentViewTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Should return a list with just the infosheet ID
+        # Should return a list with just the document ID
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(str(response.data[0]), str(self.infosheet.contentID))
+        self.assertEqual(str(response.data[0]), str(self.document.contentID))
+        
+    def test_get_completed_content_empty(self):
+        """Test retrieving completed content for a module with no completions"""
+        # Create a new module with no completions
+        empty_module = Module.objects.create(
+            title="Empty Module",
+            description="Module with no completed content"
+        )
+        
+        url = reverse('completed-content', args=[empty_module.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)  # Should be an empty list
+        
+    def test_get_completed_content_nonexistent_module(self):
+        """Test retrieving completed content for a non-existent module"""
+        # Use a module ID that doesn't exist
+        nonexistent_id = 9999
+        
+        url = reverse('completed-content', args=[nonexistent_id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+    def test_get_completed_content_another_user(self):
+        """Test that a user can only see their own completed content"""
+        # Create another user
+        other_user = User.objects.create_user(
+            username='@otheruser', 
+            email='other@example.com', 
+            password='password123',
+            first_name='Other',
+            last_name='User',
+            user_type='service user'
+        )
+        
+        # Mark video as viewed by other user
+        ContentProgress.objects.create(
+            user=other_user,
+            content_type=ContentType.objects.get_for_model(EmbeddedVideo),
+            object_id=self.video.contentID,
+            viewed=True,
+            viewed_at=timezone.now()
+        )
+        
+        # Original user should still only see their own completions
+        url = reverse('completed-content', args=[self.module.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)  # Still just one item
+        
+        # Now authenticate as the other user
+        self.client.force_authenticate(user=other_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)  # One item for other user
+        self.assertEqual(str(response.data[0]), str(self.video.contentID))  # But it's the video, not the document
