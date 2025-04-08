@@ -157,29 +157,19 @@ class LogInView(APIView):
         # token, created = Token.objects.get_or_create(user=user)
         print(f"[DEBUG] Login successful, generating tokens")
 
-        # Generate JWT tokens
+        is_first_login = False 
+        if user.is_first_login:
+            is_first_login = True
+            user.is_first_login = False 
+            user.save()
         refresh = RefreshToken.for_user(user)
-
-        return Response({"message": "Login Successful",
-                        "user": UserSerializer(user).data,
-                        "token": str(refresh.access_token),  # For backward compatibility
-                        "refreshToken": str(refresh)}) # refresh token to get new access
-
-        if serializer.is_valid():
-            user = serializer.validated_data["user"]
-            login(request,user)
-            is_first_login = False 
-            if user.is_first_login:
-                is_first_login = True
-                user.is_first_login = False 
-                user.save()
-            refresh = RefreshToken.for_user(user)
-            user_data = UserSerializer(user).data
-            user_data["is_first_login"] = is_first_login
-            return Response({"message": "Login Successful", 
-                            "user": user_data,
-                            "token": str(refresh.access_token), 
-                            "refreshToken": str(refresh)}) 
+        user_data = UserSerializer(user).data
+        user_data["is_first_login"] = is_first_login
+        return Response({
+            "message": "Login Successful", 
+            "user": user_data,
+            "token": str(refresh.access_token), 
+            "refreshToken": str(refresh)}) 
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
