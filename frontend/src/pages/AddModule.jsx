@@ -65,7 +65,8 @@ import ModuleViewAlternative from "../components/ModuleViewAlternative";
 // 4. preview functionality
 // 5. error handling and state management
 
-// Utility function to handle media cleanup
+// Utility object to handle different types of media cleanup
+// helps manage deleting documents, audio, images, and videos consistently
 const mediaCleanupHandlers = {
   document: { 
     getMedia: DocumentService.getModuleDocuments, 
@@ -115,6 +116,7 @@ const AddModule = () => {
   const { tags, setTags, availableTags, fetchTags, addTag, removeTag } = useTags();
   const { pendingDeletions, setPendingDeletions } = useMediaDeletions();
 
+  // Module and component type definitions // 
   // Media and module type definitions
   const moduleOptions = {
     "Flashcard Quiz": { component: "VisualFlashcardEditor", type: "flashcard" },
@@ -141,7 +143,7 @@ const AddModule = () => {
     video: {}
   });
 
-  // Initialize components
+  // initialize components
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
@@ -252,7 +254,7 @@ const AddModule = () => {
     });
   };
 
-  // Process questions for template modules
+  // Process questions for template modules (ITS FOR QUIZZES)
   const processTemplateQuestions = async (task, questions) => {
     // Delete existing questions first
     const existingQuestions = await QuizApiUtils.getQuestions(task.contentID);
@@ -579,17 +581,16 @@ const AddModule = () => {
       return;
     }
   
-    // Prepare preview data
+    // prepare preview data
     const previewData = preparePreviewData();
     
-    // Update cached questions and media
+    // update cached questions and media
     updateCachedData(previewData);
     
-    // Enter preview mode
     enterPreviewMode(previewData);
   };
 
-  // Prepare preview data
+  // Create an introduction section (description)
   const preparePreviewData = () => {
     const introductionSection = {
       id: 'section-introduction',
@@ -603,7 +604,8 @@ const AddModule = () => {
         }
       ]
     };
-
+    
+    // Arrays to hold resources and assessment content
     const resourceItems = [];
     const assessmentItems = [];
 
@@ -616,7 +618,7 @@ const AddModule = () => {
       }
     });
 
-    // Create structured content
+    // create a structured component
     const structuredContent = [introductionSection];
 
     // Sort and add resources section
