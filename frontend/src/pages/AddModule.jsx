@@ -481,20 +481,27 @@ const AddModule = () => {
           if (module.componentType === "template" && cachedQuestions[module.id]) {
             const editor = editorRefs.current[module.id];
             
-            if (module.componentType === "media" && module.mediaType === "video" && 
-              cachedVideos[module.id]) {
-              console.log("[DEBUG] Restoring video data:", cachedVideos[module.id]);
-              console.log("[DEBUG] Video data has video_url:", Boolean(cachedVideos[module.id].video_url));
-              const editor = editorRefs.current[module.id];
-              
-              if (editor && typeof editor.setVideoData === 'function') {
-                console.log("[DEBUG] Calling setVideoData on video component");
-                editor.setVideoData(cachedVideos[module.id]);
-              } else {
-                console.log("[DEBUG] Cannot restore video data - editor or setVideoData missing");
-                console.log("[DEBUG] Editor exists:", Boolean(editor));
-                console.log("[DEBUG] setVideoData exists:", editor && typeof editor.setVideoData === 'function');
-              }
+            if (editor && typeof editor.setQuestions === 'function') {
+              console.log(`Restoring ${cachedQuestions[module.id].length} questions to editor for ${module.id}`);
+              editor.setQuestions(cachedQuestions[module.id]);
+            } else {
+              console.log(`Cannot restore questions - editor or setQuestions missing for module ${module.id}`);
+            }
+          }
+            
+          if (module.componentType === "media" && module.mediaType === "video" && 
+            cachedVideos[module.id]) {
+            console.log("[DEBUG] Restoring video data:", cachedVideos[module.id]);
+            console.log("[DEBUG] Video data has video_url:", Boolean(cachedVideos[module.id].video_url));
+            const editor = editorRefs.current[module.id];
+            
+            if (editor && typeof editor.setVideoData === 'function') {
+              console.log("[DEBUG] Calling setVideoData on video component");
+              editor.setVideoData(cachedVideos[module.id]);
+            } else {
+              console.log("[DEBUG] Cannot restore video data - editor or setVideoData missing");
+              console.log("[DEBUG] Editor exists:", Boolean(editor));
+              console.log("[DEBUG] setVideoData exists:", editor && typeof editor.setVideoData === 'function');
             }
           }
         });
