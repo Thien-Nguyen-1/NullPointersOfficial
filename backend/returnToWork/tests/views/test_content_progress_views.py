@@ -7,7 +7,7 @@ from django.utils import timezone
 import uuid
 
 from returnToWork.models import (
-    Module, InfoSheet, Video, Task, 
+    Module, Document, EmbeddedVideo, Task, 
     ContentProgress, ProgressTracker
 )
 
@@ -37,8 +37,8 @@ class MarkContentViewedViewTests(APITestCase):
         )
         
         # Create test content objects with required author field
-        self.infosheet = InfoSheet.objects.create(
-            title="Test InfoSheet",
+        self.infosheet = Document.objects.create(
+            title="Test Document",
             contentID=uuid.uuid4(),
             moduleID=self.module,
             author=self.author,
@@ -46,7 +46,7 @@ class MarkContentViewedViewTests(APITestCase):
         )
         self.infosheet_id = str(self.infosheet.contentID)
         
-        self.video = Video.objects.create(
+        self.video = EmbeddedVideo.objects.create(
             title="Test Video",
             contentID=uuid.uuid4(),
             moduleID=self.module,
@@ -161,7 +161,7 @@ class CompletedContentViewTests(APITestCase):
         )
         
         # Create test content objects with required author field
-        self.infosheet = InfoSheet.objects.create(
+        self.infosheet = Document.objects.create(
             title="Test InfoSheet",
             contentID=uuid.uuid4(),
             moduleID=self.module,
@@ -169,7 +169,7 @@ class CompletedContentViewTests(APITestCase):
             infosheet_content="Test content"
         )
         
-        self.video = Video.objects.create(
+        self.video = EmbeddedVideo.objects.create(
             title="Test Video",
             contentID=uuid.uuid4(),
             moduleID=self.module,
@@ -181,7 +181,7 @@ class CompletedContentViewTests(APITestCase):
         # Mark infosheet as viewed
         ContentProgress.objects.create(
             user=self.user,
-            content_type=ContentType.objects.get_for_model(InfoSheet),
+            content_type=ContentType.objects.get_for_model(Document),
             object_id=self.infosheet.contentID,
             viewed=True,
             viewed_at=timezone.now()

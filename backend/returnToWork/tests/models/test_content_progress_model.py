@@ -6,7 +6,7 @@ import uuid
 
 from returnToWork.models import (
     ContentProgress, ProgressTracker, 
-    Module, InfoSheet, Video, Task
+    Module, Document, EmbeddedVideo, Task
 )
 
 User = get_user_model()
@@ -34,7 +34,7 @@ class ContentProgressTests(TestCase):
         )
         
         # Create test content objects 
-        self.infosheet = InfoSheet.objects.create(
+        self.infosheet = Document.objects.create(
             title="Test InfoSheet",
             contentID=uuid.uuid4(),
             moduleID=self.module,
@@ -42,7 +42,7 @@ class ContentProgressTests(TestCase):
             infosheet_content="Test content"  
         )
         
-        self.video = Video.objects.create(
+        self.video = EmbeddedVideo.objects.create(
             title="Test Video",
             contentID=uuid.uuid4(),
             moduleID=self.module,
@@ -61,8 +61,8 @@ class ContentProgressTests(TestCase):
         )
         
         # Get content types
-        self.infosheet_ct = ContentType.objects.get_for_model(InfoSheet)
-        self.video_ct = ContentType.objects.get_for_model(Video)
+        self.infosheet_ct = ContentType.objects.get_for_model(Document)
+        self.video_ct = ContentType.objects.get_for_model(EmbeddedVideo)
         self.task_ct = ContentType.objects.get_for_model(Task)
 
     def test_mark_as_viewed(self):

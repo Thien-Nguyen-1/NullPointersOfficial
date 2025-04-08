@@ -89,7 +89,7 @@ function CoursesList({ role }) {
     };
 
     const handleViewCourse = (course) => {
-        if (role === "admin") {
+        if (role === "admin" || role === "superadmin") {
             navigate(`/modules/${course.id}`); // Fixed: use lowercase navigate function
         } else {
             // Only worker sees the enrollment popup
