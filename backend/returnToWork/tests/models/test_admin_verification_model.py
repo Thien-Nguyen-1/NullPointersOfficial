@@ -34,13 +34,13 @@ class AdminVerificationTestCase(TestCase):
         self.assertFalse(verification.is_token_expired())
 
     def test_token_expiration_with_expired_token(self):
-        """Test token expiration with token older than 48 hours"""
+        """Test token expiration with token older than 72 hours"""
         verification = AdminVerification.objects.create(
             admin=self.admin_user, 
             verification_token="test-token"
         )
         # Use update() to bypass auto_now_add
-        old_time = timezone.now() - timezone.timedelta(hours=49)
+        old_time = timezone.now() - timezone.timedelta(hours=73)
         AdminVerification.objects.filter(pk=verification.pk).update(token_created_at=old_time)
         verification.refresh_from_db()
         self.assertTrue(verification.is_token_expired())
