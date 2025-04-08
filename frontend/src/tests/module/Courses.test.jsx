@@ -63,7 +63,7 @@ describe("Courses Component", () => {
     await safeRenderWithContext(<Courses role="admin" />);
 
     await waitFor(() => {
-      expect(screen.getByText("Your Tags")).toBeInTheDocument();
+      expect(screen.getByText("Tags")).toBeInTheDocument();
       expect(screen.getByText("depression")).toBeInTheDocument();
       expect(screen.getByText("big sad")).toBeInTheDocument();
     });
@@ -180,15 +180,14 @@ describe("Courses Component", () => {
 
   test("triggers edit button click handler", async () => {
     const mockUser = {
-      user_type: "admin",
-      tags: []
+      user_type: "admin", // not a service user
+      tags: [{ id: 1, tag: "anxiety" }],
     };
   
-    tagApi.getAll.mockResolvedValue({ data: [] });
+    tagApi.getAll.mockResolvedValue({ data: mockUser.tags });
     GetModule.mockResolvedValue([]);
     GetUserModuleInteract.mockResolvedValue([]);
-    
-
+  
     await act(async () =>
       render(
         <AuthContext.Provider value={{ user: mockUser, token: "token" }}>
@@ -196,13 +195,16 @@ describe("Courses Component", () => {
             <Courses />
           </MemoryRouter>
         </AuthContext.Provider>
-    ));
-    
-    const editButton = screen.getByTestId("edit-button");
-
+      )
+    );
+  
+    const editButton = await screen.findByTestId("edit-button");
+  
     await act(async () => {
       fireEvent.click(editButton);
     });
+  
+    expect(editButton).toBeInTheDocument();
   });
 
   test("does not show create module button for non-admin", async () => {
@@ -222,19 +224,6 @@ describe("Courses Component", () => {
     expect(screen.queryByText("Create Module")).not.toBeInTheDocument();
   });
 
-  // test("renders fallback for filters when user is null", async () => {
-  //   render(
-  //     <AuthContext.Provider value={{ user: null, token: "token" }}>
-  //       <MemoryRouter>
-  //         <Courses />
-  //       </MemoryRouter>
-  //     </AuthContext.Provider>
-  //   );
-  
-  //   await waitFor(() => {
-  //     expect(screen.getAllByText("NOHING").length).toBeGreaterThanOrEqual(1);
-  //   });
-  // });
 
   test("calls update_interact_module on interaction", async () => {
     const mockModule = { id: 1, title: "Module Test", upvotes: 3 };
