@@ -136,7 +136,10 @@ export async function loginUser(username, password){
     
   }
   catch(error) {
-    throw new Error("Login failed:" + (error.response?.data?.detail || "Unkown error"));
+    if (error.response?.status === 403 && error.response?.data?.verification_required) {
+      throw new Error(error.response.data.error || "Please verify your email before logging in.");
+    }
+    throw new Error("Login failed:" + (error.response?.data?.detail || error.response?.data?.error || "Unknown error"));
 
   }
 }
@@ -221,7 +224,7 @@ export async function deleteUserSettings(){
 export async function changeUserPassword(oldPassword, newPassword, confirmNewPassword){
   try{
     const token = localStorage.getItem("token");
-    const response = await api.put(`/worker/password-change/`, {
+    const response = await api.put(`/api/worker/password-change/`, {
       old_password:  oldPassword,
       new_password: newPassword,
       confirm_new_password: confirmNewPassword});
