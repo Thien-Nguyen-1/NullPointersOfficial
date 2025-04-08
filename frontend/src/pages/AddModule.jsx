@@ -115,6 +115,7 @@ const AddModule = () => {
   const { editorRefs, initialQuestionsRef } = useEditorRefs();
   const { tags, setTags, availableTags, fetchTags, addTag, removeTag } = useTags();
   const { pendingDeletions, setPendingDeletions } = useMediaDeletions();
+  const [createdBlobUrls, setCreatedBlobUrls] = useState([]);
 
   // Module and component type definitions // 
   // Media and module type definitions
@@ -696,26 +697,92 @@ const AddModule = () => {
   };
 
   // Process document preview
-  const processDocumentPreview = (module, fileData, index) => {
-    const fileUrl = fileData.originalDocument 
-      ? fileData.originalDocument.file_url 
-      : URL.createObjectURL(fileData.file);
+  // const processDocumentPreview = (module, fileData, index) => {
+  //   const fileUrl = fileData.originalDocument 
+  //     ? fileData.originalDocument.file_url 
+  //     : URL.createObjectURL(fileData.file);
 
+  //   return {
+  //     id: fileData.id || module.id,
+  //     type: 'infosheet',
+  //     title: fileData.file.name || "Document",
+  //     content: `View or download: ${fileData.file.name}`,
+  //     documents: [{
+  //       contentID: fileData.id || module.id,
+  //       filename: fileData.file.name,
+  //       file_url: fileUrl,
+  //       file_size: fileData.file.size
+  //     }],
+  //     moduleId: editId || "preview",
+  //     order: index
+  //   };
+  // };
+
+  // Process document preview
+  const processDocumentPreview = (module, fileData, index) => {
+    console.log('[DOCUMENT PREVIEW] Full fileData:', fileData);
+    let fileUrl;
+  
+    // Priority 1: Existing document URL
+    if (fileData.originalDocument) {
+      fileUrl = fileData.originalDocument.file_url.startsWith('http') 
+        ? fileData.originalDocument.file_url 
+        : `http://localhost:8000${fileData.originalDocument.file_url}`;
+    }
+    // Priority 2: New file upload (blob or file)
+    else if (fileData.file instanceof File || fileData.file instanceof Blob) {
+      fileUrl = URL.createObjectURL(fileData.file);
+      setCreatedBlobUrls(prev => [...prev, fileUrl]);
+    }
+    // Priority 3: Filename-based URL
+    else if (fileData.filename) {
+      fileUrl = `/media/documents/${fileData.filename}`;
+    }
+    // Fallback
+    else {
+      fileUrl = 'http://localhost:8000/media/documents/default.pdf';
+    }
+  
+    console.log('[DOCUMENT PREVIEW] Generated fileUrl:', fileUrl);
+  
     return {
       id: fileData.id || module.id,
       type: 'infosheet',
-      title: fileData.file.name || "Document",
-      content: `View or download: ${fileData.file.name}`,
+      title: (fileData.file ? fileData.file.name : fileData.filename) || "Document",
+      content: `View or download: ${(fileData.file ? fileData.file.name : fileData.filename) || "Document"}`,
       documents: [{
         contentID: fileData.id || module.id,
-        filename: fileData.file.name,
+        filename: (fileData.file ? fileData.file.name : fileData.filename) || "Document",
         file_url: fileUrl,
-        file_size: fileData.file.size
+        file_size: fileData.file ? fileData.file.size : 0
       }],
       moduleId: editId || "preview",
       order: index
     };
   };
+  
+  // Clean up blob URLs when component unmounts or preview mode changes
+  useEffect(() => {
+    return () => {
+      // Revoke all blob URLs when component unmounts
+      createdBlobUrls.forEach(url => {
+        URL.revokeObjectURL(url);
+        console.log('[DEBUG] Revoked blob URL:', url);
+      });
+    };
+  }, []);
+  
+  // Also add cleanup when exiting preview mode
+  useEffect(() => {
+    if (!isPreviewMode && createdBlobUrls.length > 0) {
+      // Revoke blob URLs when exiting preview mode
+      createdBlobUrls.forEach(url => {
+        URL.revokeObjectURL(url);
+        console.log('[DEBUG] Revoked blob URL after preview:', url);
+      });
+      setCreatedBlobUrls([]);
+    }
+  }, [isPreviewMode]);
 
   // Process audio preview
   const processAudioPreview = (module, fileData, index) => {
