@@ -123,7 +123,7 @@ function renderUserInfo() {
 
 function renderCompletedCourses() {
   return (
-    <div className="settings-card">
+    <div className="settings-card centre">
       <h2>Completed Courses</h2>
       {completedCourses.length > 0 ? (
         <div className="completed-courses-container">
@@ -144,8 +144,12 @@ function renderCompletedCourses() {
 }
 
 function renderPasswordForm() {
+  const userClass =
+  user?.user_type === "service user"
+    ? "settings-card centre"
+    : "settings-card"; 
   return (
-    <div className="settings-card">
+    <div className={userClass} >    
       <h2>Change Password</h2>
 
       <label>Old Password</label>
@@ -179,7 +183,7 @@ return (
 
           <div className="settings-layout">
             {renderCompletedCourses()}
-            {renderPasswordForm()}
+            {renderPasswordForm(user?.user_type)}
           </div>
 
             <button className="delete-btn" onClick={() => setShowModal(true)}>
@@ -194,10 +198,12 @@ return (
         </div>
 
         <div className="admin-stack">
-          <div>{renderPasswordForm()}</div>
+          <div>{renderPasswordForm(user?.user_type)}</div>
+          <div className="card delete-card">
             <button className="delete-btn" onClick={() => setShowModal(true)}>
               Delete Account
             </button>
+        </div>
         </div>
       </>
     )}
@@ -215,6 +221,7 @@ return (
       </div>
     )}
   </div>
+  
 );
 
 }
