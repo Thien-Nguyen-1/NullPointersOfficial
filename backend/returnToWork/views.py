@@ -235,6 +235,28 @@ class QuestionnaireView(APIView):
         except Questionnaire.DoesNotExist:
             # returns error if not (realistically should never run)
             return Response({"error": "Invalid question"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+    def put(self, request):
+        questions = request.data.get("questions")
+        Questionnaire.objects.all().delete()
+        
+        if(questions):
+            for qObj in reversed(questions):
+
+        
+                Questionnaire.objects.create(
+                    id = qObj.get('id'),
+                    question = qObj.get('question'),
+                    yes_next_q= Questionnaire.objects.filter(id = qObj.get('yes_next_q')).first(),
+                    no_next_q = Questionnaire.objects.filter(id = qObj.get('no_next_q')).first()
+                    
+                )
+
+        print("The questions are successfully saved")
+     
+
+        return Response("", status=status.HTTP_200_OK)
 
 class InfoSheetViewSet(viewsets.ModelViewSet):
     queryset = InfoSheet.objects.all()
@@ -1271,7 +1293,7 @@ class TaskPdfView(APIView):
 
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Get the current terms and conditions"""
