@@ -202,7 +202,44 @@ it('creates a default statement when initialQuestions is empty', async () => {
 });
 
 
+test('prevents deletion when only one statement remains', async () => {
+  // Setup with only one statement
+  const props = {
+    ...mockProps,
+    initialQuestions: [{ id: 1, text: 'S1', hint: 'Q1', order: 0 }]
+  };
 
+  const { getByText } = render(<VisualFlowChartQuiz {...props} />);
+  await waitFor(() => {
+    expect(getByText('S1')).toBeInTheDocument();
+  });
+
+  const deleteButton = getByText('×'); // Assuming delete button is labeled with '×'
+  fireEvent.click(deleteButton);
+
+  // Confirm was not called since it should bail out before that
+  expect(window.confirm).not.toHaveBeenCalled();
+  expect(getByText('S1')).toBeInTheDocument();
+});
+
+test('deletes a statement correctly', async () => {
+  const { getByText, queryByText } = render(<VisualFlowChartQuiz {...mockProps} />);
+  await waitFor(() => {
+    expect(getByText('S1')).toBeInTheDocument();
+    expect(getByText('S2')).toBeInTheDocument();
+  });
+
+  const deleteButtons = screen.getAllByText('×');
+  fireEvent.click(deleteButtons[0]); // Delete the first statement
+
+  // Confirm deletion
+  expect(window.confirm).toHaveBeenCalled();
+
+  await waitFor(() => {
+    expect(queryByText('S1')).not.toBeInTheDocument();
+    expect(getByText('S2')).toBeInTheDocument(); // Only S2 should remain
+  });
+});
 
 
 });
