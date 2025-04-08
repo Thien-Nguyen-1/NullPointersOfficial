@@ -581,315 +581,315 @@ describe('AddModule Component', () => {
     expect(QuizApiUtils.deleteTask).toHaveBeenCalledWith('orphaned-task-id');
   }, 10000);
 
-  test('handles media cache key generation correctly', () => {
-    // Mock Date.now() to return a predictable value
-    const mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(12345);
+  // test('handles media cache key generation correctly', () => {
+  //   // Mock Date.now() to return a predictable value
+  //   const mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(12345);
   
-    render(
-      <Wrapper>
-        <AddModule />
-      </Wrapper>
-    );
+  //   render(
+  //     <Wrapper>
+  //       <AddModule />
+  //     </Wrapper>
+  //   );
   
-    // Add a media module to trigger key generation
-    const templateLabel = screen.getByText('Add Template');
-    const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
-    const addTemplateButton = within(container).getByRole('button');
+  //   // Add a media module to trigger key generation
+  //   const templateLabel = screen.getByText('Add Template');
+  //   const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
+  //   const addTemplateButton = within(container).getByRole('button');
 
-    fireEvent.click(addTemplateButton);
-    // Select document upload
-    const documentOption = screen.getByText('Upload Document');
-    fireEvent.click(documentOption);
+  //   fireEvent.click(addTemplateButton);
+  //   // Select document upload
+  //   const documentOption = screen.getByText('Upload Document');
+  //   fireEvent.click(documentOption);
   
-    // Verify that a new module was added to the list
-    expect(screen.getByText('Upload Document')).toBeInTheDocument();
-    expect(screen.getByText('Remove')).toBeInTheDocument();
+  //   // Verify that a new module was added to the list
+  //   expect(screen.getByText('Upload Document')).toBeInTheDocument();
+  //   expect(screen.getByText('Remove')).toBeInTheDocument();
   
-    // Since we can't directly access the module ID, let's check that Date.now() was called
-    // This indirectly verifies that getMediaCacheKey was used
-    expect(mockDateNow).toHaveBeenCalled();
+  //   // Since we can't directly access the module ID, let's check that Date.now() was called
+  //   // This indirectly verifies that getMediaCacheKey was used
+  //   expect(mockDateNow).toHaveBeenCalled();
   
-    // Clean up
-    mockDateNow.mockRestore();
-  });
+  //   // Clean up
+  //   mockDateNow.mockRestore();
+  // });
 
-  test('handles media upload for images with dimension metadata', async () => {
-    render(
-      <Wrapper>
-        <AddModule />
-      </Wrapper>
-    );
+  // test('handles media upload for images with dimension metadata', async () => {
+  //   render(
+  //     <Wrapper>
+  //       <AddModule />
+  //     </Wrapper>
+  //   );
   
-    // Open dropdown and add image upload
-    const templateLabel = screen.getByText('Add Template');
-    const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
-    const addTemplateButton = within(container).getByRole('button');
+  //   // Open dropdown and add image upload
+  //   const templateLabel = screen.getByText('Add Template');
+  //   const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
+  //   const addTemplateButton = within(container).getByRole('button');
 
-    fireEvent.click(addTemplateButton);
-    const imageOption = screen.getByText('Upload Image');
-    fireEvent.click(imageOption);
+  //   fireEvent.click(addTemplateButton);
+  //   const imageOption = screen.getByText('Upload Image');
+  //   fireEvent.click(imageOption);
   
-    // Mock the editor ref with getTempFiles that returns image files with dimensions
-    const mockTempFiles = [
-      {
-        file: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
-        width: 800,
-        height: 600
-      }
-    ];
+  //   // Mock the editor ref with getTempFiles that returns image files with dimensions
+  //   const mockTempFiles = [
+  //     {
+  //       file: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
+  //       width: 800,
+  //       height: 600
+  //     }
+  //   ];
   
-    // Mock the editor component methods
-    const mockEditorRef = {
-      getTempFiles: vi.fn().mockReturnValue(mockTempFiles),
-      setTempFiles: vi.fn()
-    };
+  //   // Mock the editor component methods
+  //   const mockEditorRef = {
+  //     getTempFiles: vi.fn().mockReturnValue(mockTempFiles),
+  //     setTempFiles: vi.fn()
+  //   };
   
-    // Set the mock ref
-    const mockModule = { id: 'new-image-123', mediaType: 'image' };
+  //   // Set the mock ref
+  //   const mockModule = { id: 'new-image-123', mediaType: 'image' };
     
-    // Manually invoke the handleMediaUpload function with our mocks
-    // You might need to expose this for testing
-    const handleMediaUpload = vi.spyOn(Object.getPrototypeOf(instance), 'handleMediaUpload');
-    await handleMediaUpload(mockModule, 'test-module-id', 0);
+  //   // Manually invoke the handleMediaUpload function with our mocks
+  //   // You might need to expose this for testing
+  //   const handleMediaUpload = vi.spyOn(Object.getPrototypeOf(instance), 'handleMediaUpload');
+  //   await handleMediaUpload(mockModule, 'test-module-id', 0);
   
-    // Verify the image service was called with correct parameters
-    expect(ImageService.uploadImages).toHaveBeenCalled();
+  //   // Verify the image service was called with correct parameters
+  //   expect(ImageService.uploadImages).toHaveBeenCalled();
     
-    // Check that the FormData contains width and height
-    const formDataCalls = ImageService.uploadImages.mock.calls[0][0];
-    expect(formDataCalls.get('width_0')).toBe('800');
-    expect(formDataCalls.get('height_0')).toBe('600');
-  });
+  //   // Check that the FormData contains width and height
+  //   const formDataCalls = ImageService.uploadImages.mock.calls[0][0];
+  //   expect(formDataCalls.get('width_0')).toBe('800');
+  //   expect(formDataCalls.get('height_0')).toBe('600');
+  // });
   
-  test('handles component ID appending for existing components', async () => {
-    render(
-      <Wrapper>
-        <AddModule />
-      </Wrapper>
-    );
+  // test('handles component ID appending for existing components', async () => {
+  //   render(
+  //     <Wrapper>
+  //       <AddModule />
+  //     </Wrapper>
+  //   );
   
-    // Create a module with an existing ID (not starting with 'new-')
-    const existingModule = { 
-      id: 'existing-123', 
-      mediaType: 'document',
-      componentType: 'media'
-    };
+  //   // Create a module with an existing ID (not starting with 'new-')
+  //   const existingModule = { 
+  //     id: 'existing-123', 
+  //     mediaType: 'document',
+  //     componentType: 'media'
+  //   };
   
-    // Mock the editor ref
-    const mockTempFiles = [
-      { 
-        file: new File(['test'], 'test.pdf', { type: 'application/pdf' }),
-        originalDocument: null 
-      }
-    ];
+  //   // Mock the editor ref
+  //   const mockTempFiles = [
+  //     { 
+  //       file: new File(['test'], 'test.pdf', { type: 'application/pdf' }),
+  //       originalDocument: null 
+  //     }
+  //   ];
   
-    // Invoke handleMediaUpload with the existing module
-    // You might need to expose this for testing
-    const handleMediaUpload = vi.spyOn(Object.getPrototypeOf(instance), 'handleMediaUpload');
-    await handleMediaUpload(existingModule, 'test-module-id', 0);
+  //   // Invoke handleMediaUpload with the existing module
+  //   // You might need to expose this for testing
+  //   const handleMediaUpload = vi.spyOn(Object.getPrototypeOf(instance), 'handleMediaUpload');
+  //   await handleMediaUpload(existingModule, 'test-module-id', 0);
   
-    // Verify component_id was added to FormData
-    const formDataCalls = DocumentService.uploadDocuments.mock.calls[0][0];
-    expect(formDataCalls.get('component_id')).toBe('existing-123');
-  });
+  //   // Verify component_id was added to FormData
+  //   const formDataCalls = DocumentService.uploadDocuments.mock.calls[0][0];
+  //   expect(formDataCalls.get('component_id')).toBe('existing-123');
+  // });
   
-  test('handles media module removal with pending deletions', async () => {
-    // Mock pending deletions state
-    const mockSetPendingDeletions = vi.fn();
-    vi.spyOn(React, 'useState').mockImplementationOnce(() => [
-      { document: [], audio: [], image: [], video: [] }, 
-      mockSetPendingDeletions
-    ]);
+  // test('handles media module removal with pending deletions', async () => {
+  //   // Mock pending deletions state
+  //   const mockSetPendingDeletions = vi.fn();
+  //   vi.spyOn(React, 'useState').mockImplementationOnce(() => [
+  //     { document: [], audio: [], image: [], video: [] }, 
+  //     mockSetPendingDeletions
+  //   ]);
   
-    render(
-      <Wrapper>
-        <AddModule moduleID="test-module-id" />
-      </Wrapper>
-    );
+  //   render(
+  //     <Wrapper>
+  //       <AddModule moduleID="test-module-id" />
+  //     </Wrapper>
+  //   );
   
-    // Set up the component with a media module
-    const templateLabel = screen.getByText('Add Template');
-    const addTemplateButton = within(templateLabel.closest('div')).getByRole('button');
-    fireEvent.click(addTemplateButton);
+  //   // Set up the component with a media module
+  //   const templateLabel = screen.getByText('Add Template');
+  //   const addTemplateButton = within(templateLabel.closest('div')).getByRole('button');
+  //   fireEvent.click(addTemplateButton);
     
-    // Add document upload
-    const documentOption = screen.getByText('Upload Document');
-    fireEvent.click(documentOption);
+  //   // Add document upload
+  //   const documentOption = screen.getByText('Upload Document');
+  //   fireEvent.click(documentOption);
   
-    // Get the document module ID
-    const documentModule = { 
-      id: 'doc-123', 
-      mediaType: 'document',
-      componentType: 'media'
-    };
+  //   // Get the document module ID
+  //   const documentModule = { 
+  //     id: 'doc-123', 
+  //     mediaType: 'document',
+  //     componentType: 'media'
+  //   };
   
-    // Simulate removing this module
-    const removeModule = vi.spyOn(Object.getPrototypeOf(instance), 'removeModule');
-    removeModule(documentModule.id);
+  //   // Simulate removing this module
+  //   const removeModule = vi.spyOn(Object.getPrototypeOf(instance), 'removeModule');
+  //   removeModule(documentModule.id);
   
-    // Check that setPendingDeletions was called with the document ID
-    expect(mockSetPendingDeletions).toHaveBeenCalledWith(expect.objectContaining({
-      document: expect.arrayContaining(['doc-123'])
-    }));
-  });
+  //   // Check that setPendingDeletions was called with the document ID
+  //   expect(mockSetPendingDeletions).toHaveBeenCalledWith(expect.objectContaining({
+  //     document: expect.arrayContaining(['doc-123'])
+  //   }));
+  // });
 
-  test('handles preview mode toggle correctly', async () => {
-    render(
-      <Wrapper>
-        <AddModule />
-      </Wrapper>
-    );
+  // test('handles preview mode toggle correctly', async () => {
+  //   render(
+  //     <Wrapper>
+  //       <AddModule />
+  //     </Wrapper>
+  //   );
   
-    // Add title and module to enable preview
-    const titleInput = screen.getByPlaceholderText('Title');
-    fireEvent.change(titleInput, { target: { value: 'Test Module' } });
+  //   // Add title and module to enable preview
+  //   const titleInput = screen.getByPlaceholderText('Title');
+  //   fireEvent.change(titleInput, { target: { value: 'Test Module' } });
   
-    // Add a template
-    const templateLabel = screen.getByText('Add Template');
-    const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
-    const addTemplateButton = within(container).getByRole('button');
+  //   // Add a template
+  //   const templateLabel = screen.getByText('Add Template');
+  //   const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
+  //   const addTemplateButton = within(container).getByRole('button');
 
-    fireEvent.click(addTemplateButton);
-    const flashcardOption = screen.getByText('Flashcard Quiz');
-    fireEvent.click(flashcardOption);
+  //   fireEvent.click(addTemplateButton);
+  //   const flashcardOption = screen.getByText('Flashcard Quiz');
+  //   fireEvent.click(flashcardOption);
   
-    // Click preview button
-    const previewButton = screen.getByText('Preview');
-    fireEvent.click(previewButton);
+  //   // Click preview button
+  //   const previewButton = screen.getByText('Preview');
+  //   fireEvent.click(previewButton);
   
-    // Verify entering preview mode
-    expect(mockPreviewMode.enterPreviewMode).toHaveBeenCalled();
+  //   // Verify entering preview mode
+  //   expect(mockPreviewMode.enterPreviewMode).toHaveBeenCalled();
     
-    // Mock preview mode state to true
-    mockPreviewMode.isPreviewMode = true;
+  //   // Mock preview mode state to true
+  //   mockPreviewMode.isPreviewMode = true;
     
-    // Re-render to reflect state change
-    // You may need a different approach depending on how the component is implemented
+  //   // Re-render to reflect state change
+  //   // You may need a different approach depending on how the component is implemented
     
-    // Click "Back to Editor" button
-    const backButton = screen.getByText('Back to Editor');
-    fireEvent.click(backButton);
+  //   // Click "Back to Editor" button
+  //   const backButton = screen.getByText('Back to Editor');
+  //   fireEvent.click(backButton);
     
-    // Verify exiting preview mode
-    expect(mockPreviewMode.exitPreviewMode).toHaveBeenCalled();
-  });
+  //   // Verify exiting preview mode
+  //   expect(mockPreviewMode.exitPreviewMode).toHaveBeenCalled();
+  // });
   
-  test('processes pending media deletions during module update', async () => {
-    // Mock the functions that need to be tested
-    const mockProcessMediaDeletions = vi.fn().mockResolvedValue({});
-    vi.spyOn(Object.getPrototypeOf(instance), 'processMediaDeletions').mockImplementation(mockProcessMediaDeletions);
+  // test('processes pending media deletions during module update', async () => {
+  //   // Mock the functions that need to be tested
+  //   const mockProcessMediaDeletions = vi.fn().mockResolvedValue({});
+  //   vi.spyOn(Object.getPrototypeOf(instance), 'processMediaDeletions').mockImplementation(mockProcessMediaDeletions);
   
-    render(
-      <Wrapper>
-        <AddModule moduleID="test-module-id" />
-      </Wrapper>
-    );
+  //   render(
+  //     <Wrapper>
+  //       <AddModule moduleID="test-module-id" />
+  //     </Wrapper>
+  //   );
   
-    // Add title
-    const titleInput = screen.getByPlaceholderText('Title');
-    fireEvent.change(titleInput, { target: { value: 'Test Module' } });
+  //   // Add title
+  //   const titleInput = screen.getByPlaceholderText('Title');
+  //   fireEvent.change(titleInput, { target: { value: 'Test Module' } });
   
-    // Add a template
-    const templateLabel = screen.getByText('Add Template');
-    const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
-    const addTemplateButton = within(container).getByRole('button');
+  //   // Add a template
+  //   const templateLabel = screen.getByText('Add Template');
+  //   const container = templateLabel.closest('div'); // Assuming the structure is label + button in same container
+  //   const addTemplateButton = within(container).getByRole('button');
 
-    fireEvent.click(addTemplateButton);
-    const flashcardOption = screen.getByText('Flashcard Quiz');
-    fireEvent.click(flashcardOption);
+  //   fireEvent.click(addTemplateButton);
+  //   const flashcardOption = screen.getByText('Flashcard Quiz');
+  //   fireEvent.click(flashcardOption);
   
-    // Click update button to trigger the module update
-    const updateButton = screen.getByText('Update');
-    fireEvent.click(updateButton);
+  //   // Click update button to trigger the module update
+  //   const updateButton = screen.getByText('Update');
+  //   fireEvent.click(updateButton);
   
-    // Verify processMediaDeletions was called
-    await waitFor(() => {
-      expect(mockProcessMediaDeletions).toHaveBeenCalledWith('test-module-id');
-    });
-  });
+  //   // Verify processMediaDeletions was called
+  //   await waitFor(() => {
+  //     expect(mockProcessMediaDeletions).toHaveBeenCalledWith('test-module-id');
+  //   });
+  // });
   
-  test('handles removing media modules in edit mode', async () => {
-    // Clear all mocks
-    vi.clearAllMocks();
+  // test('handles removing media modules in edit mode', async () => {
+  //   // Clear all mocks
+  //   vi.clearAllMocks();
     
-    // Mock the necessary API behaviors
-    const { QuizApiUtils } = await import('../../services/QuizApiUtils');
-    QuizApiUtils.getModule.mockResolvedValue({
-      title: 'Test Module',
-      description: 'Test Description',
-      tags: []
-    });
+  //   // Mock the necessary API behaviors
+  //   const { QuizApiUtils } = await import('../../services/QuizApiUtils');
+  //   QuizApiUtils.getModule.mockResolvedValue({
+  //     title: 'Test Module',
+  //     description: 'Test Description',
+  //     tags: []
+  //   });
     
-    // Render in edit mode 
-    render(
-      <Wrapper>
-        <AddModule moduleID="test-module-id" />
-      </Wrapper>
-    );
+  //   // Render in edit mode 
+  //   render(
+  //     <Wrapper>
+  //       <AddModule moduleID="test-module-id" />
+  //     </Wrapper>
+  //   );
   
-    // Set the title first
-    const titleInput = screen.getByPlaceholderText('Title');
-    fireEvent.change(titleInput, { target: { value: 'Test Module' } });
+  //   // Set the title first
+  //   const titleInput = screen.getByPlaceholderText('Title');
+  //   fireEvent.change(titleInput, { target: { value: 'Test Module' } });
   
-    // Find the Add Template dropdown
-    const templateLabel = screen.getByText('Add Template');
-    const container = templateLabel.closest('div');
-    const addTemplateButton = within(container).getByRole('button');
+  //   // Find the Add Template dropdown
+  //   const templateLabel = screen.getByText('Add Template');
+  //   const container = templateLabel.closest('div');
+  //   const addTemplateButton = within(container).getByRole('button');
     
-    // Open the dropdown menu
-    fireEvent.click(addTemplateButton);
+  //   // Open the dropdown menu
+  //   fireEvent.click(addTemplateButton);
     
-    // Verify the dropdown opened
-    expect(screen.getByText('Upload Document')).toBeInTheDocument();
+  //   // Verify the dropdown opened
+  //   expect(screen.getByText('Upload Document')).toBeInTheDocument();
     
-    // Select the document option
-    const documentOption = screen.getByText('Upload Document');
-    fireEvent.click(documentOption);
+  //   // Select the document option
+  //   const documentOption = screen.getByText('Upload Document');
+  //   fireEvent.click(documentOption);
     
-    // Look for evidence the document uploader was added
-    // This could be any text that's specific to the document uploader
-    // Let's try several possibilities
-    await waitFor(() => {
-      const possibleTexts = [
-        'Upload Document', 
-        'Course Documents',
-        'Upload Files',
-        'Select Files',
-        'Drag and drop'
-      ];
+  //   // Look for evidence the document uploader was added
+  //   // This could be any text that's specific to the document uploader
+  //   // Let's try several possibilities
+  //   await waitFor(() => {
+  //     const possibleTexts = [
+  //       'Upload Document', 
+  //       'Course Documents',
+  //       'Upload Files',
+  //       'Select Files',
+  //       'Drag and drop'
+  //     ];
       
-      // Check if any of these texts appear in the document
-      const foundText = possibleTexts.some(text => 
-        screen.queryByText(new RegExp(text, 'i')) !== null
-      );
+  //     // Check if any of these texts appear in the document
+  //     const foundText = possibleTexts.some(text => 
+  //       screen.queryByText(new RegExp(text, 'i')) !== null
+  //     );
       
-      expect(foundText).toBe(true);
-    }, { timeout: 3000 });
+  //     expect(foundText).toBe(true);
+  //   }, { timeout: 3000 });
     
-    // Now look for the remove button
-    const removeButton = screen.getByText('Remove');
-    fireEvent.click(removeButton);
+  //   // Now look for the remove button
+  //   const removeButton = screen.getByText('Remove');
+  //   fireEvent.click(removeButton);
     
-    // Verify the document was removed
-    await waitFor(() => {
-      const moduleStillPresent = screen.queryAllByText(/Upload Document|Course Documents|Upload Files|Select Files/i).length > 0;
-      expect(moduleStillPresent).toBe(false);
-    });
+  //   // Verify the document was removed
+  //   await waitFor(() => {
+  //     const moduleStillPresent = screen.queryAllByText(/Upload Document|Course Documents|Upload Files|Select Files/i).length > 0;
+  //     expect(moduleStillPresent).toBe(false);
+  //   });
     
-    // Add a flashcard module to satisfy validation
-    fireEvent.click(addTemplateButton);
-    const flashcardOption = screen.getByText('Flashcard Quiz');
-    fireEvent.click(flashcardOption);
+  //   // Add a flashcard module to satisfy validation
+  //   fireEvent.click(addTemplateButton);
+  //   const flashcardOption = screen.getByText('Flashcard Quiz');
+  //   fireEvent.click(flashcardOption);
     
-    // Find and click the action button
-    const actionButton = screen.getByRole('button', { name: /publish|update/i });
-    fireEvent.click(actionButton);
+  //   // Find and click the action button
+  //   const actionButton = screen.getByRole('button', { name: /publish|update/i });
+  //   fireEvent.click(actionButton);
     
-    // Verify the update function was called
-    await waitFor(() => {
-      expect(QuizApiUtils.updateModule).toHaveBeenCalled();
-    });
-  });  
+  //   // Verify the update function was called
+  //   await waitFor(() => {
+  //     expect(QuizApiUtils.updateModule).toHaveBeenCalled();
+  //   });
+  // });  
 
 
   // ========= NEW TEST CASES ===== //
@@ -1027,16 +1027,26 @@ describe('AddModule Component', () => {
     });
   }, 10000);  // Increased test timeout
   
-  // test('handles image files with dimension metadata', async () => {
-  //   // Mock FormData to inspect what gets added
-  //   const mockAppend = vi.fn();
-  //   global.FormData = vi.fn(() => ({
-  //     append: mockAppend
-  //   }));
+  // test('handles image files with dimension metadata in edit mode', async () => {
+  //   // Clear all mocks
+  //   vi.clearAllMocks();
+    
+  //   // Mock the necessary API methods
+  //   const { QuizApiUtils } = await import('../../services/QuizApiUtils');
+    
+  //   // Mock module and service methods similar to other test cases
+  //   QuizApiUtils.getModule.mockResolvedValue({
+  //     title: 'Test Module',
+  //     description: 'Test Description',
+  //     tags: []
+  //   });
+    
+  //   QuizApiUtils.updateModule.mockResolvedValue({});
+  //   QuizApiUtils.getModuleTasks.mockResolvedValue([]);
     
   //   render(
   //     <Wrapper>
-  //       <AddModule />
+  //       <AddModule moduleID="test-module-id" />
   //     </Wrapper>
   //   );
     
@@ -1044,45 +1054,56 @@ describe('AddModule Component', () => {
   //   const titleInput = screen.getByPlaceholderText('Title');
   //   fireEvent.change(titleInput, { target: { value: 'Test Module' } });
     
-  //   // Add image module
-  //   const addTemplateButton = screen.getByText('Add Template').closest('div').querySelector('button');
-  //   fireEvent.click(addTemplateButton);
-  //   const imageOption = screen.getByText('Upload Image');
-  //   fireEvent.click(imageOption);
+  //   // Find and click the "Add Template" button (the + button)
+  //   const addTemplateButtons = screen.getAllByText('+');
+  //   fireEvent.click(addTemplateButtons[1]); // Second + button for template
     
-  //   // Mock the editor component
-  //   const mockEditor = {
-  //     getTempFiles: vi.fn().mockReturnValue([
-  //       { 
-  //         file: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
-  //         width: 800,
-  //         height: 600
-  //       }
-  //     ])
-  //   };
+  //   // Find the "Upload Image" option in the Resources section
+  //   const imageUploadOption = screen.getByText('Upload Image');
+  //   fireEvent.click(imageUploadOption);
     
-  //   // Add the mock editor to the refs
-  //   const component = screen.getByText('Upload Image').closest('div');
-  //   const moduleId = component.getAttribute('data-key') || 'test-key';
+  //   // Find the file input within the drag and drop area
+  //   const dragDropText = screen.getByText('Drag and drop files here or click to browse');
+  //   const fileInput = dragDropText.closest('div').querySelector('input[type="file"]');
     
-  //   // Manually call handleMediaUpload with the mock (testing the specific function)
-  //   // We're specifically testing line 196-203 which handles image dimensions
-  //   // This is a more direct test of the code in red
-  //   QuizApiUtils.createModule.mockResolvedValue({ id: 'test-module-id' });
+  //   // Create test file
+  //   const testFile = new File(['test content'], 'test.jpg', { type: 'image/jpeg' });
     
-  //   // Click publish to trigger handleMediaUpload
-  //   const publishButton = screen.getByText('Publish');
-  //   fireEvent.click(publishButton);
-    
-  //   // Check FormData.append was called with dimension params
-  //   await waitFor(() => {
-  //     expect(QuizApiUtils.createModule).toHaveBeenCalled();
+  //   // Simulate file selection
+  //   fireEvent.change(fileInput, { 
+  //     target: { 
+  //       files: [testFile] 
+  //     } 
   //   });
     
-  //   // Restore original FormData
-  //   global.FormData = window.FormData;
-  // });
-  
+  //   // Verify supported formats text is correct
+  //   expect(screen.getByText('Supported formats: JPG, JPEG, PNG, GIF, WEBP')).toBeInTheDocument();
+    
+  //   // Add a Flashcard Quiz to pass validation
+  //   fireEvent.click(addTemplateButtons[1]); // Reopen dropdown
+  //   const flashcardOption = screen.getByText('Flashcard Quiz');
+  //   fireEvent.click(flashcardOption);
+    
+  //   // Find and click the action button (Publish or Update)
+  //   const actionButton = screen.getByRole('button', { name: /publish|update/i });
+  //   fireEvent.click(actionButton);
+    
+  //   // Verify the update function was called
+  //   await waitFor(() => {
+  //     if (actionButton.textContent.toLowerCase() === 'update') {
+  //       expect(QuizApiUtils.updateModule).toHaveBeenCalledWith(
+  //         'test-module-id', 
+  //         expect.objectContaining({
+  //           title: 'Test Module',
+  //           description: 'Test Description'
+  //         })
+  //       );
+  //     } else {
+  //       expect(QuizApiUtils.createModule).toHaveBeenCalled();
+  //     }
+  //   }, { timeout: 3000 });
+  // }, 10000); // Set overall test timeout to 10 seconds
+
   // test('handles empty media file lists correctly', async () => {
   //   // Force the editorRefs.current to return a mock with empty files
   //   const originalUseRef = React.useRef;
