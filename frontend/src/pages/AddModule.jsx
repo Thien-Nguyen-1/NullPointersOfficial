@@ -364,7 +364,11 @@ const AddModule = () => {
         ...q,
         question_text: q.question_text || q.text || "",
         hint_text: q.hint_text || q.hint || "",
-        answers: q.answers || q.tiers || []
+        answers: q.answers || q.tiers || [],
+
+        statements: q.statements || [], // if flowcharts have a statements array
+        sequence: q.sequence || [],     // if flowcharts have a sequence property
+        connections: q.connections || [] // if flowcharts use connections
       }));
     } catch (error) {
       console.error(`Failed to get questions for module ${moduleId}:`, error);
@@ -516,26 +520,26 @@ const AddModule = () => {
       const existingImages = await ImageService.getModuleImages(moduleId);
       const existingVideos = await VideoService.getModuleVideos(moduleId);
   
-      // Combine all existing components
+      // Combine all existing components that belong ONLY to this module
       const allExistingComponents = [
-        ...existingTasks.map(task => ({ 
+        ...existingTasks.filter(task => task.moduleID == moduleId).map(task => ({ 
           id: task.contentID, 
           type: 'template',
           quizType: task.quiz_type 
         })),
-        ...existingDocuments.map(doc => ({ 
+        ...existingDocuments.filter(doc => doc.moduleID == moduleId).map(doc => ({ 
           id: doc.contentID, 
           type: 'document' 
         })),
-        ...existingAudios.map(audio => ({ 
+        ...existingAudios.filter(audio => audio.moduleID == moduleId).map(audio => ({ 
           id: audio.contentID, 
           type: 'audio' 
         })),
-        ...existingImages.map(image => ({ 
+        ...existingImages.filter(image => image.moduleID == moduleId).map(image => ({ 
           id: image.contentID, 
           type: 'image' 
         })),
-        ...existingVideos.map(video => ({ 
+        ...existingVideos.filter(video => video.moduleID == moduleId).map(video => ({ 
           id: video.contentID, 
           type: 'video' 
         }))
@@ -858,12 +862,27 @@ const AddModule = () => {
       if (module.componentType === "template") {
         const editor = editorRefs.current[module.id];
         if (editor && typeof editor.getQuestions === 'function') {
-          tempCachedQuestions[module.id] = editor.getQuestions();
+          // tempCachedQuestions[module.id] = editor.getQuestions();
+
+          const questions = editor.getQuestions() || [];
+          // Log the cache process
+          console.log(`[CACHE] Storing ${questions.length} questions for ${module.type} (${module.quizType})`);
+          // Special handling for flowchart quizzes
+          if (module.quizType === 'statement_sequence') {
+            console.log(`[CACHE] Storing flowchart quiz data for ${module.id}:`, 
+                        JSON.stringify(editor.getQuestions()));
+                        
+            // Store with deep cloning to ensure references are not shared
+            tempCachedQuestions[module.id] = JSON.parse(JSON.stringify(editor.getQuestions()));
+          } else {
+            tempCachedQuestions[module.id] = editor.getQuestions();
+          }
         }
       } else if (module.componentType === "media") {
         const editor = editorRefs.current[module.id];
         if (editor && editor.getTempFiles) {
           const files = editor.getTempFiles();
+          
 
           // Special handling for image files to preserve dimensions
           if (module.mediaType === "image") {
@@ -879,7 +898,7 @@ const AddModule = () => {
         }
       }
     });
-
+    console.log('[CACHE] Complete question cache:', tempCachedQuestions);
     setCachedQuestions(tempCachedQuestions);
     setCachedMedia(tempCachedMedia);
   };
@@ -892,11 +911,37 @@ const AddModule = () => {
         const module = modules.find(m => m.id === moduleId);
         if (module && module.componentType === "template") {
           const editor = editorRefs.current[moduleId];
-          if (editor && typeof editor.setQuestions === 'function') {
-            editor.setQuestions(questions);
+          
+          // Special handling for flowchart quizzes with delay
+          if (module.quizType === 'statement_sequence' && editor) {
+            console.log('[RESTORE] Special handling for flowchart quiz with delay', questions);
+            
+            setTimeout(() => {
+              if (editor && typeof editor.setQuestions === 'function') {
+                editor.setQuestions(JSON.parse(JSON.stringify(questions)));
+                
+                // Optionally verify after another small delay if needed
+                setTimeout(() => {
+                  console.log('[VERIFY after delay] Flowchart quiz after restore:', 
+                            editor.getQuestions ? editor.getQuestions() : 'No getQuestions method');
+                }, 100);
+              }
+            }, 250);
+          } else if (editor && typeof editor.setQuestions === 'function') {
+            // Normal restoration for other quiz types
+            editor.setQuestions(JSON.parse(JSON.stringify(questions)));
           }
         }
       });
+      // Object.entries(cachedQuestions).forEach(([moduleId, questions]) => {
+      //   const module = modules.find(m => m.id === moduleId);
+      //   if (module && module.componentType === "template") {
+      //     const editor = editorRefs.current[moduleId];
+      //     if (editor && typeof editor.setQuestions === 'function') {
+      //       editor.setQuestions(questions);
+      //     }
+      //   }
+      // });
 
       // Restore media
       Object.entries(cachedMedia).forEach(([mediaType, mediaItems]) => {
