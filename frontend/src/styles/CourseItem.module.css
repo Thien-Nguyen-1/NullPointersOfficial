@@ -2,13 +2,15 @@
     display: flex;
     align-items: center;
     width: 80vw;
-    justify-content: space-between;
+    gap: 1rem;
+    justify-content: flex-start;
     background-color: var(--primary-green-light);
     border-radius: 0.7rem;
     padding: 0.8rem;
     margin-bottom: 1rem;
 
     svg {
+        display: block;
         border: none;
         scale: 1.5;
         margin-top: 0.1rem;
@@ -17,6 +19,10 @@
     }
     p {
         font-size: clamp(0.6rem, 2vw, 1rem);
+        flex: 1; /* so it fills space, but doesn't overflow */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     min-width: 373px;
@@ -24,10 +30,12 @@
     
 }
 
+
 .courseOptContainer .likeContainer {
-    display: inherit;
+    display: flex;
     align-items: center;
     gap: 0.3rem;
+    min-width: 4rem;
     
     p {
         margin-bottom: 0.2rem;
@@ -48,6 +56,12 @@
 }
 
 .iconContainer {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    display: flex;
     padding: 0.5rem;
     border-radius: inherit;
     background-color: var(--primary-green-dark);
@@ -65,3 +79,15 @@
     }
     
 }
+
+.titleContainer {
+    flex-grow: 1;
+    overflow: hidden;
+  }
+  
+  .titleContainer p {
+    font-size: clamp(0.6rem, 2vw, 1rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
