@@ -123,7 +123,7 @@ function renderUserInfo() {
 
 function renderCompletedCourses() {
   return (
-    <div className="settings-card">
+    <div className="settings-card centre">
       <h2>Completed Courses</h2>
       {completedCourses.length > 0 ? (
         <div className="completed-courses-container">
@@ -145,7 +145,7 @@ function renderCompletedCourses() {
 
 function renderPasswordForm() {
   return (
-    <div className="settings-card">
+    <div className="settings-card centre">
       <h2>Change Password</h2>
 
       <label>Old Password</label>
