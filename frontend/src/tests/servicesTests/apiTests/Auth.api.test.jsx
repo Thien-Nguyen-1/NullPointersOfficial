@@ -100,7 +100,7 @@ describe('changeUserPassword', () => {
 
     const result = await changeUserPassword('oldPassword', 'newPassword', 'newPassword');
 
-    expect(mockApiInstance.put).toHaveBeenCalledWith('/worker/password-change/', {
+    expect(mockApiInstance.put).toHaveBeenCalledWith('/api/worker/password-change/', {
       old_password: 'oldPassword',
       new_password: 'newPassword',
       confirm_new_password: 'newPassword',
