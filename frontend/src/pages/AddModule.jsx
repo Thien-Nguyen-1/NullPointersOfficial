@@ -225,6 +225,14 @@ const AddModule = () => {
     }
   };
 
+  // Media upload handlers mapping
+  const mediaUploadHandlers = {
+    document: DocumentService.uploadDocuments,
+    audio: AudioService.uploadAudios,
+    image: ImageService.uploadImages,
+    video: VideoService.uploadVideos
+  };
+
   // Process media deletion
   const processMediaDeletions = async (moduleId) => {
     for (const [mediaType, mediaIds] of Object.entries(pendingDeletions)) {
@@ -322,11 +330,12 @@ const AddModule = () => {
       if (existingTask) {
         // Update existing task
         await QuizApiUtils.updateTask(existingTask.contentID, taskData);
-        task = existingTask;
+        task = { contentID: existingTask.contentID };
       } else {
         // Create new task
         const taskResponse = await QuizApiUtils.createModuleTask(moduleId, taskData);
-        task = taskResponse;
+        // task = taskResponse;
+        task = { contentID: taskResponse.contentID || taskResponse.id };
       }
 
       // Process questions for the task
@@ -741,6 +750,14 @@ const AddModule = () => {
         : `http://localhost:8000${fileData.originalImage.file_url}`;
     }
 
+    const imageWidth = fileData.width || 
+                     (fileData.metadata && fileData.metadata.width) || 
+                     fileData.originalWidth || null;
+                     
+    const imageHeight = fileData.height || 
+                      (fileData.metadata && fileData.metadata.height) || 
+                      fileData.originalHeight || null;
+
     return {
       id: fileData.id || module.id,
       type: 'image',
@@ -748,14 +765,14 @@ const AddModule = () => {
       content: `View image: ${fileData.filename || "Image"}`,
       source: fileUrl,
       caption: fileData.filename || "Image",
-      width: fileData.width || fileData.originalWidth,
-      height: fileData.height || fileData.originalHeight,
+      width: imageWidth,
+      height: imageHeight,
       imageFiles: [{
         contentID: fileData.id || module.id,
         filename: fileData.filename || (fileData.file ? fileData.file.name : "image"),
         file_url: fileUrl,
-        width: fileData.width || fileData.originalWidth,
-        height: fileData.height || fileData.originalHeight,
+        width: imageWidth,
+        height: imageHeight,
       }],
       moduleId: editId || "preview",
       order: index
@@ -846,7 +863,19 @@ const AddModule = () => {
       } else if (module.componentType === "media") {
         const editor = editorRefs.current[module.id];
         if (editor && editor.getTempFiles) {
-          tempCachedMedia[module.mediaType][module.id] = editor.getTempFiles();
+          const files = editor.getTempFiles();
+
+          // Special handling for image files to preserve dimensions
+          if (module.mediaType === "image") {
+            tempCachedMedia[module.mediaType][module.id] = files.map(file => ({
+              ...file,
+              // Ensure dimensions are preserved
+              width: file.width || file.originalWidth || (file.metadata && file.metadata.width),
+              height: file.height || file.originalHeight || (file.metadata && file.metadata.height)
+            }));
+          } else {
+            tempCachedMedia[module.mediaType][module.id] = files;
+          }
         }
       }
     });
