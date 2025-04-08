@@ -204,6 +204,7 @@ return (
               Delete Account
             </button>
         </div>
+        </div>
       </>
     )}
 
@@ -220,6 +221,7 @@ return (
       </div>
     )}
   </div>
+  
 );
 
 }
