@@ -43,19 +43,19 @@ export async function SendTest() {
       "stop": null
     });
     
-    let messageContent = '';
+    const messageContent = { 
+        msg: ""
+    };
     for await (const chunk of chatCompletion) {
 
         const content = chunk.choices[0]?.delta?.content;
 
         if (content && !content.includes('<think>')) {
-            messageContent += content;
+            messageContent.msg += content;
         }
 
     }
 
-    // Print the list only
-    return messageContent
+    return messageContent.msg;
 
-   
   }
