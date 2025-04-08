@@ -104,11 +104,22 @@ class LogInView(APIView):
             login(request,user)
             # token, created = Token.objects.get_or_create(user=user)
 
+            # when user is created set true then mark false else mark flase
+            is_first_login = False # assume its not their first lgon
+            if user.is_first_login:
+                is_first_login = True
+                user.is_first_login = False # update so its only true for the first time they log in
+                user.save()
+
             # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
 
+            #add flag to serisalized data
+            user_data = UserSerializer(user).data
+            user_data["is_first_login"] = is_first_login
+
             return Response({"message": "Login Successful", 
-                            "user": UserSerializer(user).data,
+                            "user": user_data,
                             "token": str(refresh.access_token),  # For backward compatibility
                             "refreshToken": str(refresh)}) # refresh token to get new access
         

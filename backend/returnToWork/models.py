@@ -169,6 +169,7 @@ class User(AbstractUser):
     # module = models.ForeignKey(Module, on_delete=models.CASCADE)
     # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
     
+    is_first_login = models.BooleanField(default =True)
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
