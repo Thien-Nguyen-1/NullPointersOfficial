@@ -77,19 +77,33 @@
     align-items: center;
     gap: 0.3rem;
     min-width: 4rem;
+
     
     p {
         margin-bottom: 0.2rem;
     }
    
+    button {
+        display: inline-block;
+        background: none;
+        border: none;
+   
+    }
 }
 
-.courseOptContainer button {
+.pin-container {
     grid-column: 9 / span 3;
+}
+
+
+.pin-button {
     display: inline-block;
     background: none;
     border: none;
-   
+}
+
+.pin-button:hover {
+    background:none;
 }
 
 /* .edit-module-btn {
@@ -100,11 +114,14 @@
     grid-column: 12 / span 2;
     padding: 0.5rem;
     border-radius: inherit;
+    border: var(--primary-green) solid 2.5px;
     background-color: white;
     
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+
 
     p {
         color: var(--primary-green);
@@ -112,6 +129,13 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+.edit-container:hover {
+    p {
+        color: white;
+    }
+    
 }
 
 .viewContainer {

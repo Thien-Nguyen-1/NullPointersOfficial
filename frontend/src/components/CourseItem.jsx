@@ -149,28 +149,30 @@ function CourseItem(props){
                 <p> {totalLikes}</p>
 
             </div>
-
-            <button data-testid="pin-btn" onClick={() => {toggleFavourite()}}>  
-                {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
-            </button>
+            <div className={styles["pin-container"]}>
+                <button data-testid="pin-btn" onClick={() => {toggleFavourite()}} className={styles["pin-button"]}>  
+                    {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
+                </button>
+            </div> 
+            
            
 
             {(role === "admin" || role === "superadmin") && (
-                <div className={styles["edit-container"]}>
-                    <button onClick={() => handleEditCourse(module)}>
+                
+                    <button onClick={() => handleEditCourse(module)} className={styles["edit-container"]}>
                         <p>Edit</p>
                     </button>
-                </div>
+                
     
             )}
             
-            <div className={styles.viewContainer}>       
+                  
                  
-                <button onClick={() => handleViewCourse(module)}>
+                <button onClick={() => handleViewCourse(module)} className={styles.viewContainer}>
                     <p>{isEnrolled(module.id) ? "Continue Learning" : "View Course"}</p>
                 </button>
 
-            </div>
+            
             
             {/* Enrollment Modal */}
             <EnrollmentModal
