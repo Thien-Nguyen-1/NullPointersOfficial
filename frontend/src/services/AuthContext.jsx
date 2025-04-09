@@ -46,14 +46,21 @@ const AuthContextProvider = ({children}) => {
 
     // ===== UPADING USER ===== //
     async function updateUser(newUserObj){ //parameter must be a copy of the user 
+
+     
+
      console.log(newUserObj)
       try {
+        const { default: api } = await import('./api.js'); // dynamic import
+        // const response = await api.put('/api/user/', newUserObj, {
+        //   headers: {
+        //     'Authorization': `Token ${token}`
+        //   }
+        // })
         
-        const response = await api.put('/api/user/', newUserObj, {
-          headers: {
-            'Authorization': `Token ${token}`
-          }
-        })
+
+        const response = await api.put('/api/user/', newUserObj)
+
         
         if(response && response.data.user){
           console.log(response.data.user)
