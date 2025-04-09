@@ -43,7 +43,7 @@ describe('VisualFillTheFormEditor', () => {
       test('adds a new question when form is submitted', () => {
         const { getByText, getByPlaceholderText } =  render(<VisualFillTheFormEditor ref={componentRef} {...mockProps} />);
 
-        fireEvent.change(getByPlaceholderText(/Enter question with ____ for blanks/), { target: { value: 'Life is (____).' } });
+        fireEvent.change(getByPlaceholderText(/Enter question with (four underscore) ____ for blanks/), { target: { value: 'Life is (____).' } });
         fireEvent.click(getByText('Add Question', { selector: 'button' }));
         expect(screen.getByText(/Life is/)).toBeInTheDocument();
       });
@@ -77,7 +77,7 @@ describe('VisualFillTheFormEditor', () => {
       
     test('shows error if blank is incorrect in added question', () => {
         const { getByText, getByPlaceholderText } = render(<VisualFillTheFormEditor />);
-        fireEvent.change(getByPlaceholderText(/Enter question with ____ for blanks/), { target: { value: 'It is (_).' } });
+        fireEvent.change(getByPlaceholderText(/Enter question with (four underscore) ____ for blanks/), { target: { value: 'It is (_).' } });
         fireEvent.click(getByText('Add Question', { selector: 'button' }));
         expect(screen.getByText(/No questions added yet. Add a question using the form above./)).toBeInTheDocument();
         expect(getElementError(/Each question must contain at least one blank space (____). Please adjust your input./));
@@ -88,7 +88,7 @@ describe('VisualFillTheFormEditor', () => {
         const onUpdateQuestions = vi.fn();
         const { getByText, getByPlaceholderText } = render(<VisualFillTheFormEditor onUpdateQuestions={onUpdateQuestions} />);
         
-        fireEvent.change(getByPlaceholderText(/Enter question with ____ for blanks/), { target: { value: 'Life is (____).' } });
+        fireEvent.change(getByPlaceholderText(/Enter question with (four underscore) ____ for blanks/), { target: { value: 'Life is (____).' } });
         fireEvent.click(getByText('Add Question', { selector: 'button' }));
       
         expect(onUpdateQuestions).toHaveBeenCalledWith(expect.anything());
@@ -147,7 +147,7 @@ describe('VisualFillTheFormEditor', () => {
 
     const { getByText, getByPlaceholderText } =  render(<VisualFillTheFormEditor ref={componentRef} {...mockProps} />);
 
-    fireEvent.change(getByPlaceholderText(/Enter question with ____ for blanks/), { target: { value: 'i am (__) today' } });
+    fireEvent.change(getByPlaceholderText(/Enter question with (four underscore) ____ for blanks/), { target: { value: 'i am (__) today' } });
     fireEvent.click(getByText('Add Question', { selector: 'button' }));
     expect(getElementError('Blanks must be exactly 4 underscores (____) with no more or less.'));
   });

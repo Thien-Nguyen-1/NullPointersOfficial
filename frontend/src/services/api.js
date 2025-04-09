@@ -522,9 +522,9 @@ export const fetchCompletedInteractiveContent = async () => {
 
   try {
     const response = await api.get('/api/completed-interactive-content/',{
-      headers: {
-        Authorization: `Token ${token}`
-      }
+      // headers: {
+      //   Authorization: `Token ${token}`
+      // }
     });
 
     return response.data;
