@@ -21,6 +21,11 @@ function Courses({ role }) {
     const [selectedTag, setSelectedTag] = useState(null);
     const [userInteractions, setInteract] = useState([])
 
+    const [items, setItems] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+
     if(!user){
         return (<><h3> Placeholder: Authorization Failed mate. Please log in </h3></>)
     }
@@ -142,16 +147,20 @@ function Courses({ role }) {
 
                     <ModuleFiltering handleSort={setFilter} currentSortOption={filterOption} />
 
+                    <div className={styles["add-course-btn-container"]}>
+                        {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
+                        <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
+                            +
+                        </Link>
+                        )}
+                    </div>
+
                 </div>
-                
+                        
+                        
+
 
                 { FILTER_MAP[filterOption] }
-                
-                {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
-                    <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
-                        Create Module
-                    </Link>
-                )}
 
                 
            

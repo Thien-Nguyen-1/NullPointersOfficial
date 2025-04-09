@@ -5,16 +5,25 @@
   box-sizing: border-box;
 }
 
+.add-course-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; 
+}
 
 .createModuleBtn {
-  display: inline-block;
+  display: flex;
   margin-top: 10px;
   padding: 10px 15px;
-  background-color: #9fca85; /* Green button */
+  background-color: lightgray;
   color: white;
-  border-radius: 5px;
+  font-size: 20px;
+  border-radius: 20px;
+  width: 10vw;
+  justify-content: center;
+  align-items: center;
   text-decoration: none;
-  font-weight: bold;
+  font-weight: bolder;
   transition: background-color 0.3s;
 }
 
@@ -39,6 +48,7 @@
 }
 
 .courseSelectionContainer {
+  width: 95vw;
   display: inherit;
   flex-direction: inherit;
   align-items: flex-start;
@@ -77,6 +87,22 @@
 
 /* Desktop Resolution */
 @media screen and (min-width: 1080px) {
+
+}
+
+.course-list-header-wrapper {
+  width: 100%;
+  max-width: 85Svw;
+}
+
+.course-list-header-container {
+  display: grid;
+  grid-auto-flow: column;
+  width: 100%;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-columns: minmax(3vw, 1fr);
+  align-items: start;
+  gap: 1rem;
 
 }
 
@@ -147,6 +173,11 @@
 }
 
 .filterContainer {
+  display: flex;
+  justify-content: space-between;
+  width: auto;
+  max-width: 1280px;
+  align-content: center;
   padding-bottom: 10px;
 }
  
