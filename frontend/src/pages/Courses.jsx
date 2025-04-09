@@ -54,10 +54,10 @@ function Courses({ role }) {
             try {
                 if (user?.user_type === "admin" || user?.user_type === "superadmin") {
                     const response = await tagApi.getAll();
-                    console.log(`all tags: ${response.data}`)
+                    // console.log(`all tags: ${response.data}`)
                     setTags(response.data);
                 } else {
-                    console.log(`user tags: ${user.tags}`)
+                    // console.log(`user tags: ${user.tags}`)
                     setTags(user.tags);
                 }
             } catch (err) {
@@ -109,7 +109,9 @@ function Courses({ role }) {
     function render_list(mods){
         const currentMods = getCurrentMods(mods);
 
+        // currentMods.map((mod) => (console.log(mod)));
         return currentMods.map( (module) => (
+
             
             <CourseItem 
                 key={module.id} 
@@ -117,8 +119,10 @@ function Courses({ role }) {
                 role={user?.user_type} // Pass the user's role
                 userInteractTarget={userInteractions?.find((obj) => obj.module === module.id)}
                 update_interact_module={update_interact_module}
-            
+        
             />
+
+            
         ))
 
     }

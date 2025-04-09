@@ -3,6 +3,7 @@
     grid-template-columns: repeat(auto-fill, minmax(4.5vw, 1fr));
     align-items: center;
     width: 90vw;
+    height:auto;
     column-gap: 1vw;
     background-color: var(--primary-green-light);
     border-radius: 0.7rem;
@@ -26,7 +27,7 @@
     }
 
     min-width: 373px;
-    max-width: 1280px;
+    /* max-width: 1280px; */
     
 }
 
@@ -72,6 +73,7 @@
     }
 
 .courseOptContainer .likeContainer {
+    height: 100%;
     grid-column: 6 / span 3;
     display: flex;
     align-items: center;
@@ -91,8 +93,35 @@
     }
 }
 
+.tag-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    grid-column: 6 / span 5;
+    /* flex-wrap: wrap; */
+    gap: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.tag-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tag {
+    padding: 6px 12px;
+    border: 1px solid var(--primary-green-dark);
+    border-radius: 20px;
+    background-color: var(--primary-green-light);
+    font-size: 0.5rem;
+    height: 100%;
+    width: auto;
+    max-height: 100%;
+    white-space: nowrap;
+
+}
+
 .pin-container {
-    grid-column: 9 / span 3;
+    grid-column: 11 / span 1;
 }
 
 
@@ -111,6 +140,7 @@
     
 } */
 .edit-container{
+    height: 100%;
     grid-column: 12 / span 2;
     padding: 0.5rem;
     border-radius: inherit;
@@ -139,11 +169,15 @@
 }
 
 .viewContainer {
+    height: 100%;
     grid-column:  14 / span 5;
     padding: 0.5rem;
     border-radius: inherit;
     background-color: var(--primary-green-dark);
 
+    display: flex;
+    justify-content: center;
+    align-items: center;
     p {
         color: white;
         white-space: nowrap;
@@ -152,4 +186,17 @@
     }
     
 }
+ 
+ /* Phones and smaller Resolution */
+ @media screen and (max-width: 768px ){
+ 
+    .tag-container {
+        grid-column: 6 / span 4;
+    }
 
+    .pin-container {
+        grid-column: 10 / span 2;
+    }
+ 
+}
+ 

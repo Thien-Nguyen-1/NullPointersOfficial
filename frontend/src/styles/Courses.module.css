@@ -175,8 +175,7 @@
 .filterContainer {
   display: flex;
   justify-content: space-between;
-  width: auto;
-  max-width: 1280px;
+  width: 95%;
   align-content: center;
   padding-bottom: 10px;
 }
@@ -201,9 +200,42 @@
 
 .course-list-wrapper {
   width: 100%;
-  max-height: 60vh;
+  height: 60vh;
   overflow-y: auto;
 
+}
+
+@media screen and (min-width: 375px ){
+
+  .course-list-wrapper {
+    p {
+      font-size: 20px;
+    }
+  }
+
+}
+
+/* Tablet Resolution */
+@media screen and (min-width: 768px ){
+
+ 
+
+  .course-list-wrapper {
+    p {
+      font-size: 20px;
+    }
+  }
+
+}
+
+/* Desktop Resolution */
+@media screen and (min-width: 1080px) {
+
+  .course-list-wrapper {
+    p {
+      font-size: 50px;
+    }
+  }
 }
 
 
