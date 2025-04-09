@@ -1219,7 +1219,7 @@ class UserInteractionView(APIView):
         return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)
 class AdminQuizResponsesView(APIView):
     # permission_classes = [IsAuthenticated]
-
+    # im not sure if this is needed anymore... since its not in requirement anymore
     def get(self, request, task_id):
         """Admin view to see all responses for a task"""
         # Check if user is admin
