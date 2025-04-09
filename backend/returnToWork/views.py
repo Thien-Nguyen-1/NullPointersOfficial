@@ -121,15 +121,15 @@ class LogInView(APIView):
         if user.user_type == 'admin':
             try:
                 verification = AdminVerification.objects.get(admin=user)
-                print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
+                # print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
                 if not verification.is_verified:
-                    print(f"[DEBUG] Admin not verified, preventing login")
+                    # print(f"[DEBUG] Admin not verified, preventing login")
                     return Response({
                         'error': 'Please verify your email before logging in. Check your inbox for a verification link.',
                         'verification_required': True
                     }, status=status.HTTP_403_FORBIDDEN)
             except AdminVerification.DoesNotExist:
-                print(f"[DEBUG] No verification record found for admin")
+                # print(f"[DEBUG] No verification record found for admin")
                 # If no verification record exists, create one requiring verification
                 verification_token = str(uuid.uuid4())
                 AdminVerification.objects.create(

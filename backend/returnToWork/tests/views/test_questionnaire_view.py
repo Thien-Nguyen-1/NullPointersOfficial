@@ -37,7 +37,18 @@ class QuestionnaireViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["question"], "Are you ready to return to work?")
         self.assertEqual(response.data["id"], self.initial_q.id)
+
+    def test_fetch_relevent_question_if_id_provided(self):
+        response = self.client.get(self.url,{"id": self.initial_q.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["question"], self.initial_q.question)
+        self.assertEqual(response.data["id"], self.initial_q.id)
     
+    def test_fetch_non_existent_questionaire(self):
+        response = self.client.get(self.url,{"id": "11"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("error", response.data)
+
     def test_post_yes_response(self):
         """Test that the post request when selecting 'yes' is successful"""
         response = self.client.post(self.url, {"question_id": self.initial_q.id, "answer": "yes"}, format="json")
@@ -82,7 +93,22 @@ class QuestionnaireViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "End of questionnaire")
 
+    def test_put_delete_questions(self):
+        self.assertTrue(Questionnaire.objects.exists())
+        response = self.client.put(self.url, data={"questions" : []}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Questionnaire.objects.exists())
 
+    def test_put_craete_questionnaire(self):
+        data = {
+            "questions": [
+                {"id" : 2, "question":"Was the food nice?", "yes_next_q": None, "no_next_q":None},
+                {"id":3, "question":"Do you want more?", "yes_next_q":None, "no_next_q":None},
+                {"id":1, "question":"Do you eat today?", "yes_next_q":2, "no_next_q":3}
+            ]
+        }
+        response = self.client.put(self.url, data=data,format = "json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 

@@ -3,17 +3,14 @@ import {render, screen, fireEvent, waitFor} from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { describe, it ,expect, vi } from "vitest";
 import Login from "../../components/auth/Login";
-import { loginUser } from "../../services/api";
 import * as api from "../../services/api";
 import { AuthContext } from "../../services/AuthContext";
-
 
 vi.mock("../../services/api", () => ({
     loginUser: vi.fn(),
     redirectBasedOnUserType: vi.fn(),
 }));
 
-import { useNavigate } from "react-router-dom"; 
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -137,13 +134,7 @@ describe("Login component", () => {
       
         fireEvent.click(screen.getByText("Don't have an account"));
         expect(mockNavigate).toHaveBeenCalledWith("/signup");
-      });
-      
-      
+      });     
 
 });
-// describe.skip('some test suite', () => {
-//   test('will not run', () => {
-//     expect(true).toBe(false);
-//   });
-// });
+
