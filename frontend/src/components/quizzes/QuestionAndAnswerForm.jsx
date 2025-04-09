@@ -44,6 +44,40 @@ const QuestionAndAnswerForm = ({ taskId, onComplete,isPreview = false, previewQu
         fetchQuestions();
     }, [taskId, isPreview, previewQuestions, completedContentIds]);
 
+    // Load saved answeers from backend
+    useEffect(() => {
+        const loadSavedAnswers = async () => {
+        if (!taskId || isPreview) return;
+        
+        try {
+            console.log("Loading saved answers for Q&A form:", taskId);
+            const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
+            
+            if (response && response.answers) {
+            console.log("Retrieved saved answers:", response.answers);
+            
+            // For Q&A form, answers are simple strings per question
+            setAnswers(response.answers);
+            setQuizCompleted(true);
+            
+            // Update ref for persistence
+            completionStateRef.current = {
+                isCompleted: true,
+                submittedAnswers: {...response.answers}
+            };
+            }
+        } catch (error) {
+            console.error("Error loading saved Q&A form answers:", error);
+        }
+        };
+        
+        // Only load if not already completed via local storage
+        if (!completionStateRef.current.isCompleted) {
+        loadSavedAnswers();
+        }
+    }, [taskId, isPreview]);
+    
+
     const fetchQuestions = async () => {
         setIsLoading(true);
         try {

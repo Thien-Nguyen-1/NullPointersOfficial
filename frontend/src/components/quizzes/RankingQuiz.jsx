@@ -85,6 +85,45 @@ const RankingQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions =
     }
   }, [taskId, isPreview, previewQuestions]);
 
+  // Load saved answers from backend
+  useEffect(() => {
+    const loadSavedAnswers = async () => {
+      if (!taskId || isPreview) return;
+      
+      try {
+        console.log("Loading saved answers for ranking quiz:", taskId);
+        const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
+        
+        if (response && response.answers) {
+          console.log("Retrieved saved answers:", response.answers);
+          
+          // Process answers for ranking quiz
+          const processedAnswers = {};
+          
+          for (const [questionId, answerText] of Object.entries(response.answers)) {
+            try {
+              // Try to parse as JSON first
+              const parsed = JSON.parse(answerText);
+              processedAnswers[questionId] = Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+              // Fall back to string splitting if JSON parsing fails
+              processedAnswers[questionId] = answerText.split(' | '); // follow QuizAPiUtils.getSaveedQuizAnswers
+            }
+          }
+          
+          console.log("Processed ranking answers:", processedAnswers);
+          setUserAnswers(processedAnswers);
+          setQuizSubmitted(true);
+          setShowReview(true);
+        }
+      } catch (error) {
+        console.error("Error loading saved ranking quiz answers:", error);
+      }
+    };
+    
+    loadSavedAnswers();
+  }, [taskId, isPreview]);
+
   // Handle moving a tier up or down
   const handleMoveTier = (questionId, tierIndex, direction) => {
     if (quizSubmitted) return; // Don't allow changes after submit

@@ -1076,7 +1076,7 @@ class QuizDetailView(APIView):
 
 
 class QuizResponseView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """Save user's response to a quiz question"""
@@ -1089,6 +1089,10 @@ class QuizResponseView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Convert string question_id to int if needed
+            if isinstance(question_id, str) and question_id.isdigit():
+                question_id = int(question_id)
+
             question = QuizQuestion.objects.get(id=question_id)
 
             # Check if a response already exists
@@ -1111,6 +1115,7 @@ class QuizResponseView(APIView):
                 )
                 response_id = new_response.id
 
+            # Content progress is only updated on MarkContentViewed
             return Response({
                 'status': 'success',
                 'response_id': response_id
@@ -1121,6 +1126,11 @@ class QuizResponseView(APIView):
                 'status': 'error',
                 'message': 'Question not found'
             }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                    'status': 'error',
+                    'message': f'Error saving response: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class QuizDataView(APIView):
     # permission_classes = [IsAuthenticated]
@@ -1409,7 +1419,50 @@ class QuizQuestionViewSet(viewsets.ModelViewSet):
     queryset = QuizQuestion.objects.all()
     serializer_class= QuizQuestionSerializer
 
+# views.py
+class QuizUserResponsesView(APIView):
+    """API view to get a user's saved responses for a quiz"""
 
+    #used by QuizApiUtils.submitQuizAnwers
+    # saved answers to UserResponse model
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, task_id):
+        try:
+            # Convert task_id from string to UUID
+            task_uuid = uuid.UUID(task_id)
+            
+            # Get the task
+            task = Task.objects.get(contentID=task_uuid)
+            
+            # Get questions for this task
+            questions = QuizQuestion.objects.filter(task=task)
+            
+            # Get user responses for these questions
+            responses = UserResponse.objects.filter(
+                user=request.user,
+                question__in=questions
+            )
+            
+            # Format the answers in the expected structure
+            formatted_answers = {}
+            for response in responses:
+                formatted_answers[str(response.question.id)] = response.response_text
+            
+            return Response({
+                'task_id': str(task_id),
+                'answers': formatted_answers
+            })
+        except (Task.DoesNotExist, ValueError):
+            return Response(
+                {'error': 'Quiz not found or invalid ID format'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching quiz responses: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
 
 # ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
@@ -1943,7 +1996,7 @@ class UserSupportView(APIView):
             Conversation.objects.create(user=user_)
 
 
-        elif((user_.user_type == "admin") and data):
+        elif((user_.user_type == "admin" and user_.user_type == "superadmin" ) and data):
             
              try:
                 conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
@@ -2077,6 +2130,7 @@ class UserChatView(APIView):
 class MarkContentViewedView(APIView):
     """
     API view to mark content as viewed/completed.
+    (FOR PROGRESS TRACKING)
     """
     permission_classes = [IsAuthenticated]
 
@@ -2094,6 +2148,7 @@ class MarkContentViewedView(APIView):
         content_type_map = {
             'video': EmbeddedVideo,
             'quiz': Task,  # Assuming quizzes are stored in Task model
+            #'document' : Document, (im confused here)
             'document' : Document,
             'image' : Image,
             'audio' : AudioClip,
@@ -2144,21 +2199,21 @@ class MarkContentViewedView(APIView):
         
         # Update module progress tracker
         module = content_object.moduleID
-        module_progress, _ = ProgressTracker.objects.get_or_create(
+        progress_tracker, _ = ProgressTracker.objects.get_or_create(
             user=request.user,
             module=module
         )
-        module_progress.update_progress()
+        progress_tracker.update_progress()
         
         # Return success response
         return Response({
             "success": True,
             "message": f"Content {content_id} marked as viewed",
             "module_progress": {
-                "completed": module_progress.completed,
-                "contents_completed": module_progress.contents_completed,
-                "total_contents": module_progress.total_contents,
-                "progress_percentage": module_progress.progress_percentage
+                "completed": progress_tracker.completed,
+                "contents_completed": progress_tracker.contents_completed,
+                "total_contents": progress_tracker.total_contents,
+                "progress_percentage": progress_tracker.progress_percentage
             }
         })
 
