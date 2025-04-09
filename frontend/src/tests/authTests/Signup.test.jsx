@@ -193,6 +193,29 @@ describe("Signup component", () => {
     });
   });
 
+  it("shows error when email is already taken", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+    .mockResolvedValueOnce({ json: async () => ({ exists: false }) }) // username check
+    .mockResolvedValueOnce({ json: async () => ({ exists: true }) })  // email check
+  );
+
+    customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
+
+    fireEvent.change(screen.getByPlaceholderText("Username"), { target: { value: "@takenUser" } });
+    fireEvent.change(screen.getByPlaceholderText("First Name"), { target: { value: "Test" } });
+    fireEvent.change(screen.getByPlaceholderText("Last Name"), { target: { value: "User" } });
+    fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "taken@example.com" } });
+    fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByPlaceholderText("Confirm Password"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("checkbox")); 
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("This email is already registered to a user, please choose another.")).toBeInTheDocument();
+    });
+  });
+
 
   it("prevents submission without accepting T&Cs", async () => {
     customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
@@ -265,6 +288,30 @@ describe("Signup component", () => {
     await waitFor(() => {
       expect(
         screen.getByText("This username is already taken, please choose another.")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("shows error if email check fails", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+    .mockResolvedValueOnce({ json: async () => ({ exists: false }) }) 
+    .mockRejectedValueOnce(new Error("Network error"))                 
+    );
+    customRender(<Signup />, { providerProps: { SignUpUser: mockSignUpUser } });
+  
+    fireEvent.change(screen.getByPlaceholderText("Username"), { target: { value: "@failUser" } });
+    fireEvent.change(screen.getByPlaceholderText("First Name"), { target: { value: "Fail" } });
+    fireEvent.change(screen.getByPlaceholderText("Last Name"), { target: { value: "User" } });
+    fireEvent.change(screen.getByPlaceholderText("Email"), { target: { value: "fail@example.com" } });
+    fireEvent.change(screen.getByPlaceholderText("Password"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByPlaceholderText("Confirm Password"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("checkbox"));
+  
+    fireEvent.click(screen.getByRole("button", { name: "Sign Up" }));
+  
+    await waitFor(() => {
+      expect(
+        screen.getByText("This email is already registered to a user, please choose another.")
       ).toBeInTheDocument();
     });
   });

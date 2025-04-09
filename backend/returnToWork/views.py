@@ -224,6 +224,15 @@ class CheckUsernameView(APIView):
         exists = User.objects.filter(username=username).exists()
         return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
+class CheckEmailView(APIView):
+    def get(self,request):
+        email = request.query_params.get('email',None)
+        if not email:
+            return Response({"error":"Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exists = User.objects.filter(email=email).exists()
+        return Response ({"exists":exists}, status=status.HTTP_200_OK)
+
 
  #AUTH VIEWS END
     
