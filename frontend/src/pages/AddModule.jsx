@@ -1348,28 +1348,29 @@ const AddModule = () => {
             
             {/* Action Buttons */}
             
-              {/* Action Buttons */}
-              <div className={styles["button-container"]}>
-                <div className={styles["preview-container"]}>
-                  <button 
-                    onClick={isPreviewMode ? exitPreviewMode : handlePreview}
-                    className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
-                  >
-                    {isPreviewMode ? "Back to Editor" : "Preview"}
-                  </button>
-                </div>
-                <button 
-                  className={styles["publish-btn"]} 
-                  onClick={publishModule} 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 
-                    (isEditing ? "Updating..." : "Publishing...") : 
-                    (isEditing ? "Update" : "Publish")
-                  }
-                </button>
-                {isEditing && <button className={styles["edit-btn"]}>Edit</button>}
-              </div>
+              
+          </div>
+          {/* Action Buttons */}
+          <div className={styles["button-container"]}>
+            <div className={styles["preview-container"]}>
+              <button 
+                onClick={isPreviewMode ? exitPreviewMode : handlePreview}
+                className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
+              >
+                {isPreviewMode ? "Back to Editor" : "Preview"}
+              </button>
+            </div>
+            <button 
+              className={styles["publish-btn"]} 
+              onClick={publishModule} 
+              disabled={isLoading}
+            >
+              {isLoading ? 
+                (isEditing ? "Updating..." : "Publishing...") : 
+                (isEditing ? "Update" : "Publish")
+              }
+            </button>
+            {isEditing && <button className={styles["edit-btn"]}>Edit</button>}
           </div>
         </>
       )}
