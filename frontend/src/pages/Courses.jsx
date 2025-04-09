@@ -21,6 +21,10 @@ function Courses({ role }) {
     const [selectedTag, setSelectedTag] = useState(null);
     const [userInteractions, setInteract] = useState([])
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+
     if(!user){
         return (<><h3> Placeholder: Authorization Failed mate. Please log in </h3></>)
     }
@@ -50,10 +54,10 @@ function Courses({ role }) {
             try {
                 if (user?.user_type === "admin" || user?.user_type === "superadmin") {
                     const response = await tagApi.getAll();
-                    console.log(`all tags: ${response.data}`)
+                    // console.log(`all tags: ${response.data}`)
                     setTags(response.data);
                 } else {
-                    console.log(`user tags: ${user.tags}`)
+                    // console.log(`user tags: ${user.tags}`)
                     setTags(user.tags);
                 }
             } catch (err) {
@@ -68,10 +72,17 @@ function Courses({ role }) {
 
     }, [filterOption] )
 
-     // Filter courses by selected tag
-     const filteredModules = selectedTag 
+    // Filter courses by selected tag
+    const filteredModules = selectedTag 
         ? modules.filter(module => module.tags && module.tags.includes(selectedTag)) 
         : modules;
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+    function getCurrentMods (mods) {
+        return mods.slice(indexOfFirstItem, indexOfLastItem);
+    }
 
     const FILTER_MAP = {
         
@@ -80,7 +91,6 @@ function Courses({ role }) {
         "Popular" : user ? render_order_list() : (<div>NOHING</div>),
 
     }
-
 
 
     function render_user_list(){
@@ -97,8 +107,11 @@ function Courses({ role }) {
     }
 
     function render_list(mods){
+        const currentMods = getCurrentMods(mods);
 
-        return mods.map( (module) => (
+        // currentMods.map((mod) => (console.log(mod)));
+        return currentMods.map( (module) => (
+
             
             <CourseItem 
                 key={module.id} 
@@ -106,8 +119,10 @@ function Courses({ role }) {
                 role={user?.user_type} // Pass the user's role
                 userInteractTarget={userInteractions?.find((obj) => obj.module === module.id)}
                 update_interact_module={update_interact_module}
-            
+        
             />
+
+            
         ))
 
     }
@@ -142,21 +157,31 @@ function Courses({ role }) {
 
                     <ModuleFiltering handleSort={setFilter} currentSortOption={filterOption} />
 
+                    <div className={styles["add-course-btn-container"]}>
+                        {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
+                        <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
+                            +
+                        </Link>
+                        )}
+                    </div>
+
                 </div>
                 
-
-                { FILTER_MAP[filterOption] }
                 
-                {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
-                    <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
-                        Create Module
-                    </Link>
-                )}
-
+                <div className={styles["course-list-wrapper"]}>{ FILTER_MAP[filterOption] }</div>
                 
-           
+                <div className={styles["pagination-controls"]}>
+                    <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
+                        &lt;
+                    </button>
+
+                    <span>Page {currentPage} of {Math.ceil(filteredModules.length / itemsPerPage)}</span>
+
+                    <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredModules.length / itemsPerPage)))} disabled={currentPage === Math.ceil(filteredModules.length / itemsPerPage)}>
+                        &gt;
+                    </button>
+                </div>
              </section>
-
 
         </div>
     );

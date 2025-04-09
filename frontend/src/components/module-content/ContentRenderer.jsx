@@ -28,21 +28,53 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
     if (isPreviewMode) return;
 
 
-    console.log("handleContentComplete called with:", contentId, item.type);
+    console.log(`handleContentComplete called for ${item.type}:`, contentId);
     
-    // Skip tracking for non-trackable content types
-    if (!['image', 'video', 'infosheet', 'quiz', 'audio'].includes(item.type)) {
-      console.log("Skipping - not a trackable content type:", item.type);
+    // skip if user is not authenticated
+    if (!user || !token) {
+      console.log("User not logged in, not tracking content completion");
       if (onContentComplete) onContentComplete(contentId, results);
       return;
     }
-    
-    // Skip if already completed
-    if (completedContentIds.has(contentId)) {
-      console.log("Skipping - already completed:", contentId);
-      if (onContentComplete) onContentComplete(contentId, results);
-      return;
+    // For non-quiz content, skip if already completed to avoid unnecessary API calls
+    // if (item.type !== 'quiz' && completedContentIds.has(contentId)) {
+    //   console.log(`Skipping marking ${item.type} as viewed - already completed:`, contentId);
+    //   if (onContentComplete) onContentComplete(contentId, results);
+    //   return;
+    // }
+    //see first abt this
+
+    try {
+      // handle based on content types
+      if (item.type === 'quiz') {
+        // for quizzes, users need to submit answers first
+        console.log("Submitting quiz answers:", results);
+        await QuizApiUtils.submitQuizAnswers(
+          item.taskData.contentID, 
+          results,
+          token
+        );
+        // then mark as viewed/completed
+        await markContentAsViewed(contentId, item.type, token);
+      }
+      else {
+        // for other non-interactive quizzes (documents, videos, images, audio)
+        console.log(`Marking ${item.type} as viewed:`, contentId);
+        await markContentAsViewed(contentId, item.type, token);
+      }
+
+      // call the parent component's for completion handler
+      if (onContentComplete) {
+        onContentComplete(contentId, results);
+      }
+    } catch (error) {
+      console.error(`Failed to complete ${item.type}:`, error);
+      // Still call the parent handler even if API call fails
+      if (onContentComplete) {
+        onContentComplete(contentId, results);
+      }
     }
+    
     
     // Skip if user is not authenticated
     if (!user || !token) {
