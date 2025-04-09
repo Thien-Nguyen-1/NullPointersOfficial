@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef, useContext} from "react";
 import axios, { all } from "axios";
 import { GetQuestion, SubmitQuestionAnswer, tagApi, moduleApi } from "../services/api";
 // const API_BASE_URL = "/api/questionnaire/";
@@ -6,6 +6,8 @@ import { GetResult } from "../services/open_router_chat_api";
 import "../styles/Questionnaire.css";
 import ModuleSuggestionBox from "./questionnaire/ModuleSuggestion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AuthContext } from "../services/AuthContext";
+
 
 const Questionnaire = () => {
   const [question, setQuestion] = useState(null);
@@ -18,6 +20,12 @@ const Questionnaire = () => {
   const buttonOptions = ["yes", "no"];
 
   const [allModules, setModules] = useState(null)
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const {user, updateUser} = useContext(AuthContext)
+  
   
    
   useEffect(() => {
@@ -58,6 +66,22 @@ const Questionnaire = () => {
     } catch(err) {
       setError(err.message)
     }
+  }
+
+  const redirectDashboard = async () => {
+      
+
+      const newUsr = {
+        ...user,
+        is_first_login : false
+      }
+      
+      console.log(newUsr.is_first_login)
+
+      await updateUser(newUsr)
+    
+      navigate('/worker/home')
+
   }
 
 
@@ -145,7 +169,11 @@ const Questionnaire = () => {
           description={modObj.description}/>)
     })}
 
+      <button onClick={redirectDashboard}> Continue </button>
+
     </div>
+
+   
       
     </>);
 

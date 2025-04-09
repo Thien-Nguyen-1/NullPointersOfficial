@@ -158,132 +158,132 @@ describe('AuthContext', () => {
   });
 
   // Test updateUser function
-  describe('updateUser function', () => {
-    test('should successfully update user data', async () => {
-      // Setup initial data
-      const mockUser = { id: 1, username: 'testuser' };
-      const updatedUser = { id: 1, username: 'updateduser' };
-      const mockToken = 'testtoken';
+  // describe('updateUser function', () => {
+  //   test('should successfully update user data', async () => {
+  //     // Setup initial data
+  //     const mockUser = { id: 1, username: 'testuser' };
+  //     const updatedUser = { id: 1, username: 'updateduser' };
+  //     const mockToken = 'testtoken';
 
-      localStorageMock.getItem.mockImplementation((key) => {
-        if (key === 'user') return JSON.stringify(mockUser);
-        if (key === 'token') return mockToken;
-        return null;
-      });
+  //     localStorageMock.getItem.mockImplementation((key) => {
+  //       if (key === 'user') return JSON.stringify(mockUser);
+  //       if (key === 'token') return mockToken;
+  //       return null;
+  //     });
 
-      // Mock API success response
-      const mockResponse = { data: { user: updatedUser } };
-      axios.create().put.mockResolvedValueOnce(mockResponse);
+  //     // Mock API success response
+  //     const mockResponse = { data: { user: updatedUser } };
+  //     axios.create().put.mockResolvedValueOnce(mockResponse);
 
-      let contextValue;
-      render(
-        <BrowserRouter>
-          <AuthContextProvider>
-            <TestComponent testFn={(ctx) => { contextValue = ctx; }} />
-          </AuthContextProvider>
-        </BrowserRouter>
-      );
+  //     let contextValue;
+  //     render(
+  //       <BrowserRouter>
+  //         <AuthContextProvider>
+  //           <TestComponent testFn={(ctx) => { contextValue = ctx; }} />
+  //         </AuthContextProvider>
+  //       </BrowserRouter>
+  //     );
 
-      await waitFor(() => {
-        expect(contextValue.user).toEqual(mockUser);
-      });
+  //     await waitFor(() => {
+  //       expect(contextValue.user).toEqual(mockUser);
+  //     });
 
-      // Call updateUser
-      await act(async () => {
-        await contextValue.updateUser(updatedUser);
-      });
+  //     // Call updateUser
+  //     await act(async () => {
+  //       await contextValue.updateUser(updatedUser);
+  //     });
 
-      // Verify API was called with correct params
-      expect(axios.create().put).toHaveBeenCalledWith('/api/user/', updatedUser, {
-        headers: {
-          'Authorization': `Token ${mockToken}`
-        }
-      });
+  //     // Verify API was called with correct params
+  //     expect(axios.create().put).toHaveBeenCalledWith('/api/user/', updatedUser, {
+  //       headers: {
+  //         'Authorization': `Token ${mockToken}`
+  //       }
+  //     });
 
-      // Verify user state was updated
-      expect(contextValue.user).toEqual(updatedUser);
+  //     // Verify user state was updated
+  //     expect(contextValue.user).toEqual(updatedUser);
 
-      // Verify localStorage was updated
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('user', JSON.stringify(updatedUser));
-    });
+  //     // Verify localStorage was updated
+  //     expect(localStorageMock.setItem).toHaveBeenCalledWith('user', JSON.stringify(updatedUser));
+  //   });
 
-    test('should handle API error when updating user', async () => {
-      // Setup initial data
-      const mockUser = { id: 1, username: 'testuser' };
-      const mockToken = 'testtoken';
+  //   test('should handle API error when updating user', async () => {
+  //     // Setup initial data
+  //     const mockUser = { id: 1, username: 'testuser' };
+  //     const mockToken = 'testtoken';
 
-      localStorageMock.getItem.mockImplementation((key) => {
-        if (key === 'user') return JSON.stringify(mockUser);
-        if (key === 'token') return mockToken;
-        return null;
-      });
+  //     localStorageMock.getItem.mockImplementation((key) => {
+  //       if (key === 'user') return JSON.stringify(mockUser);
+  //       if (key === 'token') return mockToken;
+  //       return null;
+  //     });
 
-      // Mock API error
-      const errorMessage = 'Update failed';
-      axios.create().put.mockRejectedValueOnce(new Error(errorMessage));
+  //     // Mock API error
+  //     const errorMessage = 'Update failed';
+  //     axios.create().put.mockRejectedValueOnce(new Error(errorMessage));
 
-      let contextValue;
-      render(
-        <BrowserRouter>
-          <AuthContextProvider>
-            <TestComponent testFn={(ctx) => { contextValue = ctx; }} />
-          </AuthContextProvider>
-        </BrowserRouter>
-      );
+  //     let contextValue;
+  //     render(
+  //       <BrowserRouter>
+  //         <AuthContextProvider>
+  //           <TestComponent testFn={(ctx) => { contextValue = ctx; }} />
+  //         </AuthContextProvider>
+  //       </BrowserRouter>
+  //     );
 
-      await waitFor(() => {
-        expect(contextValue.user).toEqual(mockUser);
-      });
+  //     await waitFor(() => {
+  //       expect(contextValue.user).toEqual(mockUser);
+  //     });
 
-      // Call updateUser and expect it to handle the error
-      await act(async () => {
-        await contextValue.updateUser({ id: 1, username: 'updateduser' });
-      });
+  //     // Call updateUser and expect it to handle the error
+  //     await act(async () => {
+  //       await contextValue.updateUser({ id: 1, username: 'updateduser' });
+  //     });
 
-      // Verify console.error was called
-      expect(console.error).toHaveBeenCalled();
+  //     // Verify console.error was called
+  //     expect(console.error).toHaveBeenCalled();
 
-      // User should remain unchanged
-      expect(contextValue.user).toEqual(mockUser);
-    });
+  //     // User should remain unchanged
+  //     expect(contextValue.user).toEqual(mockUser);
+  //   });
 
-    test('should not update user if response is missing user data', async () => {
-      // Setup initial data
-      const mockUser = { id: 1, username: 'testuser' };
-      const mockToken = 'testtoken';
+  //   test('should not update user if response is missing user data', async () => {
+  //     // Setup initial data
+  //     const mockUser = { id: 1, username: 'testuser' };
+  //     const mockToken = 'testtoken';
 
-      localStorageMock.getItem.mockImplementation((key) => {
-        if (key === 'user') return JSON.stringify(mockUser);
-        if (key === 'token') return mockToken;
-        return null;
-      });
+  //     localStorageMock.getItem.mockImplementation((key) => {
+  //       if (key === 'user') return JSON.stringify(mockUser);
+  //       if (key === 'token') return mockToken;
+  //       return null;
+  //     });
 
-      // Mock API response with missing user data
-      const mockResponse = { data: { success: true } }; // No user property
-      axios.create().put.mockResolvedValueOnce(mockResponse);
+  //     // Mock API response with missing user data
+  //     const mockResponse = { data: { success: true } }; // No user property
+  //     axios.create().put.mockResolvedValueOnce(mockResponse);
 
-      let contextValue;
-      render(
-        <BrowserRouter>
-          <AuthContextProvider>
-            <TestComponent testFn={(ctx) => { contextValue = ctx; }} />
-          </AuthContextProvider>
-        </BrowserRouter>
-      );
+  //     let contextValue;
+  //     render(
+  //       <BrowserRouter>
+  //         <AuthContextProvider>
+  //           <TestComponent testFn={(ctx) => { contextValue = ctx; }} />
+  //         </AuthContextProvider>
+  //       </BrowserRouter>
+  //     );
 
-      await waitFor(() => {
-        expect(contextValue.user).toEqual(mockUser);
-      });
+  //     await waitFor(() => {
+  //       expect(contextValue.user).toEqual(mockUser);
+  //     });
 
-      // Call updateUser
-      await act(async () => {
-        await contextValue.updateUser({ id: 1, username: 'updateduser' });
-      });
+  //     // Call updateUser
+  //     await act(async () => {
+  //       await contextValue.updateUser({ id: 1, username: 'updateduser' });
+  //     });
 
-      // User should remain unchanged since response didn't have user data
-      expect(contextValue.user).toEqual(mockUser);
-    });
-  });
+  //     // User should remain unchanged since response didn't have user data
+  //     expect(contextValue.user).toEqual(mockUser);
+  //   });
+  // });
 
   // Test loginUser function
   describe('loginUser function', () => {

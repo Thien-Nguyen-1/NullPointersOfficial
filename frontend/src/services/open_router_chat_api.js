@@ -30,7 +30,7 @@ export async function SendTest() {
         },
         {
             "role": "system",
-          "content": "You are a mental health professional Return a list of words from the following tags that would seem appropriate from the user's responses to the questions from the query. " +
+          "content": "You are a mental health professional Return a list of words from the following tags that would seem appropriate/relatable from the user's responses to the questions from the query. " +
           `the tags are ${promptInfo.tags}. Donnot add your thoughts just the list only as comma separated values.`
         }
       ],
