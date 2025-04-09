@@ -441,10 +441,15 @@ export const QuizApiUtils = {
     try {
       const response = await api.get(`/api/quiz/${taskId}/user-responses/`);
       console.log(`QuizApiUtils received saved quiz answers: ${response.moduleData}`)
+
+      // If the response has no answers or empty answers, return null
+      if (!response.data || !response.data.answers || Object.keys(response.data.answers).length === 0) {
+        return null;
+      }
       return response.data;
     } catch (error) {
       console.error('Error fetching saved quiz answers:', error);
-      return { answers: {} };
+      return null; // return null on error
     }
   }
 

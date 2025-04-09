@@ -111,7 +111,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete, isPreview = false, previewQue
         console.log("Loading saved answers for fill-in-the-blanks quiz:", taskId);
         const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
         
-        if (response && response.answers) {
+        if (response && response.answers && Object.keys(response.answers).length > 0) {
           console.log("Retrieved saved answers:", response.answers);
           
           // Process answers for fill-in-the-blanks quiz
