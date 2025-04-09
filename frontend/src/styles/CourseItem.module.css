@@ -31,31 +31,14 @@
 }
 
 
-.courseOptContainer .likeContainer {
-    grid-column: 7 / span 3;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    min-width: 4rem;
-    
-    p {
-        margin-bottom: 0.2rem;
-    }
-   
-}
+
 
 .courseOptContainer .viewContainer {
     display: inherit;
     justify-content: center;
 }
 
-.courseOptContainer button {
-    grid-column: 10 / span 3;
-    display: inline-block;
-    background: none;
-    border: none;
-   
-}
+
 
 .iconContainer {
     grid-column: 1 / span 1;
@@ -72,30 +55,77 @@
     svg {color: white;}
 }
 
+.titleContainer {
+    display: flex;
+    grid-column: 2 / span 4;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    overflow: hidden;
+}
+  
+.titleContainer p {
+    font-size: clamp(0.6rem, 2vw, 1rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+.courseOptContainer .likeContainer {
+    grid-column: 6 / span 3;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 4rem;
+    
+    p {
+        margin-bottom: 0.2rem;
+    }
+   
+}
+
+.courseOptContainer button {
+    grid-column: 9 / span 3;
+    display: inline-block;
+    background: none;
+    border: none;
+   
+}
+
+/* .edit-module-btn {
+    grid-column: 6 / span 2;
+    
+} */
+.edit-container{
+    grid-column: 12 / span 2;
+    padding: 0.5rem;
+    border-radius: inherit;
+    background-color: white;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    p {
+        color: var(--primary-green);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
 .viewContainer {
-    grid-column:  13 / span 4;
+    grid-column:  14 / span 5;
     padding: 0.5rem;
     border-radius: inherit;
     background-color: var(--primary-green-dark);
 
     p {
         color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
 }
 
-.titleContainer {
-    display: flex;
-    grid-column: 2 / span 5;
-    justify-content: center;
-    align-items: center;
-    flex-grow: 1;
-    overflow: hidden;
-  }
-  
-  .titleContainer p {
-    font-size: clamp(0.6rem, 2vw, 1rem);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }

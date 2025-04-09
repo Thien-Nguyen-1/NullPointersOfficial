@@ -124,6 +124,10 @@ function CourseItem(props){
       
     }
 
+    const handleEditCourse = (course) => {
+        navigate(`/admin/all-courses/create-and-manage-module?edit=${course.id}`)
+    }
+
     return (
 
         <div className={styles.courseOptContainer}>
@@ -150,7 +154,18 @@ function CourseItem(props){
                 {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
             </button>
            
-            <div className={styles.viewContainer}>        
+
+            {(role === "admin" || role === "superadmin") && (
+                <div className={styles["edit-container"]}>
+                    <button onClick={() => handleEditCourse(module)}>
+                        <p>Edit</p>
+                    </button>
+                </div>
+    
+            )}
+            
+            <div className={styles.viewContainer}>       
+                 
                 <button onClick={() => handleViewCourse(module)}>
                     <p>{isEnrolled(module.id) ? "Continue Learning" : "View Course"}</p>
                 </button>
