@@ -7,8 +7,8 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write("Unseeding database...")
 
-        # Delete all users except superusers (to avoid accidental removal of admin accounts)
-        User.objects.filter(is_superuser=False).delete()
+        # Delete all users
+        User.objects.all().delete()
 
         # Delete all related content
         ProgressTracker.objects.all().delete()

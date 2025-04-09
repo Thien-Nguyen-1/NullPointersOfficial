@@ -71,7 +71,7 @@ function App() {
                 <Route path="/verify-admin-email/:token" element={<VerifyAdminEmail />} />
                 <Route path="/password-reset" element={<RequestPasswordReset />} />
                 <Route path="/password-reset/:uidb64/:token" element={<PasswordReset />} />
-                
+
                 <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route path="/settings" element={<Settings />} />
 
