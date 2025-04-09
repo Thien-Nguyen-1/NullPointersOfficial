@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 import unittest
 
 from returnToWork.models import (
-    Module, RankingQuestion, InlinePicture, AudioClip, 
+    Module, RankingQuestion, Image, AudioClip, 
     Document, EmbeddedVideo
 )
 from returnToWork.serializers import ContentPublishSerializer
@@ -65,7 +65,7 @@ class ContentPublishSerializerTest(TestCase):
     
     def tearDown(self):
         # Clean up created files
-        for model in [InlinePicture, AudioClip, Document]:
+        for model in [Image, AudioClip, Document]:
             for obj in model.objects.all():
                 for field_name in ['image_file', 'audio_file', 'file']:
                     if hasattr(obj, field_name):
@@ -203,7 +203,60 @@ class ContentPublishSerializerTest(TestCase):
         # Check the module is our mock object
         self.assertEqual(module, mock_module)
     
-    # This tests just the validation of required fields
+    # Test for Image content type (replacing InlinePicture)
+    @patch('returnToWork.serializers.Image.objects.create')
+    @patch('returnToWork.serializers.Module.objects.create')
+    @patch('returnToWork.serializers.ContentFile')
+    @patch('returnToWork.serializers.base64.b64decode')
+    def test_create_module_with_image(self, mock_b64decode, mock_content_file, mock_module_create, mock_image_create):
+        """Test creating a module with an image."""
+        # Set up mocks
+        mock_module = MagicMock()
+        mock_module.id = 1
+        mock_module_create.return_value = mock_module
+        
+        mock_image = MagicMock()
+        mock_image_create.return_value = mock_image
+        
+        mock_b64decode.return_value = b'decoded_image_data'
+        mock_content_file.return_value = 'content_file_object'
+        
+        # Create a request with authenticated user
+        request = self.factory.post('/api/content-publish/')
+        request.user = self.admin_user
+        
+        # Create serializer data with image
+        data = {
+            'title': 'Image Module',
+            'description': 'Module with Image',
+            'elements': [
+                {
+                    'type': 'Inline Picture',
+                    'title': 'Test Image',
+                    'data': f'data:image/png;base64,{self.test_image_base64}'
+                }
+            ]
+        }
+        
+        # Initialize serializer with context
+        serializer = ContentPublishSerializer(data=data, context={'request': request})
+        self.assertTrue(serializer.is_valid())
+        
+        # Patch uuid.uuid4 to return a predictable value
+        with patch('uuid.uuid4', return_value=uuid.UUID('12345678-1234-5678-1234-567812345678')):
+            # Save the serializer
+            module = serializer.save()
+        
+        # Verify module was created with correct arguments
+        mock_module_create.assert_called_once()
+        
+        # Verify image creation was called
+        mock_image_create.assert_called_once()
+        
+        # Check the module is our mock object
+        self.assertEqual(module, mock_module)
+    
+    # Testing the validation of required fields
     def test_validation_required_fields(self):
         """Test validation of required fields."""
         # Create a request with authenticated user
@@ -264,3 +317,214 @@ class ContentPublishSerializerTest(TestCase):
         # Save the serializer - should raise ValidationError
         with self.assertRaises(Exception) as context:
             serializer.save()
+            
+    # Test creating embedded video content
+    @patch('returnToWork.serializers.EmbeddedVideo.objects.create')
+    @patch('returnToWork.serializers.Module.objects.create')
+    def test_create_module_with_embedded_video(self, mock_module_create, mock_video_create):
+        """Test creating a module with an embedded video."""
+        # Set up mocks
+        mock_module = MagicMock()
+        mock_module.id = 1
+        mock_module_create.return_value = mock_module
+        
+        mock_video = MagicMock()
+        mock_video_create.return_value = mock_video
+        
+        # Create a request with authenticated user
+        request = self.factory.post('/api/content-publish/')
+        request.user = self.admin_user
+        
+        # Create serializer data with embedded video
+        data = {
+            'title': 'Video Module',
+            'description': 'Module with Embedded Video',
+            'elements': [
+                {
+                    'type': 'Embedded Video',
+                    'title': 'Test Embedded Video',
+                    'data': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+                }
+            ]
+        }
+        
+        # Initialize serializer with context
+        serializer = ContentPublishSerializer(data=data, context={'request': request})
+        self.assertTrue(serializer.is_valid())
+        
+        # Save the serializer
+        module = serializer.save()
+        
+        # Verify the mocks were called with correct arguments
+        mock_module_create.assert_called_once()
+        mock_video_create.assert_called_once()
+        args, kwargs = mock_video_create.call_args
+        self.assertEqual(kwargs['moduleID'], mock_module)
+        self.assertEqual(kwargs['author'], self.admin_user)
+        self.assertEqual(kwargs['title'], 'Test Embedded Video')
+        self.assertEqual(kwargs['video_url'], 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        
+        # Check the module is our mock object
+        self.assertEqual(module, mock_module)
+        
+    # Test creating audio clip content
+    @patch('returnToWork.serializers.AudioClip.objects.create')
+    @patch('returnToWork.serializers.Module.objects.create')
+    @patch('returnToWork.serializers.ContentFile')
+    @patch('returnToWork.serializers.base64.b64decode')
+    def test_create_module_with_audio_clip(self, mock_b64decode, mock_content_file, mock_module_create, mock_audio_create):
+        """Test creating a module with an audio clip."""
+        # Set up mocks
+        mock_module = MagicMock()
+        mock_module.id = 1
+        mock_module_create.return_value = mock_module
+        
+        mock_audio = MagicMock()
+        mock_audio_create.return_value = mock_audio
+        
+        mock_b64decode.return_value = b'decoded_audio_data'
+        mock_content_file.return_value = 'content_file_object'
+        
+        # Create a request with authenticated user
+        request = self.factory.post('/api/content-publish/')
+        request.user = self.admin_user
+        
+        # Create serializer data with audio clip
+        data = {
+            'title': 'Audio Module',
+            'description': 'Module with Audio Clip',
+            'elements': [
+                {
+                    'type': 'Audio Clip',
+                    'title': 'Test Audio',
+                    'data': f'data:audio/mp3;base64,{self.test_audio_base64}'
+                }
+            ]
+        }
+        
+        # Initialize serializer with context
+        serializer = ContentPublishSerializer(data=data, context={'request': request})
+        self.assertTrue(serializer.is_valid())
+        
+        # Patch uuid.uuid4 to return a predictable value
+        with patch('uuid.uuid4', return_value=uuid.UUID('12345678-1234-5678-1234-567812345678')):
+            # Save the serializer
+            module = serializer.save()
+        
+        # Verify module was created with correct arguments
+        mock_module_create.assert_called_once()
+        
+        # Verify audio creation was called
+        mock_audio_create.assert_called_once()
+        
+        # Check the module is our mock object
+        self.assertEqual(module, mock_module)
+        
+    # Test creating document content
+    @patch('returnToWork.serializers.Document.objects.create')
+    @patch('returnToWork.serializers.Module.objects.create')
+    def test_create_module_with_document(self, mock_module_create, mock_document_create):
+        """Test creating a module with a document."""
+        # Set up mocks
+        mock_module = MagicMock()
+        mock_module.id = 1
+        mock_module_create.return_value = mock_module
+        
+        mock_document = MagicMock()
+        mock_document_create.return_value = mock_document
+        
+        # Create a request with authenticated user
+        request = self.factory.post('/api/content-publish/')
+        request.user = self.admin_user
+        
+        # Create serializer data with document
+        data = {
+            'title': 'Document Module',
+            'description': 'Module with Document',
+            'elements': [
+                {
+                    'type': 'Attach PDF',
+                    'title': 'Test Document',
+                    'data': [
+                        {
+                            'name': 'test.pdf',
+                            'title': 'Test PDF',
+                            'url': 'http://example.com/test.pdf',
+                            'fileType': 'application/pdf'
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        # Initialize serializer with context
+        serializer = ContentPublishSerializer(data=data, context={'request': request})
+        self.assertTrue(serializer.is_valid())
+        
+        # Save the serializer
+        module = serializer.save()
+        
+        # Verify the mocks were called with correct arguments
+        mock_module_create.assert_called_once()
+        mock_document_create.assert_called_once()
+        
+        # Check the module is our mock object
+        self.assertEqual(module, mock_module)
+        
+    # Test handling multiple elements
+    @patch('returnToWork.serializers.EmbeddedVideo.objects.create')
+    @patch('returnToWork.serializers.RankingQuestion.objects.create')
+    @patch('returnToWork.serializers.Module.objects.create')
+    def test_create_module_with_multiple_elements(self, mock_module_create, mock_ranking_create, mock_video_create):
+        """Test creating a module with multiple content elements."""
+        # Set up mocks
+        mock_module = MagicMock()
+        mock_module.id = 1
+        mock_module_create.return_value = mock_module
+        
+        mock_ranking = MagicMock()
+        mock_ranking_create.return_value = mock_ranking
+        
+        mock_video = MagicMock()
+        mock_video_create.return_value = mock_video
+        
+        # Create a request with authenticated user
+        request = self.factory.post('/api/content-publish/')
+        request.user = self.admin_user
+        
+        # Create serializer data with multiple elements
+        data = {
+            'title': 'Multi-Element Module',
+            'description': 'Module with multiple content elements',
+            'elements': [
+                {
+                    'type': 'Ranking Question',
+                    'title': 'Test Ranking',
+                    'data': {
+                        'tiers': [
+                            {'name': 'Tier 1', 'items': ['Item 1', 'Item 2']}
+                        ]
+                    }
+                },
+                {
+                    'type': 'Embedded Video',
+                    'title': 'Test Video',
+                    'data': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+                }
+            ]
+        }
+        
+        # Initialize serializer with context
+        serializer = ContentPublishSerializer(data=data, context={'request': request})
+        self.assertTrue(serializer.is_valid())
+        
+        # Save the serializer
+        module = serializer.save()
+        
+        # Verify the mocks were called
+        mock_module_create.assert_called_once()
+        mock_ranking_create.assert_called_once()
+        mock_video_create.assert_called_once()
+        
+        # Check the module is our mock object
+        self.assertEqual(module, mock_module)

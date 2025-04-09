@@ -24,7 +24,7 @@ import RequestPasswordReset from './components/auth/RequestPasswordReset.jsx';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
-import DropZoneTest from './pages/DropZone.jsx';
+
 import QuizContainer from './components/quizzes/QuizContainer';
 
 import ProtectedSuperAdminRoute from './components/superadmin-settings/ProtectedSuperAdminRoute.jsx';
@@ -71,7 +71,7 @@ function App() {
                 <Route path="/verify-admin-email/:token" element={<VerifyAdminEmail />} />
                 <Route path="/password-reset" element={<RequestPasswordReset />} />
                 <Route path="/password-reset/:uidb64/:token" element={<PasswordReset />} />
-                
+
                 <Route path="/questionnaire" element={<Questionnaire />} />
                 <Route path="/settings" element={<Settings />} />
 

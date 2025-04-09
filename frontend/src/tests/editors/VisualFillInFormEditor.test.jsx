@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, act } from '@testing-library/react';
 import VisualFillTheFormEditor from '../../components/editors/VisualFillTheFormEditor';
 
 describe('VisualFillTheFormEditor', () => {
@@ -35,6 +35,193 @@ describe('VisualFillTheFormEditor', () => {
         expect(inputBetween).toBeInTheDocument();
     });
 
+    test('renders without initial questions', () => {
+        render(<VisualFillTheFormEditor />);
+        expect(screen.getByText("No questions added yet. Add a question using the form above.")).toBeInTheDocument();
+    });
+      
+    test('adds a new question when form is submitted', () => {
+        const { getByText, container } = render(<VisualFillTheFormEditor ref={componentRef} {...mockProps} />);
+
+        const textarea = container.querySelector('.fitb-input-textarea');
+        fireEvent.change(textarea, { target: { value: 'Life is (____).' } });
+        
+        fireEvent.click(getByText('Add Question', { selector: 'button' }));
+        expect(screen.getByText(/Life is/)).toBeInTheDocument();
+    });
+
+    test('edits and saves an existing question', async () => {
+        const mockQuestions = [{ id: 1, question_text: 'I am (____).', order: 1 }];
+        const { container, getByText } = render(<VisualFillTheFormEditor initialQuestions={mockQuestions} />);
+      
+        const editIcons = container.querySelectorAll('.fitb-edit-icon');
+        fireEvent.click(editIcons[0]); 
+      
+        const textarea = getByText('I am (____).');
+        fireEvent.change(textarea, { target: { value: 'I was sad.' } });
+        fireEvent.click(getByText('Save'));
+      
+        expect(screen.getByText(/I was/)).toBeInTheDocument();
+    });
+      
+    test('deletes a question', () => {
+        const mockQuestions = [{ id: 1, question_text: 'I am (____).', order: 1 }];
+        const { container } = render(<VisualFillTheFormEditor initialQuestions={mockQuestions} />);
+      
+        const deleteIcons = container.querySelectorAll('.fitb-delete-icon');
+        if (deleteIcons.length > 0) {
+          fireEvent.click(deleteIcons[0]); 
+        }
+      
+        expect(screen.queryByText(/I am/)).not.toBeInTheDocument();
+    });
+      
+    test('shows error if blank is incorrect in added question', () => {
+        const { getByText, container } = render(<VisualFillTheFormEditor />);
+        
+        const textarea = container.querySelector('.fitb-input-textarea');
+        fireEvent.change(textarea, { target: { value: 'It is (_).' } });
+        
+        fireEvent.click(getByText('Add Question', { selector: 'button' }));
+        
+        // Look for either of the possible error messages
+        const errorMessage = screen.getByText((content, element) => {
+          return (
+            element.tagName.toLowerCase() === 'p' && 
+            element.className === 'fitb-error-message' &&
+            (content.includes('must contain at least one blank') || 
+             content.includes('Blanks must be exactly 4 underscores'))
+          );
+        });
+        expect(errorMessage).toBeInTheDocument();
+    });
+      
+    test('calls onUpdateQuestions when questions update', () => {
+        const onUpdateQuestions = vi.fn();
+        const { getByText, container } = render(<VisualFillTheFormEditor onUpdateQuestions={onUpdateQuestions} />);
+        
+        const textarea = container.querySelector('.fitb-input-textarea');
+        fireEvent.change(textarea, { target: { value: 'Life is (____).' } });
+        
+        fireEvent.click(getByText('Add Question', { selector: 'button' }));
+        expect(onUpdateQuestions).toHaveBeenCalledWith(expect.anything());
+    });
+      
+    it('normalizes and sets new questions correctly', () => {
+        const ref = React.createRef();
+        render(<VisualFillTheFormEditor ref={ref} />);
+        
+        const newQuestions = [
+          'What is your favorite color?',
+          { question_text: 'Your age?', hint_text: 'Enter your age', order: 1 },
+          { text: 'New text format', id: 'custom-id' } 
+        ];
+      
+        act(() => {
+          ref.current.setQuestions(newQuestions);
+        });
+      
+        const expectedQuestions = [
+          { id: expect.any(String), question_text: 'What is your favorite color?', hint_text: '', order: 0 },
+          { id: expect.any(String), question_text: 'Your age?', hint_text: 'Enter your age', order: 1 },
+          { id: 'custom-id', question_text: 'New text format', hint_text: '', order: 2 } 
+        ];
+      
+        expect(ref.current.getQuestions()).toEqual(expectedQuestions);
+    });
+      
+    test('getQuestions returns formatted questions correctly', () => {
+        const ref = React.createRef();
+        render(<VisualFillTheFormEditor ref={ref} />);
+        
+        act(() => {
+          ref.current.setQuestions([
+            'Question 1',
+            { id: '2', question_text: 'Question 2', hint_text: 'Hint 2', order: 1 },
+            'Question 3'
+          ]);
+        });
+
+        let formattedQuestions = ref.current.getQuestions();
+
+        const expectedQuestions = [
+          { id: expect.any(String), question_text: 'Question 1', hint_text: "", order: 0 },
+          { id: '2', question_text: 'Question 2', hint_text: 'Hint 2', order: 1 },
+          { id: expect.any(String), question_text: 'Question 3', hint_text: "", order: 2 }
+        ];
+
+        expect(formattedQuestions).toEqual(expectedQuestions);
+    });
+
+    test('validates that blanks are exactly four underscores', () => {
+        const { getByText, container } = render(<VisualFillTheFormEditor ref={componentRef} {...mockProps} />);
+
+        const textarea = container.querySelector('.fitb-input-textarea');
+        fireEvent.change(textarea, { target: { value: 'i am (__) today' } });
+        
+        fireEvent.click(getByText('Add Question', { selector: 'button' }));
+        
+        // Look for either of the possible error messages in a p element with the error class
+        const errorElement = container.querySelector('.fitb-error-message');
+        expect(errorElement).toBeInTheDocument();
+        expect(
+          errorElement.textContent.includes('Blanks must be exactly 4 underscores') || 
+          errorElement.textContent.includes('Each question must contain at least one blank')
+        ).toBe(true);
+    });
+
+
+//   test('updates questions correctly using editQuestion', () => {
+//     // Set initial questions
+//     const componentRef = React.createRef();
+//         render(<VisualFillTheFormEditor ref={componentRef} />);
+//     act(() => {
+//       componentRef.current.setQuestions([
+//         { id: '1', question_text: 'Original Question?', hint_text: 'Original Hint', order: 0 },
+//         'Simple question text'
+//       ]);
+//     });
+
+//     // Edit first question object with a new object
+//     act(() => {
+//       componentRef.current.editQuestion(0, {
+//         question_text: 'Updated Question',
+//         hint_text: 'Updated Hint',
+//         order: 0
+//       });
+//     });
+
+//     // Edit second question string with a new question object
+//     act(() => {
+//       componentRef.current.editQuestion(1, {
+//         question_text: 'Transformed to full question object',
+//         hint_text: 'New hint'
+//       });
+//     });
+
+//     // Retrieve and test the updated state
+//     let updatedQuestions = componentRef.current.getQuestions();
+
+//     expect(updatedQuestions).toEqual([
+//       { id: '1', question_text: 'Updated Question', hint_text: 'Updated Hint', order: 0 },
+//       { id: expect.any(String), question_text: 'Transformed to full question object', hint_text: 'New hint', order: 1 }
+//     ]);
     
-    
+//     // Edit an object to a simple string
+//     act(() => {
+//       componentRef.current.editQuestion(0, 'Now just a string');
+//     });
+
+//     // Edit a string to another string
+//     act(() => {
+//       componentRef.current.editQuestion(1, 'Another simple string');
+//     });
+
+//     // Test the string updates
+//     updatedQuestions = componentRef.current.getQuestions();
+//     expect(updatedQuestions).toEqual([
+//       { id: expect.any(String), question_text: 'Now just a string', hint_text: '', order: 0 },
+//       { id: expect.any(String), question_text: 'Another simple string', hint_text: '', order: 1 }
+//     ]);
+//   });
 });

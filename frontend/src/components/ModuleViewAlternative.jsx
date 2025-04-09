@@ -79,10 +79,16 @@ const ModuleViewAlternative = () => {
           ...moduleVideos.map(item => ({ ...item, mediaType: 'video' })),
           ...moduleImages.map(item => ({ ...item, mediaType: 'image' }))
         ];
-        // Sort all resources by creation time
+        // Sort all resources by order_index primarily, then creation time as a fallback
         allResources.sort((a, b) => {
-          const dateA = new Date(a.created_at);
-          const dateB = new Date(b.created_at);
+          // First check if both resources have order_index
+          if (a.order_index !== undefined && b.order_index !== undefined) {
+            return a.order_index - b.order_index;  // Sort by order_index primarily
+          }
+          
+          // Fall back to creation time if order_index is missing
+          const dateA = new Date(a.created_at || a.updated_at || 0);
+          const dateB = new Date(b.created_at || b.updated_at || 0);
           return dateA - dateB;  // Oldest first
         });
 

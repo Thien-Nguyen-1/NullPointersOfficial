@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 
 // Determine the base URL using environment variables
@@ -486,25 +486,21 @@ export const markContentAsViewed = async (contentId, contentType, token) => {
     });
     
     
-    const response = await fetch('/api/content-progress/mark-viewed/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        content_id: contentId,
-        content_type: contentType
-      })
+    const response = await api.post('/api/content-progress/mark-viewed/', {
+      content_id: contentId,
+      content_type: contentType
     });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error ${response.status}: ${response.statusText}`, errorText);
-      throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
-    }
+    console.log("Content marked as viewed response:", response.data);
+    return response.data;
     
-    return await response.json();
+    // if (!response.ok) {
+    //   const errorText = await response.text();
+    //   console.error(`Error ${response.status}: ${response.statusText}`, errorText);
+    //   throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
+    // }
+    
+    // return await response.json();
   } catch (error) {
     console.error("Failed to mark content as viewed:", error);
     throw error;

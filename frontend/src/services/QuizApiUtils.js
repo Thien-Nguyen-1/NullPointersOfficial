@@ -229,7 +229,7 @@ export const QuizApiUtils = {
 
   getComponentType: (quizType) => {
     // Map quiz types to component types
-    const mediaTypes = ['document', 'audio', 'image', 'video', 'embed'];
+    const mediaTypes = ['document', 'audio', 'image', 'video'];
     
     if (mediaTypes.includes(quizType)) {
       return 'media';
@@ -381,34 +381,50 @@ export const QuizApiUtils = {
     try {
       console.log("Submitting answers for quiz:", taskId);
       
-      // Convert the answers object to an array of submissions
-      const submissions = [];
-      
-      // Process each answer
+      // Skip empty answers object
+      if (!answers || Object.keys(answers).length === 0) {
+        console.warn("No answers provided for quiz submission");
+        return { status: 'success', message: 'No answers to submit', results: [] };
+      }
+
+      // make separate api calls for each answer (to match backend)
+      const results = [];
       for (const [questionId, answer] of Object.entries(answers)) {
-        // Handle both single string answers and array answers (for fill-in-the-blanks)
-        const answerText = Array.isArray(answer) ? answer.join(' | ') : answer;
-        
-        // Add to submissions
-        submissions.push({
+        // skipp null or undefined answers
+        if (answer === null || answer === undefined) {
+          continue;
+        }
+
+        // format answer based on type
+        let answerText;
+        if (Array.isArray(answer)) {
+          answerText = answer.join(' | ');
+          
+        } else if (typeof answer === 'object') {
+          answerText = JSON.stringify(answer);
+        }
+        else {
+          answerText = String(answer);
+        }
+        console.log(`[ANSWERS]User answer is: ${answerText}`);
+
+        // Convert the answers object to an array of submissions
+        const submission = {
           question_id: questionId,
           response_text: answerText
-        });
-      }
-      
-      // Make separate API calls for each answer (matching backend structure)
-      const results = [];
-      for (const submission of submissions) {
-        const headers = token ? { 'Authorization': `Token ${token}` } : {};
-        
-        const response = await api.post('/api/quiz/response/', submission);
-        // const response = await api.post('/api/quiz/response/', submission, { 
-        //   headers 
-        // });
-        
-        results.push(response.data);
-        console.log(`Response saved for question ${submission.question_id}:`, response.data);
-      }
+        };
+
+        console.log(`[ANSWERS] Submitting answer for question ${questionId}:`, submission);
+
+        try {
+          const response = await api.post('/api/quiz/response/', submission);
+          results.push(response.data);
+          console.log(`[SUBMISSION] Response saved for question ${questionId}:`, response.data);
+        } catch {
+          console.error(`Error submitting answer for question ${questionId}:`, err);
+          // continue with other questions even if one fails
+        }
+      } 
       
       return {
         status: 'success',
@@ -420,6 +436,17 @@ export const QuizApiUtils = {
       throw error;
     }
   },
+
+  getSavedQuizAnswers: async (taskId) => {
+    try {
+      const response = await api.get(`/api/quiz/${taskId}/user-responses/`);
+      console.log(`QuizApiUtils received saved quiz answers: ${response.moduleData}`)
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching saved quiz answers:', error);
+      return { answers: {} };
+    }
+  }
 
 };
 

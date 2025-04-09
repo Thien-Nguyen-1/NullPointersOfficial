@@ -28,7 +28,7 @@ export const PreviewModeProvider = ({ children }) => {
   // to clear preview data (only when needed)
   const clearPreviewData = () => {
     setPreviewData(null);
-    setCachedPreviewData(null);
+    //setCachedPreviewData(null);
   };
 
   return (

@@ -88,6 +88,39 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete, isPreview = false, previewQ
         fetchPairs();
     }, [taskId, isPreview, previewQuestions, completedContentIds]);
 
+    // Load saved answers from abckend
+    useEffect(() => {
+        const loadSavedAnswers = async () => {
+        if (!taskId || isPreview) return;
+        
+        try {
+            console.log("Loading saved answers for matching quiz:", taskId);
+            const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
+            
+            if (response && response.answers) {
+            console.log("Retrieved saved answers:", response.answers);
+            
+            // For matching quiz, answers are direct mappings
+            setUserAnswers(response.answers);
+            setQuizCompleted(true);
+            
+            // Update ref for persistence
+            completionStateRef.current = {
+                isCompleted: true,
+                submittedAnswers: {...response.answers}
+            };
+            }
+        } catch (error) {
+            console.error("Error loading saved matching quiz answers:", error);
+        }
+        };
+        
+        // Only load if not already completed via local storage
+        if (!completionStateRef.current.isCompleted) {
+        loadSavedAnswers();
+        }
+    }, [taskId, isPreview]);
+    
     const handleDrop = (questionId, answer) => {
         setUserAnswers(prev => ({
             ...prev,

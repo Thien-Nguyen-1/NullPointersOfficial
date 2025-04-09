@@ -33,25 +33,25 @@ from reportlab.lib.pagesizes import letter
 from django.core.cache import cache
 
 from django.db.models import Q
-from firebase_admin import messaging
+
 import pusher
 
 from reportlab.pdfgen import canvas
 
 from .models import (
-    Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
+    Content, Module, ProgressTracker,Questionnaire, QuizQuestion, 
     RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
-    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
+    AudioClip, Document, EmbeddedVideo, Image, ContentProgress, 
     Conversation, Message, TermsAndConditions, AdminVerification, Image
 )
 from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
-    EmbeddedVideoSerializer, InfoSheetSerializer, InlinePictureSerializer,
+    EmbeddedVideoSerializer,
     LogInSerializer, ModuleSerializer, PasswordResetSerializer, ProgressTrackerSerializer, 
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    VideoSerializer, MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer
+    MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer
 )
 
 User = get_user_model()
@@ -331,14 +331,14 @@ class QuestionnaireView(APIView):
 
         return Response("", status=status.HTTP_200_OK)
 
-class InfoSheetViewSet(viewsets.ModelViewSet):
-    queryset = InfoSheet.objects.all()
-    serializer_class = InfoSheetSerializer
+# class InfoSheetViewSet(viewsets.ModelViewSet):
+#     queryset = InfoSheet.objects.all()
+#     serializer_class = InfoSheetSerializer
 
 
-class VideoViewSet(viewsets.ModelViewSet):
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer   
+# class VideoViewSet(viewsets.ModelViewSet):
+#     queryset = Video.objects.all()
+#     serializer_class = VideoSerializer   
 
  
 class TaskViewSet(viewsets.ModelViewSet):
@@ -351,12 +351,12 @@ class RankingQuestionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer): # Automatically set the authenticated user as the author when a new ranking question is created
         serializer.save(author=self.request.user)
 
-class InlinePictureViewSet(viewsets.ModelViewSet):
-    queryset = InlinePicture.objects.all()
-    serializer_class = InlinePictureSerializer
+# class InlinePictureViewSet(viewsets.ModelViewSet):
+#     queryset = InlinePicture.objects.all()
+#     serializer_class = InlinePictureSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+#     def perform_create(self, serializer):
+#         serializer.save(author=self.request.user)
 
 
 class ImageViewSet(viewsets.ModelViewSet):
@@ -384,6 +384,13 @@ class ImageViewSet(viewsets.ModelViewSet):
         files = request.FILES.getlist('files')
         module_id = request.data.get('module_id')
         component_id = request.data.get('component_id', None)
+
+        # Get the order_index from request data
+        order_index = request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
 
         if not module_id:
             return Response({"detail": "Module ID is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -421,7 +428,8 @@ class ImageViewSet(viewsets.ModelViewSet):
                 file_size=file.size,
                 file_type=os.path.splitext(file.name)[1][1:],  # Remove the dot from extension
                 width=width,  # Default width
-                height=height  # Default height
+                height=height,  # Default height
+                order_index=order_index # Save the order_index
             )
 
             # If a component ID was provided, link it to the image as a description field
@@ -486,6 +494,13 @@ class AudioClipViewSet(viewsets.ModelViewSet):
 
         module_id = request.data.get('module_id')
         print(f"Module ID: {module_id}")
+
+        # Get the order_index from request data
+        order_index = request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
         
         if not files:
             print("No files found in request")
@@ -531,7 +546,8 @@ class AudioClipViewSet(viewsets.ModelViewSet):
                     author=request.user,
                     title=filename,  # set title to filename by default
                     description=f"Uploaded audio: {filename}",
-                    is_published=True  # set as published by default
+                    is_published=True,  # set as published by default
+                    order_index=order_index  # Save the order_index
                 )
                 
                 # Try to get audio duration
@@ -600,6 +616,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def upload(self, request):
         files = request.FILES.getlist('files')
         module_id = request.data.get('module_id')
+        # Get the order_index from request data
+        order_index = request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
         
         if not files:
             return Response({'error': 'No files to upload'}, status=status.HTTP_400_BAD_REQUEST)
@@ -636,7 +658,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     author=request.user,
                     title=filename,  # set title to filename by default
                     description=f"Uploaded document: {filename}",
-                    is_published=True  # set as published by default
+                    is_published=True,  # set as published by default
+                    order_index=order_index  # Save the order_index
                 )
                 document.save()
                 uploaded_documents.append(document)
@@ -687,7 +710,17 @@ class EmbeddedVideoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Set the author when creating a new embedded video"""
-        serializer.save(author=self.request.user)
+        order_index = self.request.data.get('order_index', 0)
+        try:
+            order_index = int(order_index)
+        except (ValueError, TypeError):
+            order_index = 0
+
+        # Save with both author and order_index
+        serializer.save(
+            author=self.request.user,
+            order_index=order_index
+        )
 
     def update(self, request, *args, **kwargs):
         """Handle updates to embedded videos"""
@@ -733,7 +766,7 @@ class EmbeddedVideoViewSet(viewsets.ModelViewSet):
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated]  
+    
 
     def get(self, request):
         # Get user details
@@ -773,6 +806,8 @@ class UserDetail(APIView):
 
         # Works but Need To Use Seralizer - TO DO
 
+        print("Received request to update the user details")
+
         try:
             user = request.user
             user_serializer = UserSerializer(user)
@@ -784,6 +819,9 @@ class UserDetail(APIView):
             user_in.first_name = user.first_name
             user_in.last_name = user.last_name
             user_in.user_type = user.user_type
+            user_in.is_first_login = data['is_first_login']
+
+            print(data['is_first_login'])
 
             tag_data = data['tags']
             fire_token = data.get('firebase_token')
@@ -1043,7 +1081,7 @@ class QuizDetailView(APIView):
 
 
 class QuizResponseView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """Save user's response to a quiz question"""
@@ -1056,6 +1094,10 @@ class QuizResponseView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Convert string question_id to int if needed
+            if isinstance(question_id, str) and question_id.isdigit():
+                question_id = int(question_id)
+
             question = QuizQuestion.objects.get(id=question_id)
 
             # Check if a response already exists
@@ -1078,6 +1120,7 @@ class QuizResponseView(APIView):
                 )
                 response_id = new_response.id
 
+            # Content progress is only updated on MarkContentViewed
             return Response({
                 'status': 'success',
                 'response_id': response_id
@@ -1088,6 +1131,11 @@ class QuizResponseView(APIView):
                 'status': 'error',
                 'message': 'Question not found'
             }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                    'status': 'error',
+                    'message': f'Error saving response: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class QuizDataView(APIView):
     # permission_classes = [IsAuthenticated]
@@ -1186,11 +1234,11 @@ class UserInteractionView(APIView):
         return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)
 class AdminQuizResponsesView(APIView):
     # permission_classes = [IsAuthenticated]
-
+    # im not sure if this is needed anymore... since its not in requirement anymore
     def get(self, request, task_id):
         """Admin view to see all responses for a task"""
         # Check if user is admin
-        if request.user.user_type != 'admin':
+        if (request.user.user_type != 'admin' and request.user.user_type != 'superadmin'):
             return Response({"error": "You do not have permission to access this resource"},
                           status=status.HTTP_403_FORBIDDEN)
 
@@ -1376,7 +1424,50 @@ class QuizQuestionViewSet(viewsets.ModelViewSet):
     queryset = QuizQuestion.objects.all()
     serializer_class= QuizQuestionSerializer
 
+# views.py
+class QuizUserResponsesView(APIView):
+    """API view to get a user's saved responses for a quiz"""
 
+    #used by QuizApiUtils.submitQuizAnwers
+    # saved answers to UserResponse model
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, task_id):
+        try:
+            # Convert task_id from string to UUID
+            task_uuid = uuid.UUID(task_id)
+            
+            # Get the task
+            task = Task.objects.get(contentID=task_uuid)
+            
+            # Get questions for this task
+            questions = QuizQuestion.objects.filter(task=task)
+            
+            # Get user responses for these questions
+            responses = UserResponse.objects.filter(
+                user=request.user,
+                question__in=questions
+            )
+            
+            # Format the answers in the expected structure
+            formatted_answers = {}
+            for response in responses:
+                formatted_answers[str(response.question.id)] = response.response_text
+            
+            return Response({
+                'task_id': str(task_id),
+                'answers': formatted_answers
+            })
+        except (Task.DoesNotExist, ValueError):
+            return Response(
+                {'error': 'Quiz not found or invalid ID format'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Error fetching quiz responses: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
 
 # ===== FOR SUPERADMIN (BUT NEEDS TO BE MODIFIED) ==== #
@@ -1725,7 +1816,7 @@ class AdminUserDetailView(APIView):
                     ranking_questions.update(author=superadmin)
                 
                 # Transfer ownership of InlinePicture content
-                inline_pictures = InlinePicture.objects.filter(author=admin_to_delete)
+                inline_pictures = Image.objects.filter(author=admin_to_delete)
                 ip_count = inline_pictures.count()
                 if ip_count > 0:
                     print(f"[DEBUG] Transferring {ip_count} InlinePicture items")
@@ -1753,18 +1844,18 @@ class AdminUserDetailView(APIView):
                     videos.update(author=superadmin)
                 
                 # Transfer ownership of InfoSheet content
-                infosheets = InfoSheet.objects.filter(author=admin_to_delete)
-                infosheet_count = infosheets.count()
-                if infosheet_count > 0:
-                    print(f"[DEBUG] Transferring {infosheet_count} InfoSheet items")
-                    infosheets.update(author=superadmin)
+                # infosheets = Infosheet.objects.filter(author=admin_to_delete)
+                # infosheet_count = infosheets.count()
+                # if infosheet_count > 0:
+                #     print(f"[DEBUG] Transferring {infosheet_count} InfoSheet items")
+                #     infosheets.update(author=superadmin)
                 
-                # Transfer ownership of Video content
-                video_content = Video.objects.filter(author=admin_to_delete)
-                video_content_count = video_content.count()
-                if video_content_count > 0:
-                    print(f"[DEBUG] Transferring {video_content_count} Video items")
-                    video_content.update(author=superadmin)
+                # # Transfer ownership of Video content
+                # video_content = Video.objects.filter(author=admin_to_delete)
+                # video_content_count = video_content.count()
+                # if video_content_count > 0:
+                #     print(f"[DEBUG] Transferring {video_content_count} Video items")
+                #     video_content.update(author=superadmin)
                 
                 # Update any terms and conditions created by this admin_to_delete
                 terms = TermsAndConditions.objects.filter(created_by=admin_to_delete)
@@ -1816,8 +1907,9 @@ class AdminUserDetailView(APIView):
                         'inline_pictures': ip_count,
                         'audio_clips': ac_count,
                         'documents': doc_count,
-                        'videos': video_count + video_content_count,
-                        'infosheets': infosheet_count,
+                        # 'videos': video_count + video_content_count,
+                        # 'infosheets': infosheet_count,
+                        'videos': video_count,
                         'terms': terms_count
                     },
                     'deleted_items': {
@@ -1909,7 +2001,7 @@ class UserSupportView(APIView):
             Conversation.objects.create(user=user_)
 
 
-        elif((user_.user_type == "admin") and data):
+        elif((user_.user_type == "admin" and user_.user_type == "superadmin" ) and data):
             
              try:
                 conversation_ = Conversation.objects.get(id=data.get("conversation_id"))
@@ -2043,6 +2135,7 @@ class UserChatView(APIView):
 class MarkContentViewedView(APIView):
     """
     API view to mark content as viewed/completed.
+    (FOR PROGRESS TRACKING)
     """
     permission_classes = [IsAuthenticated]
 
@@ -2058,9 +2151,14 @@ class MarkContentViewedView(APIView):
         
         # Map content_type_name to model
         content_type_map = {
-            'infosheet': InfoSheet,
-            'video': Video,
+            'video': EmbeddedVideo,
             'quiz': Task,  # Assuming quizzes are stored in Task model
+            #'document' : Document, (im confused here)
+            'document' : Document,
+            'image' : Image,
+            'audio' : AudioClip,
+            'ranking' : RankingQuestion
+
         }
         
         if content_type_name not in content_type_map:
@@ -2106,21 +2204,21 @@ class MarkContentViewedView(APIView):
         
         # Update module progress tracker
         module = content_object.moduleID
-        module_progress, _ = ProgressTracker.objects.get_or_create(
+        progress_tracker, _ = ProgressTracker.objects.get_or_create(
             user=request.user,
             module=module
         )
-        module_progress.update_progress()
+        progress_tracker.update_progress()
         
         # Return success response
         return Response({
             "success": True,
             "message": f"Content {content_id} marked as viewed",
             "module_progress": {
-                "completed": module_progress.completed,
-                "contents_completed": module_progress.contents_completed,
-                "total_contents": module_progress.total_contents,
-                "progress_percentage": module_progress.progress_percentage
+                "completed": progress_tracker.completed,
+                "contents_completed": progress_tracker.contents_completed,
+                "total_contents": progress_tracker.total_contents,
+                "progress_percentage": progress_tracker.progress_percentage
             }
         })
 
@@ -2135,7 +2233,7 @@ class CompletedContentView(APIView):
         module = get_object_or_404(Module, pk=module_id)
         
         # Get content types for all content models
-        content_models = [InfoSheet, Video, Task]
+        content_models = [Document, EmbeddedVideo, Task, AudioClip, Image, RankingQuestion]
         content_types = [ContentType.objects.get_for_model(model) for model in content_models]
         
         # Get content IDs for this module

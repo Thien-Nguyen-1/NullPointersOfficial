@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import PasswordReset from "../../components/auth/PasswordReset"; 
 import { AuthContext } from "../../services/AuthContext";
+import { BrowserRouter } from "react-router-dom";
 
 
 const mockNavigate = vi.fn();
@@ -15,12 +16,23 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+// Wrapper component that provides both Router and AuthContext
+const TestWrapper = ({ children, resetPasswordMock = vi.fn() }) => {
+  return (
+    <BrowserRouter>
+      <AuthContext.Provider value={{ ResetPassword: resetPasswordMock }}>
+        {children}
+      </AuthContext.Provider>
+    </BrowserRouter>
+  );
+};
+
 describe("PasswordReset component", () => {
     it("display correct password chnage form", () => {
       render(
-        <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
+        <TestWrapper>
           <PasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
       expect(screen.getByPlaceholderText("New Password")).toBeInTheDocument();
@@ -30,9 +42,9 @@ describe("PasswordReset component", () => {
   
     it("updates fields correctly", () => {
       render(
-        <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
+        <TestWrapper>
           <PasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
       const newPasswordInput = screen.getByPlaceholderText("New Password");
@@ -49,9 +61,9 @@ describe("PasswordReset component", () => {
       const mockResetPassword = vi.fn().mockResolvedValue({ message: "Success" });
   
       render(
-        <AuthContext.Provider value={{ ResetPassword: mockResetPassword }}>
+        <TestWrapper resetPasswordMock={mockResetPassword}>
           <PasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
       fireEvent.change(screen.getByPlaceholderText("New Password"), {
@@ -71,9 +83,9 @@ describe("PasswordReset component", () => {
       const mockResetPassword = vi.fn().mockRejectedValue(new Error("Failure"));
   
       render(
-        <AuthContext.Provider value={{ ResetPassword: mockResetPassword }}>
+        <TestWrapper resetPasswordMock={mockResetPassword}>
           <PasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
       fireEvent.change(screen.getByPlaceholderText("New Password"), {
@@ -91,9 +103,9 @@ describe("PasswordReset component", () => {
   
     it("should go to home when back button is clicked", () => {
       render(
-        <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
+        <TestWrapper>
           <PasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
       fireEvent.click(screen.getByText("Back"));
@@ -102,9 +114,9 @@ describe("PasswordReset component", () => {
   
     it("should go to login page when button is clicked", () => {
       render(
-        <AuthContext.Provider value={{ ResetPassword: vi.fn() }}>
+        <TestWrapper>
           <PasswordReset />
-        </AuthContext.Provider>
+        </TestWrapper>
       );
   
       fireEvent.click(screen.getByText("Login"));

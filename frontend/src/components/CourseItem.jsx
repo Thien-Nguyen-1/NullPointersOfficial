@@ -69,10 +69,16 @@ function CourseItem(props){
     };
 
     const handleViewCourse = (course) => {
-        if (role === "admin" || isEnrolled(course.id)) {
+        console.log("Current role:", role); // See what role value is being used
+        console.log("User from context:", user); // Check if user has correct user_type
+        console.log("Is enrolled:", isEnrolled(course.id)); // Verify enrollment status
+  
+        if (role === "admin" || role === "superadmin" || isEnrolled(course.id)) {
+            console.log("Direct navigation condition met");
             navigate(`/modules/${course.id}`);
         } else {
             // Only users who havent enrolled could see the enrollment popup
+            console.log("Showing enrollment modal");
             setEnrollmentModal({
                 isOpen: true,
                 selectedCourse: module

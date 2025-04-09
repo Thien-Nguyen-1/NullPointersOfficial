@@ -186,9 +186,11 @@ return (
             {renderPasswordForm(user?.user_type)}
           </div>
 
+          {user?.user_type !== "superadmin" && (
             <button className="delete-btn" onClick={() => setShowModal(true)}>
               Delete Account
             </button>
+          )}
         </div>
       </>
     ) : (
@@ -199,16 +201,18 @@ return (
 
         <div className="admin-stack">
           <div>{renderPasswordForm(user?.user_type)}</div>
-          <div className="card delete-card">
-            <button className="delete-btn" onClick={() => setShowModal(true)}>
-              Delete Account
-            </button>
-        </div>
+          {user?.user_type !== "superadmin" && (
+            <div className="card delete-card">
+              <button className="delete-btn" onClick={() => setShowModal(true)}>
+                Delete Account
+              </button>
+            </div>
+          )}
         </div>
       </>
     )}
 
-    {showModal && (
+    {user?.user_type !== "superadmin" && showModal && (
       <div className="modal-overlay">
         <div className="modal-content">
           <h1>Confirm Deletion</h1>
