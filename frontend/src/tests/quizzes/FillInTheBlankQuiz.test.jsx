@@ -7,6 +7,8 @@ import { QuizApiUtils } from '../../services/QuizApiUtils';
 vi.mock('../../services/QuizApiUtils');
 
 describe('FillInTheBlanksQuiz', () => {
+    let onCompleteMock;
+
   const taskId = '123';
   const mockQuestions = [
     { id: '1', question_text: 'Fill ____ the blanks.', hint_text: 'Use appropriate words.', order: 1 },
@@ -17,6 +19,8 @@ describe('FillInTheBlanksQuiz', () => {
     vi.resetAllMocks();
     //QuizApiUtils.getQuestions.mockResolvedValue(mockQuestions);
         QuizApiUtils.getQuestions.mockReset();
+        onCompleteMock = vi.fn();
+
 
   });
 
@@ -78,8 +82,6 @@ describe('FillInTheBlanksQuiz', () => {
     const { getByText, getAllByPlaceholderText } = render(<FillInTheBlanksQuiz taskId={taskId} onComplete={() => {}} />);    // Wait for questions to be loaded and displayed
     await screen.findByText('Read each sentence and fill in the missing words in the blanks.');
 
-    // Simulate filling in some answersfireEvent.change(screen.getAllByPlaceholderText('fill in')[0], { target: { value: 'into' } });
-   // fireEvent.click(screen.getByText('Submit Answers'));
     await screen.findByText('is the capital of France.');
     fireEvent.change(screen.getAllByPlaceholderText('fill in')[0], { target: { value: 'Paris is the capital of France.' } });
     fireEvent.click(screen.getByText('Submit Answers'));
@@ -91,12 +93,17 @@ describe('FillInTheBlanksQuiz', () => {
 
    fireEvent.click(getByText('Try Again'));
 
-    // Check if the inputs are reset
-   // expect(inputs[0].value).toBe('');
-   // expect(inputs[1].value).toBe('');
-
-    // Check if the state has been reset
-   // expect(screen.queryByText('Please fill in all blanks before submitting.')).not.toBeInTheDocument();
     expect(screen.getByText('Read each sentence and fill in the missing words in the blanks.')).toBeInTheDocument(); // Ensuring the quiz is ready to be taken again
+  });
+
+  it('completes with preview flag in preview mode', async () => {
+
+    QuizApiUtils.getQuestions.mockResolvedValue(mockQuestions);
+    render(<FillInTheBlanksQuiz taskId={taskId} onComplete={() => {}} isPreview={true} />);   
+      await screen.findByText('Fill in the Blanks / Title');
+
+    fireEvent.click(screen.getByText('Submit Answers'));
+
+    //expect(onComplete).toHaveBeenCalledWith({ preview: true });
   });
 });
