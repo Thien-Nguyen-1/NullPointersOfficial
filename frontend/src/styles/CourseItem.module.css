@@ -1,9 +1,10 @@
 .courseOptContainer {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5vw, 1fr));
     align-items: center;
-    width: 80vw;
-    gap: 1rem;
-    justify-content: flex-start;
+    width: 90vw;
+    height:auto;
+    column-gap: 1vw;
     background-color: var(--primary-green-light);
     border-radius: 0.7rem;
     padding: 0.8rem;
@@ -22,43 +23,29 @@
         flex: 1; /* so it fills space, but doesn't overflow */
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+        text-overflow: ellipsis;    
     }
 
     min-width: 373px;
-    max-width: 1280px;
+    /* max-width: 1280px; */
     
 }
 
 
-.courseOptContainer .likeContainer {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    min-width: 4rem;
-    
-    p {
-        margin-bottom: 0.2rem;
-    }
-   
-}
+
 
 .courseOptContainer .viewContainer {
     display: inherit;
     justify-content: center;
 }
 
-.courseOptContainer button {
-    display: inline-block;
-    background: none;
-    border: none;
-   
-}
+
 
 .iconContainer {
+    grid-column: 1 / span 1;
     flex-shrink: 0;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 100%;
+    height: 100%;
     align-items: center;
     justify-content: center;
     display: flex;
@@ -69,25 +56,147 @@
     svg {color: white;}
 }
 
-.viewContainer {
+.titleContainer {
+    display: flex;
+    grid-column: 2 / span 4;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    overflow: hidden;
+}
+  
+.titleContainer p {
+    font-size: clamp(0.6rem, 2vw, 1rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+.courseOptContainer .likeContainer {
+    height: 100%;
+    grid-column: 6 / span 3;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 4rem;
+
+    
+    p {
+        margin-bottom: 0.2rem;
+    }
+   
+    button {
+        display: inline-block;
+        background: none;
+        border: none;
+   
+    }
+}
+
+.tag-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    grid-column: 6 / span 5;
+    /* flex-wrap: wrap; */
+    gap: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.tag-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tag {
+    padding: 6px 12px;
+    border: 1px solid var(--primary-green-dark);
+    border-radius: 20px;
+    background-color: var(--primary-green-light);
+    font-size: 0.5rem;
+    height: 100%;
+    width: auto;
+    max-height: 100%;
+    white-space: nowrap;
+
+}
+
+.pin-container {
+    grid-column: 11 / span 1;
+}
+
+
+.pin-button {
+    display: inline-block;
+    background: none;
+    border: none;
+}
+
+.pin-button:hover {
+    background:none;
+}
+
+/* .edit-module-btn {
+    grid-column: 6 / span 2;
+    
+} */
+.edit-container{
+    height: 100%;
+    grid-column: 12 / span 2;
     padding: 0.5rem;
     border-radius: inherit;
-    background-color: var(--primary-green-dark);
+    border: var(--primary-green) solid 2.5px;
+    background-color: white;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
 
+
+    p {
+        color: var(--primary-green);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.edit-container:hover {
     p {
         color: white;
     }
     
 }
 
-.titleContainer {
-    flex-grow: 1;
-    overflow: hidden;
-  }
-  
-  .titleContainer p {
-    font-size: clamp(0.6rem, 2vw, 1rem);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.viewContainer {
+    height: 100%;
+    grid-column:  14 / span 5;
+    padding: 0.5rem;
+    border-radius: inherit;
+    background-color: var(--primary-green-dark);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    p {
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+}
+ 
+ /* Phones and smaller Resolution */
+ @media screen and (max-width: 768px ){
+ 
+    .tag-container {
+        grid-column: 6 / span 4;
+    }
+
+    .pin-container {
+        grid-column: 10 / span 2;
+    }
+ 
+}
+ 

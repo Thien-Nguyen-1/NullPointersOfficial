@@ -4,15 +4,16 @@ import { FaSearch } from "react-icons/fa";
 import { MdThumbUpAlt, MdThumbUpOffAlt , MdBookmark, MdBookmarkBorder, MdOutlineUnsubscribe} from "react-icons/md";
 import { AuthContext } from "../services/AuthContext";
 import { useEnrollment } from "../services/EnrollmentContext";
-import api from "../services/api";
+import { tagApi } from "../services/api";
 import EnrollmentModal from "./EnrollmentModal";
 import styles from "../styles/CourseItem.module.css";
 
 
 function CourseItem(props){
 
+    const [tags, setTags] = useState([])
     const navigate = useNavigate();
-    const module = props.module
+    const module = props.module;
     const userInteractTarget  = props.userInteractTarget
     const role = props.role || "worker"; // Default to worker if role not provided
 
@@ -36,6 +37,17 @@ function CourseItem(props){
         selectedCourse: null
     });
 
+    const fetchTags = async () => {
+        try {
+            const responses = await Promise.all(
+                module.tags.map(tagId => tagApi.getById(tagId))
+            );
+            const fetchedTags = responses.map(res => res.data);
+            setTags(fetchedTags);
+        } catch (err) {
+            console.error("Failed to fetch tags:", err);
+        }
+    };
 
 
     // Handle course enrollment before client view the module
@@ -74,13 +86,20 @@ function CourseItem(props){
         }
     };
 
+    
 
     useEffect(() => {
-        
-        if(userInteractTarget){
-        
-            setStatus({...status, hasLiked: userInteractTarget.hasLiked, hasPinned: userInteractTarget.hasPinned})
-        }
+        const run = async () => {
+            await fetchTags();
+            if (userInteractTarget) {
+                setStatus({
+                    ...status,
+                    hasLiked: userInteractTarget.hasLiked,
+                    hasPinned: userInteractTarget.hasPinned
+                });
+            }
+        };
+        run();
     }, [userInteractTarget]); 
 
     const toggleLike = () => {
@@ -107,6 +126,10 @@ function CourseItem(props){
       
     }
 
+    const handleEditCourse = (course) => {
+        navigate(`/admin/all-courses/create-and-manage-module?edit=${course.id}`)
+    }
+
     return (
 
         <div className={styles.courseOptContainer}>
@@ -120,25 +143,51 @@ function CourseItem(props){
                 <p>{module.title}</p>
             </div>
 
-            <div className={styles.likeContainer}>
+            {/* <div className={styles.likeContainer}>
                 <button onClick={() => {toggleLike()}}>
                     {status.hasLiked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt />}
                 </button>
 
                 <p> {totalLikes}</p>
+            </div> */}
 
+            <div className={styles["tag-container"]}>
+                {tags.map(tag => (
+                    <div 
+                        className={styles["tag"]}
+                        key={tag.id}>
+                        {tag.tag}
+                    </div>
+                ))}
+                
             </div>
 
-            <button data-testid="pin-btn" onClick={() => {toggleFavourite()}}>  
-                {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
-            </button>
-           
-            <div className={styles.viewContainer}>        
-                <button onClick={() => handleViewCourse(module)}>
-                    <p>{isEnrolled(module.id) ? "Continue Learning" : "View Course"}</p>
+
+
+            <div className={styles["pin-container"]}>
+                <button data-testid="pin-btn" onClick={() => {toggleFavourite()}} className={styles["pin-button"]}>  
+                    {status.hasPinned ? <MdBookmark/> : <MdBookmarkBorder />}
                 </button>
+            </div> 
+            
+           
 
-            </div>
+            {(role === "admin" || role === "superadmin") && (
+                
+                    <button onClick={() => handleEditCourse(module)} className={styles["edit-container"]}>
+                        <p>Edit</p>
+                    </button>
+                
+                
+            )}
+            
+                  
+                 
+            <button onClick={() => handleViewCourse(module)} className={styles.viewContainer}>
+                <p>{isEnrolled(module.id) ? "Continue Learning" : "View Course"}</p>
+            </button>
+
+            
             
             {/* Enrollment Modal */}
             <EnrollmentModal
