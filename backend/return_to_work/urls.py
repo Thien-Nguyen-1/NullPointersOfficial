@@ -25,7 +25,7 @@ from returnToWork.views import (
     DocumentViewSet, AdminEmailVerificationView, ResendAdminVerificationView
 )
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet, TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, ImageViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView, QuizUserResponsesView
 
 #for media url access
 from django.conf import settings
@@ -99,6 +99,8 @@ urlpatterns = [
     path('api/quiz/data/<uuid:task_id>/', QuizDataView.as_view(), name='quiz_data'),
     path('api/quiz/response/', QuizResponseView.as_view(), name='quiz_response'),
     path('api/admin/quiz/responses/<uuid:task_id>/', AdminQuizResponsesView.as_view(), name='admin_quiz_responses'),
+    path('api/quiz/<str:task_id>/user-responses/', QuizUserResponsesView.as_view(), name='quiz-user-responses'),
+
     # Content Media Type
     path('modules/<int:module_id>/documents/', DocumentViewSet.as_view({'get': 'list'}), {'module_id': 'module_id'}),
     # Audio API Endpoints

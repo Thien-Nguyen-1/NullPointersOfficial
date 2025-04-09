@@ -102,6 +102,50 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete, isPreview = false, previewQue
     }
   }, [taskId, isPreview, previewQuestions]);
 
+  // Load saved answers from backend
+  useEffect(() => {
+    const loadSavedAnswers = async () => {
+      if (!taskId || isPreview) return;
+      
+      try {
+        console.log("Loading saved answers for fill-in-the-blanks quiz:", taskId);
+        const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
+        
+        if (response && response.answers) {
+          console.log("Retrieved saved answers:", response.answers);
+          
+          // Process answers for fill-in-the-blanks quiz
+          const processedAnswers = {};
+          
+          for (const [questionId, answerText] of Object.entries(response.answers)) {
+            try {
+              // Try to parse as JSON first (for array answers)
+              const parsed = JSON.parse(answerText);
+              processedAnswers[questionId] = Array.isArray(parsed) ? parsed : [answerText];
+            } catch (e) {
+              // If it's a simple string with delimiter
+              if (typeof answerText === 'string' && answerText.includes(' | ')) {
+                processedAnswers[questionId] = answerText.split(' | ');
+              } else {
+                // Fallback - create array with single value
+                processedAnswers[questionId] = [answerText];
+              }
+            }
+          }
+          
+          console.log("Processed fill-in-the-blanks answers:", processedAnswers);
+          setUserAnswers(processedAnswers);
+          setQuizSubmitted(true);
+          setShowReview(true);
+        }
+      } catch (error) {
+        console.error("Error loading saved fill-in-the-blanks answers:", error);
+      }
+    };
+    
+    loadSavedAnswers();
+  }, [taskId, isPreview]);
+
   // Handle user input for a specific blank in a question
   const handleBlankChange = (questionId, blankIndex, value) => {
     setUserAnswers(prevAnswers => ({
@@ -203,7 +247,8 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete, isPreview = false, previewQue
     // Double-check validation before sending to parent component
     if (validateQuiz()) {
       if (onComplete) {
-        onComplete(userAnswers); // Answers are passed to the ModuleView
+        onComplete(userAnswers); // Answers are passed to handleContentComplete
+        //setShowReview(true);
       }
     } else {
       // Return to quiz mode to complete missing answers

@@ -94,6 +94,30 @@ const FlowchartQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
     }
   }, [taskId, isPreview, previewQuestions]);
 
+  // Load saved answers from backend
+  useEffect(() => {
+    const loadSavedAnswers = async () => {
+    if (!taskId || isPreview) return;
+    
+    try {
+        console.log("Loading saved answers for flashcard quiz:", taskId);
+        const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
+        
+        if (response && response.answers) {
+        console.log("Retrieved saved answers:", response.answers);
+        
+        // For flashcards, answers are simple strings per question
+        setUserAnswers(response.answers);
+        setQuizCompleted(true);
+        }
+    } catch (error) {
+        console.error("Error loading saved flashcard answers:", error);
+    }
+    };
+    
+    loadSavedAnswers();
+}, [taskId, isPreview]);
+
   // Handle answer for current statement
   const handleAnswerChange = (e) => {
     if (currentStep < questions.length) {
