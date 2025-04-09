@@ -233,7 +233,7 @@ class ProgressTracker(models.Model):
     def update_progress(self):
         """Recalculate progress for this module"""
         # Get ContentType for each model
-        content_models = [InfoSheet, Video, Task]
+        content_models = [Document, EmbeddedVideo, Task, Document, Image,AudioClip, RankingQuestion]
         content_types = [ContentType.objects.get_for_model(model) for model in content_models]
         
         # Count total contents
@@ -309,10 +309,6 @@ class Content(models.Model):
 class RankingQuestion(Content):
     """Model for Ranking Question content type"""
     tiers = models.JSONField()
-
-class InlinePicture(Content):
-    """Model for Inline Picture content type"""
-    image_file = models.ImageField(upload_to="inline_pictures/")
 
 class Image(Content):
     file_url = models.CharField(max_length=255)
@@ -425,18 +421,6 @@ class EmbeddedVideo(Content):
 
     def extract_video_id(self):
         """Extracts video ID from URL - can be implemented for specific platforms"""
-
-# Extend Content class
-class InfoSheet(Content):
-    infosheet_file = models.FileField(upload_to="infosheets/")
-    infosheet_content = models.TextField(blank=True, null=True)
-
-
-class Video(Content):
-    # videoID= models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    video_file = models.FileField(upload_to="videos/")
-    duration = models.PositiveBigIntegerField()
-    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
 
 
 # This model defines the overall interactive quiz properties
@@ -558,7 +542,7 @@ class ContentProgress(models.Model):
         progress.update_progress()
     
     def __str__(self):
-        return f"{self.user.username} - {self.content_type} - {self.content_id}"
+        return f"{self.user.username} - {self.content_type} - {self.object_id}"
 
 
 class LearningTimeLog(models.Model):

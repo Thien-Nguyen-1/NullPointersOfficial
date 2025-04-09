@@ -39,19 +39,19 @@ import pusher
 from reportlab.pdfgen import canvas
 
 from .models import (
-    Content, InfoSheet, Module, ProgressTracker,Questionnaire, QuizQuestion, 
+    Content, Module, ProgressTracker,Questionnaire, QuizQuestion, 
     RankingQuestion, Tags, Task, User, UserModuleInteraction, UserResponse, 
-    AudioClip, Document, EmbeddedVideo, InlinePicture, ContentProgress, Video,
+    AudioClip, Document, EmbeddedVideo, Image, ContentProgress, 
     Conversation, Message, TermsAndConditions, AdminVerification, Image
 )
 from .serializers import (
     AudioClipSerializer, ContentPublishSerializer, DocumentSerializer,
-    EmbeddedVideoSerializer, InfoSheetSerializer, InlinePictureSerializer,
+    EmbeddedVideoSerializer,
     LogInSerializer, ModuleSerializer, PasswordResetSerializer, ProgressTrackerSerializer, 
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    VideoSerializer, MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer
+    MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer
 )
 
 User = get_user_model()
@@ -331,14 +331,14 @@ class QuestionnaireView(APIView):
 
         return Response("", status=status.HTTP_200_OK)
 
-class InfoSheetViewSet(viewsets.ModelViewSet):
-    queryset = InfoSheet.objects.all()
-    serializer_class = InfoSheetSerializer
+# class InfoSheetViewSet(viewsets.ModelViewSet):
+#     queryset = InfoSheet.objects.all()
+#     serializer_class = InfoSheetSerializer
 
 
-class VideoViewSet(viewsets.ModelViewSet):
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer   
+# class VideoViewSet(viewsets.ModelViewSet):
+#     queryset = Video.objects.all()
+#     serializer_class = VideoSerializer   
 
  
 class TaskViewSet(viewsets.ModelViewSet):
@@ -351,12 +351,12 @@ class RankingQuestionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer): # Automatically set the authenticated user as the author when a new ranking question is created
         serializer.save(author=self.request.user)
 
-class InlinePictureViewSet(viewsets.ModelViewSet):
-    queryset = InlinePicture.objects.all()
-    serializer_class = InlinePictureSerializer
+# class InlinePictureViewSet(viewsets.ModelViewSet):
+#     queryset = InlinePicture.objects.all()
+#     serializer_class = InlinePictureSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+#     def perform_create(self, serializer):
+#         serializer.save(author=self.request.user)
 
 
 class ImageViewSet(viewsets.ModelViewSet):
@@ -1219,11 +1219,11 @@ class UserInteractionView(APIView):
         return Response({"message": "Module interaction saved!", }, status=status.HTTP_200_OK)
 class AdminQuizResponsesView(APIView):
     # permission_classes = [IsAuthenticated]
-
+    # im not sure if this is needed anymore... since its not in requirement anymore
     def get(self, request, task_id):
         """Admin view to see all responses for a task"""
         # Check if user is admin
-        if request.user.user_type != 'admin':
+        if (request.user.user_type != 'admin' and request.user.user_type != 'superadmin'):
             return Response({"error": "You do not have permission to access this resource"},
                           status=status.HTTP_403_FORBIDDEN)
 
@@ -1758,7 +1758,7 @@ class AdminUserDetailView(APIView):
                     ranking_questions.update(author=superadmin)
                 
                 # Transfer ownership of InlinePicture content
-                inline_pictures = InlinePicture.objects.filter(author=admin_to_delete)
+                inline_pictures = Image.objects.filter(author=admin_to_delete)
                 ip_count = inline_pictures.count()
                 if ip_count > 0:
                     print(f"[DEBUG] Transferring {ip_count} InlinePicture items")
@@ -1786,18 +1786,18 @@ class AdminUserDetailView(APIView):
                     videos.update(author=superadmin)
                 
                 # Transfer ownership of InfoSheet content
-                infosheets = InfoSheet.objects.filter(author=admin_to_delete)
-                infosheet_count = infosheets.count()
-                if infosheet_count > 0:
-                    print(f"[DEBUG] Transferring {infosheet_count} InfoSheet items")
-                    infosheets.update(author=superadmin)
+                # infosheets = Infosheet.objects.filter(author=admin_to_delete)
+                # infosheet_count = infosheets.count()
+                # if infosheet_count > 0:
+                #     print(f"[DEBUG] Transferring {infosheet_count} InfoSheet items")
+                #     infosheets.update(author=superadmin)
                 
-                # Transfer ownership of Video content
-                video_content = Video.objects.filter(author=admin_to_delete)
-                video_content_count = video_content.count()
-                if video_content_count > 0:
-                    print(f"[DEBUG] Transferring {video_content_count} Video items")
-                    video_content.update(author=superadmin)
+                # # Transfer ownership of Video content
+                # video_content = Video.objects.filter(author=admin_to_delete)
+                # video_content_count = video_content.count()
+                # if video_content_count > 0:
+                #     print(f"[DEBUG] Transferring {video_content_count} Video items")
+                #     video_content.update(author=superadmin)
                 
                 # Update any terms and conditions created by this admin_to_delete
                 terms = TermsAndConditions.objects.filter(created_by=admin_to_delete)
@@ -1849,8 +1849,9 @@ class AdminUserDetailView(APIView):
                         'inline_pictures': ip_count,
                         'audio_clips': ac_count,
                         'documents': doc_count,
-                        'videos': video_count + video_content_count,
-                        'infosheets': infosheet_count,
+                        # 'videos': video_count + video_content_count,
+                        # 'infosheets': infosheet_count,
+                        'videos': video_count,
                         'terms': terms_count
                     },
                     'deleted_items': {
@@ -2091,9 +2092,13 @@ class MarkContentViewedView(APIView):
         
         # Map content_type_name to model
         content_type_map = {
-            'infosheet': InfoSheet,
-            'video': Video,
+            'video': EmbeddedVideo,
             'quiz': Task,  # Assuming quizzes are stored in Task model
+            'document' : Document,
+            'image' : Image,
+            'audio' : AudioClip,
+            'ranking' : RankingQuestion
+
         }
         
         if content_type_name not in content_type_map:
@@ -2168,7 +2173,7 @@ class CompletedContentView(APIView):
         module = get_object_or_404(Module, pk=module_id)
         
         # Get content types for all content models
-        content_models = [InfoSheet, Video, Task]
+        content_models = [Document, EmbeddedVideo, Task, AudioClip, Image, RankingQuestion]
         content_types = [ContentType.objects.get_for_model(model) for model in content_models]
         
         # Get content IDs for this module

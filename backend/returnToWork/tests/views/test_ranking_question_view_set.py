@@ -3,8 +3,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from returnToWork.models import (Module, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, User, Tags)
-from returnToWork.serializers import (RankingQuestionSerializer, InlinePictureSerializer, AudioClipSerializer,DocumentSerializer, EmbeddedVideoSerializer)
+from returnToWork.models import (Module, RankingQuestion, AudioClip, Document, EmbeddedVideo, User, Tags)
+from returnToWork.serializers import (RankingQuestionSerializer, AudioClipSerializer,DocumentSerializer, EmbeddedVideoSerializer)
 import json
 from django.core.files.uploadedfile import SimpleUploadedFile
 
