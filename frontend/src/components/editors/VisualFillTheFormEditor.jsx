@@ -36,7 +36,7 @@ const AdminQuestionForm = ({ onSubmit }) => {
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Enter question with ____ for blanks"
+          placeholder="Enter question with (four underscore) ____ for blanks"
           className="fitb-input-textarea"
         />
         <button onClick={handleSubmit} className="fitb-btn-add-question">
