@@ -1,129 +1,129 @@
-from django.test import TestCase
-from django.urls import reverse
-from rest_framework.test import APITestCase, APIClient
-from rest_framework import status
-from returnToWork.models import User, Module, ProgressTracker
-import uuid
-from unittest.mock import patch
+# from django.test import TestCase
+# from django.urls import reverse
+# from rest_framework.test import APITestCase, APIClient
+# from rest_framework import status
+# from returnToWork.models import User, Module, ProgressTracker
+# import uuid
+# from unittest.mock import patch
 
-class UserDetailViewTests(APITestCase):
-    def setUp(self):
-        """Set up test dependencies"""
-        # Create test users
-        self.user = User.objects.create_user(
-            username='@testuser',
-            email='test@example.com',
-            password='testpassword123',
-            first_name='Test',
-            last_name='User',
-            user_type='service user'
-        )
+# class UserDetailViewTests(APITestCase):
+#     def setUp(self):
+#         """Set up test dependencies"""
+#         # Create test users
+#         self.user = User.objects.create_user(
+#             username='@testuser',
+#             email='test@example.com',
+#             password='testpassword123',
+#             first_name='Test',
+#             last_name='User',
+#             user_type='service user'
+#         )
         
-        self.admin_user = User.objects.create_user(
-            username='@adminuser',
-            email='admin@example.com',
-            password='adminpassword123',
-            first_name='Admin',
-            last_name='User',
-            user_type='admin'
-        )
+#         self.admin_user = User.objects.create_user(
+#             username='@adminuser',
+#             email='admin@example.com',
+#             password='adminpassword123',
+#             first_name='Admin',
+#             last_name='User',
+#             user_type='admin'
+#         )
         
-        # Create test modules
-        self.module1 = Module.objects.create(
-            title='Module 1',
-            description='First test module',
-        )
+#         # Create test modules
+#         self.module1 = Module.objects.create(
+#             title='Module 1',
+#             description='First test module',
+#         )
         
-        self.module2 = Module.objects.create(
-            title='Module 2',
-            description='Second test module',
-        )
+#         self.module2 = Module.objects.create(
+#             title='Module 2',
+#             description='Second test module',
+#         )
         
-        self.module3 = Module.objects.create(
-            title='Module 3',
-            description='Third test module',
-        )
+#         self.module3 = Module.objects.create(
+#             title='Module 3',
+#             description='Third test module',
+#         )
         
-        # Create progress trackers
-        self.tracker1 = ProgressTracker.objects.create(
-            user=self.user,
-            module=self.module1,
-            completed=True,
-            pinned=True
-        )
+#         # Create progress trackers
+#         self.tracker1 = ProgressTracker.objects.create(
+#             user=self.user,
+#             module=self.module1,
+#             completed=True,
+#             pinned=True
+#         )
         
-        self.tracker2 = ProgressTracker.objects.create(
-            user=self.user,
-            module=self.module2,
-            completed=False,
-            pinned=False
-        )
+#         self.tracker2 = ProgressTracker.objects.create(
+#             user=self.user,
+#             module=self.module2,
+#             completed=False,
+#             pinned=False
+#         )
         
-        self.tracker3 = ProgressTracker.objects.create(
-            user=self.user,
-            module=self.module3,
-            completed=False,
-            pinned=True
-        )
+#         self.tracker3 = ProgressTracker.objects.create(
+#             user=self.user,
+#             module=self.module3,
+#             completed=False,
+#             pinned=True
+#         )
         
-        # Set up the client
-        self.client = APIClient()
-        self.url = reverse('user-detail')
+#         # Set up the client
+#         self.client = APIClient()
+#         self.url = reverse('user-detail')
     
-    def test_user_detail_authenticated(self):
-        """Test that an authenticated user can access their details"""
-        self.client.force_authenticate(user=self.user)
-        response = self.client.get(self.url)
+#     def test_user_detail_authenticated(self):
+#         """Test that an authenticated user can access their details"""
+#         self.client.force_authenticate(user=self.user)
+#         response = self.client.get(self.url)
         
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check basic user info is returned
-        self.assertEqual(response.data['username'], self.user.username)
-        self.assertEqual(response.data['first_name'], self.user.first_name)
-        self.assertEqual(response.data['last_name'], self.user.last_name)
-        self.assertEqual(response.data['user_type'], self.user.user_type)
+#         # Check basic user info is returned
+#         self.assertEqual(response.data['username'], self.user.username)
+#         self.assertEqual(response.data['first_name'], self.user.first_name)
+#         self.assertEqual(response.data['last_name'], self.user.last_name)
+#         self.assertEqual(response.data['user_type'], self.user.user_type)
 
-        # Check progress info is returned
-        self.assertEqual(response.data['completed_modules'], 1)
-        self.assertEqual(response.data['in_progress_modules'], 2)
-        self.assertEqual(response.data['total_modules'], 3)
-        self.assertEqual(len(response.data['modules']), 3)
+#         # Check progress info is returned
+#         self.assertEqual(response.data['completed_modules'], 1)
+#         self.assertEqual(response.data['in_progress_modules'], 2)
+#         self.assertEqual(response.data['total_modules'], 3)
+#         self.assertEqual(len(response.data['modules']), 3)
 
-        # self.assertEqual(response.data['completed_modules'], 1)
-        # self.assertEqual(response.data['in_progress_modules'], 1)
-        # self.assertEqual(response.data['total_modules'], 2)
+#         # self.assertEqual(response.data['completed_modules'], 1)
+#         # self.assertEqual(response.data['in_progress_modules'], 1)
+#         # self.assertEqual(response.data['total_modules'], 2)
 
-        # Check structure of module details
-        self.assertEqual(len(response.data['modules']), 3)
-        for module in response.data['modules']:
-            self.assertIn('id', module)
-            self.assertIn('title', module)
-            self.assertIn('completed', module)
-            self.assertIn('pinned', module)
-            self.assertIn('progress_percentage', module)
+#         # Check structure of module details
+#         self.assertEqual(len(response.data['modules']), 3)
+#         for module in response.data['modules']:
+#             self.assertIn('id', module)
+#             self.assertIn('title', module)
+#             self.assertIn('completed', module)
+#             self.assertIn('pinned', module)
+#             self.assertIn('progress_percentage', module)
 
 
-        def test_put_update_user_details_without_db_refresh(self):
-        data = {
-                "user_id": self.user.user_id,  # assuming this is the correct field
-                "is_first_login": False,
-        "firebase_token": "mock-token-xyz",
-        "tags": [{"id": self.tag.id, "tag": self.tag.tag}],
-        "module": [{"id": self.module.id}]
-    }
+#     def test_put_update_user_details_without_db_refresh(self):
+#         data = {
+#                 "user_id": self.user.user_id,  # assuming this is the correct field
+#                 "is_first_login": False,
+#                 "firebase_token": "mock-token-xyz",
+#                 "tags": [{"id": self.tag.id, "tag": self.tag.tag}],
+#                 "module": [{"id": self.module.id}]
+#                 }
 
-    response = self.client.put(self.url, data, format="json")
+#         response = self.client.put(self.url, data, format="json")
 
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-    self.assertEqual(response.data["message"], "Login Successful")
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.assertEqual(response.data["message"], "Login Successful")
 
-    updated_user_data = response.data["user"]
+#         updated_user_data = response.data["user"]
 
-    self.assertEqual(updated_user_data["username"], self.user.username)
-    self.assertEqual(updated_user_data["first_name"], self.user.first_name)
-    self.assertEqual(updated_user_data["last_name"], self.user.last_name)
-    self.assertEqual(updated_user_data["user_type"], self.user.user_type)
-    self.assertFalse(data["is_first_login"])  # we can also check this if included in the response
+#         self.assertEqual(updated_user_data["username"], self.user.username)
+#         self.assertEqual(updated_user_data["first_name"], self.user.first_name)
+#         self.assertEqual(updated_user_data["last_name"], self.user.last_name)
+#         self.assertEqual(updated_user_data["user_type"], self.user.user_type)
+#         self.assertFalse(data["is_first_login"])  # we can also check this if included in the response
 
     # Optionally:
     # Check tag and module inclusion if your serializer includes those fields

@@ -20,7 +20,7 @@ const Login = () => {
       redirectBasedOnUserType(data);
 
     } catch(err) {
-      
+      console.log()
       setError("Invalid username or password");
     }
   }
