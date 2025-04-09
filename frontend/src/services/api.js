@@ -167,8 +167,8 @@ export function redirectBasedOnUserType(userData) {
           else {
             console.log("Redirecting to worker/home");
             window.location.href = '/worker/home';
-            }
-            break;
+          }
+          break;
         default:
             console.log("Default case, redirecting to worker/home. User type:", userType);
             window.location.href = '/worker/home';
