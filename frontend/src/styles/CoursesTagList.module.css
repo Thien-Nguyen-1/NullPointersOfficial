@@ -1,3 +1,8 @@
+html, body {
+    overflow-x: hidden;
+}
+  
+
 .subheading {
     font-size: 2.0rem;
     font-weight: bold;
@@ -9,6 +14,8 @@
 
 
 .filter-section {
+    position: relative;
+    width: 100%;
     flex: 1;
     min-width: 200px;
     margin-top: 0px;
@@ -20,10 +27,27 @@
     color: var(--text-subtle);
 }
 
-.tags-list {
+/* .tags-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+} */
+
+.tags-list {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 0.5rem 3vw;
+    gap: 0.6rem;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* firefox */
+}
+
+.tags-list::-webkit-scrollbar {
+    display: none; /* Chrome */
 }
   
 .tag-btn {
@@ -52,4 +76,119 @@
     align-items: center;
     background-color: grey;
     color: white;
+}
+
+.tags-list-wrapper {
+    overflow: hidden;
+    flex: 1;
+    position: relative;
+}
+
+.tags-scroll-wrapper {
+    border-top: 1px solid var(--primary-green-light);
+    border-bottom: 1px solid var(--primary-green-light);
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    max-width: 95vw;
+    width: 95vw;
+    overflow: hidden;
+}
+
+
+.scroll-arrow-container {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--background-color);
+    color: var(--primary-green);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 3;
+    width: 3vw;
+    padding: 0 0.5rem;
+    height: 100%;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.scroll-arrow-container.left {
+    left: 0;
+}
+  
+.scroll-arrow-container.right {
+    right: 0;
+} 
+
+.scroll-arrow {
+    z-index: 4;
+    pointer-events: auto;
+    width: 2.5vw;
+    height: 2.5vw;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.scroll-arrow:hover {
+    background-color: var(--primary-green);
+    color: white;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* Gradient overlays */
+.fade-left,
+.fade-right {
+  position: absolute;
+  top: 0;
+  width: 6vw;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 20px;
+}
+
+.fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--background-color) 80%, transparent);
+}
+
+.fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--background-color) 80%, transparent);
+}
+
+/* Phone view */
+@media screen and (min-width: 375px) {
+    .fade-left, .fade-right {
+      width: 6vw;
+    }
+}
+
+  /* Tablet view */
+@media screen and (min-width: 768px ){
+    .fade-left, .fade-right {
+        width: 5.5vw;
+    }
+}
+
+/* Desktop View */
+@media screen and (min-width: 1080px) {
+    .fade-left, .fade-right {
+        width: 5vw;
+    }
+  
 }

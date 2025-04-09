@@ -1102,27 +1102,30 @@ const AddModule = () => {
             />
             
             {/* Action Buttons */}
-            <div className={styles["button-container"]}>
-              <div className={styles["preview-container"]}>
-                <button 
-                  onClick={isPreviewMode ? exitPreviewMode : handlePreview}
-                  className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
-                >
-                  {isPreviewMode ? "Back to Editor" : "Preview"}
-                </button>
-              </div>
+            
+              
+          </div>
+          {/* Action Buttons */}
+          <div className={styles["button-container"]}>
+            <div className={styles["preview-container"]}>
               <button 
-                className={styles["publish-btn"]} 
-                onClick={publishModule} 
-                disabled={isLoading}
+                onClick={isPreviewMode ? exitPreviewMode : handlePreview}
+                className={styles[isPreviewMode ? "edit-mode-btn" : "preview-btn"]}
               >
-                {isLoading ? 
-                  (isEditing ? "Updating..." : "Publishing...") : 
-                  (isEditing ? "Update" : "Publish")
-                }
+                {isPreviewMode ? "Back to Editor" : "Preview"}
               </button>
-              {isEditing && <button className={styles["edit-btn"]}>Edit</button>}
             </div>
+            <button 
+              className={styles["publish-btn"]} 
+              onClick={publishModule} 
+              disabled={isLoading}
+            >
+              {isLoading ? 
+                (isEditing ? "Updating..." : "Publishing...") : 
+                (isEditing ? "Update" : "Publish")
+              }
+            </button>
+            {isEditing && <button className={styles["edit-btn"]}>Edit</button>}
           </div>
         </>
       )}
