@@ -6,5 +6,4 @@ class ReturntoworkConfig(AppConfig):
     name = 'returnToWork'
 
 
-    def ready(self):
-        from . import firebase_config
+   

@@ -24,7 +24,7 @@ import RequestPasswordReset from './components/auth/RequestPasswordReset.jsx';
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
 import Messaging from './pages/Messaging.jsx';
 import ServiceUsersPage from "./pages/ServiceUsersPage";
-import DropZoneTest from './pages/DropZone.jsx';
+
 import QuizContainer from './components/quizzes/QuizContainer';
 
 import ProtectedSuperAdminRoute from './components/superadmin-settings/ProtectedSuperAdminRoute.jsx';

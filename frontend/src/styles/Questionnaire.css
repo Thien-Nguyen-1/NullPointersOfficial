@@ -1,0 +1,98 @@
+.question-container {
+    display: flex;
+    justify-content: center;
+    align-items: last baseline;
+    border: none;
+    background: none;
+    background-color: transparent !important;
+    padding: 0px !important;
+    border-radius: 0px !important;
+    box-shadow: none !important;
+    margin:0% !important;
+    height: 50vh;  
+}
+
+.question-name {
+    font-size: 24px;
+    font-weight: bold;
+    background: none;
+    text-align: center;
+    white-space: pre-line;
+}
+
+.button-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.radio-button input {
+    display: none;
+}
+  
+
+.custom-radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid gray;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    margin-right: 10px;
+    transition: border-color 0.3s ease;
+}
+  
+/* Inner dot when selected */
+.radio-button input:checked + .custom-radio::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: var(--primary-green);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Change border color when selected */
+.radio-button input:checked + .custom-radio {
+    border-color: black;
+}
+
+.submit {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+.go-back {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+}
+
+.centered-text {
+    text-align: center;
+    white-space: pre-line;
+}
+
+.suggestion-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    
+   
+}
+.suggestion-box {
+    display: inherit;
+    flex-direction: inherit;
+    text-align: center;
+    width: 60%;
+
+    background-color: var(--secondary-green);
+    border-radius: 0.5rem;
+}

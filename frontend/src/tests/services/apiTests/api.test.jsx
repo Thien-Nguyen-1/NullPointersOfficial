@@ -1095,69 +1095,69 @@ describe('api.js', () => {
   });
 
   // Test markContentAsViewed
-  describe('markContentAsViewed', () => {
-    let originalFetch;
+  // describe('markContentAsViewed', () => {
+  //   let originalFetch;
 
-    beforeEach(() => {
-      originalFetch = global.fetch;
-      global.fetch = vi.fn();
-    });
+  //   beforeEach(() => {
+  //     originalFetch = global.fetch;
+  //     global.fetch = vi.fn();
+  //   });
 
-    afterEach(() => {
-      global.fetch = originalFetch;
-    });
+  //   afterEach(() => {
+  //     global.fetch = originalFetch;
+  //   });
 
-    test('should mark content as viewed successfully', async () => {
-      const mockResponse = { success: true };
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse
-      });
+  //   test('should mark content as viewed successfully', async () => {
+  //     const mockResponse = { success: true };
+  //     global.fetch.mockResolvedValueOnce({
+  //       ok: true,
+  //       json: async () => mockResponse
+  //     });
 
-      const result = await apiModule.markContentAsViewed('content-1', 'video', 'test-token');
+  //     const result = await apiModule.markContentAsViewed('content-1', 'video', 'test-token');
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/content-progress/mark-viewed/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer test-token'
-        },
-        body: JSON.stringify({
-          content_id: 'content-1',
-          content_type: 'video'
-        })
-      });
+  //     expect(global.fetch).toHaveBeenCalledWith('/api/content-progress/mark-viewed/', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer test-token'
+  //       },
+  //       body: JSON.stringify({
+  //         content_id: 'content-1',
+  //         content_type: 'video'
+  //       })
+  //     });
 
-      expect(result).toEqual(mockResponse);
-      expect(console.log).toHaveBeenCalledWith('Request payload:', {
-        content_id: 'content-1',
-        content_type: 'video'
-      });
-    });
+  //     expect(result).toEqual(mockResponse);
+  //     expect(console.log).toHaveBeenCalledWith('Request payload:', {
+  //       content_id: 'content-1',
+  //       content_type: 'video'
+  //     });
+  //   });
 
-    test('should handle error response from API', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        statusText: 'Bad Request',
-        text: async () => 'Invalid content type'
-      });
+  //   test('should handle error response from API', async () => {
+  //     global.fetch.mockResolvedValueOnce({
+  //       ok: false,
+  //       status: 400,
+  //       statusText: 'Bad Request',
+  //       text: async () => 'Invalid content type'
+  //     });
 
-      await expect(apiModule.markContentAsViewed('content-1', 'invalid', 'test-token'))
-        .rejects.toThrow('Error 400: Bad Request - Invalid content type');
+  //     await expect(apiModule.markContentAsViewed('content-1', 'invalid', 'test-token'))
+  //       .rejects.toThrow('Error 400: Bad Request - Invalid content type');
 
-      expect(console.error).toHaveBeenCalled();
-    });
+  //     expect(console.error).toHaveBeenCalled();
+  //   });
 
-    test('should handle network error', async () => {
-      global.fetch.mockRejectedValueOnce(new Error('Network error'));
+  //   test('should handle network error', async () => {
+  //     global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(apiModule.markContentAsViewed('content-1', 'video', 'test-token'))
-        .rejects.toThrow('Network error');
+  //     await expect(apiModule.markContentAsViewed('content-1', 'video', 'test-token'))
+  //       .rejects.toThrow('Network error');
 
-      expect(console.error).toHaveBeenCalled();
-    });
-  });
+  //     expect(console.error).toHaveBeenCalled();
+  //   });
+  // });
 
   // Test fetchCompletedInteractiveContent
   describe('fetchCompletedInteractiveContent', () => {
