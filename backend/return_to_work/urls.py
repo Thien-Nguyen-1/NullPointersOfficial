@@ -16,7 +16,7 @@ from returnToWork.views import (
     UserInteractionView, LogInView, LogOutView, SignUpView, UserProfileView,
     PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView,
     DeleteServiceUserView, UserSettingsView, UserPasswordChangeView,
-    CheckUsernameView, RequestPasswordResetView, ContentPublishView,
+    CheckUsernameView,CheckEmailView, RequestPasswordResetView, ContentPublishView,
     RankingQuestionViewSet, AudioClipViewSet,
     DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
