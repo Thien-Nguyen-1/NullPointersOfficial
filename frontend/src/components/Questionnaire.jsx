@@ -75,7 +75,7 @@ const Questionnaire = () => {
         ...user,
         is_first_login : false
       }
-      
+    
       console.log(newUsr.is_first_login)
 
       await updateUser(newUsr)
