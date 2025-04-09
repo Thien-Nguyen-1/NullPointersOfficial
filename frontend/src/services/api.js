@@ -478,12 +478,10 @@ export const downloadCompletedTask = async(taskId, token) => {
  * @param {string} token - The user's auth token
  * @returns {Promise} - The response from the API
  */
-export const markContentAsViewed = async (contentId, contentType, token) => {
+export const markContentAsViewed = async (contentId, contentType) => {
   try {
-    console.log("Request payload:", {
-      content_id: contentId,
-      content_type: contentType
-    });
+    console.log(`Marking ${contentType} with ID ${contentId} as viewed...`);
+
     
     
     const response = await api.post('/api/content-progress/mark-viewed/', {
