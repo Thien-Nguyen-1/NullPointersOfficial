@@ -33,7 +33,7 @@ from reportlab.lib.pagesizes import letter
 from django.core.cache import cache
 
 from django.db.models import Q
-from firebase_admin import messaging
+
 import pusher
 
 from reportlab.pdfgen import canvas
@@ -766,7 +766,7 @@ class EmbeddedVideoViewSet(viewsets.ModelViewSet):
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated]  
+    
 
     def get(self, request):
         # Get user details
@@ -806,6 +806,8 @@ class UserDetail(APIView):
 
         # Works but Need To Use Seralizer - TO DO
 
+        print("Received request to update the user details")
+
         try:
             user = request.user
             user_serializer = UserSerializer(user)
@@ -817,6 +819,9 @@ class UserDetail(APIView):
             user_in.first_name = user.first_name
             user_in.last_name = user.last_name
             user_in.user_type = user.user_type
+            user_in.is_first_login = data['is_first_login']
+
+            print(data['is_first_login'])
 
             tag_data = data['tags']
             fire_token = data.get('firebase_token')

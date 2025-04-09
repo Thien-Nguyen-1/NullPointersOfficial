@@ -15,9 +15,9 @@ const QuestionnaireAdmin = () => {
     },
     { 
       id: 2, 
-      question: "Do you still want more support?", 
+      question: "Do you have back problems?", 
       yes_next_q: 4, 
-      no_next_q: 5,
+      no_next_q: 4,
       assessment_tag: null
     },
     { 
@@ -29,14 +29,14 @@ const QuestionnaireAdmin = () => {
     },
     { 
       id: 4, 
-      question: "Would you like to talk to HR?", 
+      question: "Do you have ADHD?", 
       yes_next_q: null, 
       no_next_q: null,
       assessment_tag: "HR Intervention"
     },
     { 
       id: 5, 
-      question: "Would you like to update your manager?", 
+      question: "Have you experience PTSD?", 
       yes_next_q: null, 
       no_next_q: null,
       assessment_tag: "Work Readiness"
