@@ -2,7 +2,10 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from getpass import getpass
-from returnToWork.models import User
+from django.contrib.auth import get_user_model
+import uuid
+
+User = get_user_model()
 
 class Command(BaseCommand):
     help = 'Creates a superadmin user'
@@ -59,30 +62,51 @@ class Command(BaseCommand):
             password = ''.join(secrets.choice(alphabet) for i in range(12))
         
         # Check if superadmin already exists
-        if User.objects.filter(user_type='superadmin').exists():
+        existing_superadmin = User.objects.filter(user_type='superadmin')
+        if existing_superadmin.exists():
             self.stdout.write(self.style.WARNING('A superadmin user already exists.'))
             if not noinput:
-                confirm = input("Do you want to create another superadmin? (y/n): ")
+                confirm = input("Do you want to replace the existing superadmin? (y/n): ")
                 if confirm.lower() != 'y':
                     self.stdout.write(self.style.SUCCESS('Operation cancelled.'))
                     return
+                else:
+                    existing_superadmin.delete()
         
         # Check if username exists
         if User.objects.filter(username=username).exists():
             self.stdout.write(self.style.ERROR(f'Username {username} already exists.'))
             return
         
-        # Create the superadmin user
+        # Create the superadmin user with comprehensive attributes
         try:
-            user = User.objects.create_user(
+            # Use create_superuser instead of create_user for more robust creation
+            user = User.objects.create_superuser(
                 username=username,
-                first_name=first_name,
-                last_name=last_name,
                 email=email,
                 password=password,
-                user_type='superadmin'
+                user_type='superadmin',
+                first_name=first_name,
+                last_name=last_name,
+                # Additional attributes to ensure full JWT compatibility
+                is_active=True,
+                is_staff=True,
+                is_superuser=True,
+                terms_accepted=True,
+                user_id=uuid.uuid4(),  
+                is_first_login=False  # assume superadmin doesnt need first login flow
             )
+            
+            # Explicitly save to trigger any model-level validations
             user.save()
+            
+            # Create AdminVerification record if needed
+            from returnToWork.models import AdminVerification
+            AdminVerification.objects.create(
+                admin=user,
+                is_verified=True,
+                verification_token=str(uuid.uuid4())
+            )
             
             if noinput:
                 self.stdout.write(self.style.SUCCESS(f'Successfully created superadmin user: {username}'))
@@ -93,3 +117,5 @@ class Command(BaseCommand):
                 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Error creating superadmin: {str(e)}'))
+            import traceback
+            traceback.print_exc()

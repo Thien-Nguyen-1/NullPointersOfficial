@@ -65,6 +65,11 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
     }
   };
 
+  const shouldShowMarkCompleteButton = () => {
+    // Only show the button for service users
+    return user && user.user_type === 'service user' && !completedContentIds.has(item.id);
+  };
+
   //  wrapper  for preview mode items
   const PreviewWrapper = ({children, type}) => {
     if (!isPreviewMode) return children;
@@ -165,6 +170,8 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
     default:
       return <div className="alt-error">Unknown content type: {item.type}</div>;
   }
+
+  
 };
 
 export default ContentRenderer;
