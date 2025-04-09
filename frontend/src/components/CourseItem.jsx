@@ -37,29 +37,6 @@ function CourseItem(props){
     });
 
 
-    // Check if the service user or worker has enrolled into the module
-    // useEffect(() => {
-    //     const checkEnrollment = async () => {
-    //         if (user && token) {
-    //             try {
-    //                 const response = api.post('/api/progress-tracker/', {
-    //                     headers: {Authorization: `Token ${token}`}
-    //                 });
-
-    //                 // Check if if any progress tracker entry exists for this user & this specific module
-    //                 const hasEnrolled = response.data.some(tracker => 
-    //                     tracker.user === user.id && tracker.module === module.id
-    //                 )
-
-    //                 setIsEnrolled(enrolled);
-    //             }  catch (err) {
-    //                 console.error("Error checking enrollment status:", err);
-    //             }
-    //         }
-
-    //     };
-    //     checkEnrollment();
-    // }, [user, token, module.id])
 
     // Handle course enrollment before client view the module
     const handleEnroll = async (courseId) => {
@@ -80,10 +57,16 @@ function CourseItem(props){
     };
 
     const handleViewCourse = (course) => {
-        if (role === "admin" || isEnrolled(course.id)) {
+        console.log("Current role:", role); // See what role value is being used
+        console.log("User from context:", user); // Check if user has correct user_type
+        console.log("Is enrolled:", isEnrolled(course.id)); // Verify enrollment status
+  
+        if (role === "admin" || role === "superadmin" || isEnrolled(course.id)) {
+            console.log("Direct navigation condition met");
             navigate(`/modules/${course.id}`);
         } else {
             // Only users who havent enrolled could see the enrollment popup
+            console.log("Showing enrollment modal");
             setEnrollmentModal({
                 isOpen: true,
                 selectedCourse: module

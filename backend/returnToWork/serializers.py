@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 import uuid
 import base64
-from .models import ProgressTracker,Tags,User,Module,Content,InfoSheet,Video,Task, Questionnaire,  RankingQuestion, InlinePicture, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification, Image
+from .models import ProgressTracker,Tags,User,Module,Content,Task, Questionnaire,  RankingQuestion, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion,UserResponse, Conversation, Message, AdminVerification, Image
 from django.contrib.auth import authenticate, get_user_model
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -167,17 +167,17 @@ class ContentSerializer(serializers.ModelSerializer):
         fields = ['contentID', 'title', 'moduleID', 'author', 'description', 'created_at', 'updated_at', 'is_published']
         read_only_fields = ['contentID', 'created_at', 'updated_at']
 
-class InfoSheetSerializer(ContentSerializer):
+# class InfoSheetSerializer(ContentSerializer):
 
-    class Meta(ContentSerializer.Meta):
-        model = InfoSheet
-        fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
+#     class Meta(ContentSerializer.Meta):
+#         model = InfoSheet
+#         fields = ContentSerializer.Meta.fields + ['infosheet_file', 'infosheet_content']        
 
-class VideoSerializer(ContentSerializer):
+# class VideoSerializer(ContentSerializer):
 
-    class Meta(ContentSerializer.Meta):
-        model = Video
-        fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
+#     class Meta(ContentSerializer.Meta):
+#         model = Video
+#         fields = ContentSerializer.Meta.fields + ['video_file', 'duration', 'thumbnail']
 
 class TaskSerializer(ContentSerializer):
 
@@ -240,10 +240,10 @@ class ImageSerializer(ContentSerializer):
         ]
         read_only_fields = ContentSerializer.Meta.read_only_fields + ['file_size_formatted']
 
-class InlinePictureSerializer(ContentSerializer):
-    class Meta:
-        model = InlinePicture
-        fields  = ContentSerializer.Meta.fields + ['image_file']
+# class InlinePictureSerializer(ContentSerializer):
+#     class Meta:
+#         model = InlinePicture
+#         fields  = ContentSerializer.Meta.fields + ['image_file']
 
 class AudioClipSerializer(ContentSerializer):
     file_url = serializers.SerializerMethodField()
@@ -378,7 +378,7 @@ class ContentPublishSerializer(serializers.Serializer):
                 ext = format.split('/')[-1]
                 data = ContentFile(base64.b64decode(imgstr), name=f'{uuid.uuid4()}.{ext}')
 
-                InlinePicture.objects.create(
+                Image.objects.create(
                     moduleID=module,
                     author=user,
                     title=element.get('title', ''),
