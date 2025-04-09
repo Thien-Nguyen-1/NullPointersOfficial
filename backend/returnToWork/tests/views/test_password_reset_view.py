@@ -28,7 +28,6 @@ class PasswordResetTest(APITestCase):
         response = self.client.post(self.change_password_url,data,format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "Password reset successfully")
-
         self.client.logout()
         login_successful = self.client.login(username = "@johndoe", password = "password12345")
         self.assertTrue(login_successful)

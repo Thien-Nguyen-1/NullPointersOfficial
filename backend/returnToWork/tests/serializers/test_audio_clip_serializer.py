@@ -80,7 +80,7 @@ class AudioClipSerializerTest(TestCase):
             'contentID', 'title', 'moduleID', 'author', 'description',
             'created_at', 'updated_at', 'is_published', 'audio_file',
             'file_url', 'file_size_formatted', 'duration', 'filename',
-            'file_size', 'file_type'
+            'file_size', 'file_type', 'order_index'
         ]
         self.assertEqual(set(serializer.data.keys()), set(expected_fields))
     

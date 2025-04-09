@@ -1,10 +1,3 @@
-// to allow viewing PDF documents directly in the browser
-// An inline PDF document viewer with:
-
-// Fullscreen mode
-// Download option
-// Loading indicators
-
 import React, { useState, useEffect } from 'react';
 import { FiMaximize, FiMinimize, FiDownload } from 'react-icons/fi';
 import styles from '../styles/PDFViewer.module.css';
@@ -15,24 +8,23 @@ const PDFViewer = ({ documentUrl, documentName }) => {
   const [error, setError] = useState(null);
   const [objectUrl, setObjectUrl] = useState(null);
 
-
   useEffect(() => {
     setLoading(true);
     setError(null);
     
-    // Call the fetchPdf function when the component mounts or URL changes
     fetchPdf();
     
-    // Cleanup function to revoke the object URL when component unmounts
     return () => {
       if (objectUrl && !documentUrl.startsWith('blob:')) {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [documentUrl])
+  }, [documentUrl]);
 
   const fetchPdf = async () => {
     try {
+      console.log('[PDFViewer] Full documentUrl:', documentUrl);
+      
       if (!documentUrl) {
         console.error("No document URL provided");
         setError("No document URL provided");
@@ -40,26 +32,27 @@ const PDFViewer = ({ documentUrl, documentName }) => {
         return;
       }
       
-      console.log("Attempting to fetch PDF from:", documentUrl);
-      
-      // For blob URLs, just use the URL directly as the object URL
+      // Blob URL handling
       if (documentUrl.startsWith('blob:')) {
-        console.log("Using blob URL directly");
+        console.log('[PDFViewer] Using blob URL directly');
         setObjectUrl(documentUrl);
         setLoading(false);
         return;
       }
       
-      // For server URLs
+      // Server URL handling
       const backendUrl = "http://localhost:8000";
       const fetchUrl = documentUrl.startsWith('http') 
         ? documentUrl 
         : `${backendUrl}${documentUrl}`;
       
-      console.log("Fetching from server URL:", fetchUrl);
+      console.log('[PDFViewer] Fetching from URL:', fetchUrl);
       
       const response = await fetch(fetchUrl, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/pdf'
+        }
       });
       
       if (!response.ok) {
@@ -67,11 +60,14 @@ const PDFViewer = ({ documentUrl, documentName }) => {
       }
       
       const blob = await response.blob();
+      console.log('[PDFViewer] Blob size:', blob.size);
+      console.log('[PDFViewer] Blob type:', blob.type);
+      
       const url = URL.createObjectURL(blob);
       setObjectUrl(url);
       setLoading(false);
     } catch (err) {
-      console.error("Error loading PDF:", err);
+      console.error("[PDFViewer] Error loading PDF:", err);
       setError(`Failed to load PDF: ${err.message}`);
       setLoading(false);
     }
@@ -83,7 +79,6 @@ const PDFViewer = ({ documentUrl, documentName }) => {
 
   const handleDownload = async () => {
     try {
-      // Use the same approach as in DocumentUploader
       const backendUrl = "http://localhost:8000";
       const fileUrl = documentUrl.startsWith('http') 
         ? documentUrl 
@@ -145,13 +140,24 @@ const PDFViewer = ({ documentUrl, documentName }) => {
         </div>
       )}
       
-      <div className={styles.viewerContainer} style={{ display: loading ? 'none' : 'block' }}>
+      <div 
+        className={styles.viewerContainer} 
+        style={{ display: loading || error ? 'none' : 'block' }}
+      >
         {objectUrl && (
-          <iframe
-            src={objectUrl}
-            className={styles.pdfFrame}
-            title={documentName || 'PDF Document Viewer'}
-          ></iframe>
+          <object
+            data={objectUrl}
+            type="application/pdf"
+            width="100%"
+            height="100%"
+            className={styles.pdfObject}
+          >
+            <p>Your browser doesn't support PDF viewing. 
+              <a href={objectUrl} target="_blank" rel="noopener noreferrer">
+                Click here to download the PDF
+              </a>
+            </p>
+          </object>
         )}
       </div>
       

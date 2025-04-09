@@ -169,6 +169,7 @@ class User(AbstractUser):
     # module = models.ForeignKey(Module, on_delete=models.CASCADE)
     # tags = models.ForeignKey(Tags, on_delete=models.CASCADE)
     
+    is_first_login = models.BooleanField(default =True)
 
     module = models.ManyToManyField(Module)
     tags = models.ManyToManyField(Tags)
@@ -297,6 +298,7 @@ class Content(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     is_published= models.BooleanField(default=False)
+    order_index = models.IntegerField(default=0)  # to store order
 
     class Meta:
         abstract = True  # No separate table for Content Model, only the subclasses will have database tables

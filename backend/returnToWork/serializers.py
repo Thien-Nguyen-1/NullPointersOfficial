@@ -45,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'user_id', 'username', 'first_name', 'last_name', 'user_type', 'email', 'date_joined', 'module', 'tags',
-                   'firebase_token', 'terms_accepted', 'is_verified']
+                   'firebase_token', 'terms_accepted', 'is_verified', 'is_first_login']
 
     def get_is_verified(self, obj):
         """Get verification status from AdminVerification model"""
@@ -236,7 +236,7 @@ class ImageSerializer(ContentSerializer):
         model = Image
         fields = ContentSerializer.Meta.fields + [
             'file_url', 'filename', 'file_size', 'file_size_formatted',
-            'file_type', 'width', 'height'
+            'file_type', 'width', 'height', 'order_index'
         ]
         read_only_fields = ContentSerializer.Meta.read_only_fields + ['file_size_formatted']
 
@@ -255,7 +255,7 @@ class AudioClipSerializer(ContentSerializer):
             'contentID', 'title', 'moduleID', 'author', 'description', 
             'created_at', 'updated_at', 'is_published', 'audio_file', 
             'file_url', 'file_size_formatted', 'duration', 'filename',
-            'file_size', 'file_type'
+            'file_size', 'file_type', 'order_index'
         ]
     
     def get_file_url(self, obj):
@@ -281,7 +281,7 @@ class DocumentSerializer(ContentSerializer):
         model = Document
         fields = [
             'contentID', 'title', 'filename', 'file_type', 'file_size', 
-            'file_url', 'file_size_formatted', 'upload_date', 'description'
+            'file_url', 'file_size_formatted', 'upload_date', 'description', 'order_index'
         ]
     
     def get_file_url(self, obj):
@@ -304,7 +304,7 @@ class DocumentSerializer(ContentSerializer):
 class EmbeddedVideoSerializer(ContentSerializer):
     class Meta:
         model = EmbeddedVideo
-        fields  = ContentSerializer.Meta.fields + ['video_url']
+        fields  = ContentSerializer.Meta.fields + ['video_url', 'order_index']
         read_only_fields = ContentSerializer.Meta.read_only_fields
 
         def validate_video_url(self, value):

@@ -6,11 +6,9 @@ import { AuthContext } from "../services/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { GrAdd } from "react-icons/gr";
 import CourseItem from "../components/CourseItem";
-import EnrollmentModal from "../components/EnrollmentModal";
-import { GetModule, GetAllProgressTracker, SaveProgressTracker , SaveUserModuleInteract, GetUserModuleInteract} from "../services/api";
-import { IoMdArrowDropupCircle } from "react-icons/io";
-import { MdOutlineUnsubscribe } from "react-icons/md";
-
+import ModuleFiltering from "../components/ModuleFiltering";
+import { GetModule, SaveUserModuleInteract, GetUserModuleInteract, tagApi} from "../services/api";
+import CoursesTagList from "../components/CoursesTagList";
 
 
 function Courses({ role }) {
@@ -18,10 +16,9 @@ function Courses({ role }) {
     const {user, token} = useContext(AuthContext)
     
     const [filterOption, setFilter] = useState("All Courses")
-    const [active, setActiveTab] = useState("")
     const [modules, setModules] = useState([])
-
-   
+    const [tags, setTags] = useState([]);
+    const [selectedTag, setSelectedTag] = useState(null);
     const [userInteractions, setInteract] = useState([])
 
     if(!user){
@@ -33,6 +30,7 @@ function Courses({ role }) {
         
         async function fetchModules(){
             const allModules = await GetModule();
+            console.log(`api response all modules : ${allModules}`)
            
             setModules(allModules || [])
             
@@ -42,42 +40,59 @@ function Courses({ role }) {
         async function fetchInteractions(){
             
             const allInteractions = await GetUserModuleInteract(token)
-           
+            
+            console.log(`all interactions: ${allInteractions}`);
             setInteract(allInteractions || [])
 
         }
        
+        async function fetchTags(user) {
+            try {
+                if (user?.user_type === "admin" || user?.user_type === "superadmin") {
+                    const response = await tagApi.getAll();
+                    console.log(`all tags: ${response.data}`)
+                    setTags(response.data);
+                } else {
+                    console.log(`user tags: ${user.tags}`)
+                    setTags(user.tags);
+                }
+            } catch (err) {
+                console.error("Error fetching tags: ", err);
+            }
+        };
+
+
         fetchModules()
         fetchInteractions()
-       
-        
+        fetchTags(user)
+
     }, [filterOption] )
 
+     // Filter courses by selected tag
+     const filteredModules = selectedTag 
+        ? modules.filter(module => module.tags && module.tags.includes(selectedTag)) 
+        : modules;
 
     const FILTER_MAP = {
         
         "Your Courses": user ? render_user_list() : (<div>NOHING</div>),
-        "All Courses": user ? render_list(modules) : (<div>NOHING</div>),
+        "All Courses": user ? render_list(filteredModules) : (<div>NOHING</div>),
         "Popular" : user ? render_order_list() : (<div>NOHING</div>),
 
     }
 
 
-    function handle_option_chosen(option, index){
-        setActiveTab(index)
-        setFilter(option)
-    }
 
     function render_user_list(){
         
         const user_mods = userInteractions
-            .map( (trck) => modules.filter( (mod) => (trck.module === mod.id) && (trck.hasPinned === true))).flat()
-          
+            .map( (trck) => filteredModules.filter( (mod) => (trck.module === mod.id) && (trck.hasPinned === true))).flat()
+        
         return render_list(user_mods)
     }
 
     function render_order_list(){
-        const like_mods = [...modules].sort( (a,b) => b.upvotes - a.upvotes)
+        const like_mods = [...filteredModules].sort( (a,b) => b.upvotes - a.upvotes)
         return render_list(like_mods)
     }
 
@@ -111,60 +126,29 @@ function Courses({ role }) {
 
 
 
+   
     
     return (
         <div className={styles.courseContainer}>
         
-            <h1 className={styles.pageTitle}> Your Tags </h1>
-           
-            <section className={styles.tagCourseContainer}>
-        
-                {user && (
-                   user.tags.map(
-                    (obj, index)=> (
-                        <div className={styles.tagCourse} key={index}>
-                            <p> {obj.tag} </p>
-                        </div>
-                    )
-                   )
-                )}
-
-                <div className={`${styles.tagCourse} ${styles.editButton}`} onClick={(e) => {}}> 
-                    <GrAdd />
-                </div>
-                
-            </section>
             
+            <CoursesTagList tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} isUser={user.user_type==="service user"}/>
 
             <section className={styles.courseSelectionContainer}>
 
-                <h1 className={styles.pageTitle}>Courses</h1>
+                <h1 className={styles.subheading}>Courses</h1>
                 
                 <div className={styles.filterContainer}>
-                    
-                    <div className={styles.tabsFilter}>
 
-                        {Object.keys(FILTER_MAP).map( (option, index) => (
-                            <button key={index} 
-                                    onClick={() => handle_option_chosen(option, index)}
-                                    className={active === index ? styles.active : ""}
-                                    
-                            > {option} </button>
-                        ))}
-
-                    </div>
+                    <ModuleFiltering handleSort={setFilter} currentSortOption={filterOption} />
 
                 </div>
                 
 
                 { FILTER_MAP[filterOption] }
-
-                <h4> Feel free to change the styling Im </h4>
-                
-               
                 
                 {(user?.user_type === "admin" || user?.user_type === "superadmin") && (
-                    <Link to="/admin/create-module" className={styles.createModuleBtn}>
+                    <Link to="/admin/all-courses/create-and-manage-module" className={styles.createModuleBtn}>
                         Create Module
                     </Link>
                 )}
