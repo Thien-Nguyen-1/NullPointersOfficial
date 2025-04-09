@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
-import InlineRichTextEditor from '../../../components/superadmin-settings/InlineRichTextEditor';
+import InlineRichTextEditor from '../../../components/superadmin-settings/RichTextEditor';
 
 // Mock execCommand since it's not available in jsdom
 document.execCommand = vi.fn();
@@ -26,10 +26,10 @@ describe('InlineRichTextEditor', () => {
       />
     );
 
-    // Check that the editor toolbar and buttons are rendered
-    expect(screen.getByText('Bold')).toBeInTheDocument();
-    expect(screen.getByText('List')).toBeInTheDocument();
-    expect(screen.getByText('Align')).toBeInTheDocument();
+    // Check that the editor toolbar and buttons are rendered using title attributes
+    expect(screen.getByTitle('Bold')).toBeInTheDocument();
+    expect(screen.getByTitle('List Options')).toBeInTheDocument();
+    expect(screen.getByTitle('Alignment Options')).toBeInTheDocument();
     expect(screen.getByText('Save Changes')).toBeInTheDocument();
     expect(screen.getByText('Cancel')).toBeInTheDocument();
 
@@ -82,7 +82,7 @@ describe('InlineRichTextEditor', () => {
     expect(screen.queryByText('Bullet List')).not.toBeInTheDocument();
 
     // Click List button
-    fireEvent.click(screen.getByText('List'));
+    fireEvent.click(screen.getByTitle('List Options'));
 
     // Dropdown should now be visible
     expect(screen.getByText('Bullet List')).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('InlineRichTextEditor', () => {
     expect(screen.queryByText('Left')).not.toBeInTheDocument();
 
     // Click Align button
-    fireEvent.click(screen.getByText('Align'));
+    fireEvent.click(screen.getByTitle('Alignment Options'));
 
     // Dropdown should now be visible
     expect(screen.getByText('Left')).toBeInTheDocument();
@@ -201,7 +201,7 @@ describe('InlineRichTextEditor', () => {
     render(<InlineRichTextEditor onSave={onSave} onCancel={onCancel} />);
 
     // Open List dropdown
-    fireEvent.click(screen.getByText('List'));
+    fireEvent.click(screen.getByTitle('List Options'));
     expect(screen.getByText('Bullet List')).toBeInTheDocument();
 
     // Click outside (on Save button)
@@ -221,18 +221,18 @@ describe('InlineRichTextEditor', () => {
     render(<InlineRichTextEditor onSave={onSave} onCancel={onCancel} />);
 
     // Open List dropdown
-    fireEvent.click(screen.getByText('List'));
+    fireEvent.click(screen.getByTitle('List Options'));
     expect(screen.getByText('Bullet List')).toBeInTheDocument();
 
     // Click again to close
-    fireEvent.click(screen.getByText('List'));
+    fireEvent.click(screen.getByTitle('List Options'));
     expect(screen.queryByText('Bullet List')).not.toBeInTheDocument();
 
     // Opening one dropdown should close the other
-    fireEvent.click(screen.getByText('List'));
+    fireEvent.click(screen.getByTitle('List Options'));
     expect(screen.getByText('Bullet List')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Align'));
+    fireEvent.click(screen.getByTitle('Alignment Options'));
     expect(screen.queryByText('Bullet List')).not.toBeInTheDocument();
     expect(screen.getByText('Left')).toBeInTheDocument();
   });

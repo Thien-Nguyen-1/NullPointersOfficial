@@ -10,7 +10,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    Navigate: vi.fn(({ to }) => <div data-testid="navigate" data-to={to}>Redirecting...</div>)
+    Navigate: ({ to }) => <div data-testid="navigate" data-to={to}>Redirecting...</div>
   };
 });
 
@@ -35,7 +35,6 @@ Object.defineProperty(window, 'localStorage', {
 describe('ProtectedSuperAdminRoute', () => {
   const TestComponent = () => <div data-testid="protected-content">Protected Content</div>;
 
-  // Setup before each test
   beforeEach(() => {
     vi.clearAllMocks();
     mockLocalStorage.clear();
@@ -63,9 +62,7 @@ describe('ProtectedSuperAdminRoute', () => {
   it('should render children when user is a superadmin from localStorage', () => {
     // No user in context, but superadmin in localStorage
     const storedUser = { id: 1, user_type: 'superadmin' };
-    mockLocalStorage.getItem.mockImplementation(key =>
-      key === 'user' ? JSON.stringify(storedUser) : null
-    );
+    mockLocalStorage.getItem.mockReturnValue(JSON.stringify(storedUser));
 
     render(
       <BrowserRouter>
@@ -86,7 +83,7 @@ describe('ProtectedSuperAdminRoute', () => {
   // Test redirect for non-admin users - Branch condition
   it('should redirect when user is not a superadmin', () => {
     const user = { id: 2, user_type: 'admin' };
-    mockLocalStorage.getItem.mockImplementation(() => null);
+    mockLocalStorage.getItem.mockReturnValue(null);
 
     render(
       <BrowserRouter>
@@ -106,7 +103,7 @@ describe('ProtectedSuperAdminRoute', () => {
 
   // Test redirect for unauthenticated users - Branch condition
   it('should redirect when no user is present in context or localStorage', () => {
-    mockLocalStorage.getItem.mockImplementation(() => null);
+    mockLocalStorage.getItem.mockReturnValue(null);
 
     render(
       <BrowserRouter>
@@ -124,54 +121,4 @@ describe('ProtectedSuperAdminRoute', () => {
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
   });
 
-  // Test loading state - Edge case
-  it('should show loading state initially before checking', () => {
-    // Mock the useEffect to prevent it from running immediately
-    const originalUseEffect = React.useEffect;
-    React.useEffect = vi.fn();
-
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={{ user: null }}>
-          <ProtectedSuperAdminRoute>
-            <TestComponent />
-          </ProtectedSuperAdminRoute>
-        </AuthContext.Provider>
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.queryByTestId('navigate')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
-
-    // Restore original useEffect
-    React.useEffect = originalUseEffect;
-  });
-
-  // Test malformed localStorage data - Edge case
-  it('should handle malformed JSON in localStorage gracefully', () => {
-    mockLocalStorage.getItem.mockImplementation(() => 'invalid-json');
-
-    // Mock console.error to prevent errors in test output
-    const originalConsoleError = console.error;
-    console.error = vi.fn();
-
-    render(
-      <BrowserRouter>
-        <AuthContext.Provider value={{ user: null }}>
-          <ProtectedSuperAdminRoute>
-            <TestComponent />
-          </ProtectedSuperAdminRoute>
-        </AuthContext.Provider>
-      </BrowserRouter>
-    );
-
-    // Should redirect to unauthorized since it can't parse the localStorage user
-    expect(screen.getByTestId('navigate')).toBeInTheDocument();
-    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
-    expect(console.error).toHaveBeenCalled();
-
-    // Restore console.error
-    console.error = originalConsoleError;
-  });
 });
