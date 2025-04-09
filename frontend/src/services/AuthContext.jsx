@@ -19,14 +19,14 @@ const AuthContext = createContext("")
 const AuthContextProvider = ({children}) => {
 
     const [user , setUser] = useState(null) // user data accessible across every component regardless of hierarchy
-    const [token, setToken] = useState("") 
+    const [token, setToken] = useState("")
 
 
     // Initially load user details if it exists or when re-render triggered
     useEffect( () => {
 
         const userData = JSON.parse(localStorage.getItem("user")) || null
-        const userToken = localStorage.getItem("token")
+        const userToken = localStorage.getItem("token") || ""
 
         setUser(userData)
         setToken(userToken)
@@ -65,7 +65,7 @@ const AuthContextProvider = ({children}) => {
         
 
       }catch (error){
-        console.log(error)
+        console.error(error)
       }
     }
 
@@ -169,6 +169,11 @@ const AuthContextProvider = ({children}) => {
           
           return response.data;
         } catch (error) {
+          // Ensure user is not set in case of any error
+          setUser(null);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
           throw new Error("Login failed: " + (error.response?.data?.detail || "Unknown error"));
         }
       // }
@@ -203,20 +208,20 @@ const AuthContextProvider = ({children}) => {
       
         }
         catch(error) {
-          console.error("Sign Up error:", error.response?.data || error.message);
-          throw new Error("Sign Up failed:" + error.response?.data?.detail || "Unkown error");
+          console.error("Sign Up error: ", error.response?.data || error.message);
+          throw new Error("Sign Up failed: " + error.response?.data?.detail || "Unknown error");
          }
     }
 
     async function VerifyEmail(token){
       try{
-        const response = await api.get('/api/verify-email/${token}/');
+        const response = await api.get(`/api/verify-email/${token}/`);
         console.log(response.data.message);
         return response.data
       }
       catch(error) {
-        console.error("email verification error:", error.response?.data || error.message);
-        throw new Error("email verification failed:" + error.response?.data?.detail || "Unkown error");
+        console.error("email verification error: ", error.response?.data || error.message);
+        throw new Error("email verification failed: " + error.response?.data?.detail || "Unknown error");
        }
     }
 
@@ -235,7 +240,7 @@ const AuthContextProvider = ({children}) => {
           return response.data;
         }
         catch(error) {
-          throw new Error("Reset of password failed:" + error.response?.data?.detail || "Unkown error");
+          throw new Error("Reset of password failed: " + (error.response?.data?.detail || "Unknown error"));
       
         }
       }
@@ -246,7 +251,7 @@ const AuthContextProvider = ({children}) => {
         return response.data;
       }
       catch(error) {
-        throw new Error ("Password reset request failed" + error.response?.data?.detail || "Unkown error" );
+        throw new Error("Password reset request failed: " + (error.response?.data?.detail || "Unknown error"));
       }
     }
     
