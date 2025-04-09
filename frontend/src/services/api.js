@@ -331,7 +331,7 @@ export async function GetUserModuleInteract(token){
 
     if(response.error){
       throw new Error(response.error);
-    } 
+    }   
     else if(response.status === 204 ){
       return []
     } 

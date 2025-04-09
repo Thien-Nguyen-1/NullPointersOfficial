@@ -229,7 +229,7 @@ export const QuizApiUtils = {
 
   getComponentType: (quizType) => {
     // Map quiz types to component types
-    const mediaTypes = ['document', 'audio', 'image', 'video', 'embed'];
+    const mediaTypes = ['document', 'audio', 'image', 'video'];
     
     if (mediaTypes.includes(quizType)) {
       return 'media';
