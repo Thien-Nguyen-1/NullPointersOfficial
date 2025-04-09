@@ -88,7 +88,8 @@ export const useModuleData = (editId) => {
         componentType: 'media',
         mediaType: 'document',
         moduleId: moduleId,
-        actualModuleId: moduleId
+        actualModuleId: moduleId,
+        order_index: doc.order_index || 0
       }));
       
       // Process audio files
@@ -99,7 +100,8 @@ export const useModuleData = (editId) => {
         componentType: 'media',
         mediaType: 'audio',
         moduleId: moduleId,
-        actualModuleId: moduleId
+        actualModuleId: moduleId,
+        order_index: audio.order_index || 0
       }));
 
       // Process image files
@@ -110,7 +112,8 @@ export const useModuleData = (editId) => {
         componentType: 'media',
         mediaType: 'image',
         moduleId: moduleId,
-        actualModuleId: moduleId
+        actualModuleId: moduleId,
+        order_index: image.order_index || 0 
       }));
 
       // Process video files
@@ -121,13 +124,27 @@ export const useModuleData = (editId) => {
         componentType: 'media',
         mediaType: 'video',
         moduleId: moduleId,
-        actualModuleId: moduleId
+        actualModuleId: moduleId,
+        order_index: image.order_index || 0 
       }));
 
       // future media
-      
+      console.log("Document order_index samples:", documents.slice(0, 3).map(d => d.order_index));
+      console.log("Audio order_index samples:", audios.slice(0, 3).map(a => a.order_index));
+      console.log("Image order_index samples:", images.slice(0, 3).map(i => i.order_index));
+      console.log("Video order_index samples:", videos.slice(0, 3).map(v => v.order_index));
+
+      // Combine all resources with their order_index
+      const mediaResources = [
+        ...documentTemplates.map(item => ({ ...item, order_index: item.order_index || 0 })),
+        ...audioTemplates.map(item => ({ ...item, order_index: item.order_index || 0 })),
+        ...imageTemplates.map(item => ({ ...item, order_index: item.order_index || 0 })),
+        ...videoTemplates.map(item => ({ ...item, order_index: item.order_index || 0 }))
+      ];
+      mediaResources.sort((a, b) => a.order_index - b.order_index);
+
       // Combine all templates
-      setModules([...taskTemplates, ...documentTemplates, ...audioTemplates, ...imageTemplates, ...videoTemplates]);
+      setModules([...taskTemplates, ...mediaResources]);
       
       // Return module data for setting title, description, etc.
       return moduleData;

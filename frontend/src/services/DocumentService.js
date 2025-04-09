@@ -26,7 +26,11 @@ export const DocumentService = {
    * @returns {Promise} - Promise resolving to array of documents
    */
   getModuleDocuments: async (moduleId) => {
+    console.log(`[DOCUMENT SERVICE] Fetching documents for moduleId: ${moduleId}`);
+
     const response = await api.get(`/api/documents/?module_id=${moduleId}`);
+    console.log(`[DOCUMENT SERVICE] Documents found:`, response.data);
+
     return response.data;
   },
 
