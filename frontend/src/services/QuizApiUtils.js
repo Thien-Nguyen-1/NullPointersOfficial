@@ -420,7 +420,7 @@ export const QuizApiUtils = {
           const response = await api.post('/api/quiz/response/', submission);
           results.push(response.data);
           console.log(`[SUBMISSION] Response saved for question ${questionId}:`, response.data);
-        } catch {
+        } catch (err) {
           console.error(`Error submitting answer for question ${questionId}:`, err);
           // continue with other questions even if one fails
         }
@@ -440,7 +440,7 @@ export const QuizApiUtils = {
   getSavedQuizAnswers: async (taskId) => {
     try {
       const response = await api.get(`/api/quiz/${taskId}/user-responses/`);
-      console.log(`QuizApiUtils received saved quiz answers: ${response.moduleData}`)
+      console.log(`QuizApiUtils received saved quiz answers: ${response.data}`)
 
       // If the response has no answers or empty answers, return null
       if (!response.data || !response.data.answers || Object.keys(response.data.answers).length === 0) {

@@ -81,7 +81,7 @@ const QuestionAndAnswerForm = ({ taskId, onComplete,isPreview = false, previewQu
         if (!completionStateRef.current.isCompleted) {
         loadSavedAnswers();
         }
-    }, [taskId, isPreview]);
+    }, [taskId, isPreview, questions]);
     
 
     const fetchQuestions = async () => {
