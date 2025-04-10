@@ -116,7 +116,7 @@ const FlowchartQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
     };
     
     loadSavedAnswers();
-}, [taskId, isPreview]);
+}, [taskId, isPreview, questions]);
 
   // Handle answer for current statement
   const handleAnswerChange = (e) => {

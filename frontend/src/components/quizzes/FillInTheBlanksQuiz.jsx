@@ -144,7 +144,7 @@ const FillInTheBlanksQuiz = ({ taskId, onComplete, isPreview = false, previewQue
     };
     
     loadSavedAnswers();
-  }, [taskId, isPreview]);
+  }, [taskId, isPreview, questions]);
 
   // Handle user input for a specific blank in a question
   const handleBlankChange = (questionId, blankIndex, value) => {
