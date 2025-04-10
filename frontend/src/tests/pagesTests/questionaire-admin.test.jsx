@@ -164,12 +164,12 @@ describe('QuestionnaireAdmin Component', () => {
     it('should update assessment_tag when changed for leaf nodes', () => {
       const { container } = render(<QuestionnaireAdmin />);
 
-      // Find and click a leaf node question "Would you like to talk to HR?"
-      const hrQuestions = screen.getAllByText('Would you like to talk to HR?');
+      // Find and click a leaf node question "Do you have ADHD?"
+      const adhdQuestions = screen.getAllByText('Do you have ADHD?');
       let leafQuestion = null;
 
       // Find the one that has the HR Intervention tag
-      for (const question of hrQuestions) {
+      for (const question of adhdQuestions) {
         const node = question.closest('.question-node');
         if (node && node.querySelector('.assessment-tag')) {
           leafQuestion = question;
@@ -196,8 +196,8 @@ describe('QuestionnaireAdmin Component', () => {
       expect(container.querySelector('.tag-select')).toBeInTheDocument();
 
       // The tag should have been updated in the component
-      // We can check that the component still renders correctly
-      expect(container.querySelector('.assessment-tag')).toBeInTheDocument();
+      const updatedTag = container.querySelector('.assessment-tag');
+      expect(updatedTag.textContent).toBe('Work Readiness');
     });
   });
 
@@ -288,8 +288,18 @@ describe('QuestionnaireAdmin Component', () => {
       const { container } = render(<QuestionnaireAdmin />);
 
       // Find and click a leaf node with an assessment tag
-      const hrQuestions = screen.getAllByText('Would you like to talk to HR?');
-      const leafQuestion = hrQuestions[0];
+      const adhdQuestions = screen.getAllByText('Do you have ADHD?');
+      let leafQuestion = null;
+
+      for (const question of adhdQuestions) {
+        const node = question.closest('.question-node');
+        if (node && node.querySelector('.assessment-tag')) {
+          leafQuestion = question;
+          break;
+        }
+      }
+
+      expect(leafQuestion).not.toBeNull();
       fireEvent.click(leafQuestion);
 
       // Check that the dropdown contains "End of questionnaire" option
@@ -376,12 +386,12 @@ describe('QuestionnaireAdmin Component', () => {
     it('should show assessment tag selector only for leaf nodes', () => {
       const { container } = render(<QuestionnaireAdmin />);
 
-      // Find and click a leaf node question "Would you like to talk to HR?"
-      const hrQuestions = screen.getAllByText('Would you like to talk to HR?');
+      // Find and click a leaf node question "Do you have ADHD?"
+      const adhdQuestions = screen.getAllByText('Do you have ADHD?');
       let leafQuestion = null;
 
       // Find the one that has the HR Intervention tag
-      for (const question of hrQuestions) {
+      for (const question of adhdQuestions) {
         const node = question.closest('.question-node');
         if (node && node.querySelector('.assessment-tag')) {
           leafQuestion = question;
@@ -399,7 +409,6 @@ describe('QuestionnaireAdmin Component', () => {
       // Find and click a non-leaf node "Are you ready to return to work?"
       const rootQuestions = screen.getAllByText('Are you ready to return to work?');
       for (const question of rootQuestions) {
-        // Make sure we're clicking on the question in the tree, not in a dropdown
         const node = question.closest('.question-node');
         if (node) {
           fireEvent.click(question);
@@ -407,7 +416,6 @@ describe('QuestionnaireAdmin Component', () => {
         }
       }
 
-      // Wait for UI to update
       // Verify assessment tag selector is not shown for non-leaf node
       const tagSelectAfterClickingRoot = container.querySelector('.tag-select');
       expect(tagSelectAfterClickingRoot).toBeFalsy();
