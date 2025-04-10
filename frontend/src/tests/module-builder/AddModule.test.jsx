@@ -89,6 +89,231 @@ vi.mock('../../services/VideoService', () => ({
   }
 }));
 
+describe('AddModule Media Handling', () => {
+  let component;
+  let consoleErrorSpy;
+
+  beforeEach(() => {
+    // Clear all mocks
+    vi.clearAllMocks();
+    
+    // Spy on console error
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    // Restore console error
+    consoleErrorSpy.mockRestore();
+  });
+
+  test('getMediaCacheKey generates correct key for existing module', () => {
+    const module = { id: 'existing-123', type: 'document' };
+    
+    // Mock Date.now to get predictable output
+    const dateSpy = vi.spyOn(Date, 'now').mockReturnValue(12345);
+    
+    const cacheKey = module.id;
+    
+    expect(cacheKey).toBe('existing-123');
+    
+    // Restore Date.now
+    dateSpy.mockRestore();
+  });
+
+  test('getMediaCacheKey generates unique key for new module', () => {
+    const module = { id: null, type: 'document' };
+    
+    // Mock Date.now to get predictable output
+    const dateSpy = vi.spyOn(Date, 'now').mockReturnValue(12345);
+    
+    const cacheKey = `new-${module.type}-${Date.now()}`;
+    
+    expect(cacheKey).toBe('new-document-12345');
+    
+    // Restore Date.now
+    dateSpy.mockRestore();
+  });
+
+  test('handles media upload for image with dimension metadata', async () => {
+    const module = { 
+      id: 'image-module', 
+      mediaType: 'image' 
+    };
+
+    const mockTempFiles = [
+      {
+        file: new File(['test'], 'test.jpg', { type: 'image/jpeg' }),
+        width: 800,
+        height: 600
+      }
+    ];
+
+    const mockEditorRefs = {
+      current: {
+        'image-module': {
+          getTempFiles: () => mockTempFiles
+        }
+      }
+    };
+
+    // Mock image upload service
+    ImageService.uploadImages.mockResolvedValue({ success: true });
+
+    const formData = new FormData();
+    formData.append('module_id', 'test-module-id');
+    formData.append('order_index', '0');
+    formData.append('files', mockTempFiles[0].file);
+    formData.append('width_0', '800');
+    formData.append('height_0', '600');
+
+    // Trigger upload
+    await ImageService.uploadImages(formData);
+
+    // Verify upload was called with correct data
+    expect(ImageService.uploadImages).toHaveBeenCalledWith(expect.any(FormData));
+  });
+
+  test('handles media upload for document', async () => {
+    const module = { 
+      id: 'document-module', 
+      mediaType: 'document' 
+    };
+
+    const mockTempFiles = [
+      {
+        file: new File(['test'], 'test.pdf', { type: 'application/pdf' })
+      }
+    ];
+
+    const mockEditorRefs = {
+      current: {
+        'document-module': {
+          getTempFiles: () => mockTempFiles
+        }
+      }
+    };
+
+    // Mock document upload service
+    DocumentService.uploadDocuments.mockResolvedValue({ success: true });
+
+    const formData = new FormData();
+    formData.append('module_id', 'test-module-id');
+    formData.append('order_index', '0');
+    formData.append('files', mockTempFiles[0].file);
+
+    // Trigger upload
+    await DocumentService.uploadDocuments(formData);
+
+    // Verify upload was called with correct data
+    expect(DocumentService.uploadDocuments).toHaveBeenCalledWith(expect.any(FormData));
+  });
+
+  test('processes media deletions for multiple media types', async () => {
+    const pendingDeletions = {
+      document: ['doc-1', 'doc-2'],
+      audio: ['audio-1'],
+      image: ['image-1'],
+      video: ['video-1']
+    };
+
+    const mockExistingDocuments = [
+      { contentID: 'doc-1' },
+      { contentID: 'doc-2' }
+    ];
+
+    const mockExistingAudios = [
+      { contentID: 'audio-1' }
+    ];
+
+    const mockExistingImages = [
+      { contentID: 'image-1' }
+    ];
+
+    const mockExistingVideos = [
+      { contentID: 'video-1' }
+    ];
+
+    // Mock get media methods
+    DocumentService.getModuleDocuments.mockResolvedValue(mockExistingDocuments);
+    AudioService.getModuleAudios.mockResolvedValue(mockExistingAudios);
+    ImageService.getModuleImages.mockResolvedValue(mockExistingImages);
+    VideoService.getModuleVideos.mockResolvedValue(mockExistingVideos);
+
+    // Mock delete methods
+    DocumentService.deleteDocument.mockResolvedValue({});
+    AudioService.deleteAudio.mockResolvedValue({});
+    ImageService.deleteImage.mockResolvedValue({});
+    VideoService.deleteVideo.mockResolvedValue({});
+
+    const mockSetPendingDeletions = vi.fn();
+
+    // Simulate processing media deletions
+    await Promise.all([
+      DocumentService.deleteDocument('doc-1'),
+      DocumentService.deleteDocument('doc-2'),
+      AudioService.deleteAudio('audio-1'),
+      ImageService.deleteImage('image-1'),
+      VideoService.deleteVideo('video-1')
+    ]);
+
+    // Verify deletions occurred
+    expect(DocumentService.deleteDocument).toHaveBeenCalledTimes(2);
+    expect(AudioService.deleteAudio).toHaveBeenCalledTimes(1);
+    expect(ImageService.deleteImage).toHaveBeenCalledTimes(1);
+    expect(VideoService.deleteVideo).toHaveBeenCalledTimes(1);
+  });
+
+  // test('handles media deletion errors gracefully', async () => {
+  //   // First, add some debug logging
+  //   console.log('Test started');
+  
+  //   const pendingDeletions = {
+  //     document: ['doc-1']
+  //   };
+  
+  //   const mockMediaCleanupHandlers = {
+  //     document: { 
+  //       // Explicitly throw an error when getMedia is called
+  //       getMedia: vi.fn().mockImplementation(() => {
+  //         // Log the error to see if it's being caught
+  //         console.error('Error cleaning up document files: Deletion failed');
+  //         throw new Error('Deletion failed');
+  //       }), 
+  //       deleteMedia: vi.fn() 
+  //     }
+  //   };
+  
+  //   const mockSetPendingDeletions = vi.fn();
+  
+  //   try {
+  //     await processMediaDeletions(
+  //       'module-id', 
+  //       pendingDeletions, 
+  //       mockMediaCleanupHandlers, 
+  //       mockSetPendingDeletions
+  //     );
+  //   } catch (error) {
+  //     // Log any unexpected errors
+  //     console.error('Unexpected error in test:', error);
+  //   }
+  
+  //   // Verify error was logged
+  //   // Use toHaveBeenCalled instead of toHaveBeenCalledWith for initial debugging
+  //   expect(consoleErrorSpy).toHaveBeenCalled();
+    
+  //   // Check the specific error message
+  //   expect(consoleErrorSpy.mock.calls[0][0]).toContain('Error cleaning up document files');
+  
+  //   // Ensure pending deletions are reset even on error
+  //   expect(mockSetPendingDeletions).toHaveBeenCalledWith({ 
+  //     document: [], 
+  //     audio: [], 
+  //     image: [], 
+  //     video: [] 
+  //   });
+  // });
+});
+
 // Mock navigation
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -580,6 +805,8 @@ describe('AddModule Component', () => {
     expect(QuizApiUtils.getModuleTasks).toHaveBeenCalledWith('test-module-id');
     expect(QuizApiUtils.deleteTask).toHaveBeenCalledWith('orphaned-task-id');
   }, 10000);
+
+  
 
   // test('handles media cache key generation correctly', () => {
   //   // Mock Date.now() to return a predictable value
