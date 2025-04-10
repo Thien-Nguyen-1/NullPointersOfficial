@@ -30,7 +30,7 @@ class UserDetailTests(APITestCase):
         expected_keys = ['user_id', 'username', 'first_name', 'last_name', 'user_type', 
                          'completed_modules', 'in_progress_modules', 'total_modules', 'modules']
         for key in expected_keys:
-            self.assertIn(key, response.data)
+            self.assertIn(key, response.data) 
 
     def test_put_updates_user_successfully(self):
         """Test PUT request updates user fields and tags/modules"""
