@@ -72,7 +72,7 @@ class Questionnaire(models.Model):
             raise ValidationError("You cannot reference an ancestor question in a descendant question")
 
     def __str__(self):
-        return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question if self.yes_next_q else None}\n\t|NO|: {self.no_next_q.question if self.yes_next_q else None}"
+        return f"-- {self.question}\n\t|YES|: {self.yes_next_q.question if self.yes_next_q else None}\n\t|NO|: {self.no_next_q.question if self.no_next_q else None}\n"
 
 
 
