@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "coverage": "vitest run --coverage --no-fail",
+    "coverage": "vitest run --coverage",
     "coverage:open": "npm run coverage && open coverage/index.html",
     "coverage:start": "npm run coverage && start coverage/index.html"
   },
