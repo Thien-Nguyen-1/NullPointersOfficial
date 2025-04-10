@@ -6,8 +6,9 @@ import DocumentService from '../../services/DocumentService';
 import DocumentUploader from '../../components/editors/DocumentUploader';
 import { DocumentEditorWrapper } from '../../components/editors/DocumentUploader';
 
+const originalModule = vi.importActual('../../components/editors/DragDropUploader');
 
-// Mock the DocumentService
+
 vi.mock('../../services/DocumentService', () => ({
   default: {
     getModuleDocuments: vi.fn(),
@@ -16,7 +17,7 @@ vi.mock('../../services/DocumentService', () => ({
   }
 }));
 
-// Mock react-icons
+
 vi.mock('react-icons/fi', () => ({
   FiFile: () => <div data-testid="file-icon" />,
   FiTrash2: () => <div data-testid="trash-icon" />,
@@ -25,7 +26,7 @@ vi.mock('react-icons/fi', () => ({
   FiEye: () => <div data-testid="eye-icon" />
 }));
 
-// Mock the PDF Viewer component
+
 vi.mock('../../components/PDFViewer', () => ({
   default: ({ documentUrl, documentName }) => (
     <div data-testid="pdf-viewer">
@@ -35,7 +36,7 @@ vi.mock('../../components/PDFViewer', () => ({
   )
 }));
 
-// Mock the DragDropUploader component
+
 vi.mock('../../components/editors/DragDropUploader', () => ({
   default: ({ onUpload }) => (
     <div data-testid="drag-drop-uploader">
@@ -79,15 +80,15 @@ describe('DocumentUploader Component', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    // Default mock implementations
+
     DocumentService.getModuleDocuments.mockResolvedValue([]);
     DocumentService.uploadDocuments.mockResolvedValue(mockDocuments);
     DocumentService.deleteDocument.mockResolvedValue({ success: true });
 
-    // Mock window.confirm
+   
     window.confirm = vi.fn().mockReturnValue(true);
 
-    // Mock URL.createObjectURL and URL.revokeObjectURL
+ 
     global.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
     global.URL.revokeObjectURL = vi.fn();
   });
@@ -95,7 +96,7 @@ describe('DocumentUploader Component', () => {
   test('renders with no documents', async () => {
     render(<DocumentUploader {...mockProps} />);
     
-    // Check that the component renders with basic elements
+
     expect(screen.getByText('Course Documents')).toBeInTheDocument();
     expect(screen.getByText('No documents uploaded yet.')).toBeInTheDocument();
     expect(screen.getByTestId('drag-drop-uploader')).toBeInTheDocument();
@@ -159,7 +160,7 @@ describe('DocumentUploader Component', () => {
       expect(DocumentService.uploadDocuments).not.toHaveBeenCalled();
       expect(screen.getByText('Documents uploaded successfully!')).toBeInTheDocument();
       
-      // After uploading, the document should be displayed
+  
       expect(screen.getByText('test.pdf')).toBeInTheDocument();
     });
   });
@@ -173,11 +174,11 @@ describe('DocumentUploader Component', () => {
       expect(screen.getByText('Test Document')).toBeInTheDocument();
     });
     
-    // Find and click delete button
+
     const deleteButtons = await screen.findAllByTestId('trash-icon');
     fireEvent.click(deleteButtons[0].closest('button'));
     
-    // Confirm deletion
+   
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this document?');
     
     await waitFor(() => {
@@ -188,7 +189,7 @@ describe('DocumentUploader Component', () => {
   test('does not delete document if user cancels confirmation', async () => {
     DocumentService.getModuleDocuments.mockResolvedValue(mockDocuments);
   
-    // Mock confirm to simulate user cancelling
+
     window.confirm = vi.fn().mockReturnValue(false);
   
     render(<DocumentUploader {...mockProps} />);
@@ -197,23 +198,22 @@ describe('DocumentUploader Component', () => {
       expect(screen.getByText('Test Document')).toBeInTheDocument();
     });
   
-    // Find and click delete button
+
     const deleteButtons = await screen.findAllByTestId('trash-icon');
     fireEvent.click(deleteButtons[0].closest('button'));
   
-    // Confirm deletion prompt was shown
+
     expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this document?');
   
-    // Ensure deleteDocument was NOT called
+  
     expect(DocumentService.deleteDocument).not.toHaveBeenCalled();
   
-    // Optionally, assert the document is still visible
     expect(screen.getByText('Test Document')).toBeInTheDocument();
   });
   
   test('closes viewer if deleted document is currently being viewed', async () => {
     const matchingDocument = {
-      contentID: 'doc-123', // Matches mockProps.documentId
+      contentID: 'doc-123',
       filename: 'test-document.pdf',
       file_size: 1024 * 1024,
       file_url: '/documents/test-document.pdf',
@@ -225,40 +225,49 @@ describe('DocumentUploader Component', () => {
   
     render(<DocumentUploader {...mockProps} />);
   
-    // Wait for document to load
+   
     await waitFor(() => {
       expect(screen.getByText('Test Document')).toBeInTheDocument();
     });
   
-    // Open the viewer
+
     const viewButton = await screen.findByTestId('eye-icon');
     fireEvent.click(viewButton.closest('button'));
   
-    // Verify the viewer is open
+    
     await waitFor(() => {
       expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument();
       expect(screen.getByText('Viewing: Test Document')).toBeInTheDocument();
     });
   
-    // Click delete
+
     const deleteButton = await screen.findByTestId('trash-icon');
     fireEvent.click(deleteButton.closest('button'));
   
-    // Wait for delete and viewer to close
+
     await waitFor(() => {
       expect(DocumentService.deleteDocument).toHaveBeenCalledWith('doc-123');
       expect(screen.queryByTestId('pdf-viewer')).not.toBeInTheDocument();
     });
   });
 
+  test('renders with no documents', async () => {
+    render(<DocumentUploader {...mockProps} />);
+    
+
+    expect(screen.getByText('Course Documents')).toBeInTheDocument();
+    expect(screen.getByText('No documents uploaded yet.')).toBeInTheDocument();
+    expect(screen.getByTestId('drag-drop-uploader')).toBeInTheDocument();
+  });
+
 
   test('shows error if document deletion fails', async () => {
     DocumentService.getModuleDocuments.mockResolvedValue(mockDocuments);
   
-    // Mock confirm to simulate user confirming deletion
+   
     window.confirm = vi.fn().mockReturnValue(true);
   
-    // Force deleteDocument to throw an error
+    
     const mockError = new Error('Server error');
     mockError.response = { data: { detail: 'Failed to delete document from server.' } };
     DocumentService.deleteDocument.mockRejectedValue(mockError);
@@ -276,7 +285,7 @@ describe('DocumentUploader Component', () => {
       expect(DocumentService.deleteDocument).toHaveBeenCalledWith('doc-123');
     });
   
-    // Assert error message is shown
+
     expect(await screen.findByText(/Delete failed: Failed to delete document from server\./)).toBeInTheDocument();
   });
   
@@ -291,7 +300,7 @@ describe('DocumentUploader Component', () => {
       expect(screen.getByText('Test Document')).toBeInTheDocument();
     });
     
-    // Find and click view button
+
     const viewButtons = await screen.findAllByTestId('eye-icon');
     fireEvent.click(viewButtons[0].closest('button'));
     
@@ -301,11 +310,11 @@ describe('DocumentUploader Component', () => {
     });
   });
 
-  // test('initiates download when download button is clicked', async () => {
+
     test('initiates download when download button is clicked', async () => {
       DocumentService.getModuleDocuments.mockResolvedValue(mockDocuments);
       
-      // Instead of mocking createElement, directly mock the fetch function
+
       global.fetch = vi.fn().mockImplementation(() => 
         Promise.resolve({
           ok: true,
@@ -313,14 +322,13 @@ describe('DocumentUploader Component', () => {
         })
       );
       
-      // Also mock createObjectURL and createElement indirectly by mocking the entire download process
       const originalCreateElement = document.createElement;
       const clickMock = vi.fn();
       
-      // We'll use this flag to check if our download logic was executed
+
       let downloadAttempted = false;
       
-      // Create a spy on URL.createObjectURL to detect when it's called
+ 
       const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation(() => {
         downloadAttempted = true;
         return 'blob:mock-url';
@@ -387,33 +395,7 @@ describe('DocumentUploader Component', () => {
     });
   });
   
-  // test('formats file size correctly', async () => {
-  //   const documents = [
-  //     {
-  //       contentID: 'doc-1',
-  //       filename: 'small.pdf',
-  //       file_size: 1024, // 1KB
-  //       file_url: '/documents/small.pdf',
-  //       upload_date: '2023-05-15T10:30:00Z'
-  //     },
-  //     {
-  //       contentID: 'doc-2',
-  //       filename: 'medium.pdf',
-  //       file_size: 1024 * 1024, // 1MB
-  //       file_url: '/documents/medium.pdf',
-  //       upload_date: '2023-05-15T10:30:00Z'
-  //     }
-  //   ];
-    
-  //   DocumentService.getModuleDocuments.mockResolvedValue(documents);
-    
-  //   render(<DocumentUploader {...mockProps} />);
-    
-  //   await waitFor(() => {
-  //     expect(screen.getByText(/1 KB/)).toBeInTheDocument();
-  //     expect(screen.getByText(/1 MB/)).toBeInTheDocument();
-  //   });
-  // });  FIX THIS
+ 
 
   test('uses ref to access tempFiles', async () => {
     const ref = React.createRef();
