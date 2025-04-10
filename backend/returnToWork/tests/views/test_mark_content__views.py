@@ -133,7 +133,7 @@ class MarkContentViewedViewTests(APITestCase):
 
     def test_invalid_content_type(self):
         """Test API validation for invalid content type"""
-        url = reverse('mark-content-viewed')
+        url = reverse('mark-content-viewed')  # Update with your actual URL name
         
         data = {
             'content_id': self.document_id,
@@ -145,7 +145,7 @@ class MarkContentViewedViewTests(APITestCase):
 
     def test_invalid_uuid(self):
         """Test API validation for invalid UUID"""
-        url = reverse('mark-content-viewed')
+        url = reverse('mark-content-viewed')  # Update with your actual URL name
         
         data = {
             'content_id': 'not-a-uuid',
@@ -205,6 +205,21 @@ class MarkContentViewedViewTests(APITestCase):
         # Content count should not increase on duplicate marking
         second_count = second_response.data['module_progress']['contents_completed']
         self.assertEqual(second_count, first_count)
+
+    def test_non_service_user_cannot_mark_content(self):
+        self.client.force_authenticate(user=self.author)  
+
+        url = reverse('mark-content-viewed')
+        data = {
+            'content_id': self.document_id,
+            'content_type': 'infosheet'
+        }
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(response.data['success'])
+        self.assertEqual(response.data['message'], 'Only service users can track progress')
+
 
 class CompletedContentViewTests(APITestCase):
     def setUp(self):
@@ -266,7 +281,7 @@ class CompletedContentViewTests(APITestCase):
 
     def test_get_completed_content(self):
         """Test retrieving completed content"""
-        url = reverse('completed-content', args=[self.module.id])
+        url = reverse('completed-content', args=[self.module.id])  # Update with your actual URL name
         
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

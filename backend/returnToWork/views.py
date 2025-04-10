@@ -81,11 +81,17 @@ class ProgressTrackerView(APIView):
         except ProgressTracker.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Use partial=True to allow partial updates
+        serializer = ProgressTrackerSerializer(progress_tracker, data=request.data, partial=True)
+        
+        # Add more explicit error handling
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Save the updated instance
+        updated_tracker = serializer.save()
+        
+        return Response(ProgressTrackerSerializer(updated_tracker).data)
 
     def delete(self, request, pk):
         try:
@@ -121,15 +127,15 @@ class LogInView(APIView):
         if user.user_type == 'admin':
             try:
                 verification = AdminVerification.objects.get(admin=user)
-                print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
+                # print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
                 if not verification.is_verified:
-                    print(f"[DEBUG] Admin not verified, preventing login")
+                    # print(f"[DEBUG] Admin not verified, preventing login")
                     return Response({
                         'error': 'Please verify your email before logging in. Check your inbox for a verification link.',
                         'verification_required': True
                     }, status=status.HTTP_403_FORBIDDEN)
             except AdminVerification.DoesNotExist:
-                print(f"[DEBUG] No verification record found for admin")
+                # print(f"[DEBUG] No verification record found for admin")
                 # If no verification record exists, create one requiring verification
                 verification_token = str(uuid.uuid4())
                 AdminVerification.objects.create(
@@ -157,29 +163,19 @@ class LogInView(APIView):
         # token, created = Token.objects.get_or_create(user=user)
         print(f"[DEBUG] Login successful, generating tokens")
 
-        # Generate JWT tokens
+        is_first_login = False 
+        if user.is_first_login:
+            is_first_login = True
+            user.is_first_login = False 
+            user.save()
         refresh = RefreshToken.for_user(user)
-
-        return Response({"message": "Login Successful",
-                        "user": UserSerializer(user).data,
-                        "token": str(refresh.access_token),  # For backward compatibility
-                        "refreshToken": str(refresh)}) # refresh token to get new access
-
-        if serializer.is_valid():
-            user = serializer.validated_data["user"]
-            login(request,user)
-            is_first_login = False 
-            if user.is_first_login:
-                is_first_login = True
-                user.is_first_login = False 
-                user.save()
-            refresh = RefreshToken.for_user(user)
-            user_data = UserSerializer(user).data
-            user_data["is_first_login"] = is_first_login
-            return Response({"message": "Login Successful", 
-                            "user": user_data,
-                            "token": str(refresh.access_token), 
-                            "refreshToken": str(refresh)}) 
+        user_data = UserSerializer(user).data
+        user_data["is_first_login"] = is_first_login
+        return Response({
+            "message": "Login Successful", 
+            "user": user_data,
+            "token": str(refresh.access_token), 
+            "refreshToken": str(refresh)}) 
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -232,6 +228,15 @@ class CheckUsernameView(APIView):
             return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
         
         exists = User.objects.filter(username=username).exists()
+        return Response ({"exists":exists}, status=status.HTTP_200_OK)
+
+class CheckEmailView(APIView):
+    def get(self,request):
+        email = request.query_params.get('email',None)
+        if not email:
+            return Response({"error":"Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        exists = User.objects.filter(email=email).exists()
         return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
 

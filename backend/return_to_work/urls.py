@@ -16,7 +16,7 @@ from returnToWork.views import (
     UserInteractionView, LogInView, LogOutView, SignUpView, UserProfileView,
     PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView,
     DeleteServiceUserView, UserSettingsView, UserPasswordChangeView,
-    CheckUsernameView, RequestPasswordResetView, ContentPublishView,
+    CheckUsernameView,CheckEmailView, RequestPasswordResetView, ContentPublishView,
     RankingQuestionViewSet, AudioClipViewSet,
     DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, QuizDataView, QuizDetailView,
     QuizResponseView, AdminQuizResponsesView, QuizQuestionView,
@@ -67,6 +67,7 @@ urlpatterns = [
     path("api/admin/settings/", UserSettingsView.as_view(), name="user-settings"),
     path("api/admin/password-change/", UserPasswordChangeView.as_view(), name="user-password-change"),
     path("api/check-username/", CheckUsernameView.as_view(), name="check-username"),
+    path("api/check-email/", CheckEmailView.as_view(), name="check-email"),
     path('api/download-completed-task/<uuid:task_id>/', TaskPdfView.as_view(), name='download-completed-task'),
     path('api/accept-terms/', AcceptTermsView.as_view(), name='accept-terms'),
 

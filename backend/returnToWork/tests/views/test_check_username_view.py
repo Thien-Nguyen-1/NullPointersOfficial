@@ -20,7 +20,7 @@ class CheckUsernameViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["exists"])
 
-    def test_missing_username_parameter(self):
+    def test_missing_username(self):
         response = self.client.get(self.check_username_url) 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)

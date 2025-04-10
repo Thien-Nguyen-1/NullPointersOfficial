@@ -1,5 +1,4 @@
 import React from "react";
-import { BrowserRouter } from "react-router-dom";
 import { describe, it ,expect } from "vitest";
 import Welcome from "../../components/auth/Welcome";
 import {render, screen, fireEvent} from "@testing-library/react";
