@@ -1,5 +1,3 @@
-// src/tests/components/ModuleViewAlternative.test.jsx
-
 // PARTIAL MOCK FOR react-router-dom: return the actual exports.
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal();
