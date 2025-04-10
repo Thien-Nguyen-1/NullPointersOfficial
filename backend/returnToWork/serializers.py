@@ -29,6 +29,21 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tags
         fields = ['id','tag','modules']
 
+class AdminUserSerializer(serializers.ModelSerializer):
+    is_verified = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'user_type', 'is_verified']
+
+    def get_is_verified(self, obj):
+        if obj.user_type == 'superadmin':
+            return True
+        try:
+            verification = AdminVerification.objects.get(admin=obj)
+            return verification.is_verified
+        except AdminVerification.DoesNotExist:
+            return False
 
 class UserSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField( #Ensures tags are serialized as a list of tag names rather than ID

@@ -25,7 +25,7 @@ from returnToWork.views import (
     DocumentViewSet, AdminEmailVerificationView, ResendAdminVerificationView
 )
 from returnToWork.views import ProgressTrackerView,TagViewSet,ModuleViewSet, TaskViewSet, UserInteractionView, LogInView, LogOutView, SignUpView,UserProfileView,PasswordResetView, QuestionnaireView, UserDetail, ServiceUserListView, DeleteServiceUserView,UserSettingsView, UserPasswordChangeView, CheckUsernameView, RequestPasswordResetView, ContentPublishView,RankingQuestionViewSet, AudioClipViewSet, DocumentViewSet, EmbeddedVideoViewSet,  UserSupportView, UserChatView, ImageViewSet
-from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView, QuizUserResponsesView
+from returnToWork.views import  QuizDataView,QuizDetailView,QuizResponseView, AdminQuizResponsesView, QuizQuestionView,TaskPdfView,QuizQuestionViewSet, VerifyEmailView, CompletedInteractiveContentView, QuizUserResponsesView, AdminUserListView
 
 #for media url access
 from django.conf import settings
@@ -60,6 +60,7 @@ urlpatterns = [
     path('api/change-password/', PasswordResetView.as_view(), name='change-password'),
     path("api/questionnaire/", QuestionnaireView.as_view(), name="questionnaire"),
     path("service-users/", ServiceUserListView.as_view(), name="service-users-list"),
+    path('api/admins/', AdminUserListView.as_view(), name='admin-users-list'),
     path("service-users/<str:username>/", DeleteServiceUserView.as_view(), name="delete-service-user"),
     path('api/publish-module/', ContentPublishView.as_view(), name='publish-module'),
     path("api/worker/settings/", UserSettingsView.as_view(), name="user-settings"),
