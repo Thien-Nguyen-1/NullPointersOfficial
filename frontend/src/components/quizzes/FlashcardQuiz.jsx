@@ -102,7 +102,7 @@ const FlashcardQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
         console.log("Loading saved answers for flashcard quiz:", taskId);
         const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
         
-        if (response && response.answers) {
+        if (response && response.answers && Object.keys(response.answers).length > 0) {
         console.log("Retrieved saved answers:", response.answers);
         
         // For flashcards, answers are simple strings per question

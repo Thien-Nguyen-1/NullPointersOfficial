@@ -32,7 +32,7 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete, isPreview = false, previewQ
                 if (savedState) {
                     const parsed = JSON.parse(savedState);
                     setUserAnswers(parsed.submittedAnswers || {});
-                    completionStateRef.current.submittedAnswers = parsed.submittedAnswers || {};
+                    //completionStateRef.current.submittedAnswers = parsed.submittedAnswers || {};
                 }
             } catch (e) {
                 console.error("Failed to load saved quiz state", e);
@@ -97,7 +97,7 @@ const MatchingQuestionsQuiz = ({ taskId, onComplete, isPreview = false, previewQ
             console.log("Loading saved answers for matching quiz:", taskId);
             const response = await QuizApiUtils.getSavedQuizAnswers(taskId);
             
-            if (response && response.answers) {
+            if (response && response.answers && Object.keys(response.answers).length > 0) {
             console.log("Retrieved saved answers:", response.answers);
             
             // For matching quiz, answers are direct mappings
