@@ -577,9 +577,85 @@ test('setTempFiles should update the tempFiles state', async () => {
     
      const deleteButton = screen.getByTestId('fi-trash').closest('button');
      await user.click(deleteButton);
+
+     const container = screen.queryByText('TitleOfVideoTest');
+    expect(container).not.toBeInTheDocument();
   
 
   });
+
+
+
+
+  test('handleDeleteTemp cancel delete', async () => {
+    const editorRef = React.createRef();
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+    
+  render(<EmbeddedVideoEditor ref={editorRef} temporaryMode={true} />);
+
+  const mockFileData = [{
+    id: 'test-id-123',
+    file: JSON.stringify({
+      video_url: 'https://www.youtube.com/watch?v=testvideo',
+      title: 'TitleOfVideoTest',
+      description: 'Test description'
+    }),
+    filename: "video_data.json",
+    video_url: 'https://www.youtube.com/watch?v=testvideo', 
+    title: 'TitleOfVideoTest', 
+    created_at: new Date().toISOString()
+  }];
+  
+    editorRef.current.setTempFiles(mockFileData);
+
+    const submitButton = screen.getByTestId('submit-video-url')
+     await user.click(submitButton)
+  
+     const deleteButton = screen.getByTestId('fi-trash').closest('button');
+     await user.click(deleteButton);
+
+     const container = screen.getByText('TitleOfVideoTest')
+     expect(container).toBeInTheDocument()
+  
+
+  });
+
+  test('handleDeleteTemp internal error', async () => {
+    const editorRef = React.createRef();
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(true);
+    
+    VideoService.deleteEmbeddedVideo.mockRejectedValue(new Error("Unable to retrieve the videos"))
+    render(<EmbeddedVideoEditor ref={editorRef} temporaryMode={true} />);
+
+    const mockFileData = [{
+        id: 'test-id-123',
+        file: JSON.stringify({
+          video_url: 'https://www.youtube.com/watch?v=testvideo',
+          title: 'TitleOfVideoTest',
+          description: 'Test description'
+        }),
+        filename: "video_data.json",
+        video_url: 'https://www.youtube.com/watch?v=testvideo', 
+        title: 'TitleOfVideoTest', 
+        created_at: new Date().toISOString()
+      }];
+      
+        editorRef.current.setTempFiles(mockFileData);
+    
+        const submitButton = screen.getByTestId('submit-video-url')
+         await user.click(submitButton)
+      
+         const deleteButton = screen.getByTestId('fi-trash').closest('button');
+         await user.click(deleteButton);
+
+
+
+  })
+
+  
+
+
+  
 
 
   
