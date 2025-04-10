@@ -54,13 +54,19 @@ function Courses({ role }) {
             try {
                 if (user?.user_type === "admin" || user?.user_type === "superadmin") {
                     const response = await tagApi.getAll();
-                    // console.log(`all tags: ${response.data}`)
+                    
                     setTags(response.data);
                 } else {
                     console.log(user)
                      console.log(`user tags: ${ user.tags}`)
-
-                    const newTags = user.tags?.map( ( tagStr, index) => ({ id: index, tag: tagStr }))
+                    
+                    const response = await tagApi.getAll();
+                    const realTags = response?.data;
+                    
+                    const newTags = user.tags?.map(tagStr => {
+                        const match = realTags.find(tagObj => tagObj.tag === tagStr);
+                        return match ? { id: match.id, tag: tagStr } : null;
+                      }).filter(Boolean);
 
                     setTags(newTags);
                 }
@@ -80,6 +86,10 @@ function Courses({ role }) {
     const filteredModules = selectedTag 
         ? modules.filter(module => module.tags && module.tags.includes(selectedTag)) 
         : modules;
+
+    console.log("SELECTED TAG IS")
+    console.log(selectedTag)
+    console.log(modules)
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
