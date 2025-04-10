@@ -104,140 +104,140 @@ class ProgressTrackerView(APIView):
 
 # AUTH VIEWS START
 
-class SignUpView(APIView):
-    def post(self,request):
-        serializer =SignUpSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+# class SignUpView(APIView):
+#     def post(self,request):
+#         serializer =SignUpSerializer(data = request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message":"User registered successfully. Please verify your email to activate your account"}, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
     
-class LogInView(APIView):
-    def post(self, request):
-        print(f"[DEBUG] Login attempt with data: {request.data}")
-        serializer = LogInSerializer(data = request.data)
+# class LogInView(APIView):
+#     def post(self, request):
+#         print(f"[DEBUG] Login attempt with data: {request.data}")
+#         serializer = LogInSerializer(data = request.data)
 
-        if not serializer.is_valid():
-            print(f"[DEBUG] Login serializer errors: {serializer.errors}")
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         if not serializer.is_valid():
+#             print(f"[DEBUG] Login serializer errors: {serializer.errors}")
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        user = serializer.validated_data["user"]
-        print(f"[DEBUG] User authenticated: {user.username}, user_type: {user.user_type}")
+#         user = serializer.validated_data["user"]
+#         print(f"[DEBUG] User authenticated: {user.username}, user_type: {user.user_type}")
 
-        if user.user_type == 'admin':
-            try:
-                verification = AdminVerification.objects.get(admin=user)
-                # print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
-                if not verification.is_verified:
-                    # print(f"[DEBUG] Admin not verified, preventing login")
-                    return Response({
-                        'error': 'Please verify your email before logging in. Check your inbox for a verification link.',
-                        'verification_required': True
-                    }, status=status.HTTP_403_FORBIDDEN)
-            except AdminVerification.DoesNotExist:
-                # print(f"[DEBUG] No verification record found for admin")
-                # If no verification record exists, create one requiring verification
-                verification_token = str(uuid.uuid4())
-                AdminVerification.objects.create(
-                    admin=user,
-                    is_verified=False,
-                    verification_token=verification_token
-                )
+#         if user.user_type == 'admin':
+#             try:
+#                 verification = AdminVerification.objects.get(admin=user)
+#                 # print(f"[DEBUG] Admin verification found: is_verified={verification.is_verified}")
+#                 if not verification.is_verified:
+#                     # print(f"[DEBUG] Admin not verified, preventing login")
+#                     return Response({
+#                         'error': 'Please verify your email before logging in. Check your inbox for a verification link.',
+#                         'verification_required': True
+#                     }, status=status.HTTP_403_FORBIDDEN)
+#             except AdminVerification.DoesNotExist:
+#                 # print(f"[DEBUG] No verification record found for admin")
+#                 # If no verification record exists, create one requiring verification
+#                 verification_token = str(uuid.uuid4())
+#                 AdminVerification.objects.create(
+#                     admin=user,
+#                     is_verified=False,
+#                     verification_token=verification_token
+#                 )
 
-                # Send verification email
-                verification_url = f"http://localhost:5173/verify-admin-email/{verification_token}/"
-                send_mail(
-                    subject="Verify your admin account",
-                    message=f"Dear {user.first_name},\n\nPlease verify your email by clicking the following link: {verification_url}\n\nThis link will expire in 3 days.",
-                    from_email="readiness.to.return.to.work@gmail.com",
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
+#                 # Send verification email
+#                 verification_url = f"http://localhost:5173/verify-admin-email/{verification_token}/"
+#                 send_mail(
+#                     subject="Verify your admin account",
+#                     message=f"Dear {user.first_name},\n\nPlease verify your email by clicking the following link: {verification_url}\n\nThis link will expire in 3 days.",
+#                     from_email="readiness.to.return.to.work@gmail.com",
+#                     recipient_list=[user.email],
+#                     fail_silently=False,
+#                 )
 
-                return Response({
-                    'error': 'Please verify your email before logging in. A verification link has been sent to your email.',
-                    'verification_required': True
-                }, status=status.HTTP_403_FORBIDDEN)
+#                 return Response({
+#                     'error': 'Please verify your email before logging in. A verification link has been sent to your email.',
+#                     'verification_required': True
+#                 }, status=status.HTTP_403_FORBIDDEN)
 
-        login(request,user) # If verification passed or not required, proceed with login
-        # token, created = Token.objects.get_or_create(user=user)
-        print(f"[DEBUG] Login successful, generating tokens")
+#         login(request,user) # If verification passed or not required, proceed with login
+#         # token, created = Token.objects.get_or_create(user=user)
+#         print(f"[DEBUG] Login successful, generating tokens")
 
-        is_first_login = False 
-        if user.is_first_login:
-            is_first_login = True
-            user.is_first_login = False 
-            user.save()
-        refresh = RefreshToken.for_user(user)
-        user_data = UserSerializer(user).data
-        user_data["is_first_login"] = is_first_login
-        return Response({
-            "message": "Login Successful", 
-            "user": user_data,
-            "token": str(refresh.access_token), 
-            "refreshToken": str(refresh)}) 
+#         is_first_login = False 
+#         if user.is_first_login:
+#             is_first_login = True
+#             user.is_first_login = False 
+#             user.save()
+#         refresh = RefreshToken.for_user(user)
+#         user_data = UserSerializer(user).data
+#         user_data["is_first_login"] = is_first_login
+#         return Response({
+#             "message": "Login Successful", 
+#             "user": user_data,
+#             "token": str(refresh.access_token), 
+#             "refreshToken": str(refresh)}) 
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class VerifyEmailView(APIView):
-    def get(self,request,token):
-        user_data = cache.get(token)
-        if not user_data:
-            return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
-        if User.objects.filter(email=user_data.get("email")).exists():
-            return Response({"message": "This email is already verified. You can log in"}, status=status.HTTP_200_OK)
-        user = User.objects.create_user(**user_data)
-        cache.delete(token)
-        return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
+# class VerifyEmailView(APIView):
+#     def get(self,request,token):
+#         user_data = cache.get(token)
+#         if not user_data:
+#             return Response({"error": "Invalid or expired verification token"}, status = status.HTTP_400_BAD_REQUEST)
+#         if User.objects.filter(email=user_data.get("email")).exists():
+#             return Response({"message": "This email is already verified. You can log in"}, status=status.HTTP_200_OK)
+#         user = User.objects.create_user(**user_data)
+#         cache.delete(token)
+#         return Response({"message":"Email verified successfully"}, status=status.HTTP_200_OK)
 
-class PasswordResetView(APIView):
-    permission_classes = []
-    def post(self,request,uidb64,token):
-        request.data["uidb64"] = uidb64
-        request.data["token"] = token
-        serializer = PasswordResetSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"Password reset successfully"})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class PasswordResetView(APIView):
+#     permission_classes = []
+#     def post(self,request,uidb64,token):
+#         request.data["uidb64"] = uidb64
+#         request.data["token"] = token
+#         serializer = PasswordResetSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message":"Password reset successfully"})
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RequestPasswordResetView(APIView):
-    def post(self,request):
-        serialzer = RequestPasswordResetSerializer(data = request.data)
-        if serialzer.is_valid():
-            serialzer.save()
-            return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
-        return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
+# class RequestPasswordResetView(APIView):
+#     def post(self,request):
+#         serialzer = RequestPasswordResetSerializer(data = request.data)
+#         if serialzer.is_valid():
+#             serialzer.save()
+#             return Response({"message":"Password reset link sent successfully"}, status=status.HTTP_200_OK)
+#         return Response(serialzer.errors, status= status.HTTP_400_BAD_REQUEST)
     
-class LogOutView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self,request):
-        try: 
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            logout(request)
-            return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+# class LogOutView(APIView):
+#     permission_classes = [IsAuthenticated]
+#     def post(self,request):
+#         try: 
+#             refresh_token = request.data["refresh"]
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
+#             logout(request)
+#             return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class CheckUsernameView(APIView):
-    def get(self,request):
-        username = request.query_params.get('username',None)
-        if not username:
-            return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
+# class CheckUsernameView(APIView):
+#     def get(self,request):
+#         username = request.query_params.get('username',None)
+#         if not username:
+#             return Response({"error":"Username is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        exists = User.objects.filter(username=username).exists()
-        return Response ({"exists":exists}, status=status.HTTP_200_OK)
+#         exists = User.objects.filter(username=username).exists()
+#         return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
-class CheckEmailView(APIView):
-    def get(self,request):
-        email = request.query_params.get('email',None)
-        if not email:
-            return Response({"error":"Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+# class CheckEmailView(APIView):
+#     def get(self,request):
+#         email = request.query_params.get('email',None)
+#         if not email:
+#             return Response({"error":"Email is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        exists = User.objects.filter(email=email).exists()
-        return Response ({"exists":exists}, status=status.HTTP_200_OK)
+#         exists = User.objects.filter(email=email).exists()
+#         return Response ({"exists":exists}, status=status.HTTP_200_OK)
 
 
  #AUTH VIEWS END
@@ -932,121 +932,121 @@ class ContentPublishView(APIView):
 
 #SETTINGS VIEW START
 
-class UserSettingsView(APIView):
-    permission_classes = [IsAuthenticated]
+# class UserSettingsView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self,request):
-        user = request.user
-        serializer = UserSettingSerializer(user)
-        return Response(serializer.data)
+#     def get(self,request):
+#         user = request.user
+#         serializer = UserSettingSerializer(user)
+#         return Response(serializer.data)
 
-    def put(self,request):
-        user = request.user
-        serializer = UserSettingSerializer(user,data = request.data, partial =True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+#     def put(self,request):
+#         user = request.user
+#         serializer = UserSettingSerializer(user,data = request.data, partial =True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self,request):
-        user = request.user
-        user_email = user.email
-        username = user.username
+#     def delete(self,request):
+#         user = request.user
+#         user_email = user.email
+#         username = user.username
 
-        user.delete()
+#         user.delete()
 
-        if not User.objects.filter(username = username).exists():
-            send_mail(
-                subject= "Account deletion",
-                message = f"Dear {username}, Your account has been successfully deleted.",
-                from_email = "readiness.to.return.to.work@gmail.com",
-                recipient_list=[user_email],
-                fail_silently=False,
-                )
-            return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+#         if not User.objects.filter(username = username).exists():
+#             send_mail(
+#                 subject= "Account deletion",
+#                 message = f"Dear {username}, Your account has been successfully deleted.",
+#                 from_email = "readiness.to.return.to.work@gmail.com",
+#                 recipient_list=[user_email],
+#                 fail_silently=False,
+#                 )
+#             return Response({"message":"User account deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
-        return Response({"error":"User account not deleted"},status=status.HTTP_400_BAD_REQUEST)
+#         return Response({"error":"User account not deleted"},status=status.HTTP_400_BAD_REQUEST)
 
-class UserPasswordChangeView(APIView):
-    permission_classes = [IsAuthenticated]
+# class UserPasswordChangeView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def put(self, request):
-        serializer = UserPasswordChangeSerializer(data=request.data, context={"request": request})
+#     def put(self, request):
+#         serializer = UserPasswordChangeSerializer(data=request.data, context={"request": request})
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Password uUpdated successfully"})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message": "Password uUpdated successfully"})
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CompletedInteractiveContentView(APIView):
-    permission_classes = [IsAuthenticated]
+# class CompletedInteractiveContentView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        # module = get_object_or_404(Module, pk=module_id)
+#     def get(self, request):
+#         # module = get_object_or_404(Module, pk=module_id)
 
-        content_type = ContentType.objects.get_for_model(Task)
+#         content_type = ContentType.objects.get_for_model(Task)
 
-        # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
+#         # module_task_ids = Task.objects.filter(moduleID=module).values_list('contentID', flat=True)
 
-        viewed_tasks = ContentProgress.objects.filter(
-            user=request.user,
-            content_type=content_type,
-            # object_id__in=module_task_ids,
-            viewed=True
-        )
+#         viewed_tasks = ContentProgress.objects.filter(
+#             user=request.user,
+#             content_type=content_type,
+#             # object_id__in=module_task_ids,
+#             viewed=True
+#         )
 
-        results = []
-        for item in viewed_tasks:
-            try:
-                task = item.content_object
-                results.append({
-                    "content_id": str(item.object_id),
-                    "title": task.title,
-                    "viewed_at": item.viewed_at,
-                    "quiz_type": task.get_quiz_type_display(),
-                    "module_title": task.moduleID.title if task.moduleID else None
-                })
-            except:
-                continue
+#         results = []
+#         for item in viewed_tasks:
+#             try:
+#                 task = item.content_object
+#                 results.append({
+#                     "content_id": str(item.object_id),
+#                     "title": task.title,
+#                     "viewed_at": item.viewed_at,
+#                     "quiz_type": task.get_quiz_type_display(),
+#                     "module_title": task.moduleID.title if task.moduleID else None
+#                 })
+#             except:
+#                 continue
 
-        return Response(results)
+#         return Response(results)
 
-class TaskPdfView(APIView):
-    permission_classes = [IsAuthenticated]
+# class TaskPdfView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request, task_id):
-        user = request.user
-        # get task details
-        try:
-            task = Task.objects.get(contentID = task_id)
-        except Task.DoesNotExist:
-            return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
+#     def get(self, request, task_id):
+#         user = request.user
+#         # get task details
+#         try:
+#             task = Task.objects.get(contentID = task_id)
+#         except Task.DoesNotExist:
+#             return Response({"error": "Task not found"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # get related questions 
-        questions = QuizQuestion.objects.filter(task = task)
+#         # get related questions 
+#         questions = QuizQuestion.objects.filter(task = task)
         
-        if not questions.exists():
-            return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
+#         if not questions.exists():
+#             return Response({"error": "No questions found for this task"}, status=status.HTTP_400_BAD_REQUEST)
 
-        buffer = BytesIO()
-        pdf = canvas.Canvas(buffer)
-        pdf.drawString(100,800,f"Task:{task.title}")
+#         buffer = BytesIO()
+#         pdf = canvas.Canvas(buffer)
+#         pdf.drawString(100,800,f"Task:{task.title}")
 
-        y_position = 780
-        for question in questions:
-            response = UserResponse.objects.filter(user=user, question=question).first()
-            answer_text = response.response_text if response else "No response provided"
-            pdf.drawString(100, y_position, f"Question: {question.question_text}")
-            y_position -=20
-            pdf.drawString(120, y_position, f"Answer: {answer_text}")
-            y_position -=30
+#         y_position = 780
+#         for question in questions:
+#             response = UserResponse.objects.filter(user=user, question=question).first()
+#             answer_text = response.response_text if response else "No response provided"
+#             pdf.drawString(100, y_position, f"Question: {question.question_text}")
+#             y_position -=20
+#             pdf.drawString(120, y_position, f"Answer: {answer_text}")
+#             y_position -=30
 
-        pdf.save()
-        buffer.seek(0)
-        response = HttpResponse(buffer, content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
+#         pdf.save()
+#         buffer.seek(0)
+#         response = HttpResponse(buffer, content_type="application/pdf")
+#         response["Content-Disposition"] = f'attachment; filename="{task.title.replace(" ", "-")}_completed.pdf"'
 
-        return response
+#         return response
 
 
 
