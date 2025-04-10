@@ -124,7 +124,7 @@ function renderUserInfo() {
 function renderCompletedCourses() {
   return (
     <div className="settings-card centre">
-      <h2>Completed Courses</h2>
+      <h2>Completed tasks</h2>
       {completedCourses.length > 0 ? (
         <div className="completed-courses-container">
           {completedCourses.map((task, index) => (

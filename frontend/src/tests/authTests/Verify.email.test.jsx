@@ -2,8 +2,6 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import VerifyEmail from "../../components/auth/VerifyEmail"; 
-import { useNavigate, useParams } from "react-router-dom";
-
 
 const mockNavigate = vi.fn();
 
@@ -79,9 +77,5 @@ describe("VerifyEmail component", () => {
     });
   });
 
-// describe.skip('some test suite', () => {
-//   test('will not run', () => {
-//     expect(true).toBe(false);
-//   });
-// });
+
   
