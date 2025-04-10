@@ -7,7 +7,6 @@ import uuid
 
 class QuizDetailViewTests(APITestCase):
     def setUp(self):
-        # Create a test user with your custom User model
         self.user = User.objects.create_user(
             username='@testuser',
             email='test@example.com',
@@ -16,23 +15,20 @@ class QuizDetailViewTests(APITestCase):
             last_name='User',
             user_type='service user'
         )
-        
-        # Create a test module first
+
         self.module = Module.objects.create(
             title='Test Module',
             description='A test module description'
         )
         
-        # Create a test task
         self.task = Task.objects.create(
             title='Test Quiz',
             description='A test quiz description',
             quiz_type='text_input',
             author=self.user,
-            moduleID=self.module  # Use the created module
+            moduleID=self.module  
         )
         
-        # Create some test questions
         self.question1 = QuizQuestion.objects.create(
             task=self.task,
             question_text='What is your opinion on this topic?',
@@ -47,44 +43,31 @@ class QuizDetailViewTests(APITestCase):
             order=2
         )
         
-        # Set up the client
         self.client = APIClient()
         
     def test_get_quiz_details_success(self):
-        """Test successful retrieval of quiz details"""
-        # Login the user
         self.client.force_authenticate(user=self.user)
-        
-        # Make the request
         url = reverse('quiz_detail_api', args=[str(self.task.contentID)])
         response = self.client.get(url)
         
-        # Check the response
+  
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['task']['id'], str(self.task.contentID))
         self.assertEqual(response.data['task']['title'], self.task.title)
         self.assertEqual(len(response.data['questions']), 2)
         
-        # Check questions are in correct order
+
         self.assertEqual(response.data['questions'][0]['id'], self.question1.id)
         self.assertEqual(response.data['questions'][1]['id'], self.question2.id)
     
     def test_get_quiz_details_nonexistent_task(self):
-        """Test getting quiz details for a non-existent task"""
-        # Login the user
         self.client.force_authenticate(user=self.user)
-        
-        # Make the request with a non-existent UUID
         non_existent_id = uuid.uuid4()
         url = reverse('quiz_detail_api', args=[str(non_existent_id)])
         response = self.client.get(url)
-        
-        # Check that we get a 404
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_quiz_details_unauthenticated(self):
-        """Test accessing quiz details without authentication"""
-        # Don't authenticate the client
         url = reverse('quiz_detail_api', args=[str(self.task.contentID)])
         response = self.client.get(url)
         
