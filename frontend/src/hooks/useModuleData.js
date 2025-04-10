@@ -125,7 +125,7 @@ export const useModuleData = (editId) => {
         mediaType: 'video',
         moduleId: moduleId,
         actualModuleId: moduleId,
-        order_index: image.order_index || 0 
+        order_index: video.order_index || 0
       }));
 
       // future media
