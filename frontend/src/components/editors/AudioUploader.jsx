@@ -460,7 +460,7 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
         </div>
       )}
       
-      <DragDropUploader onUpload={handleUpload} acceptedFileTypes=".mp3,.wav,.ogg,.m4a" mediaType="audio" />      
+      <DragDropUploader onUpload={handleUpload} acceptedFileTypes=".mp3,.wav,.ogg,.m4a" mediaType="audio" data-testid="drag-drop-uploader"/>      
       {displayedAudios.length > 0 ? (
         <div className={styles.audiosList}>
           <h4 className={styles.sectionTitle}>Uploaded Audio</h4>

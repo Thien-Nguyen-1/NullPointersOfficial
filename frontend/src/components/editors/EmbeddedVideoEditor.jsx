@@ -478,6 +478,7 @@ const EmbeddedVideoEditor = forwardRef(({ moduleId, documentId, existingVideo = 
               />
             </div>
             <button
+              data-testid='submit-video-url'
               type="submit"
               className={styles.saveButton}
               disabled={isLoading}
