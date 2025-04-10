@@ -2139,6 +2139,13 @@ class MarkContentViewedView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # Only service users to mark content as viewed
+        if request.user.user_type != 'service user':
+            return Response({
+                "success": False,
+                "message": "Only service users can track progress"
+            }, status=status.HTTP_403_FORBIDDEN)
+        
         content_id = request.data.get('content_id')
         content_type_name = request.data.get('content_type')
         
@@ -2153,7 +2160,7 @@ class MarkContentViewedView(APIView):
             'video': EmbeddedVideo,
             'quiz': Task,  # Assuming quizzes are stored in Task model
             #'document' : Document, (im confused here)
-            'document' : Document,
+            'infosheet' : Document,
             'image' : Image,
             'audio' : AudioClip,
             'ranking' : RankingQuestion

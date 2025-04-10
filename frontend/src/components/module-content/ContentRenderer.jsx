@@ -24,46 +24,35 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
   console.log("AuthContext values:", { user: !!user, hasToken: !!token });
   // Handler for when content is completed/viewed
   const handleContentComplete = async (contentId, results) => {
-    // If in PREVIEW MODE, no nothing
+    // If in PREVIEW MODE, do nothing
     if (isPreviewMode) return;
-
-
     console.log(`handleContentComplete called for ${item.type}:`, contentId);
     
-    // skip if user is not authenticated
+    // Skip if user is not authenticated
     if (!user || !token) {
       console.log("User not logged in, not tracking content completion");
       if (onContentComplete) onContentComplete(contentId, results);
       return;
     }
-    // For non-quiz content, skip if already completed to avoid unnecessary API calls
-    // if (item.type !== 'quiz' && completedContentIds.has(contentId)) {
-    //   console.log(`Skipping marking ${item.type} as viewed - already completed:`, contentId);
-    //   if (onContentComplete) onContentComplete(contentId, results);
-    //   return;
-    // }
-    //see first abt this
-
+    
     try {
-      // handle based on content types
+      // Handle based on content type
       if (item.type === 'quiz') {
-        // for quizzes, users need to submit answers first
+        // For quizzes, submit answers first
         console.log("Submitting quiz answers:", results);
         await QuizApiUtils.submitQuizAnswers(
-          item.taskData.contentID, 
+          item.taskData.contentID,
           results,
           token
         );
-        // then mark as viewed/completed
-        await markContentAsViewed(contentId, item.type, token);
       }
-      else {
-        // for other non-interactive quizzes (documents, videos, images, audio)
-        console.log(`Marking ${item.type} as viewed:`, contentId);
-        await markContentAsViewed(contentId, item.type, token);
-      }
-
-      // call the parent component's for completion handler
+      
+      // Mark content as viewed/completed (for all content types)
+      console.log(`Marking ${item.type} as viewed:`, contentId);
+      const result = await markContentAsViewed(contentId, item.type, token);
+      console.log("Content marked as viewed result:", result);
+      
+      // Call the parent component's completion handler
       if (onContentComplete) {
         onContentComplete(contentId, results);
       }
@@ -74,36 +63,12 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
         onContentComplete(contentId, results);
       }
     }
-    
-    
-    // Skip if user is not authenticated
-    if (!user || !token) {
-      console.log("User not logged in, not tracking content completion");
-      if (onContentComplete) onContentComplete(contentId, results);
-      return;
-    }
-    
-    console.log("Auth token (first few chars):", token ? token.substring(0, 10) + "..." : "null");
-    console.log("User authenticated:", !!user);
-    
-    try {
-      console.log("Attempting to mark content as viewed:", contentId, item.type);
-      // Call the API to mark content as viewed
-      const result = await markContentAsViewed(contentId, item.type, token);
-      console.log("Content marked as viewed:", result);
-      // Call the parent component's completion handler
-      if (onContentComplete) {
-        onContentComplete(contentId, results);
-      }
-    } catch (error) {
-      console.error("Failed to mark content as viewed:", error);
-      // Still call the parent handler even if API call fails
-      if (onContentComplete) {
-        onContentComplete(contentId, results);
-      }
-    }
-  
-  }
+  };
+
+  const shouldShowMarkCompleteButton = () => {
+    // Only show the button for service users
+    return user && user.user_type === 'service user' && !completedContentIds.has(item.id);
+  };
 
   //  wrapper  for preview mode items
   const PreviewWrapper = ({children, type}) => {
@@ -205,6 +170,8 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
     default:
       return <div className="alt-error">Unknown content type: {item.type}</div>;
   }
+
+  
 };
 
 export default ContentRenderer;
