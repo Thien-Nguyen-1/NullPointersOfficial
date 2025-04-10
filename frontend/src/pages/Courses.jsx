@@ -57,8 +57,12 @@ function Courses({ role }) {
                     // console.log(`all tags: ${response.data}`)
                     setTags(response.data);
                 } else {
-                    // console.log(`user tags: ${user.tags}`)
-                    setTags(user.tags);
+                    console.log(user)
+                     console.log(`user tags: ${ user.tags}`)
+
+                    const newTags = user.tags?.map( ( tagStr, index) => ({ id: index, tag: tagStr }))
+
+                    setTags(newTags);
                 }
             } catch (err) {
                 console.error("Error fetching tags: ", err);
