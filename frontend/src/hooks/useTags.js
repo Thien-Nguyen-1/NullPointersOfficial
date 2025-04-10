@@ -47,11 +47,11 @@ export const useTags = () => {
         setTags([...tags, response.data.id]);
       } catch (err) {
         // Handle errors including unique constraint violations
-        if (err.response?.data?.tag?.includes("already exists")) {
+        if (err.response?.data?.tag?.[0]?.includes("already exists")) {
           alert("This tag already exists in the system.");
           
           // Try to fetch all tags again to get the updated list
-          fetchTags();
+          await fetchTags();
         } else {
           console.error("Error creating tag:", err);
           throw err;
