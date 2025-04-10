@@ -115,7 +115,7 @@ const FlashcardQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
     };
     
     loadSavedAnswers();
-}, [taskId, isPreview]);
+}, [taskId, isPreview, questions]);
 
   // Move to the next question
   const nextQuestion = () => {
@@ -211,7 +211,6 @@ const FlashcardQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
       return;
     }
 
-
     // Final validation before sending to parent component
     const errors = {};
     let hasErrors = false;
@@ -246,6 +245,22 @@ const FlashcardQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
     }
   };
 
+
+  const handleRestart = () => {
+    const resetAnswers = {};
+    questions.forEach(q => {
+      resetAnswers[q.id] = '';
+    });
+  
+    setUserAnswers(resetAnswers);
+    setCurrentQuestionIndex(0);
+    setFlipped(false);
+    setQuizCompleted(false);
+    setValidationErrors({});
+    setAttemptedSubmit(false);
+  };
+
+
   if (isLoading) {
     return <div className="quiz-loading">Loading flashcards...</div>;
   }
@@ -273,11 +288,7 @@ const FlashcardQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions
         <div className="quiz-actions">
           <button 
             className="restart-button"
-            onClick={() => {
-              setCurrentQuestionIndex(0);
-              setFlipped(false);
-              setQuizCompleted(false);
-            }}
+            onClick={handleRestart}
           >
             Try Again
           </button>
