@@ -24,7 +24,7 @@ describe('QuestionnaireAdmin Component', () => {
   // Test rootQuestion function
   describe('rootQuestion function', () => {
     it('should find the root question (that is not referenced by other questions)', () => {
-      render(<QuestionnaireAdmin />);
+      render(<QuestionnaireAdmin />);c
       // The root question should be rendered with its text on the page
       const rootQuestion = screen.getAllByText('Are you ready to return to work?')[0];
       expect(rootQuestion).toBeInTheDocument();
