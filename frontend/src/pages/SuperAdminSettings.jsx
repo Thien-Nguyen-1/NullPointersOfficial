@@ -386,7 +386,7 @@ const SuperAdminSettings = () => {
 
                 <div className="form-group verification-toggle">
                   <div className="toggle-content">
-                    <label className="verification-label">
+                    <label className="verification-label" htmlFor="require_verification">
                       <strong>Require Email Verification</strong>
                     </label>
                     <div className="toggle-description">
@@ -416,7 +416,7 @@ const SuperAdminSettings = () => {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary">
+                  <button type="submit" className="btn-primary" data-testid="submit-admin-form">
                     Add Admin
                   </button>
                 </div>
@@ -424,7 +424,7 @@ const SuperAdminSettings = () => {
             </div>
           ) : (
             <button 
-              className="btn-primary" 
+              className="btn-primary"
               onClick={() => setShowAddAdminForm(true)}
             >
               Add New Admin
