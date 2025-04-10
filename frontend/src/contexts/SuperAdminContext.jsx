@@ -104,6 +104,7 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
   // Update terms and conditions
   const updateTermsAndConditions = async (content) => {
     if (!token || !isSuperAdmin) {
+      console.error("Unauthorized access attempt");
       throw new Error("Unauthorized access");
     }
 
@@ -123,6 +124,7 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
   // add a new admin user
   const addAdminUser = async (userData) => {
     if (!token || !isSuperAdmin) {
+      console.error("Unauthorized access attempt");
       throw new Error("Unauthorized access");
     }
 
@@ -166,7 +168,7 @@ export const SuperAdminContextProvider = ({ children }) => {  // a special prop 
       const response = await api.delete(`/api/admin-users/${userId}/`);
       
       // Update the admin users list
-      setAdminUsers(adminUsers.filter(admin => admin.id !== userId));
+      setAdminUsers(prevAdmins => prevAdmins.filter(admin => admin.id !== userId));
       
       // Return success with any data from the response
       return { 

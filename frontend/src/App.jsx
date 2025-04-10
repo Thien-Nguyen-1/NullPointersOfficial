@@ -11,7 +11,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import AdminDashboard from "./pages/AdminDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import Settings from './pages/Settings';
-import Support from "./pages/Support";
 import Courses from "./pages/Courses";
 import CoursesList from './pages/CoursesList.jsx';
 import Questionnaire from "./components/Questionnaire";

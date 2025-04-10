@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FlashcardQuiz from './FlashcardQuiz';
 import RankingQuiz from './RankingQuiz';
+import FillBlankQuiz from './FillInTheBlanksQuiz';
+import FlowchartSequenceQuiz from './FlowchartQuiz';
 import "../../styles/MainQuizContainer.css";
 import { useParams } from "react-router-dom";
 
