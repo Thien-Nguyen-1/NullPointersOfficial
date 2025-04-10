@@ -100,6 +100,8 @@ const fetchData = async (endpoint) => {
 
 export const fetchServiceUsers = () => fetchData("service-users");
 
+export const fetchAdminUsers = () => fetchData("api/admins");
+
 export const deleteServiceUser = async (username) => {
     try {
         const response = await api.delete(`/service-users/${username}/`);

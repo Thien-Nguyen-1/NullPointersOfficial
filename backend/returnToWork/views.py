@@ -51,7 +51,7 @@ from .serializers import (
     QuestionnaireSerializer, QuizQuestionSerializer, RankingQuestionSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer, TagSerializer, TaskSerializer, UserModuleInteractSerializer,
     UserPasswordChangeSerializer, UserSerializer, UserSettingSerializer,
-    MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer
+    MessageSerializer, ConversationSerializer, AdminVerificationSerializer, ImageSerializer, AdminUserSerializer
 )
 
 User = get_user_model()
@@ -889,6 +889,16 @@ class ServiceUserListView(generics.ListAPIView):
         if username:
             queryset = queryset.filter(username__icontains=username)
         return queryset.prefetch_related("tags")  # Prefetch tags for efficiency
+
+class AdminUserListView(generics.ListAPIView):
+    serializer_class = AdminUserSerializer
+
+    def get_queryset(self):
+        # Return superadmins and verified admins only
+        return User.objects.filter(
+            Q(user_type='superadmin') |
+            Q(user_type='admin', verification__is_verified=True)
+        )
 
 class DeleteServiceUserView(generics.DestroyAPIView):
     """API view to delete a user by username"""
