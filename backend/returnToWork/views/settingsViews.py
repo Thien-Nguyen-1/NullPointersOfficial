@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
-
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -20,6 +20,8 @@ from returnToWork.models import (
 from returnToWork.serializers import (
     UserSettingSerializer, UserPasswordChangeSerializer
 )
+
+User = get_user_model()
 
 class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
