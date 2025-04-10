@@ -112,7 +112,7 @@ class EmbeddedVideoViewSetTests(APITestCase):
 
     def test_module_videos_action_success(self):
         self.client.force_authenticate(user=self.author)
-        url = f'/api/embedded-videos/?module_id={self.module.id}'
+        url = f'/api/embedded-videos/module_videos/?module_id={self.module.id}'
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(len(res.data), 1)
