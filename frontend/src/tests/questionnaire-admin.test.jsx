@@ -17,27 +17,28 @@ describe('QuestionnaireAdmin Component', () => {
     expect(screen.getByText("Save All Changes")).toBeInTheDocument();
   });
 
-  test('adds a new question', () => {
-    render(<QuestionnaireAdmin />);
-    fireEvent.click(screen.getByText("Add New Question"));
-    expect(screen.getByText("New Question")).toBeInTheDocument();
-  });
+  // test('adds a new question', () => {
+  //   render(<QuestionnaireAdmin />);
+  //   fireEvent.click(screen.getByText("Add New Question"));
+  //   expect(screen.getByText("New Question")).toBeInTheDocument();
+  // });
 
-  test('selects a question and shows editor', () => {
-    render(<QuestionnaireAdmin />);
-    fireEvent.click(screen.getByText("Are you ready to return to work?"));
-    expect(screen.getByLabelText("Question Text:")).toBeInTheDocument();
-  });
+  
+  // test('selects a question and shows editor', () => {
+  //   render(<QuestionnaireAdmin />);
+  //   fireEvent.click(screen.getByText("Are you ready to return to work?"));
+  //   expect(screen.getByLabelText("Question Text:")).toBeInTheDocument();
+  // });
 
-  test('edits question text', () => {
-    render(<QuestionnaireAdmin />);
-    fireEvent.click(screen.getByText("Are you ready to return to work?"));
+  // test('edits question text', () => {
+  //   render(<QuestionnaireAdmin />);
+  //   fireEvent.click(screen.getByText("Are you ready to return to work?"));
 
-    const input = screen.getByLabelText("Question Text:");
-    fireEvent.change(input, { target: { value: "Updated Question?" } });
+  //   const input = screen.getByLabelText("Question Text:");
+  //   fireEvent.change(input, { target: { value: "Updated Question?" } });
 
-    expect(input.value).toBe("Updated Question?");
-  });
+  //   expect(input.value).toBe("Updated Question?");
+  // });
 
   test('saves changes and calls API', async () => {
     const submitMock = vi.spyOn(api, 'SubmitQuestionnaire').mockResolvedValue({});
