@@ -26,14 +26,6 @@ AUDIO_PATH = os.path.join(SEED_MEDIA_DIR, 'audio', 'dummy_audio.mp3')
 IMAGE_PATH = os.path.join(SEED_MEDIA_DIR, 'image', 'dummy_image.jpg')
 DOCUMENT_PATH = os.path.join(SEED_MEDIA_DIR, 'document', 'dummy_document.pdf')
 
-# Import Faker for generating realistic test data
-try:
-    from faker import Faker
-    fake = Faker('en_GB')  # Using UK locale
-except ImportError:
-    print("Faker is required for this script. Install it with: pip install faker")
-    sys.exit(1)
-
 # Import models
 from django.contrib.auth import get_user_model
 from returnToWork.models import (
