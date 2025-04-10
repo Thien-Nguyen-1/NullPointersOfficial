@@ -81,11 +81,17 @@ class ProgressTrackerView(APIView):
         except ProgressTracker.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        serializer = ProgressTrackerSerializer(progress_tracker, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Use partial=True to allow partial updates
+        serializer = ProgressTrackerSerializer(progress_tracker, data=request.data, partial=True)
+        
+        # Add more explicit error handling
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Save the updated instance
+        updated_tracker = serializer.save()
+        
+        return Response(ProgressTrackerSerializer(updated_tracker).data)
 
     def delete(self, request, pk):
         try:
