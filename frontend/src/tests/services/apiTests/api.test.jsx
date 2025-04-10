@@ -1199,3 +1199,22 @@ describe('api.js', () => {
     });
   });
 });
+
+describe('fetchAdminUsers', () => {
+  test('should fetch admin users successfully', async () => {
+    const mockAdmins = [{ id: 1, username: 'admin1' }];
+    api.get.mockResolvedValueOnce({ data: mockAdmins });
+
+    const result = await apiModule.fetchAdminUsers();
+
+    expect(api.get).toHaveBeenCalledWith('api/admins/');
+    expect(result).toEqual(mockAdmins);
+  });
+
+  test('should handle fetch error', async () => {
+    api.get.mockRejectedValueOnce(new Error('Network error'));
+
+    await expect(apiModule.fetchAdminUsers()).rejects.toThrow('Failed to fetch api/admins');
+    expect(console.error).toHaveBeenCalled();
+  });
+});
