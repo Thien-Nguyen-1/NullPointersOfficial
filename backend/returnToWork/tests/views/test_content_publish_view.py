@@ -3,8 +3,8 @@
 # from rest_framework.test import APIClient, APITestCase
 # from rest_framework import status
 # from django.contrib.auth import get_user_model
-# from returnToWork.models import (Module, RankingQuestion, InlinePicture, AudioClip, Document, EmbeddedVideo, User, Tags)
-# from returnToWork.serializers import (RankingQuestionSerializer, InlinePictureSerializer, AudioClipSerializer,DocumentSerializer, EmbeddedVideoSerializer)
+# from returnToWork.models import (Module, RankingQuestion, AudioClip, Document, EmbeddedVideo, User, Tags)
+# from returnToWork.serializers import (RankingQuestionSerializer,  AudioClipSerializer,DocumentSerializer, EmbeddedVideoSerializer)
 # import json
 # from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -13,11 +13,11 @@
 #     def setUp(self):
 #         self.client = APIClient()
 #         self.url = reverse('publish-module')
-#         self.user = User.objects.create(username="@user1", first_name="John", last_name="Doe",user_type="service user")
+#         self.user = User.objects.create(username="@user1", first_name="John", last_name="Doe",user_type="service user",email = "ex@example.org")
 #         self.client.force_authenticate(user=self.user)
 
 #         # Create a default user for unauthenticated requests
-#         self.default_user = User.objects.create_user(username="default_user", password="defaultpass")
+#         self.default_user = User.objects.create_user(username="default_user", password="defaultpass",email = "defaul@example.org")
 
 #     def test_publish_module_authenticated(self):
 #         """Test publishing a module as an authenticated user"""

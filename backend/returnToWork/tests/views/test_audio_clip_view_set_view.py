@@ -46,6 +46,15 @@ class AudioClipViewSetTests(APITestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['title'], 'Published Clip')
 
+    def test_module_id_query_param_triggers_filter(self):
+        self.client.force_authenticate(user=self.service_user)
+        url = reverse('audioclip-list') + f'?module_id={self.module.id}'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['title'], 'Published Clip')
+
+
     def test_module_id_invalid_returns_empty(self):
         self.client.force_authenticate(user=self.service_user)
         url = reverse('audioclip-list') + '?module_id=notanumber'

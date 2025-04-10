@@ -68,15 +68,21 @@ class DocumentViewSetTests(APITestCase):
         self.assertIn('error', response.data)
         self.assertEqual(response.data['error'], 'No valid documents were uploaded')
 
-    # def test_upload_module_not_found(self):
-    #     self.client.force_authenticate(user=self.author_user)
-    #     url = '/api/documents/upload/'
-    #     file = SimpleUploadedFile("upload.pdf", b"%PDF-1.4", content_type="application/pdf")
+    def test_valid_module_id_query_filters_documents(self):
+        self.client.force_authenticate(user=self.other_user)  
+        url = f'/api/documents/?module_id={self.module.id}'  
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['title'], 'Test Doc')
 
-    #     data = {'files': [file], 'module_id': 9999}
-    #     response = self.client.post(url, data, format='multipart')
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    #     self.assertIn('error', response.data)
+    def test_invalid_module_id_query_returns_empty(self):
+        self.client.force_authenticate(user=self.other_user)  
+        url = '/api/documents/?module_id=invalid123'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.data, list)
+        self.assertEqual(len(response.data), 0)  
 
     def test_upload_no_files(self):
         self.client.force_authenticate(user=self.author_user)
