@@ -23,11 +23,8 @@ function CourseItem(props){
     const userTracker = useRef(null)
     const {isEnrolled, enrollInModule} = useEnrollment(); // to check if the user has enrolled to the module 
 
-    const [totalLikes, addLike] = useState(module.upvotes || 0)
-
 
     const [status, setStatus] = useState({
-        hasLiked: false,
         hasPinned: false,
     })
 
@@ -94,7 +91,6 @@ function CourseItem(props){
             if (userInteractTarget) {
                 setStatus({
                     ...status,
-                    hasLiked: userInteractTarget.hasLiked,
                     hasPinned: userInteractTarget.hasPinned
                 });
             }
@@ -102,21 +98,6 @@ function CourseItem(props){
         run();
     }, [userInteractTarget]); 
 
-    const toggleLike = () => {
-
-        props.update_interact_module(module.id, {...status, hasLiked:!status.hasLiked})
-
-        if(status.hasLiked){
-            //totalLikes.current = totalLikes.current > 0 ? totalLikes.current -= 1 : 0
-            addLike(totalLikes > 0 ? totalLikes - 1 : 0)
-        } else{
-            //totalLikes.current += 1
-            addLike(totalLikes + 1)
-        }
-
-        setStatus({...status, hasLiked: !status.hasLiked})
-
-    }
 
     const toggleFavourite = () => {
 
@@ -142,14 +123,6 @@ function CourseItem(props){
             <div className={styles.titleContainer}>
                 <p>{module.title}</p>
             </div>
-
-            {/* <div className={styles.likeContainer}>
-                <button onClick={() => {toggleLike()}}>
-                    {status.hasLiked ? <MdThumbUpAlt /> : <MdThumbUpOffAlt />}
-                </button>
-
-                <p> {totalLikes}</p>
-            </div> */}
 
             <div className={styles["tag-container"]}>
                 {tags.map(tag => (

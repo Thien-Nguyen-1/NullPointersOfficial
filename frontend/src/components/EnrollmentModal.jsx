@@ -9,7 +9,7 @@ function EnrollmentModal({ isOpen, onClose, module, onEnroll, isEnrolled }) {
   const handleOverlayClick = (e) => {
 
     // Only close if the click was directly on the overlay, not its children
-    if (e.target.className === 'enrollment-modal-overlay') {
+    if (e.target.classList.contains('enrollment-modal-overlay')) {
         onClose();
     }
   }
@@ -17,6 +17,7 @@ function EnrollmentModal({ isOpen, onClose, module, onEnroll, isEnrolled }) {
   return (
     <div className="enrollment-modal-overlay"
         onClick={handleOverlayClick}
+        role="dialog"
     >
       <div className="enrollment-modal">
         <div className="enrollment-modal-header">
