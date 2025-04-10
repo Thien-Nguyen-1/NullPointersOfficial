@@ -37,6 +37,8 @@ export default defineConfig({
       reportsDirectory: './coverage', 
       exclude: [
         'src/tests/**/__mocks__/**',
+        './*.config.js',
+        'html/*'
       ]
     },
   }
