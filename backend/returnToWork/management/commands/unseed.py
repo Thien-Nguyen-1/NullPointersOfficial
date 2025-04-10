@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from returnToWork.models import User, Tags, Module, ProgressTracker, InfoSheet, Video, Task, InlinePicture, AudioClip, Document, EmbeddedVideo, RankingQuestion
+from returnToWork.models import User, Tags, Module, ProgressTracker, Task, AudioClip, Document, EmbeddedVideo, RankingQuestion
 
 class Command(BaseCommand):
     help = "Remove all seeded data from the database"
@@ -13,7 +13,6 @@ class Command(BaseCommand):
         # Delete all related content
         ProgressTracker.objects.all().delete()
         RankingQuestion.objects.all().delete()
-        InlinePicture.objects.all().delete()
         AudioClip.objects.all().delete()
         Document.objects.all().delete()
         EmbeddedVideo.objects.all().delete()

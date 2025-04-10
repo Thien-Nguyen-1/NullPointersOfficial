@@ -49,6 +49,17 @@ const Signup = () => {
       return true;
     }
   };
+  const checkEmailExists = async (email) => {
+    try {
+      const response = await fetch (`/api/check-email?email=${email}`);
+      const data = await response.json();
+      return data.exists;
+    } 
+    catch(err) {
+      console.error("Error checking email:", err);
+      return true;
+    }
+  };
 
   const handleSignUp = async(e) => {
     e.preventDefault();
@@ -75,6 +86,11 @@ const Signup = () => {
     const usernameTaken = await checkUsernameExists(username);
     if(usernameTaken){
       setError("This username is already taken, please choose another.");
+      return;
+    }
+    const emailTaken = await checkEmailExists(email);
+    if(emailTaken){
+      setError("This email is already registered to a user, please choose another.");
       return;
     }
     

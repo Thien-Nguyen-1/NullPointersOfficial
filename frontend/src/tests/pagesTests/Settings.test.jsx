@@ -62,7 +62,7 @@ describe("Settings Component", () => {
       expect(await screen.findByText("No completed content yet.")).toBeInTheDocument();
     });
 
-    it("logs an error if getting content fails", async () => {
+    it("error if getting content fails", async () => {
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       api.fetchCompletedInteractiveContent.mockRejectedValue(new Error("Something went wrong"));
       renderWithContext();
@@ -77,7 +77,7 @@ describe("Settings Component", () => {
   });
 
   describe("Password Change Form", () => {
-    it("shows error if passwords dont match", async () => {
+    it("showserror if passwords dont match", async () => {
       const alertMock = vi.spyOn(window, "alert").mockImplementation(() => {});
       const { container } = renderWithContext();
       const inputs = container.querySelectorAll('input[type="password"]');
@@ -144,7 +144,7 @@ describe("Settings Component", () => {
       ]);
     });
 
-    it("calls API with token", async () => {
+    it("calls API ", async () => {
       renderWithContext();
       const downloadBtn = await screen.findByText("Download PDF");
       fireEvent.click(downloadBtn);
