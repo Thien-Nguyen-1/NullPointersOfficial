@@ -23,7 +23,8 @@ class ResendAdminVerificationTests(APITestCase):
         )
         self.resend_url = lambda user_id: reverse('resend_admin_verification', args=[user_id])
 
-    @patch('returnToWork.views.send_mail')
+    @patch('returnToWork.views.superAdminViews.send_mail')
+
     def test_superadmin_can_resend_email(self, mock_send_mail):
         self.client.force_authenticate(user=self.superadmin)
         response = self.client.post(self.resend_url(self.admin_unverified.id))
