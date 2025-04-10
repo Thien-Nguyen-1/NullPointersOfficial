@@ -1,0 +1,95 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 320px;
+  animation: slideUp 0.3s ease-out;
+}
+
+.simple-tag-form {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.simple-tag-form input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.simple-tag-form input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 12px;
+  margin: 0 0 10px 0;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-button, .create-button {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.create-button {
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.create-button:hover {
+  background-color: var(--primary-green-dark, #1b5e20);
+}
+
+.cancel-button:disabled, .create-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
