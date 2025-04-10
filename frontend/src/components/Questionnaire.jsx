@@ -73,11 +73,12 @@ const Questionnaire = () => {
 
       const newUsr = {
         ...user,
-        is_first_login : false
+        is_first_login : false,
+        tags: all_tags
       }
-      
+    
       console.log(newUsr.is_first_login)
-
+     
       await updateUser(newUsr)
     
       navigate('/worker/home')
@@ -114,7 +115,11 @@ const Questionnaire = () => {
 
           console.log("Responses are , " , arr)
           
+          const allTags = await tagApi.getAll()
 
+          const usrTags = allTags?.data.filter((tagObj) => arr.includes(tagObj.tag))
+          
+        
           const newMods = await Promise.all(
             allModules?.map(async (modObj) => {
 
@@ -137,7 +142,7 @@ const Questionnaire = () => {
           console.log(filteredModules)
           setModules(filteredModules)
 
-          setTag(arr)
+          setTag(usrTags)
         }
 
         setQuestion(null);

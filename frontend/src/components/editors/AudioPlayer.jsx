@@ -58,6 +58,7 @@ const AudioPlayer = ({ audioUrl, audioName, onClose }) => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('error', handleError);
       audio.pause();
+
     };
   }, [audioUrl]);
 
@@ -171,9 +172,11 @@ const AudioPlayer = ({ audioUrl, audioName, onClose }) => {
           </div>
           
           <div 
+            data-testid="progress-container"
             className={styles.progressContainer} 
             onClick={handleSeek}
             ref={progressBarRef}
+            
           >
             <div 
               className={styles.progressBar}
@@ -191,6 +194,7 @@ const AudioPlayer = ({ audioUrl, audioName, onClose }) => {
             </button>
             
             <div 
+              data-testid="volume-bar-container"
               className={styles.volumeBar} 
               onClick={handleVolumeChange}
               ref={volumeBarRef}
@@ -211,6 +215,12 @@ const AudioPlayer = ({ audioUrl, audioName, onClose }) => {
       />
     </div>
   );
+
+
+
+
+
+
 };
 
 export default AudioPlayer;
