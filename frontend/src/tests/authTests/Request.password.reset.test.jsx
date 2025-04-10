@@ -93,7 +93,7 @@ describe("RequestPasswordReset component", () => {
         );
       });
     
-      alertSpy.mockRestore(); // cleanup
+      alertSpy.mockRestore(); 
     });
 
     

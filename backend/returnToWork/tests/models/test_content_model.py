@@ -103,6 +103,22 @@ class ContentModelTests(TestCase):
         self.assertEqual(image.height, 600)
         self.assertFalse(image.is_published)
 
+    def test_image_format(self):
+        image = Image.objects.create(
+            title='Another test',
+            moduleID=self.module,
+            author=self.user,
+            description='Image description',
+            file_url='/test/image.jpg',
+            filename='Another test.jpg',
+            file_size=512,
+            file_type='jpg',
+            width=100,
+            height=100
+        )
+        self.assertEqual(image.file_size_formatted, "512 B")
+
+
     def test_audio_clip_model_methods(self):
         """
         Test AudioClip model's methods including __str__, file_url, file_size_formatted, and delete

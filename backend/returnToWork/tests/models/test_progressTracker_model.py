@@ -58,11 +58,28 @@ class ProgressTrackerModelTest(TestCase):
         updated_tracker = ProgressTracker.objects.get(id=self.progressTracker.id)
         self.assertFalse(updated_tracker.completed)
 
+    def test_no_progress(self):
+        new_module = Module.objects.create(
+            title="Handling work stress",
+            description="This is another test module.",
+            upvotes=10
+        )
+        zero_progress = ProgressTracker.objects.create(
+            user = self.user,
+            module = new_module,
+            completed = False,
+        )
+        zero_progress.update_progress()
+        self.assertEqual(zero_progress.progress_percentage,0)
+
     def test_deletion(self):
         tracker_id = self.progressTracker.id
         self.progressTracker.delete()
         with self.assertRaises(ProgressTracker.DoesNotExist):
             ProgressTracker.objects.get(id=tracker_id)    
+
+    
+
 
 
 

@@ -57,3 +57,8 @@ class TagTestCase(TestCase):
         # self.tag1 was created as "Anxiety" and then normalized to "anxiety".
         # Its __str__ method should return "Anxiety"
         self.assertEqual(str(self.tag1), "Anxiety")
+
+    def test_get_valid(self):
+        expected_tags = ["anxiety", "stress", "depression"] 
+        actual_tags = Tags.get_valid_tags()
+        self.assertCountEqual(actual_tags, expected_tags)

@@ -150,8 +150,85 @@ class PasswordResetSerializer(serializers.Serializer):
 class ProgressTrackerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressTracker
-        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked', 
-                 'contents_completed', 'total_contents', 'progress_percentage']
+        fields = ['id', 'user', 'module', 'completed', 'pinned', 'hasLiked',
+                  'contents_completed', 'total_contents', 'progress_percentage']
+        read_only_fields = ['contents_completed']
+        extra_kwargs = {
+            'user': {'required': False},
+            'module': {'required': False},
+        }
+
+    def validate_progress_percentage(self, value):
+        """Validate progress percentage is between 0 and 100"""
+        if value is not None and (value < 0 or value > 100):
+            raise serializers.ValidationError("Progress percentage must be between 0 and 100.")
+        return value
+
+    def validate(self, data):
+        """
+        Additional validation for the entire data set
+        Ensure that progress_percentage drives completion status
+        """
+        # If progress_percentage is present and 100, mark as completed
+        if 'progress_percentage' in data and data['progress_percentage'] == 100.0:
+            data['completed'] = True
+        elif 'progress_percentage' in data and data['progress_percentage'] < 100.0:
+            data['completed'] = False
+        
+        return data
+
+    def update(self, instance, validated_data):
+        """
+        Custom update method to handle partial updates and maintain data consistency
+        """
+        # Remove read-only fields from validated_data
+        validated_data.pop('contents_completed', None)
+        validated_data.pop('total_contents', None)
+
+        # Update only the fields that are present in validated_data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Ensure completed status is consistent with progress percentage
+        if 'progress_percentage' in validated_data:
+            if validated_data['progress_percentage'] == 100.0:
+                instance.completed = True
+            elif validated_data['progress_percentage'] < 100.0:
+                instance.completed = False
+        
+        instance.save()
+        return instance
+
+    def create(self, validated_data):
+        """
+        Custom create method to handle default values and prevent modification of read-only fields
+        """
+        # Remove read-only fields if present
+        validated_data.pop('contents_completed', None)
+
+        # Allow total_contents to be set during creation
+        total_contents = validated_data.pop('total_contents', 0)
+
+        # Set default values
+        validated_data.setdefault('completed', False)
+        validated_data.setdefault('pinned', False)
+        validated_data.setdefault('hasLiked', False)
+        validated_data.setdefault('contents_completed', 0)
+        validated_data.setdefault('progress_percentage', 0.0)
+
+        # Create the instance
+        instance = super().create(validated_data)
+
+        # Set total_contents after creation
+        instance.total_contents = total_contents
+        instance.save()
+
+        # Check if progress_percentage implies completion
+        if instance.progress_percentage == 100.0:
+            instance.completed = True
+            instance.save()
+
+        return instance
         
 class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:

@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { QuizApiUtils } from "../../services/QuizApiUtils";
 import "../../styles/Quizzes/QuestionAndAnswerForm.css";
 
+// This creates a ref that persists across all component instances
+// to avoid leaking internal state through static properties
+const ComponentInstanceRef = {
+  current: null
+};
+
 const QuestionAndAnswerForm = ({ taskId, onComplete,isPreview = false, previewQuestions = null, completedContentIds = new Set()  }) => {
     const [questions, setQuestions] = useState([]);
     const [answers, setAnswers] = useState({});
@@ -75,7 +81,7 @@ const QuestionAndAnswerForm = ({ taskId, onComplete,isPreview = false, previewQu
         if (!completionStateRef.current.isCompleted) {
         loadSavedAnswers();
         }
-    }, [taskId, isPreview]);
+    }, [taskId, isPreview, questions]);
     
 
     const fetchQuestions = async () => {

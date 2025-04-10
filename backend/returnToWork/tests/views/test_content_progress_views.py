@@ -81,7 +81,7 @@ class MarkContentViewedViewTests(APITestCase):
         # Test document
         data = {
             'content_id': self.document_id,
-            'content_type': 'document'
+            'content_type': 'infosheet'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -133,7 +133,7 @@ class MarkContentViewedViewTests(APITestCase):
 
     def test_invalid_content_type(self):
         """Test API validation for invalid content type"""
-        url = reverse('mark-content-viewed')  # Update with your actual URL name
+        url = reverse('mark-content-viewed')
         
         data = {
             'content_id': self.document_id,
@@ -145,11 +145,11 @@ class MarkContentViewedViewTests(APITestCase):
 
     def test_invalid_uuid(self):
         """Test API validation for invalid UUID"""
-        url = reverse('mark-content-viewed')  # Update with your actual URL name
+        url = reverse('mark-content-viewed')
         
         data = {
             'content_id': 'not-a-uuid',
-            'content_type': 'document'
+            'content_type': 'infosheet'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -160,7 +160,7 @@ class MarkContentViewedViewTests(APITestCase):
         
         # Missing content_id
         data = {
-            'content_type': 'document'
+            'content_type': 'infosheet'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -181,7 +181,7 @@ class MarkContentViewedViewTests(APITestCase):
         
         data = {
             'content_id': nonexistent_id,
-            'content_type': 'document'
+            'content_type': 'infosheet'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -193,7 +193,7 @@ class MarkContentViewedViewTests(APITestCase):
         # Mark content as viewed first time
         data = {
             'content_id': self.document_id,
-            'content_type': 'document'
+            'content_type': 'infosheet'
         }
         first_response = self.client.post(url, data, format='json')
         first_count = first_response.data['module_progress']['contents_completed']
@@ -266,7 +266,7 @@ class CompletedContentViewTests(APITestCase):
 
     def test_get_completed_content(self):
         """Test retrieving completed content"""
-        url = reverse('completed-content', args=[self.module.id])  # Update with your actual URL name
+        url = reverse('completed-content', args=[self.module.id])
         
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
