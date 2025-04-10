@@ -148,7 +148,7 @@ export function redirectBasedOnUserType(userData) {
   const userType = userData.user.user_type;
   const isFirstLogin = userData.user.is_first_login;
 
-  console.log("userType detected:", userType); // See what it finds
+  console.log("userType detected:", userType); 
   console.log("isFirstLogin detected:", isFirstLogin);
     switch(userType) {
         case 'superadmin':

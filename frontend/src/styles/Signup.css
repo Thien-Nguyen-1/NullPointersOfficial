@@ -127,7 +127,6 @@
   width: auto;
 }
 
-/* Make the link white and underlined for visibility */
 .terms-link {
   background: none;
   border: none;
@@ -143,7 +142,6 @@
   color: white;
 }
 
-/* Modal styling */
 .terms-modal-overlay {
   position: fixed;
   top: 0;
@@ -245,20 +243,20 @@
   width: auto;
 }
 
-/* Make the terms link a plain text with darker color */
+
 .terms-link {
   background: none;
   border: none;
-  color: #4caf50; /* Darker green color for better visibility */
+  color: #4caf50; 
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
   font-size: 0.9rem;
   margin-left: 4px;
-  font-weight: 600; /* Make it bold for better clickability indication */
-  display: inline; /* Ensure it's displayed inline */
-  box-shadow: none; /* Remove any shadow */
-  appearance: none; /* Remove any default styling */
+  font-weight: 600; 
+  display: inline; 
+  box-shadow: none; 
+  appearance: none;
 }
 
 .terms-link:hover {
@@ -266,7 +264,6 @@
   background: none;
 }
 
-/* Remove the Terms and Conditions button/box styling completely */
 .terms-modal-overlay .terms-buttons button.accept-button {
   background-color: #4caf50;
   color: white;
