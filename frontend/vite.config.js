@@ -34,11 +34,12 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['html','text','lcov'], 
-      reportsDirectory: './coverage', 
+      reportsDirectory: './coverage',
       exclude: [
         'src/tests/**/__mocks__/**',
         './*.config.js',
-        'html/*'
+        'html/*',
+        'src/tests/*'
       ]
     },
   }
