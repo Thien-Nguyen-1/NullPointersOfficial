@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/QuestionnaireAdmin.css';
 import {SubmitQuestionnaire} from '../services/api';
-
+import { useNavigate } from 'react-router-dom';
 const QuestionnaireAdmin = () => {
   // Sample data - this would be fetched from your Django backend
+  const navigate = useNavigate(); 
   const [questions, setQuestions] = useState([
     { 
       id: 1, 
@@ -117,7 +118,8 @@ const QuestionnaireAdmin = () => {
   // Preview the questionnaire
   const previewQuestionnaire = () => {
     // Open preview in new tab or modal
-    alert("Preview functionality would open a view of how the questionnaire looks to users");
+    // alert("Preview functionality would open a view of how the questionnaire looks to users");
+    navigate("/questionnaire");
   };
   
   // Question Node component
@@ -205,13 +207,13 @@ const QuestionnaireAdmin = () => {
           <p>
             Select any question in the tree to edit it.
           </p>
-          <p>
+          {/* <p>
             For end-of-path questions, you can assign an assessment tag.
           </p>
           <div className="editor-info">
             <span className="info-icon">i</span>
             <span>Assessment tags appear on leaf nodes (questions without any next questions).</span>
-          </div>
+          </div> */}
         </div>
       </div>
     );

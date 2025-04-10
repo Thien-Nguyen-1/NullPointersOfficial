@@ -57,6 +57,11 @@ const ModuleViewAlternative = () => {
         
         // Fetch module details
         const moduleData = await QuizApiUtils.getModule(moduleId);
+        if (!moduleData) {
+          setModule(null);
+          setIsLoading(false);
+          return;  // exit early so that no further code that uses moduleData runs
+        }
         setModule(moduleData);
         
         // Fetch tasks associated with this module

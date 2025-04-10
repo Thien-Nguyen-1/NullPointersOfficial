@@ -29,12 +29,18 @@ export default defineConfig({
       '**/dist/**', 
       '**/cypress/**', 
       '**/.{idea,git,cache,output,temp}/**', 
-      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*'
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*',
     ],
     coverage: {
       provider: 'v8',
       reporter: ['html','text','lcov'], 
-      reportsDirectory: './coverage', 
+      reportsDirectory: './coverage',
+      exclude: [
+        'src/tests/**/__mocks__/**',
+        './*.config.js',
+        'html/*',
+        'src/tests/*'
+      ]
     },
   }
 });
