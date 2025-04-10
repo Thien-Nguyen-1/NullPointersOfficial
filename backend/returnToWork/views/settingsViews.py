@@ -13,11 +13,11 @@ from rest_framework import status
 
 from reportlab.pdfgen import canvas
 
-from .models import (
+from returnToWork.models import (
     ContentProgress, Task, QuizQuestion, UserResponse
 )
 
-from .serializers import (
+from returnToWork.serializers import (
     UserSettingSerializer, UserPasswordChangeSerializer
 )
 

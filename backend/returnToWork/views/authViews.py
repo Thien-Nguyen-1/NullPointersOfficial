@@ -14,10 +14,10 @@ from django.core.cache import cache
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-from .models import (
+from returnToWork.models import (
 User, AdminVerification
 )
-from .serializers import (
+from returnToWork.serializers import (
     LogInSerializer,PasswordResetSerializer, RequestPasswordResetSerializer, 
     SignUpSerializer,
     UserPasswordChangeSerializer, UserSerializer

@@ -12,17 +12,15 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import (
+from returnToWork.models import (
     TermsAndConditions, AdminVerification, User, 
     AudioClip, Document, EmbeddedVideo, Image, ProgressTracker, 
     QuizQuestion, RankingQuestion, Task, UserModuleInteraction, UserResponse
 )
-from .serializers import UserSerializer
+from returnToWork.serializers import UserSerializer
 
 class TermsAndConditionsView(APIView):
     """API view for managing Terms and Conditions"""
-    # permission_classes = [IsAuthenticated]
-    
     def get(self, request):
         """Get the current terms and conditions"""
         try:
@@ -93,13 +91,6 @@ class AdminUsersView(APIView):
         data = request.data.copy()
         data['user_type'] = 'admin'
         
-        # Use the existing SignUpSerializer for validation
-        # serializer = SignUpSerializer(data=data)
-        # if serializer.is_valid():
-        #     user = serializer.save()
-        #     return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         # Check if email verification is required:
         require_verification = data.get('require_verification', True)
         try:
@@ -196,16 +187,13 @@ class AdminEmailVerificationView(APIView):
     
     def get(self, request, token):
         """Verify admin email using token"""
-        print(f"[DEBUG] Admin verification requested with token: {token}")
         try:
             # find verification record with this token
             verification = AdminVerification.objects.get(verification_token=token)
             admin_user = verification.admin
-            print(f"[DEBUG] Found verification record for admin: {admin_user.username}, is_verified: {verification.is_verified}")
 
             # If already verified, return a success message
             if verification.is_verified:
-                print(f"[DEBUG] Admin already verified: {admin_user.username}")
                 return Response({
                     'message': 'Email already verified. You can now log in as an admin.',
                     'redirect_url': '/login'
@@ -213,14 +201,12 @@ class AdminEmailVerificationView(APIView):
             
             # check if token is expired
             if verification.is_token_expired():
-                print(f"[DEBUG] Token expired")
                 return Response({
                     'error': 'Verification token has expired. Please request a new one.'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # ensure the user is actually an admin
             if verification.admin.user_type != 'admin':
-                print(f"[DEBUG] User is not admin: {admin_user.user_type}")
                 return Response({
                     'error': 'This verification link is only valid for admin users.'
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -228,7 +214,6 @@ class AdminEmailVerificationView(APIView):
             # Mark as verified and clear token
             verification.is_verified = True
             verification.save()
-            print(f"[DEBUG] Admin verified successfully: {admin_user.username}")
             
             # Generate JWT tokens for immediate login
             refresh = RefreshToken.for_user(verification.admin)
@@ -243,7 +228,6 @@ class AdminEmailVerificationView(APIView):
                 'redirect_url': '/login'
             })
         except AdminVerification.DoesNotExist:
-            print(f"[DEBUG] Invalid or expired verification token: {token}")
             return Response({
                 'error': 'Invalid or expired verification token'
             }, status=status.HTTP_400_BAD_REQUEST)
@@ -309,18 +293,14 @@ class AdminUserDetailView(APIView):
     def delete(self, request, user_id):
         """Delete an admin user"""
         # Check if user is a superadmin
-        print(f"[DEBUG] Received delete request for user_id: {user_id}")
-        print(f"[DEBUG] Type of user_id: {type(user_id)}")
 
         if request.user.user_type != 'superadmin':
-            print(f"[DEBUG] Permission denied: User type is {request.user.user_type}")
             return Response({'error': 'Only superadmins can delete admin users'}, 
                            status=status.HTTP_403_FORBIDDEN)
         
         try:
-            print(f"[DEBUG] Looking for admin user with id={user_id}")
             admin_to_delete = User.objects.get(id=user_id, user_type='admin')
-            print(f"[DEBUG] Found admin: {admin_to_delete.username}")
+            
 
             # Identify the superadmin (current user) 
             superadmin = request.user
@@ -336,7 +316,6 @@ class AdminUserDetailView(APIView):
                 module_count = 0
                 if hasattr(admin_to_delete, 'module'):
                     module_count = admin_to_delete.module.count()
-                    print(f"[DEBUG] Admin has {module_count} modules in many-to-many relationship")
                     # for many-to-many relationships, just need to ensure the superadmin
                     # also has these modules associated, not necessarily transfer ownership
                     if module_count > 0:
@@ -344,7 +323,6 @@ class AdminUserDetailView(APIView):
                         for module in admin_to_delete.module.all():
                             if not superadmin.module.filter(id=module.id).exists():
                                 superadmin.module.add(module)
-                        print(f"[DEBUG] Ensured all modules are associated with superadmin")
                 
                 # 2. Transfer authorship for each content type
                 # for each content type that has an author field, update it
@@ -353,42 +331,36 @@ class AdminUserDetailView(APIView):
                 tasks = Task.objects.filter(author=admin_to_delete)
                 task_count = tasks.count()
                 if task_count > 0:
-                    print(f"[DEBUG] Transferring {task_count} Task items from {admin_to_delete.username} to {superadmin.username}")
                     tasks.update(author=superadmin)
                 
                 # Transfer ownership of RankingQuestion content
                 ranking_questions = RankingQuestion.objects.filter(author=admin_to_delete)
                 rq_count = ranking_questions.count()
                 if rq_count > 0:
-                    print(f"[DEBUG] Transferring {rq_count} RankingQuestion items")
                     ranking_questions.update(author=superadmin)
                 
                 # Transfer ownership of InlinePicture content
                 inline_pictures = Image.objects.filter(author=admin_to_delete)
                 ip_count = inline_pictures.count()
                 if ip_count > 0:
-                    print(f"[DEBUG] Transferring {ip_count} InlinePicture items")
                     inline_pictures.update(author=superadmin)
                 
                 # Transfer ownership of AudioClip content
                 audio_clips = AudioClip.objects.filter(author=admin_to_delete)
                 ac_count = audio_clips.count()
                 if ac_count > 0:
-                    print(f"[DEBUG] Transferring {ac_count} AudioClip items")
                     audio_clips.update(author=superadmin)
                 
                 # Transfer ownership of Document content
                 documents = Document.objects.filter(author=admin_to_delete)
                 doc_count = documents.count()
                 if doc_count > 0:
-                    print(f"[DEBUG] Transferring {doc_count} Document items")
                     documents.update(author=superadmin)
                 
                 # Transfer ownership of EmbeddedVideo content
                 videos = EmbeddedVideo.objects.filter(author=admin_to_delete)
                 video_count = videos.count()
                 if video_count > 0:
-                    print(f"[DEBUG] Transferring {video_count} EmbeddedVideo items")
                     videos.update(author=superadmin)
                 
                 # Transfer ownership of InfoSheet content
@@ -409,14 +381,12 @@ class AdminUserDetailView(APIView):
                 terms = TermsAndConditions.objects.filter(created_by=admin_to_delete)
                 terms_count = terms.count()
                 if terms_count > 0:
-                    print(f"[DEBUG] Transferring {terms_count} TermsAndConditions items")
                     terms.update(created_by=superadmin)
                 
                 # 3. Check for UserModuleInteraction and ProgressTracker 
                 user_interactions = UserModuleInteraction.objects.filter(user=admin_to_delete)
                 ui_count = user_interactions.count()
                 if ui_count > 0:
-                    print(f"[DEBUG] Deleting {ui_count} UserModuleInteraction items")
                     # For user interactions, it's probably better to delete them
                     # since these are personal interactions not ownership
                     user_interactions.delete()
@@ -424,7 +394,6 @@ class AdminUserDetailView(APIView):
                 progress_trackers = ProgressTracker.objects.filter(user=admin_to_delete)
                 pt_count = progress_trackers.count()
                 if pt_count > 0:
-                    print(f"[DEBUG] Deleting {pt_count} ProgressTracker items")
                     # For progress trackers, also better to delete
                     progress_trackers.delete()
                 
@@ -432,7 +401,6 @@ class AdminUserDetailView(APIView):
                 user_responses = UserResponse.objects.filter(user=admin_to_delete)
                 ur_count = user_responses.count()
                 if ur_count > 0:
-                    print(f"[DEBUG] Deleting {ur_count} UserResponse items")
                     user_responses.delete()
                 
                 # Store admin_to_delete name for the response message
@@ -441,7 +409,6 @@ class AdminUserDetailView(APIView):
                 
                 # Finally, delete the admin_to_delete user after transferring all content
                 admin_to_delete.delete()
-                print(f"[DEBUG] Admin user deleted successfully after content transfer")
                 
                 # Return a 200 OK with detailed information instead of 204 No Content
                 # This allows the frontend to display more informative feedback
@@ -468,20 +435,14 @@ class AdminUserDetailView(APIView):
                 }, status=status.HTTP_200_OK)
                 
         except User.DoesNotExist:
-            print(f"[DEBUG] Admin user not found with id={user_id}")
             return Response({'error': 'Admin user not found'}, 
                            status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
-            print(f"[DEBUG] Error deleting admin user: {str(e)}")
             import traceback
             traceback.print_exc()
             return Response({'error': f'An error occurred: {str(e)}'}, 
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# class UserResponseViewSet(viewsets.ModelViewSet):
-#     queryset = UserResponse.objects.all()
-#     serializer_class = UserResponseSerializer
 
 class CheckSuperAdminView(APIView):
     """API view to check if the current user is a superadmin"""
