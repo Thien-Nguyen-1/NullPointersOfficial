@@ -122,7 +122,7 @@ const RankingQuiz = ({ taskId, onComplete, isPreview = false, previewQuestions =
     };
     
     loadSavedAnswers();
-  }, [taskId, isPreview]);
+  }, [taskId, isPreview, questions]);
 
   // Handle moving a tier up or down
   const handleMoveTier = (questionId, tierIndex, direction) => {
