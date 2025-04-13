@@ -1,5 +1,5 @@
 
-
+// Custom Profanity Filtering Script should it be required in the application
 
 import {RegExpMatcher, TextCensor, englishDataset, englishRecommendedTransformers, pattern} from 'obscenity'
 

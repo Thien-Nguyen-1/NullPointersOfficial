@@ -21,7 +21,7 @@ import PasswordReset from './components/auth/PasswordReset.jsx';
 import RequestPasswordReset from './components/auth/RequestPasswordReset.jsx';
 
 import ModuleViewAlternative from './components/ModuleViewAlternative.jsx';
-import Messaging from './pages/Messaging.jsx';
+
 import ServiceUsersPage from "./pages/ServiceUsersPage";
 
 import QuizContainer from './components/quizzes/QuizContainer';
@@ -35,7 +35,7 @@ import VerifyEmail from './components/auth/VerifyEmail.jsx';
 import VerifyAdminEmail from './components/admin/VerifyAdminEmail.jsx';
 import QuestionnaireAdmin from './pages/questionnaire-admin.jsx'
 
-import NotificationOverlay from './overlays/notifications.jsx';
+
 
 import "./App.css";
 
@@ -45,11 +45,7 @@ import { SuperAdminContextProvider } from './contexts/SuperAdminContext.jsx';
 import { PreviewModeProvider } from './services/PreviewModeContext.jsx';
 
 
-const LocationWrapper = () => {
-  const location = useLocation(); 
 
-  return <NotificationOverlay currentRoute={location} />;
-};
 
 
 function App() {
@@ -98,7 +94,7 @@ function App() {
                         <Routes>
                           <Route path="home" element={<WorkerDashboard />} />
                           <Route path="settings" element={<Settings />} />
-                          <Route path="support" element={<Messaging />} />
+                         
                           <Route path="courses" element={<Courses/>} />
                           
                           {/* to be deleted */}
@@ -116,7 +112,7 @@ function App() {
                             <Routes>
                                 <Route path="home" element={<AdminDashboard />} />
                               <Route path="settings" element={<Settings />} />
-                              <Route path="support" element={<Messaging />} />
+                              
                               <Route path="courses" element={<Courses />} />
                               <Route path="service-users" element={<ServiceUsersPage />} />
                               <Route path="set-questionnaire" element={<QuestionnaireAdmin />} />
@@ -140,7 +136,7 @@ function App() {
                       <Routes>
                         <Route path="home" element={<AdminDashboard />} />
                         <Route path="settings" element={<Settings />} />
-                        <Route path="support" element={<Messaging />} />
+                  
                         <Route path="courses" element={<Courses />} />
                         <Route path="service-users" element={<ServiceUsersPage />} />
                       <Route path="set-questionnaire" element={<QuestionnaireAdmin />} />
@@ -152,7 +148,7 @@ function App() {
                   </DashboardLayout>
                 } />
               </Routes>
-              <LocationWrapper />
+            
             </Router>
           </EnrollmentContextProvider>
         </PreviewModeProvider>

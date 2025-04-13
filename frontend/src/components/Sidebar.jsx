@@ -35,7 +35,6 @@ const Sidebar = ({ role }) => {
 
   const commonItems = [
     { path: "home", icon: <FaHome size={24} />, label: "Home" },
-    { path: "support", icon: <BiSupport size={24} />, label: "Support" },
     { path: "settings", icon: <FaCog size={24} />, label: "Settings" },
 
   ];

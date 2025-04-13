@@ -105,9 +105,7 @@ vi.mock('../components/ModuleViewAlternative', () => ({
   default: () => <div data-testid="module-view-page">Module View Page</div>
 }));
 
-vi.mock('../pages/Messaging', () => ({
-  default: () => <div data-testid="messaging-page">Messaging Page</div>
-}));
+
 
 vi.mock('../pages/ServiceUsersPage', () => ({
   default: () => <div data-testid="service-users-page">Service Users Page</div>

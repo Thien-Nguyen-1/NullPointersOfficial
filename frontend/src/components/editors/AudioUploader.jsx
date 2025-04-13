@@ -408,7 +408,7 @@ const AudioUploader = React.forwardRef(({ moduleId, documentId, existingAudios =
     }
     
     // For server-stored files
-    const backendUrl = "http://localhost:8000"; // Django port
+    const backendUrl = import.meta.env.VITE_API_URL; // Django port
     return audio.file_url && typeof audio.file_url === 'string' && audio.file_url.startsWith('http') 
       ? audio.file_url 
       : `${backendUrl}${audio.file_url}`;

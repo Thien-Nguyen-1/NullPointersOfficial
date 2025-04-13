@@ -19,7 +19,7 @@ const VerifyAdminEmail = () => {
         console.log('Attempting to verify admin email with token:', token);
 
         // Use the absolute URL to the backend
-        const backendUrl = 'http://localhost:8000';
+        const backendUrl = import.meta.env.VITE_API_URL;
         const response = await axios.get(`${backendUrl}/api/verify-admin-email/${token}/`);
 
         console.log('Verification response:', response.data);

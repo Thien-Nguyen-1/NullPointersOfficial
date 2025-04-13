@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
+  
+
   plugins: [react()],
 
   server: {
@@ -13,7 +15,7 @@ export default defineConfig({
     open: true,   // Help to open browser automatically
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',  // Your Django server address
+        target: 'http://localhost:8000',  // Your Django server address MUST CORRESPOND with one defined in .env
         changeOrigin: true,
         secure: false
       }

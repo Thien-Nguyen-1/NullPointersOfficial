@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext} from "react";
 import axios, { all } from "axios";
 import { GetQuestion, SubmitQuestionAnswer, tagApi, moduleApi } from "../services/api";
-// const API_BASE_URL = "/api/questionnaire/";
+
 import { GetResult } from "../services/open_router_chat_api";
 import "../styles/Questionnaire.css";
 import ModuleSuggestionBox from "./questionnaire/ModuleSuggestion";
@@ -70,6 +70,7 @@ const Questionnaire = () => {
 
   const redirectDashboard = async () => {
       
+    console.log("REDIRECTING SETTING USER TO FIRST LOGIN NOT")
 
       const newUsr = {
         ...user,
@@ -156,7 +157,7 @@ const Questionnaire = () => {
   }
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return  navigate('/worker/home');
   if (!question) return (
   <>
   <div className="suggestion-container mb-2 mt-2"> 

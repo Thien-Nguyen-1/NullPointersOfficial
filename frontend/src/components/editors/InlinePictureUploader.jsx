@@ -663,7 +663,7 @@ const InlinePictureUploader = React.forwardRef(({
       // Handle SERVER-STORED files
       console.log("[DEBUG] Downloading server-stored file");
       // Use the backend server URL instead of the frontend URL
-      const backendUrl = "http://localhost:8000"; // Django port
+      const backendUrl = import.meta.env.VITE_API_URL; // Django port
       const fileUrl = img.file_url && typeof img.file_url === 'string' && img.file_url.startsWith('http')
         ? img.file_url
         : `${backendUrl}${img.file_url}`;
@@ -790,7 +790,7 @@ const InlinePictureUploader = React.forwardRef(({
     }
 
     // For server-stored files
-    const backendUrl = "http://localhost:8000";
+    const backendUrl = import.meta.env.VITE_API_URL;
     return image.file_url && typeof image.file_url === 'string' && image.file_url.startsWith('http')
       ? image.file_url
       : `${backendUrl}${image.file_url}`;

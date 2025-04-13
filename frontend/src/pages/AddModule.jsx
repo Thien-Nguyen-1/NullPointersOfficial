@@ -86,6 +86,8 @@ const mediaCleanupHandlers = {
   }
 };
 
+const baseURL = import.meta.env.VITE_API_URL
+
 // notes on code complexity:
 // this component has multiple responsibilities:
 // 1. module creation and editing
@@ -727,7 +729,7 @@ const AddModule = () => {
     if (fileData.originalDocument) {
       fileUrl = fileData.originalDocument.file_url.startsWith('http') 
         ? fileData.originalDocument.file_url 
-        : `http://localhost:8000${fileData.originalDocument.file_url}`;
+        : `${baseURL}${fileData.originalDocument.file_url}`;
     }
     // Priority 2: New file upload (blob or file)
     else if (fileData.file instanceof File || fileData.file instanceof Blob) {
@@ -740,7 +742,7 @@ const AddModule = () => {
     }
     // Fallback
     else {
-      fileUrl = 'http://localhost:8000/media/documents/default.pdf';
+      fileUrl = `${baseURL}/media/documents/default.pdf`;
     }
   
     console.log('[DOCUMENT PREVIEW] Generated fileUrl:', fileUrl);
@@ -814,11 +816,11 @@ const AddModule = () => {
     } else if (fileData.file_url) {
       fileUrl = fileData.file_url.startsWith('http') 
         ? fileData.file_url 
-        : `http://localhost:8000${fileData.file_url}`;
+        : `${baseURL}${fileData.file_url}`;
     } else if (fileData.originalImage && fileData.originalImage.file_url) {
       fileUrl = fileData.originalImage.file_url.startsWith('http')
         ? fileData.originalImage.file_url
-        : `http://localhost:8000${fileData.originalImage.file_url}`;
+        : `${baseURL}${fileData.originalImage.file_url}`;
     }
 
     const imageWidth = fileData.width || 

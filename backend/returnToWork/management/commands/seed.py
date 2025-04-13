@@ -10,29 +10,27 @@ This script creates:
 - Variety of content for each module (quizzes, videos, documents)
 - Random enrollments for users
 """
-
 import os
 import random
+import uuid  # Add this import
 from django.core.management.base import BaseCommand
 from django.core.files import File
-from faker import Faker
+from faker import Faker  # Import Faker
 from django.contrib.auth import get_user_model
-from returnToWork.models import AudioClip, Document, Image, Module, Tags, RankingQuestion, FlowChart, FlowChartQuestion
 from django.db import transaction
 
-# Path to seed media directory
-SEED_MEDIA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'seed_media')
-AUDIO_PATH = os.path.join(SEED_MEDIA_DIR, 'audio', 'dummy_audio.mp3')
-IMAGE_PATH = os.path.join(SEED_MEDIA_DIR, 'image', 'dummy_image.jpg')
-DOCUMENT_PATH = os.path.join(SEED_MEDIA_DIR, 'document', 'dummy_document.pdf')
+# Instantiate Faker
+fake = Faker()  # Add this line
 
 # Import models
 from django.contrib.auth import get_user_model
-from returnToWork.models import (
-    Tags, Module, ProgressTracker, AdminVerification, Task, TermsAndConditions,
-    RankingQuestion, Document, EmbeddedVideo, QuizQuestion, AudioClip, Image
-)
-from django.db import transaction
+from returnToWork.models import ProgressTracker, Tags, User, Module, Content, Task, Questionnaire, RankingQuestion, Document, EmbeddedVideo, AudioClip, UserModuleInteraction, QuizQuestion, UserResponse, Conversation, Message, AdminVerification, Image, TermsAndConditions
+
+# Path to seed media directory
+SEED_MEDIA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', '..','seed_media')
+AUDIO_PATH = os.path.join(SEED_MEDIA_DIR, 'audio', 'dummy_audio.mp3')
+IMAGE_PATH = os.path.join(SEED_MEDIA_DIR, 'image', 'dummy_image.jpg')
+DOCUMENT_PATH = os.path.join(SEED_MEDIA_DIR, 'document', 'dummy_document.pdf')
 
 # Get the User model
 User = get_user_model()
@@ -60,7 +58,7 @@ def create_tags():
 
 
 # Create users (service users, admins, superadmin)
-def create_users():
+def create_users(tags):
     """Create various types of users"""
 
     service_users = []
@@ -83,9 +81,16 @@ def create_users():
             first_name=first_name,
             last_name=last_name,
             user_type="service user",
-            is_first_login=False,
+            is_first_login=True,
             terms_accepted=True
         )
+
+        # Assign random tags to each service user
+        num_tags = random.randint(1, 5)  # Assign between 1 and 5 tags
+        selected_tags = random.sample(list(tags), num_tags)
+        for tag in selected_tags:
+            user.tags.add(tag)
+
         service_users.append(user)
 
 
@@ -166,6 +171,13 @@ def create_users():
         is_first_login=False,
         terms_accepted=True
     )
+
+    # Assign random tags to the specific service user
+    num_tags = random.randint(2, 6)  # Assign between 2 and 6 tags
+    selected_tags = random.sample(list(tags), num_tags)
+    for tag in selected_tags:
+        specific_service_user.tags.add(tag)
+
     service_users.append(specific_service_user)
 
     # Create specific admin (@admin)
@@ -240,18 +252,6 @@ def create_modules(users, tags):
                     'description': 'An overview of workplace anxiety, its causes, and effects.'
                 },
                 {
-                    'type': 'ranking',
-                    'title': 'Anxiety Triggers Ranking',
-                    'description': 'Identify which situations cause you the most anxiety.',
-                    'tiers': [
-                        'Public speaking/presentations',
-                        'Conflict with colleagues',
-                        'Performance reviews',
-                        'Meeting deadlines',
-                        'Social interactions at work'
-                    ]
-                },
-                {
                     'type': 'flashcard',
                     'title': 'Anxiety Management Techniques',
                     'questions': [
@@ -266,6 +266,24 @@ def create_modules(users, tags):
                         {
                             'question': 'How can you implement a worry time?',
                             'hint': 'Setting aside a specific time each day to address worries, rather than letting them intrude throughout the day.'
+                        }
+                    ]
+                },
+                {
+                    'type': 'flashcard',
+                    'title': 'Advanced Anxiety Management Strategies',
+                    'questions': [
+                        {
+                            'question': 'What is cognitive restructuring?',
+                            'hint': 'A technique that involves identifying negative thought patterns and replacing them with more realistic and positive alternatives.'
+                        },
+                        {
+                            'question': 'How can progressive muscle relaxation help with anxiety?',
+                            'hint': 'A technique where you systematically tense and then release different muscle groups to reduce physical tension associated with anxiety.'
+                        },
+                        {
+                            'question': 'What are the benefits of mindfulness practice for workplace anxiety?',
+                            'hint': 'Helps bring attention to the present moment, reducing rumination about past events or future worries while increasing awareness of thought patterns.'
                         }
                     ]
                 },
@@ -325,6 +343,27 @@ def create_modules(users, tags):
                     ]
                 },
                 {
+                    'type': 'fill_blanks',
+                    'title': 'Understanding Depression Recovery',
+                    'questions': [
+                        {
+                            'question': 'Depression recovery is often ____ rather than linear, with ____ being a normal part of the process.',
+                            'hint': 'Think about the nature of recovery journeys',
+                            'answers': ['cyclical', 'setbacks']
+                        },
+                        {
+                            'question': 'When returning to work, a ____ schedule with gradually increasing hours can help with successful ____.',
+                            'hint': 'Think about easing back into work responsibilities',
+                            'answers': ['modified', 'reintegration']
+                        },
+                        {
+                            'question': 'Social ____ at work can significantly impact depression recovery, making ____ communication with select colleagues important.',
+                            'hint': 'Think about workplace relationships',
+                            'answers': ['support', 'transparent']
+                        }
+                    ]
+                },
+                {
                     'type': 'qa_form',
                     'title': 'Workplace Accommodation Planning',
                     'questions': [
@@ -349,19 +388,6 @@ def create_modules(users, tags):
             'description': 'Evidence-based approaches to managing workplace stress. Learn practical skills for reducing stress, setting boundaries, and building resilience in high-pressure environments.',
             'tags': ['stress', 'stress management', 'resilience', 'self-care', 'coping strategies'],
             'content': [
-                {
-                    'type': 'ranking',
-                    'title': 'Personal Stress Triggers',
-                    'description': 'Rank these common workplace stressors based on their impact on you.',
-                    'tiers': [
-                        'Heavy workload or unrealistic deadlines',
-                        'Difficult relationships with colleagues or supervisors',
-                        'Lack of clarity in role or expectations',
-                        'Poor communication within the team or organization',
-                        'Limited resources or support',
-                        'Work-life balance challenges'
-                    ]
-                },
                 {
                     'type': 'document',
                     'title': 'Progressive Muscle Relaxation Guide',
@@ -399,6 +425,20 @@ def create_modules(users, tags):
                     ]
                 },
                 {
+                    'type': 'ranking_quiz',
+                    'title': 'Stress Management Techniques Effectiveness',
+                    'description': 'Rank these stress management techniques from most immediate relief to most long-term benefit.',
+                    'tiers': [
+                        'Deep breathing exercises',
+                        'Regular physical exercise',
+                        'Progressive muscle relaxation',
+                        'Cognitive restructuring',
+                        'Mindfulness meditation practice',
+                        'Social support utilization',
+                        'Time management systems'
+                    ]
+                },
+                {
                     'type': 'audio',
                     'title': 'Guided Meditation for Workplace Stress',
                     'description': 'A 10-minute guided meditation focusing on breathing and mindfulness.',
@@ -411,12 +451,6 @@ def create_modules(users, tags):
             'description': 'Develop a sustainable approach to balancing professional responsibilities with personal wellbeing. This module helps create healthy boundaries and prioritization skills.',
             'tags': ['work-life balance', 'wellbeing', 'self-care', 'stress management', 'resilience'],
             'content': [
-                {
-                    'type': 'video',
-                    'title': 'The Importance of Work-Life Balance',
-                    'url': 'https://www.youtube.com/watch?v=MPR3o6Hnf2g',
-                    'description': 'Understanding why balance matters and how it impacts your health.'
-                },
                 {
                     'type': 'qa_form',
                     'title': 'Current Balance Assessment',
@@ -452,7 +486,7 @@ def create_modules(users, tags):
                     ]
                 },
                 {
-                    'type': 'ranking',
+                    'type': 'ranking_quiz',
                     'title': 'Priority Assessment',
                     'description': 'Rank these life aspects in order of their importance to you.',
                     'tiers': [
@@ -463,6 +497,66 @@ def create_modules(users, tags):
                         'Social connections',
                         'Hobbies and interests',
                         'Financial security'
+                    ]
+                },
+                {
+                    'type': 'matching',
+                    'title': 'Work-Life Balance Challenges and Solutions',
+                    'questions': [
+                        {
+                            'text': 'Digital overload',
+                            'answers': ['Tech-free zones at home', 'Scheduled screen breaks',
+                                        'App blockers after hours', 'Notification management']
+                        },
+                        {
+                            'text': 'Work schedule creep',
+                            'answers': ['Calendar blocking for personal time', 'Strict end-of-day rituals',
+                                        'Communicated availability hours', 'Time tracking awareness']
+                        },
+                        {
+                            'text': 'Personal identity tied to work',
+                            'answers': ['Non-work hobby development', 'Values clarification exercises',
+                                        'Social connections outside work', 'Redefined success metrics']
+                        },
+                        {
+                            'text': 'Difficulty saying "no"',
+                            'answers': ['Rehearsed response templates', 'Priority alignment check',
+                                        'Delegation strategies', 'Impact assessment before committing']
+                        }
+                    ]
+                },
+                {
+                    'type': 'flowchart',
+                    'title': 'Building a Sustainable Work-Life Balance System',
+                    'questions': [
+                        {
+                            'question_text': 'Audit current time allocation',
+                            'hint_text': 'Track how you actually spend time for one week'
+                        },
+                        {
+                            'question_text': 'Identify values and priorities',
+                            'hint_text': 'Consider what matters most in both personal and professional domains'
+                        },
+                        {
+                            'question_text': 'Define specific boundaries',
+                            'hint_text': 'Create clear delineations between work and personal time'
+                        },
+                        {
+                            'question_text': 'Communicate boundaries to stakeholders',
+                            'hint_text': 'Inform colleagues, family, and clients of your availability parameters'
+                        },
+                        {
+                            'question_text': 'Implement supporting systems',
+                            'hint_text': 'Set up calendar blocks, notification settings, and physical environment changes'
+                        },
+                        {
+                            'question_text': 'Practice boundary maintenance',
+                            'hint_text': 'Consistently reinforce boundaries with both yourself and others'
+                        },
+                        {
+                            'question_text': 'Regular review and adjustment',
+                            'hint_text': 'Quarterly assessment of balance effectiveness and necessary modifications'
+                        }
                     ]
                 }
             ]
@@ -539,6 +633,48 @@ def create_modules(users, tags):
                     'title': 'Personal Burnout Prevention Plan Template',
                     'description': 'A customizable template for creating your burnout prevention strategy.',
                     'filename': 'burnout_prevention_plan.pdf'
+                },
+                {
+                    'type': 'fill_blanks',
+                    'title': 'Burnout Prevention Fundamentals',
+                    'questions': [
+                        {
+                            'question': 'The three key dimensions of burnout are emotional exhaustion, ____, and reduced personal ____.',
+                            'hint': 'Think about the psychological components of burnout',
+                            'answers': ['cynicism', 'accomplishment']
+                        },
+                        {
+                            'question': 'Regular ____ practice is essential for burnout prevention, as it activates the ____ nervous system.',
+                            'hint': 'Think about relaxation techniques',
+                            'answers': ['mindfulness', 'parasympathetic']
+                        },
+                        {
+                            'question': 'Job ____ and organizational ____ are two workplace factors that significantly impact burnout risk.',
+                            'hint': 'Think about workplace characteristics that influence burnout',
+                            'answers': ['demands', 'support']
+                        }
+                    ]
+                },
+                {
+                    'type': 'qa_form',
+                    'title': 'Personal Burnout Risk Assessment',
+                    'questions': [
+                        {
+                            'text': 'What aspects of your work do you find most depleting or draining?'
+                        },
+                        {
+                            'text': 'Which warning signs (physical, emotional, behavioral) might indicate you are approaching burnout?'
+                        },
+                        {
+                            'text': 'What recovery activities effectively replenish your energy and engagement?'
+                        },
+                        {
+                            'text': 'What personal or professional values feel compromised when you are experiencing high stress?'
+                        },
+                        {
+                            'text': 'What boundaries could you implement to protect your wellbeing at work?'
+                        }
+                    ]
                 }
             ]
         }
@@ -577,26 +713,15 @@ def create_modules(users, tags):
                     order_index=idx
                 )
 
-            elif content_type == 'ranking':
-                # Create ranking quiz
-                ranking = RankingQuestion.objects.create(
-                    title=content_item['title'],
-                    moduleID=module,
-                    author=author,
-                    description=content_item['description'],
-                    is_published=True,
-                    tiers=content_item['tiers'],
-                    order_index=idx
-                )
-
-            elif content_type in ['flashcard', 'fill_blanks', 'flowchart', 'qa_form', 'matching']:
+            elif content_type in ['flashcard', 'fill_blanks', 'flowchart', 'qa_form', 'matching', 'ranking_quiz']:
                 # Map content types to quiz types
                 quiz_type_map = {
                     'flashcard': 'flashcard',
                     'fill_blanks': 'text_input',
                     'flowchart': 'statement_sequence',
                     'qa_form': 'question_input',
-                    'matching': 'pair_input'
+                    'matching': 'pair_input',
+                    'ranking_quiz' : 'ranking_quiz'
                 }
 
                 # Create task (quiz container)
@@ -620,6 +745,16 @@ def create_modules(users, tags):
                             hint_text=q_data['hint'],
                             order=q_idx
                         )
+
+                elif content_type == 'ranking_quiz':
+                    # Create a single question for ranking quiz
+                    QuizQuestion.objects.create(
+                        task=task,
+                        question_text=content_item['title'],
+                        hint_text=content_item.get('description', ''),
+                        order=0,
+                        answers=content_item['tiers']
+                    )
 
                 elif content_type == 'fill_blanks':
                     for q_idx, q_data in enumerate(content_item['questions']):
@@ -692,7 +827,7 @@ def create_modules(users, tags):
                     order_index=idx
                 )
                 with open(AUDIO_PATH, 'rb') as f:
-                    audio.file.save(content_item['filename'], File(f), save=True)
+                    audio.audio_file.save(content_item['filename'], File(f), save=True)
 
             elif content_type == 'image':
                 image = Image.objects.create(
@@ -776,7 +911,7 @@ class Command(BaseCommand):
         tags = create_tags()
 
         # Create users
-        users = create_users()
+        users = create_users(tags)
 
         # Create modules with content
         modules = create_modules(users, tags)

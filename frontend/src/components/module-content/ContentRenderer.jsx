@@ -18,6 +18,9 @@ import { markContentAsViewed } from "../../services/api";
  * @param {Function} onContentComplete - Callback function when content is completed
  * @param {Boolean} isPreviewMode - Whether we're in preview mode
  */
+
+const backendURL = import.meta.env.VITE_API_URL || 'localhost:8000'
+
 const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPreviewMode= false }) => {
   const { user, token } = useContext(AuthContext);
   console.log("ContentRenderer rendering item:", item.type, item.id);
@@ -105,9 +108,9 @@ const ContentRenderer = ({ item, completedContentIds, onContentComplete, isPrevi
         ...item,
         // Make sure the source property exists (try multiple possible locations)
         source: item.source || 
-        (item.file_url ? (item.file_url.startsWith('http') ? item.file_url : `http://localhost:8000${item.file_url}`) : null) || 
+        (item.file_url ? (item.file_url.startsWith('http') ? item.file_url : `${backendURL}${item.file_url}`) : null) || 
         (item.imageFiles && item.imageFiles[0] && item.imageFiles[0].file_url ? 
-          (item.imageFiles[0].file_url.startsWith('http') ? item.imageFiles[0].file_url : `http://localhost:8000${item.imageFiles[0].file_url}`) : null),
+          (item.imageFiles[0].file_url.startsWith('http') ? item.imageFiles[0].file_url : `${backendURL}${item.imageFiles[0].file_url}`) : null),
         // Ensure other required properties are available
         width: item.width || (item.imageFiles && item.imageFiles[0] && item.imageFiles[0].width) || null,
         height: item.height || (item.imageFiles && item.imageFiles[0] && item.imageFiles[0].height) || null,

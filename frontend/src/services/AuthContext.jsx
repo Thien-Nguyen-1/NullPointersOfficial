@@ -3,14 +3,10 @@ import { createContext, useContext, useEffect, useState } from 'react';
 //import { ApiContextProvider } from './api_context';
 import { useSearchParams } from 'react-router-dom';
 
-/* const baseURL =
-  typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
-    ? import.meta.env.VITE_API_URL
-    : 'http://localhost:8000';   */ //just why?
 
     
 const api = axios.create({
-  baseURL: 'http://localhost:8000', //import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || '',
   withCredentials: true,
 });
 

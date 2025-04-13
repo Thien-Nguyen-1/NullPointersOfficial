@@ -23,7 +23,7 @@ const AudioPlayer = ({ audioUrl, audioName, onClose }) => {
     const audio = audioRef.current;
     
     // Handle backend URL formatting for audio source
-    const backendUrl = "http://localhost:8000";
+    const backendUrl = import.meta.env.VITE_API_URL;
     const formattedUrl = typeof audioUrl === 'string' ? 
       (audioUrl.startsWith('http') ? audioUrl : `${backendUrl}${audioUrl}`) : null;
     

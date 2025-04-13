@@ -1,6 +1,6 @@
 
 import Groq from 'groq-sdk'
-const groq = new Groq({apiKey : "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", dangerouslyAllowBrowser: true })
+const groq = new Groq({apiKey : import.meta.env.VITE_GROQ_API_KEY || "", dangerouslyAllowBrowser: true })
 
 const promptInfo = {
     tags: null,

@@ -78,7 +78,7 @@ class LogInView(APIView):
         is_first_login = False 
         if user.is_first_login:
             is_first_login = True
-            user.is_first_login = False 
+          
             user.save()
         refresh = RefreshToken.for_user(user)
         user_data = UserSerializer(user).data

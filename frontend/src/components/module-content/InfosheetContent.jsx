@@ -20,7 +20,7 @@ const InfosheetContent = ({infosheetData, completedContentIds, onComplete}) => {
     const handleDownload = async (doc) => {
         try {
             // Use the backend server URL
-            const backendUrl = "http://localhost:8000";
+            const backendUrl = import.meta.env.VITE_API_URL;
             const fileUrl = doc.file_url.startsWith('http') 
                 ? doc.file_url 
                 : `${backendUrl}${doc.file_url}`;

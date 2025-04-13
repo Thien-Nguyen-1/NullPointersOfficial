@@ -417,7 +417,7 @@ const DocumentUploader = React.forwardRef(({ moduleId, documentId, existingDocum
       // Handle SERVER-STORED files
       console.log("[DEBUG] Downloading server-stored file");
       // Use the backend server URL instead of the frontend URL
-      const backendUrl = "http://localhost:8000"; // our Django port
+      const backendUrl = import.meta.env.VITE_API_URL; // our Django port
       const fileUrl = doc.file_url && typeof doc.file_url === 'string' && doc.file_url.startsWith('http') 
         ? doc.file_url 
         : `${backendUrl}${doc.file_url}`;

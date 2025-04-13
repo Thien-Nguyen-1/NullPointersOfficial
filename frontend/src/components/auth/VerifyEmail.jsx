@@ -6,11 +6,12 @@ const VerifyEmail = () => {
   const { token } = useParams();  
   const navigate = useNavigate();
   const [message, setMessage] = useState("Verifying...");
+  const baseURL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const verifyUserEmail = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/verify-email/${token}/`);
+        const response = await fetch(`${baseURL}/api/verify-email/${token}/`);
         const data = await response.json();
 
         if (response.ok) {

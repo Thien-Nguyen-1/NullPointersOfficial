@@ -41,7 +41,7 @@ const PDFViewer = ({ documentUrl, documentName }) => {
       }
       
       // Server URL handling
-      const backendUrl = "http://localhost:8000";
+      const backendUrl = import.meta.env.VITE_API_URL;
       const fetchUrl = documentUrl.startsWith('http') 
         ? documentUrl 
         : `${backendUrl}${documentUrl}`;
@@ -79,7 +79,7 @@ const PDFViewer = ({ documentUrl, documentName }) => {
 
   const handleDownload = async () => {
     try {
-      const backendUrl = "http://localhost:8000";
+      const backendUrl = import.meta.env.VITE_API_URL;
       const fileUrl = documentUrl.startsWith('http') 
         ? documentUrl 
         : `${backendUrl}${documentUrl}`;
